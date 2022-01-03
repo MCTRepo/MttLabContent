@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            dp-080-Transact-SQL
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                dp-080-Transact-SQL
+            </a>
+            <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#challenge-1-pivot-product-data">Challenge 1: Pivot product data</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2-group-sales-data">Challenge 2: Group sales data</a></li><li class="nav-item"><a class="nav-link" href="#challenge-1">Challenge 1</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2">Challenge 2</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="use-pivoting-and-grouping-sets">Use pivoting and grouping sets</h1>
+
+<p>In this lab, you’ll use pivoting and grouping sets to query the <strong>adventureworks</strong> database. For your reference, the following diagram shows the tables in the database (you may need to resize the pane to see them clearly).</p>
+
+<p><a href="images/adventureworks-erd.png" target="_blank"><img src="images/adventureworks-erd.png" alt="An entity relationship diagram of the adventureworks database"></a></p>
+
+<blockquote>
+  <p><strong>Note</strong>: If you’re familiar with the standard <strong>AdventureWorks</strong> sample database, you may notice that in this lab we are using a simplified version that makes it easier to focus on learning Transact-SQL syntax.</p>
+</blockquote>
+
+<h2 id="pivot-data-using-the-pivot-operator">Pivot data using the PIVOT operator</h2>
+
+<ol>
+  <li>
+    <p>Start Azure Data Studio, and create a new query (you can do this from the <strong>File</strong> menu or on the <em>welcome</em> page).</p>
+  </li>
+  <li>
+    <p>In the new <strong>SQLQuery_…</strong> pane, use the <strong>Connect</strong> button to connect the query to the <strong>AdventureWorks</strong> saved connection.</p>
+  </li>
+  <li>
+    <p>Once you’ve connected to your database, you can use it. First, let’s create a view that the contains the information we want to pivot. Write the following code in the query pane:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">VIEW</span></span> SalesLT.vCustGroups <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> AddressID, <span class="hljs-keyword"><span class="hljs-keyword">CHOOSE</span></span>(AddressID % <span class="hljs-number"><span class="hljs-number">3</span></span> + <span class="hljs-number"><span class="hljs-number">1</span></span>, N<span class="hljs-string"><span class="hljs-string">'A'</span></span>, N<span class="hljs-string"><span class="hljs-string">'B'</span></span>, N<span class="hljs-string"><span class="hljs-string">'C'</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> custgroup, CountryRegion
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Address;
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>⏵Run</strong> to run your query.</p>
+  </li>
+  <li>
+    <p>The code creates a custom view named <strong>SalesLT.CustGroups</strong> from the <strong>SalesLT.Address</strong> table that groups customers based on their address ID. You can query this view to retrieve results from it. Replace the previous code with the code below:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> AddressID, custgroup, CountryRegion
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.vCustGroups;
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>⏵Run</strong>.</p>
+  </li>
+  <li>
+    <p>The query returns a list of records from the view that shows each customer’s address ID, their assigned customer group based on their address ID, and their country. Let’s pivot the data using the <strong>PIVOT</strong> operator. Replace the code with the code below:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> CountryRegion, p.A, p.B, p.C
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.vCustGroups <span class="hljs-keyword"><span class="hljs-keyword">PIVOT</span></span> (
+         <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(AddressID) <span class="hljs-keyword"><span class="hljs-keyword">FOR</span></span> custgroup <span class="hljs-keyword"><span class="hljs-keyword">IN</span></span> (A, B, C)
+ ) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> p;
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>⏵Run</strong> to run your query.</p>
+  </li>
+  <li>
+    <p>Review the results. The result set shows the total number of customers in each customer group for each country. Notice that the result set has changed its orientation.  Each customer group (A, B, and C) has a dedicated column, alongside the <strong>CountryRegion</strong> column. With this new orientation, it’s easier to understand how many customers are in each group, across all countries.</p>
+  </li>
+</ol>
+
+<h2 id="group-data-using-a-grouping-subclause">Group data using a grouping subclause</h2>
+
+<p>Use subclauses like <strong>GROUPING SETS</strong>, <strong>ROLLUP</strong>, and <strong>CUBE</strong> to group data in different ways. Each subclause allows you to group data in a unique way. For instance, <strong>ROLLUP</strong> allows you to dictate a hierarchy and provides a grand total for your groupings. Alternatively, you can use <strong>CUBE</strong> to get all possible combinations for groupings.</p>
+
+<p>For example, let’s see how you can use <strong>ROLLUP</strong> to group a set of data.</p>
+
+<ol>
+  <li>
+    <p>Create a view that captures sales information based on details from the <strong>SalesLT.Customer</strong> and <strong>SalesLT.SalesOrderHeader</strong> tables. To do this, replace the previous code with the code below, then select <strong>⏵Run</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">VIEW</span></span> SalesLT.vCustomerSales <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> 
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> Customer.CustomerID, Customer.CompanyName, Customer.SalesPerson, SalesOrderHeader.TotalDue 
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer 
+ <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.SalesOrderHeader 
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> Customer.CustomerID = SalesOrderHeader.CustomerID;
+</code></pre>
+  </li>
+  <li>
+    <p>Your view (<strong>SalesLT.vCustomerSales</strong>) cross-references information from two different tables, to display the <strong>TotalDue</strong> amount for customer companies who have made orders, along with their assigned sales representative. Have a look at the view by replacing the previous code with the code below:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> * <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.vCustomerSales;
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>⏵Run</strong>.</p>
+  </li>
+  <li>
+    <p>Let’s use <strong>ROLLUP</strong> to group this data. Replace your previous code with the code below:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SalesPerson, CompanyName, <span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(TotalDue) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> TotalSales
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.vCustomerSales
+     <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ROLLUP</span></span> (SalesPerson, CompanyName);
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>⏵Run</strong>.</p>
+  </li>
+  <li>
+    <p>Review the results. You were able you to retrieve customer sales data, and the use of <strong>ROLLUP</strong> enabled you to group the data in a way that allowed you to get the subtotal for historical sales for each sales person, and a final grand total for all sales at the bottom of the result set.</p>
+  </li>
+</ol>
+
+<h2 id="challenges">Challenges</h2>
+
+<p>Now it’s your turn to pivot and group data.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>: Try to determine the appropriate code for yourself. If you get stuck, suggested answers are provided at the end of this lab.</p>
+</blockquote>
+
+<h3 id="challenge-1-pivot-product-data">Challenge 1: Pivot product data</h3>
+
+<p>The Adventure Works marketing team wants to conduct research into the relationship between colors and products.
+To give them a starting point, you’ve been asked to provide information on how many products are available across the different color types.</p>
+
+<ol>
+  <li>For each product category, count how many products are available across all the color types.
+    <ul>
+      <li>Use the <strong>SalesLT.Product</strong> and <strong>SalesLT.ProductCategory</strong> tables to get a list of products, their colors, and product categories.</li>
+      <li>Pivot your data so that the color types become columns.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="challenge-2-group-sales-data">Challenge 2: Group sales data</h3>
+
+<p>The sales team at Adventure Works wants to write a report on sales data. To help them, your manager has asked if you can group historical sales data for them using all possible combinations of groupings based on the <strong>CompanyName</strong> and <strong>SalesPerson</strong> columns.</p>
+
+<p>To help, you’re going to write a query to:</p>
+
+<ol>
+  <li>Retrieve customer sales data, and group the data.
+    <ul>
+      <li>In your query, fetch all data from the <strong>Sales.vCustomerSales</strong> view.</li>
+      <li>Group the data using <strong>CompanyName</strong> and <strong>SalesPerson</strong>.</li>
+      <li>Use the appropriate subclause that allows you to creates groupings for all possible combinations of your columns.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="challenge-solutions">Challenge Solutions</h2>
+
+<p>This section contains suggested solutions for the challenge queries.</p>
+
+<h3 id="challenge-1">Challenge 1</h3>
+
+<ol>
+  <li>
+    <p>For each product category, count how many products are available across the different color types. Pivot the data so the color types become columns.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> * 
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> 
+ (
+     <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> P.ProductID, PC.Name, <span class="hljs-keyword"><span class="hljs-keyword">ISNULL</span></span>(P.Color, <span class="hljs-string"><span class="hljs-string">'Uncolored'</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> Color 
+     <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> Saleslt.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> PC 
+     <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> P 
+         <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> PC.ProductCategoryID = P.ProductCategoryID
+ ) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> PPC <span class="hljs-keyword"><span class="hljs-keyword">PIVOT</span></span>(
+     <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(ProductID) <span class="hljs-keyword"><span class="hljs-keyword">FOR</span></span> Color <span class="hljs-keyword"><span class="hljs-keyword">IN</span></span>(
+         [Red], [Blue], [Black], [Silver], [Yellow], 
+         [Grey], [Multi], [Uncolored]
+     )
+ ) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> pvt 
+     <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>;
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="challenge-2">Challenge 2</h3>
+
+<ol>
+  <li>
+    <p>Retrieve customer sales data, and group the data.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> CompanyName, SalesPerson, <span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(TotalDue) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> TotalSales
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.vCustomerSales
+     <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> <span class="hljs-keyword"><span class="hljs-keyword">CUBE</span></span> (CompanyName, SalesPerson);
+</code></pre>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="ml-2">
+                    MicrosoftLearning/dp-080-Transact-SQL
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.js"></script>
+
+
+
+</body></html>

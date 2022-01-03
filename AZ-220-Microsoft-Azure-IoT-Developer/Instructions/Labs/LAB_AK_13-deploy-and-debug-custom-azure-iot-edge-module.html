@@ -1,0 +1,1062 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-install-azure-iot-edgehub-dev-tool">Exercise 2: Install Azure IoT EdgeHub Dev Tool</a></li><li class="nav-item"><a class="nav-link active" href="#exercise-3-create-an-azure-container-registry">Exercise 3: Create an Azure Container Registry</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-create-custom-edge-module-in-c">Exercise 4: Create Custom Edge Module in C#</a></li><li class="nav-item"><a class="nav-link" href="#exercise-5-debug-in-attach-mode-with-iot-edge-simulator">Exercise 5: Debug in Attach Mode with IoT Edge Simulator</a></li><li class="nav-item"><a class="nav-link" href="#exercise-6-deploy-the-iot-edge-solution">Exercise 6: Deploy the IoT Edge Solution</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="develop-deploy-and-debug-a-custom-module-on-azure-iot-edge-with-vs-code">Develop, Deploy, and debug a custom module on Azure IoT Edge with VS Code</h1>
+
+<h2 id="lab-scenario">Lab Scenario</h2>
+
+<p>To help manage fluctuations in consumer demand, Contoso maintains a small inventory of ripened cheese wheels in a warehouse at each cheese making facility. These ripened wheels are sealed in wax and the storage environment is carefully controlled to ensure that the cheese remains in perfect condition. Contoso uses a conveyor system to move the large wax-sealed cheese wheels from the warehouse to the packaging facilities.</p>
+
+<p>In the past, Contoso has run their packaging process at full capacity, processing all of the cheese that is placed in the system. Any excess volume of packaged cheese was not an issue because it could be used for promotional offers, and additional cheese could be pulled from inventory as needed. However, with the significant growth that Contoso is experiencing, and with growing fluctuations due to worldwide demand, the company needs to automate the system in a way that helps to manage the volume of cheese being packaged.</p>
+
+<p>Since you have already implemented the IoT solution that monitors the conveyor belt system in the packaging and shipping area, you have been tasked with developing a solution that helps to manage/control packaging volumes.</p>
+
+<p>To ensure that the correct number of packages have been processed, you decide to create (and deploy to an IoT Edge device) a simple module that counts the number of packages detected on the conveyor belt system. You already have another module available that can be used to detect the packages (both modules be deployed to the same IoT Edge device).</p>
+
+<p>You need to create and deploy a custom IoT Edge module that counts the number of packages detected by the other module.</p>
+
+<p>This lab includes the following prerequisites for the development machine (lab host environment - VM or PC):</p>
+
+<ul>
+  <li>Visual Studio Code with the following extensions installed:
+    <ul>
+      <li><a href="https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.azure-iot-tools">Azure IoT Tools</a> by Microsoft</li>
+      <li><a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp">C#</a> by Microsoft</li>
+      <li><a href="https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker">Docker</a></li>
+    </ul>
+  </li>
+  <li>Docker Community Edition installed on development machine, with Docker Client version 18.03.0 or later
+    <ul>
+      <li>
+        <p><a href="https://www.docker.com/products/docker-desktop">Download Docker Desktop for Mac and Windows</a></p>
+
+        <blockquote>
+          <p><strong>Important</strong>: Due to the January 13, 2020 removal of Azure Container Registry support for any TLS versions before TLS version 1.2, you must be running Docker Client 18.03.0 or later.</p>
+        </blockquote>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>The following resources will be created:</p>
+
+<p><a href="media/LAB_AK_13-architecture.png" target="_blank"><img src="media/LAB_AK_13-architecture.png" alt="Lab 13 Architecture"></a></p>
+
+<h2 id="in-this-lab">In This Lab</h2>
+
+<p>In this lab, you will complete the following activities:</p>
+
+<ul>
+  <li>Verify that the lab prerequisites are met (that you have the required Azure resources)</li>
+  <li>Create the Container Registry</li>
+  <li>Create and customize an Edge module</li>
+  <li>Deploy modules to Edge device</li>
+</ul>
+
+<h2 id="lab-instructions">Lab Instructions</h2>
+
+<h3 id="exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</h3>
+
+<p>This lab assumes that the following Azure resources are available:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Resource Type</th>
+      <th style="text-align: left">Resource Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Resource Group</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Hub</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To ensure these resources are available, complete the following tasks.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Deploy to Azure</strong>:</p>
+
+    <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoftLearning%2FAZ-220-Microsoft-Azure-IoT-Developer%2Fbicep%2FAllfiles%2FARM%2Flab13.json">Deploy To Azure</a></p>
+  </li>
+  <li>
+    <p>If prompted, login to the <strong>Azure Portal</strong>.</p>
+
+    <p>The <strong>Custom deployment</strong> page will be displayed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Project details</strong>, in the <strong>Subscription</strong> dropdown, ensure that the Azure subscription that you intend to use for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, select <strong>rg-az220</strong>.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If <strong>rg-az220</strong> is not listed:</p>
+
+      <ol>
+        <li>Under the <strong>Resource group</strong> dropdown, click <strong>Create new</strong>.</li>
+        <li>Under <strong>Name</strong>, enter <strong>rg-az220</strong>.</li>
+        <li>Click <strong>OK</strong>.</li>
+      </ol>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, in the <strong>Region</strong> dropdown, select the region closest to you.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If the <strong>rg-az220</strong> group already exists, the <strong>Region</strong> field is set to the region used by the resource group and is read-only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Your ID</strong> field, enter the unique ID you created in Exercise 1.</p>
+  </li>
+  <li>
+    <p>In the <strong>Course ID</strong> field, enter <strong>az220</strong>.</p>
+  </li>
+  <li>
+    <p>To validate the template, click <strong>Review and create</strong>.</p>
+  </li>
+  <li>
+    <p>If validation passes, click <strong>Create</strong>.</p>
+
+    <p>The deployment will start.</p>
+  </li>
+  <li>
+    <p>Once the deployment has completed, in the left navigation area, to review any output values from the template,  click <strong>Outputs</strong>.</p>
+
+    <p>Make a note of the outputs for use later:</p>
+
+    <ul>
+      <li>connectionString</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The resources have now been created.</p>
+<h3 id="exercise-2-install-azure-iot-edgehub-dev-tool">Exercise 2: Install Azure IoT EdgeHub Dev Tool</h3>
+
+<p>In this exercise, you will will install the Azure IoT EdgeHub Dev Tool.</p>
+
+<ol>
+  <li>
+    <p>Verify that you have Python 3.8 installed in your development environment.</p>
+
+    <p>Lab 3 of this course has you prepare the lab environment, including the installation Python 3.8. If Python is not installed, refer back to the instructions in Lab 3.</p>
+  </li>
+  <li>
+    <p>With Python installed, open Windows Command Prompt.</p>
+  </li>
+  <li>
+    <p>At the command prompt, to install the package manager for Python (Pip), enter the following commands:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-cmd/sh"> curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+ python get-pip.py
+</code></pre>
+
+    <p>Pip is required to install the Azure IoT EdgeHub Dev Tool on your development machine.</p>
+
+    <blockquote>
+      <p><strong>Important</strong>: When downloading code like this, you should consider reviewing the code before running it.</p>
+    </blockquote>
+
+    <p>If you have issues installing Pip, please reference the official Pip <a href="https://pip.pypa.io/en/stable/installing/">installation instructions</a>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: On Windows, Python and/or Pip are sometimes installed but are not in the <code>PATH</code>. Check with your instructor if you have Python installed but it does not seem to be available.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To install the Azure IoT EdgeHub Dev Tool, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-cmd/sh"> pip install iotedgehubdev --user
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>:  If you have multiple versions of Python installed in your development environment, including pre-installed Python 2.7 (for example, on Ubuntu or macOS), make sure you are using the correct <code>pip</code> or <code>pip3</code> to install <code>iotedgehubdev</code>.</p>
+    </blockquote>
+
+    <p>You can read more about the Azure IoT EdgeHub Dev Tool here: <a href="https://pypi.org/project/iotedgehubdev/">Azure IoT EdgeHub Dev Tool</a></p>
+  </li>
+</ol>
+
+<p>Now that you have configured the Python environment and installed these tools, you are ready to create an Azure Container Registry which will be used to store our custom IoT Edge module.</p>
+
+<h3 id="exercise-3-create-an-azure-container-registry">Exercise 3: Create an Azure Container Registry</h3>
+
+<p>Azure Container Registry provides storage of private Docker images for container deployments. The service is a managed, private Docker registry service based on the open-source Docker Registry 2.0. Azure Container Registry is used to store and manage your private Docker container images.</p>
+
+<p>In this exercise, you will use the Azure portal to create a new Azure Container Registry resource.</p>
+
+<h4 id="task-1-create-the-container-registry">Task 1: Create the container registry</h4>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On the Azure portal menu, click <strong>+ Create a resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>New</strong> blade, in the <strong>Search the Marketplace</strong> textbox, type <strong>container registry</strong> and then press <strong>Enter</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Marketplace</strong> blade, click <strong>Container Registry</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Container Registry</strong> blade, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create container registry</strong> blade, under <strong>Subscription</strong>, ensure that the subscription you are using for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, click <strong>rg-az220</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create container registry</strong> blade, under <strong>Registry name</strong>, enter a globally unique name.</p>
+
+    <p>To provide a globally unique name, enter <strong>acraz220training{your-id}</strong>.</p>
+
+    <p>For example: <strong>acraz220trainingcah191204</strong></p>
+
+    <p>The name of your Azure Container Registry must be globally unique because it is a publicly accessible resource that you must be able to access from any IP connected device.</p>
+
+    <p>Consider the following when you specify a unique name for your new Azure Container Registry:</p>
+
+    <ul>
+      <li>
+        <p>As mentioned above, the name of the registry must be unique across all of Azure. This is true because the value assigned to the name will be used in the domain name assigned to the service. Since Azure enables you to connect from anywhere in the world to your registry, it makes sense that all container registries must be accessible from the Internet using the resulting domain name.</p>
+      </li>
+      <li>
+        <p>The registry name cannot be changed once the Azure Container Registry has been created. If you do need to change the name, you’ll need to create a new Container Registry, re-deploy your container images, and delete your old Container Registry.</p>
+      </li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Azure will ensure that the name you enter is unique. If the name that you enter is not unique, Azure will display an asterisk at the end of the name field as a warning. You can append the name suggested above with <code>01</code> or <code>02</code> as necessary to achieve a globally unique name.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Location</strong> dropdown, choose the same Azure region that was used for the resource group.</p>
+  </li>
+  <li>
+    <p>Under <strong>Availability zones</strong>, leave the checkbox <strong>unchecked</strong>.</p>
+
+    <p>Availability zones is a high-availability offering that provides resiliency and high availability to a container registry in a specific region.</p>
+  </li>
+  <li>
+    <p>In the <strong>SKU</strong> dropdown, ensure that <strong>Standard</strong> is selected.</p>
+
+    <p>Azure Container Registry is available in multiple service tiers, known as SKUs. These SKUs provide predictable pricing and several options for aligning to the capacity and usage patterns of your private Docker registry in Azure.</p>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Review + create</strong>.</p>
+
+    <p>The settings you have entered will be validated.</p>
+  </li>
+  <li>
+    <p>To complete the creation of the Container Registry, at the bottom of the blade, click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-connect-docker-to-the-container-registry">Task 2: Connect Docker to the container registry</h4>
+
+<ol>
+  <li>
+    <p>On your dashboard, refresh your Resources tile, and then click <strong>acraz220training{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>On the left side navigation menu, under <strong>Settings</strong>, click <strong>Access keys</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Admin user</strong>, click <strong>Enable</strong>.</p>
+
+    <p>This option will enable you to Docker login to the Azure Container Registry service using the registry name as the username and admin user access key as the password.</p>
+  </li>
+  <li>
+    <p>Make a record of the following values:</p>
+
+    <ul>
+      <li><strong>Login server</strong></li>
+      <li><strong>Username</strong></li>
+      <li><strong>password</strong></li>
+    </ul>
+
+    <p>By default, the admin Username will match the ACR name - <strong>acraz220training{your-id}</strong></p>
+
+    <p>This information will enable you to authenticate to the new registry, which is required to perform Docker operations in the upcoming steps.</p>
+  </li>
+  <li>
+    <p>Open a command prompt, and then enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-cmd/sh"> docker login &lt;loginserver&gt;
+</code></pre>
+
+    <p>Replace <code>&lt;loginserver&gt;</code> with the name you recorded, and enter the username and password you recorded when prompted.  For example:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-cmd/sh"> docker login az220acrcah191204.azurecr.io
+</code></pre>
+
+    <p>This command will record your credentials in the local Docker client configuration file (<code>$HOME/.docker/config.json</code>) or your operating system’s secure credential storage mechanism (depending on the Docker configuration) for future use by the Docker toolset.</p>
+  </li>
+</ol>
+
+<p>Now that you have created the Azure Container Registry and authenticated your local machine against it, you can create a custom IoT Edge Module container that will be stored in the registry.</p>
+
+<h3 id="exercise-4-create-custom-edge-module-in-c">Exercise 4: Create Custom Edge Module in C#</h3>
+
+<p>In this exercise, you will create an Azure IoT Edge Solution that contains a custom Azure IoT Edge Module written in C#.</p>
+
+<h4 id="task-1-create-the-solution">Task 1: Create the solution</h4>
+
+<ol>
+  <li>
+    <p>Open Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>On the <strong>View</strong> menu, to open the Visual Studio Command Palette, click <strong>Command Palette</strong>.</p>
+  </li>
+  <li>
+    <p>At the command prompt, type <strong>Azure IoT Edge: New</strong> and then click <strong>Azure IoT Edge: New IoT Edge Solution</strong>.</p>
+  </li>
+  <li>
+    <p>Browse to the folder where you want to create the new solutions, and then click <strong>Select folder</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted for a solution name, enter <strong>EdgeSolution</strong></p>
+
+    <p>This name will be used as the directory name for the new <strong>IoT Edge Solution</strong> that will be created.</p>
+  </li>
+  <li>
+    <p>When prompted to select a module template, click <strong>C# Module</strong>.</p>
+
+    <p>This will define <code>C#</code> as the development language for the custom IoT Edge Module added to the solution.</p>
+  </li>
+  <li>
+    <p>When prompted for the name of the custom IoT Edge Module, enter <strong>ObjectCountingModule</strong></p>
+
+    <p>This will be the name of the new IoT Edge Module that is being created.</p>
+  </li>
+  <li>
+    <p>When prompted for name of the Docker image repository for the module, update the placeholder value as follows:</p>
+
+    <p>Replace the <code>localhost:5000</code> part of the default <code>localhost:5000/objectcountingmodule</code> repository location with the name of the Azure Container Registry server - similar to <code>acraz220training{your-id}.azurecr.io</code></p>
+
+    <p>This will be the Docker repository where the IoT Edge Module docker image will be published.</p>
+
+    <p>The Docker image repository location follows the format shown below:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-text"> &lt;acr-name&gt;.azurecr.io/&lt;module-name&gt;
+</code></pre>
+
+    <p>Be sure to replace the placeholders with the appropriate values:</p>
+
+    <ul>
+      <li><code>&lt;acr-name&gt;</code>: Replace with the name of the Azure Container Registry service.</li>
+      <li><code>&lt;module-name&gt;</code>: Replace with the name of the custom Azure IoT Edge Module that’s being created.</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>:  The default Docker image repository in Visual Studio Code is set to <code>localhost:5000/&lt;your module name&gt;</code>. If you were to use a local Docker registry for testing, then <strong>localhost</strong> is fine.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Important</strong>: Make sure to remove any reference to port <code>5000</code> from your ACR references!  That port is used for a local Docker repository but it not used in the ACR case.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Wait for Visual Studio Code to create the solution.</p>
+
+    <p>Once the new <strong>IoT Edge Solution</strong> has been created, Visual Studio Code will open the solution.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If Visual Studio Code prompts you to load required resources or C# extension, click <strong>Yes</strong></p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: If Visual Studio Code prompts you to configure the <strong>.env</strong> file, select <strong>Yes</strong> and proceed to Task 2 below.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-the-solution">Task 2: Configure the solution</h4>
+
+<ol>
+  <li>
+    <p>Take a moment to review the contents of the <strong>Explorer</strong> pane.</p>
+
+    <p>Notice the files and directories that were created as part of the new IoT Edge Solution.</p>
+  </li>
+  <li>
+    <p>In the <strong>Explorer</strong> pane, to open the <code>.env</code> file, click <strong>.env</strong>.</p>
+
+    <p>The .env file is located in the root directory of the IoT Edge Solution. This is where the username and password are configured for accessing your Docker registry.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> Visual Studio Code may have already opened this file for you.</p>
+    </blockquote>
+
+    <p>The username and password are stored in this file using the following format:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-text"> CONTAINER_REGISTRY_USERNAME_&lt;registry-name&gt;=&lt;registry-username&gt;
+ CONTAINER_REGISTRY_PASSWORD_&lt;registry-name&gt;=&lt;registry-password&gt;
+</code></pre>
+
+    <p>The placeholders above are defined as follows:</p>
+
+    <ul>
+      <li><code>&lt;registry-name&gt;</code>: The name of your Docker registry.</li>
+      <li><code>&lt;registry-username&gt;</code>: The username to use for accessing your Docker registry.</li>
+      <li><code>&lt;registry-password&gt;</code>: The password to use for accessing your Docker registry.</li>
+    </ul>
+
+    <p>Within your version of <code>.env</code> file, notice that the <code>&lt;registry-name&gt;</code> has already been added to the configuration values. The value that has been added should match the name of the Docker registry that you specified when creating the IoT Edge Solution.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You may wonder why you ran <code>docker login</code> before when you’re supplying the same credentials here.  At the time when this lab was written, the Visual Studio Code tools do not automatically perform the <code>docker login</code> step with these credentials; they are only used to supply the credentials to the Edge Agent later as part of the deployment template.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the <code>.env</code> file, replace the placeholder values with the username and password values that you saved earlier.</p>
+
+    <p>Replace the <code>&lt;registry-username&gt;</code> placeholder with the <strong>Registry name</strong> (<em>aka Username</em>) of the Azure Container Registry that was previously created.
+ Replace the <code>&lt;registry-password&gt;</code> placeholder with the <strong>password</strong> for the Azure Container Registry.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  The Azure Container Registry <strong>Username</strong> and <strong>password</strong> values can be found by accessing the <strong>Access keys</strong> pane for the <strong>Azure Container Registry</strong> service within the Azure portal, if you did not record them earlier.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Save the updated <strong>.env</strong> file.</p>
+  </li>
+  <li>
+    <p>In the <strong>Explorer</strong> pane, to open the <code>deployment.template.json</code> file, click <strong>deployment.template.json</strong>.</p>
+
+    <p>The <code>deployment.template.json</code> file is located in the root IoT Edge Solution directory. This file is the <em>deployment manifest</em> for the IoT Edge Solution. The deployment manifest tells an IoT Edge device (or a group of devices) which modules to install and how to configure them. The deployment manifest includes the <em>desired properties</em> for each module twin. IoT edge devices report back the <em>reported properties</em> for each module.</p>
+
+    <p>Two modules are required in every deployment manifest; <code>$edgeAgent</code> and <code>$edgeHub</code>. These modules are part of the IoT Edge runtime that manages the IoT Edge devices and the modules running on it.</p>
+  </li>
+  <li>
+    <p>Scroll through the <code>deployment.template.json</code> deployment manifest file, and notice the following within the <code>properties.desired</code> section of the <code>$edgeAgent</code> element:</p>
+
+    <ul>
+      <li>
+        <p><code>systemModules</code> - This defines Docker images to use for the <code>$edgeAgent</code> and <code>$edgeHub</code> system modules that are part of the IoT Edge runtime.</p>
+      </li>
+      <li>
+        <p><code>modules</code> - This defines the various modules that will be deployed and run on the IoT Edge device (or a group of devices).</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Notice that within the <code>modules</code> section for the <code>$edgeAgent</code>, there are two modules defined:</p>
+
+    <ul>
+      <li>
+        <p><code>ObjectCountingModule</code>: This is the custom IoT Edge Module that is being created as part of this new IoT Edge Solution.</p>
+      </li>
+      <li>
+        <p><code>SimulatedTemperatureSensor</code>: This defines the Simulated Temperature Sensor module to be deployed to the IoT Edge device.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Notice the <code>$edgeHub</code> section of the deployment manifest.</p>
+
+    <p>This section defines the desired properties (via <code>properties.desired</code> element) that includes the message routes for communicating messages between the IoT Edge Modules and finally to Azure IoT Hub service.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-json hljs">     <span class="hljs-string">"$edgeHub"</span>: {
+       <span class="hljs-attr">"properties.desired"</span>: {
+         <span class="hljs-attr">"schemaVersion"</span>: <span class="hljs-string">"1.0"</span>,
+         <span class="hljs-attr">"routes"</span>: {
+           <span class="hljs-attr">"ObjectCountingModuleToIoTHub"</span>: <span class="hljs-string">"FROM /messages/modules/ObjectCountingModule/outputs/* INTO $upstream"</span>,
+           <span class="hljs-attr">"sensorToObjectCountingModule"</span>: <span class="hljs-string">"FROM /messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/ObjectCountingModule/inputs/input1\")"</span>
+         },
+         ...
+       }
+     }
+</code></pre>
+
+    <p>The <code>sensorToObjectCountingModule</code> route is configured to route messages from the <code>SimulatedTemperatureSensor</code> (via <code>/messages/modules/SimulatedTemplaratureSensor/outputs/temperatureOutput</code>) module to the custom <code>ObjectCountingModule</code> module (via <code>BrokeredEndpoint(\"/modules/ObjectCountingModule/inputs/input1\")"</code>).</p>
+
+    <p>The <code>ObjectCountingModuleToIoTHub</code> route is configured to route messages that are sent out from the custom <code>ObjectCountingModule</code> module (via <code>/messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput</code>) to the Azure IoT Hub service (via <code>$upstream</code>).</p>
+  </li>
+  <li>
+    <p>In Visual Studio Code, on the <strong>View</strong> menu, click <strong>Command Palette</strong></p>
+  </li>
+  <li>
+    <p>At the command prompt, type <strong>Azure IoT Edge: Set Default</strong> and then click <strong>Azure IoT Edge: Set Default Target Platform for Edge Solution</strong>.</p>
+  </li>
+  <li>
+    <p>To select the target platform, click <strong>amd64</strong>.</p>
+
+    <p>This target platform needs to be set to the hardware platform architecture of the IoT Edge Device.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Since you are using the <strong>IoT Edge on Ubuntu</strong> Linux VM, the <code>amd64</code> option is the appropriate choice. For a Windows VM, use <code>windows-amd64</code>, and for modules that will be running on an ARM CPU architecture, you would choose the <code>arm32v7</code> option.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-review-the-module-code">Task 3: Review the module code</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>Explorer</strong> pane, to expand the <code>/modules/ObjectCountingModule</code> directory, click <strong>modules</strong>.</p>
+
+    <p>Notice that this directory contains the source code files for the new IoT Edge Module being developed.</p>
+  </li>
+  <li>
+    <p>In the <strong>Explorer</strong> pane, to open the <code>/modules/ObjectCountingModule/Program.cs</code> file, click <strong>Program.cs</strong>.</p>
+
+    <p>This file contains the template source code for the newly created custom IoT Edge Module. This code provides a starting point for creating custom IoT Edge Modules.</p>
+  </li>
+  <li>
+    <p>In the Program.cs file, locate the <code>static async Task Init()</code> method, and then take a minute to review the code.</p>
+
+    <p>This method initializes the <code>ModuleClient</code> for handling messages sent to the module, and sets up the callback to receive messages. Read the code comments within the code for this method and notice what each section of code does.</p>
+  </li>
+  <li>
+    <p>Locate the <code>static async Task&lt;MessageResponse&gt; PipeMessage(</code> method, and then take a minute to review the code.</p>
+
+    <p>This method is called whenever the module is sent a message from the EdgeHub. The current state of the source code within this method receives messages sent to this module and pipes them out to the module output, without any change. Read through the code within this method and notice what it does.</p>
+
+    <p>Also, within the <code>PipeMessage</code> method, notice the following lines of code and what they do:</p>
+
+    <p>The following line of code within the method increments a counter that counts the number of messages sent to the module:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword">int</span> counterValue = Interlocked.Increment(<span class="hljs-keyword">ref</span> counter);
+</code></pre>
+
+    <p>The following lines of code within the method write out to the Module’s <code>Console</code> a message that contains the total number of messages received by the Module, along with the current message’s body as JSON.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword">byte</span>[] messageBytes = message.GetBytes();
+ <span class="hljs-keyword">string</span> messageString = Encoding.UTF8.GetString(messageBytes);
+ Console.WriteLine(<span class="hljs-string">$"Received message: <span class="hljs-subst">{counterValue}</span>, Body: [<span class="hljs-subst">{messageString}</span>]"</span>);
+</code></pre>
+  </li>
+</ol>
+
+<p>We have now created and configured a sample custom module. Next, we will debug it in the IoT Edge Simulator.</p>
+
+<h3 id="exercise-5-debug-in-attach-mode-with-iot-edge-simulator">Exercise 5: Debug in Attach Mode with IoT Edge Simulator</h3>
+
+<p>In this exercise, you will build and run a custom IoT Edge Module solution using the IoT Edge Simulator from within Visual Studio Code.</p>
+
+<h4 id="task-1-create-a-test-iot-edge-device">Task 1: Create a test IoT Edge device</h4>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On your Resource group tile, click <strong>iot-az220-training-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>On the left hand navigation menu, under <strong>Settings</strong>, click <strong>Shared access policies</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of policies, click <strong>iothubowner</strong>.</p>
+
+    <blockquote>
+      <p><strong>Important</strong>: The Edge Simulator requires a privileged role for configuration. You would not use such a privileged role for normal use cases.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>iothubowner</strong> pane, copy the value for <strong>Connection string–primary key</strong>.</p>
+
+    <p>Record this value, as you will need it below.</p>
+  </li>
+  <li>
+    <p>On the left hand navigation menu, under <strong>Automatic Device Management</strong>, click <strong>IoT Edge</strong>.</p>
+
+    <p>This pane allows you to manage the IoT Edge devices connected to the IoT Hub.</p>
+  </li>
+  <li>
+    <p>At the top of the pane, click <strong>Add an IoT Edge device</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a device</strong> blade, under <strong>Device ID</strong>,  enter <strong>SimulatedDevice</strong></p>
+
+    <p>This is the device identity used for authentication and access control.</p>
+  </li>
+  <li>
+    <p>Under <strong>Authentication type</strong>, ensure that <strong>Symmetric key</strong> is selected.</p>
+  </li>
+  <li>
+    <p>Leave the <strong>Auto-generate keys</strong> box checked.</p>
+
+    <p>This will have IoT Hub automatically generate the Symmetric keys for authenticating the device.</p>
+  </li>
+  <li>
+    <p>Leave the other settings at their defaults, and then click <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-the-test-module">Task 2: Configure the test module</h4>
+
+<ol>
+  <li>
+    <p>Switch to the <strong>Visual Studio Code</strong> instance containing your IoT Edge solution.</p>
+  </li>
+  <li>
+    <p>In the <strong>Explorer</strong> pane, right-click <strong>deployment.debug.template.json</strong>, and then click <strong>Build and Run IoT Edge Solution in Simulator</strong>.</p>
+
+    <p>This file is the debugging deployment manifest file. It is located in the root directory of the IoT Edge Solution.</p>
+
+    <p>When the process begins, you will see a dialog open in the lower right corner of the windows that says, <strong>Please setup iotedgehubdev first before starting simulator</strong>.</p>
+  </li>
+  <li>
+    <p>When you see the prompt to <strong>setup iotedgehubdev</strong>, click <strong>Setup</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted for the <strong>IoT Hub Connection String</strong>, enter the <strong>Connection string–primary key</strong> you noted earlier.</p>
+  </li>
+  <li>
+    <p>When prompted to <strong>Select an IoT Edge Device</strong>, click <strong>SimulatedDevice</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you get an <strong>Unauthorized</strong> error in the lower-right-hand corner, run the <code>Azure IoT Hub: Set IoT Hub Connection String</code> command from the Command Palette to reconfigure your simulator connection string, then run <code>Azure IoT Edge: Setup IoT Edge Simulator</code> from the command palette and try to select your device again.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: It is possible that you will be prompted for your Admin password on your local machine (in the Visual Studio Code <strong>TERMINAL</strong> window), particularly on Linux or macOS. Enter your password at the prompt and press <strong>Enter</strong>. The reason it might ask for your password is that the setup command for <code>iotedgehubdev</code> is being run using <code>sudo</code> as it requires elevated privileges.</p>
+    </blockquote>
+
+    <p>Once the IoT Edge Simulator is set up successfully, a <strong>Setup IoT Edge Simulator successfully</strong> message will be displayed in the Visual Studio Code TERMINAL.</p>
+
+    <p>Now when you build and run the module in the IoT Edge Simulator, it will run as expected.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-build-and-run-the-module">Task 3: Build and run the module</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>Explorer</strong> pane, right-click <strong>deployment.debug.template.json</strong>, and then click <strong>Build and Run IoT Edge Solution in Simulator</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are on Windows and see a message in the Terminal that reads, in part, <code>open //./pipe/docker_engine: The system cannot find the file specified.</code>, Docker is likely not started, or running correctly.  A Docker restart or even a full computer restart might be necessary.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you see a message that reads, in part, <code>image operating system "linux" cannot be used on this platform</code>, change your Docker configuration to support Linux containers.  (Ask your instructor for assistance if necessary.)</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: A build may take some time depending on what Docker images you have on your machine already and the speed of your Internet connection.  The build includes downloading Docker images if not present and updating container instances if necessary.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Observe the build process reporting in your TERMINAL window.</p>
+
+    <p>It can take quite a few minutes to download and build everything that is required to simulate the IoT Edge device and run your modules, so be patient.</p>
+
+    <p>Notice that once the <strong>IoT Edge Simulator</strong> is running, the Modules that you built will begin sending message output that is reported to the TERMINAL window:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-text"> SimulatedTemperatureSensor    |         12/09/2019 15:05:08&gt; Sending message: 4, Body: [{"machine":{"temperature":23.023276334173641,"pressure":1.2304998355387693},"ambient":{"temperature":20.56235126408858,"humidity":24},"timeCreated":"2019-12-09T15:05:08.4596891Z"}]
+ ObjectCountingModule           | Received message: 4, Body: [{"machine":{"temperature":23.023276334173641,"pressure":1.2304998355387693},"ambient":{"temperature":20.56235126408858,"humidity":24},"timeCreated":"2019-12-09T15:05:08.4596891Z"}]
+ ObjectCountingModule           | Received message sent
+ SimulatedTemperatureSensor    |         12/09/2019 15:05:13&gt; Sending message: 5, Body: [{"machine":{"temperature":23.925331861560853,"pressure":1.3332656551145274},"ambient":{"temperature":20.69443827876562,"humidity":24},"timeCreated":"2019-12-09T15:05:13.4856557Z"}]
+ ObjectCountingModule           | Received message: 5, Body: [{"machine":{"temperature":23.925331861560853,"pressure":1.3332656551145274},"ambient":{"temperature":20.69443827876562,"humidity":24},"timeCreated":"2019-12-09T15:05:13.4856557Z"}]
+ ObjectCountingModule           | Received message sent
+</code></pre>
+
+    <p>Notice the output from the <strong>ObjectCountingModule</strong> contains the text <code>Received message: #</code> where <code>#</code> is the total message count that has been received by the custom <strong>ObjectCountingModule</strong> IoT Edge Module that was created.</p>
+  </li>
+  <li>
+    <p>With the IoT Edge Simulator still running, open the Azure portal, and then open the Cloud Shell.</p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to monitor the messages being sent to Azure IoT Hub from the <code>SimulatedDevice</code> running in the IoT Edge Simulator on your local machine, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-cmd/sh"> az iot hub monitor-events --hub-name "iot-az220-training-{your-id}"
+</code></pre>
+
+    <p>Be sure to replace the <code>iot-az220-training-{your-id}</code> value in the above command with the name of your Azure IoT Hub service.</p>
+  </li>
+  <li>
+    <p>Observe the output displayed in the Cloud Shell.</p>
+
+    <p>With everything still running, notice the output of the previous command in the Cloud Shell will display a JSON representation of the messages being received by the Azure IoT Hub.</p>
+
+    <p>The output should look similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr">"event"</span>: {
+         <span class="hljs-attr">"origin"</span>: <span class="hljs-string">"SimulatedDevice"</span>,
+         <span class="hljs-attr">"payload"</span>: <span class="hljs-string">"{\"machine\":{\"temperature\":88.003809452058647,\"pressure\":8.6333453806142764},\"ambient\":{\"temperature\":21.090260561364826,\"humidity\":24},\"timeCreated\":\"2019-12-09T15:16:32.402965Z\"}"</span>
+     }
+ }
+ {
+     <span class="hljs-attr">"event"</span>: {
+         <span class="hljs-attr">"origin"</span>: <span class="hljs-string">"SimulatedDevice"</span>,
+         <span class="hljs-attr">"payload"</span>: <span class="hljs-string">"{\"machine\":{\"temperature\":88.564600328362815,\"pressure\":8.6972329488008278},\"ambient\":{\"temperature\":20.942187817041848,\"humidity\":25},\"timeCreated\":\"2019-12-09T15:16:37.4355705Z\"}"</span>
+     }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>Compare the output in the Visual Studio Code TERMINAL with the output in the Cloud Shell.</p>
+
+    <p>Notice that even though there are 2 IoT Edge Modules running on the IoT Edge Device that generate messages, there is still only a single copy of each message getting sent to Azure IoT Hub. The IoT Edge Device has a message pipeline defined where messages from the <code>SimulatedTemperatureSensor</code> are piped to the <code>ObjectCountingModule</code> which then sends messages out to the Azure IoT Hub.</p>
+  </li>
+  <li>
+    <p>To stop monitoring Azure IoT Hub events, press <strong>Ctrl + C</strong> within the Azure Cloud Shell.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-debug-the-module">Task 4: Debug the module</h4>
+
+<ol>
+  <li>
+    <p>Switch to your Visual Studio Code window.</p>
+  </li>
+  <li>
+    <p>On the left side toolbar, to open the Visual Studio Code debugger view, click <strong>Run</strong>.</p>
+
+    <p>The Run button is the forth button down from the top, and includes a bug-like shape on the icon.</p>
+  </li>
+  <li>
+    <p>At the top of the <strong>Run</strong> pane, in the dropdown, ensure that <strong>ObjectCountingModule Remote Debug (.NET Core)</strong> is selected.</p>
+  </li>
+  <li>
+    <p>To the left of the dropdown, click <strong>Start Debugging</strong>.</p>
+
+    <p>You could also press <strong>F5</strong> to start debugging</p>
+  </li>
+  <li>
+    <p>When prompted to <strong>Select the process to attach to</strong>, click <strong>dotnet ObjectCountingModule.dll</strong>.</p>
+  </li>
+  <li>
+    <p>On the left side toolbar, to change to the file Explorer view, click <strong>Explorer</strong></p>
+  </li>
+  <li>
+    <p>In the EXPLORER pane, to open the <code>/modules/ObjectCountingModule/Program.cs</code> source code file, click <strong>Program.cs</strong>.</p>
+  </li>
+  <li>
+    <p>In the code editor, locate the <code>static async Task&lt;MessageResponse&gt; PipeMessage(</code> method.</p>
+  </li>
+  <li>
+    <p>Select the <code>static async Task&lt;MessageResponse&gt; PipeMessage(</code> code line, and then, to set a breakpoint, press <strong>F9</strong>.</p>
+
+    <p>Visual Studio Code enables you to set a breakpoint within your code by clicking on the line and pressing the <strong>F9</strong> key.</p>
+  </li>
+  <li>
+    <p>Notice that execution stops at the breakpoint that is set, and the editor highlights that specific line of code.</p>
+  </li>
+  <li>
+    <p>To open the Visual Studio Code debugger view, on the left toolbar, click <strong>Run</strong>.</p>
+  </li>
+  <li>
+    <p>Notice the variables listed in the left panel.</p>
+  </li>
+  <li>
+    <p>To resume execution, click <strong>Continue</strong>.</p>
+
+    <p>You can also press <strong>F5</strong> to resume.</p>
+  </li>
+  <li>
+    <p>Notice that each time the breakpoint it hit, execution stops.</p>
+  </li>
+  <li>
+    <p>To stop debugging, click the <strong>Disconnect</strong> button, or press <strong>Shift + F5</strong>.</p>
+  </li>
+  <li>
+    <p>To stop the IoT Edge Simulator, open the <strong>Command Palette</strong>, and then select the <strong>Azure IoT Edge: Stop IoT Edge Simulator</strong> option.</p>
+  </li>
+</ol>
+
+<p>Now that the module has been created and tested in the IoT Edge simulator, it is time to deploy it to the cloud.</p>
+
+<h3 id="exercise-6-deploy-the-iot-edge-solution">Exercise 6: Deploy the IoT Edge Solution</h3>
+
+<p>In this exercise, you will build and publish the custom IoT Edge Module into the Azure Container Registry (ACR) service. Once published to ACR, the custom module will then be made available to be deployed to any IoT Edge Device.</p>
+
+<h4 id="task-1--publish-module-to-the-azure-container-registry">Task 1:  Publish module to the Azure Container Registry</h4>
+
+<ol>
+  <li>
+    <p>Open the Visual Studio Code window containing your EdgeSolution project.</p>
+  </li>
+  <li>
+    <p>In the <strong>Explorer</strong> view, to open the <code>.env</code> file, click <strong>.env</strong>.</p>
+
+    <p>The <code>.env</code> file is located in the root directory of the IoT Edge Solution.</p>
+  </li>
+  <li>
+    <p>Ensure that the credentials for the Azure Container Registry have been set.</p>
+
+    <p>When set correctly, the <code>CONTAINER_REGISTRY_USERNAME_&lt;acr-name&gt;</code> key will have it’s value set to the Azure Container Registry service name, and the <code>CONTAINER_REGISTRY_PASSWORD_&lt;acr-name&gt;</code> key will have it’s value set to the <strong>Password</strong> for the Azure Container Registry service. Keep in mind, the <code>&lt;acr-name&gt;</code> placeholders in the keys will be set to the ACR service name (is all lowercase) automatically when the IoT Edge Solution was created.</p>
+
+    <p>The resulting <code>.env</code> file contents will look similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-text"> CONTAINER_REGISTRY_USERNAME_acraz220trainingcah191204=acraz220trainingcah191204
+ CONTAINER_REGISTRY_PASSWORD_acraz220trainingcah191204=Q8YErJFCtqSe9C7BWdHOKEXk+C6uKSuK
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Explorer</strong> view, right-click <strong>deployment.template.json</strong>, and then click <strong>Build and Push IoT Edge Solution</strong>.</p>
+
+    <p>The status of the Build and Push IoT Edge Solution operation is displayed within the Visual Studio Code <strong>TERMINAL</strong> window. Once the process completes, the custom <code>ObjectCountingModule</code> IoT Edge Module will have been built, and then the Docker image for the IoT Edge Module will be published to the Azure Container Registry service.</p>
+  </li>
+  <li>
+    <p>Switch to your Azure portal window.</p>
+
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On your Resource group tile, to open your Azure Container Registry (ACR) service, click <strong>acraz220training{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>On the left side navigation menu, under <strong>Services</strong>, click <strong>Repositories</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Repositories</strong> pane, notice that the <code>objectcountingmodule</code> repository now exists within the ACR service.</p>
+
+    <p>This was created when the custom <code>ObjectCountingModule</code> IoT Edge Module was published from within Visual Studio Code.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the repository is not present, review the output from the Push action and ensure that you did not leave references to the <code>:5000</code> port number with your ACR references; you can do an <strong>Edit</strong>, <strong>Find in Files</strong> to confirm this.  You should also validate your credentials in the <code>.env</code> file and validate that you performed the <code>docker login</code> step earlier in the lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Repositories</strong>, click <strong>objectcountingmodule</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>objectcountingmodule</strong> blade, under <strong>Tags</strong>, notice that there is a tag named <strong>0.0.1-amd64</strong>.</p>
+  </li>
+  <li>
+    <p>To open a details pane for this Tag, click <strong>0.0.1-amd64</strong>.</p>
+
+    <p>Notice the properties listed, including <em>Repository</em>, <em>Tag</em>, <em>Tag creation date</em>,  <em>Tag last updated date</em>, and other properties displaying information about the Tag.</p>
+  </li>
+  <li>
+    <p>Save a copy of the values for the <strong>Repository</strong> and <strong>Tag</strong> properties.</p>
+
+    <p>To copy the values, you can click on the <strong>Copy to clipboard</strong> button located to the right of the displayed values.</p>
+
+    <p>You will need the Repository and Tag names to pull down this specific version of the Docker image for the custom IoT Edge Module to run in an IoT Edge Device.</p>
+
+    <p>The format of the Docker image Repository and Tag names combined will be in the following format:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-text"> &lt;repository-name&gt;:&lt;tag&gt;
+</code></pre>
+
+    <p>Here’s an example of a full Docker image name for the <code>objectcountingmodule</code> IoT Edge Module:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-text"> objectcountingmodule:0.0.1-amd64
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-an-iot-edge-device-to-use-the-module">Task 2: Configure an IoT Edge device to use the module</h4>
+
+<ol>
+  <li>
+    <p>Navigate to your Azure IoT Hub resource.</p>
+
+    <p>With the custom <code>objectcountingmodule</code> IoT Edge Module published to Azure Container Registry (ACR), the next step is to create a new IoT Edge Device within IoT Hub and configure it to run the new custom IoT Edge Module.</p>
+  </li>
+  <li>
+    <p>On the <strong>iot-az220-training-{your-id}</strong> blade, on the left side navigation menu under <strong>Automatic Device Management</strong>, click <strong>IoT Edge</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>IoT Edge</strong> pane, at the top of the pane, click <strong>Add an IoT Edge device</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a device</strong> blade, under <strong>Device ID</strong>, enter <strong>objectcountingdevice</strong></p>
+  </li>
+  <li>
+    <p>Under <strong>Authentication type</strong>, ensure that <strong>Symmetric key</strong> is selected, and ensure that the <strong>Auto-generate keys</strong> checkbox is selected.</p>
+
+    <p>For this unit, we’ll keep the IoT Edge Module registration simple by choosing <em>Symmetric key</em> authentication. With the <em>Auto-generate keys</em> option selected, the IoT Hub with automatically generate authentication keys for this device.</p>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>IoT Edge</strong> pane, under <strong>Device ID</strong>, click <strong>objectcountingdevice</strong>.</p>
+  </li>
+  <li>
+    <p>At the top of the <strong>objectcountingdevice</strong> blade, click <strong>Set Modules</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set modules on device: objectcountingdevice</strong> blade, under <strong>Container Registry Settings</strong>, enter the following values:</p>
+
+    <ul>
+      <li><strong>Name</strong>: Enter the <strong>Registry name</strong> of the Azure Container Registry (e.g. <code>acraz220trainingcah191204</code>)</li>
+      <li><strong>Address</strong>: Enter the <strong>Login server</strong> (or DNS name) of the Azure Container Registry service (ex: <code>acraz220trainingcah191204.azurecr.io</code>)</li>
+      <li><strong>User Name</strong>: Enter the <strong>Username</strong> for the Azure Container Registry service</li>
+      <li><strong>Password</strong>: Enter the <strong>password</strong> for the Azure Container Registry service</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: The Azure Container Registry (ACR) service <em>Registry name</em>, <em>Login server</em>, <em>Username</em>, and <em>Password</em> can be found on the <strong>Access keys</strong> pane for the service.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Set modules on device: objectcountingdevice</strong> blade, under <strong>IoT Edge Modules</strong>, click <strong>Add</strong>, and then click <strong>IoT Edge Module</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add IoT Edge Module</strong> pane, under <strong>IoT Edge Module Name</strong>, enter <strong>objectcountingmodule</strong></p>
+  </li>
+  <li>
+    <p>Under <strong>Module Settings</strong>, to enter the full URI and tagged name of the Docker image for the custom IoT Edge Module, use the following format:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-text"> &lt;container-registry-login-server&gt;/&lt;repository-name&gt;:&lt;tag&gt;
+</code></pre>
+
+    <p>Be sure to replace the placeholders within the above <strong>Image URI</strong> format with the appropriate values:</p>
+
+    <ul>
+      <li><code>&lt;container-registry-login-server&gt;</code> * The <strong>Login server</strong>, or DNS name, for the Azure Container Registry service.</li>
+      <li><code>&lt;repository-name&gt;</code> * The <strong>Repository name</strong> for the Custom IoT Edge Module’s Docker image, that was copied previously.</li>
+      <li><code>&lt;tag&gt;</code> * The <strong>Tag</strong> for the Custom IoT Edge Module’s Docker image, that was copied previously.</li>
+    </ul>
+
+    <p>The resulting <strong>Image URI</strong> to be entered into the field will be similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-text"> acraz220trainingcah191204.azurecr.io/objectcountingmodule:0.0.1-amd64
+</code></pre>
+  </li>
+  <li>
+    <p>Leave the rest of the settings at their defaults, and then click <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set modules on device: objectcountingdevice</strong> blade, at the bottom of the blade, click <strong>Next: Routes &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Routes</strong> tab, review the default route settings.</p>
+
+    <p>The editor will display the configured default route for the IoT Edge Device. At this time, it should be configured with a route that sends all messages from all modules to Azure IoT Hub:</p>
+
+    <ul>
+      <li>Name: <strong>route</strong></li>
+      <li>Value: <code>FROM /messages/* INTO $upstream</code></li>
+    </ul>
+  </li>
+  <li>
+    <p>To the right of the default route, click <strong>Remove route</strong>.</p>
+  </li>
+  <li>
+    <p>Add the following two routes:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>NAME</th>
+          <th>VALUE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>AllMessagesToObjectCountingModule</code></td>
+          <td><code>FROM /* INTO BrokeredEndpoint("/modules/objectcountingmodule/inputs/input1")</code></td>
+        </tr>
+        <tr>
+          <td><code>ObjectCountingModuleToIoTHub</code></td>
+          <td><code>FROM /messages/modules/objectcountingmodule/outputs/* INTO $upstream</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Review the value assigned to the <strong>AllMessagesToObjectCountingModule</strong> route.</p>
+
+    <p>This route specifies the <strong>Source</strong> value of <code>/*</code>. This applies the route to all device-to-cloud messages or twin change notifications from any module or leaf device.</p>
+
+    <p>This route specifies the <strong>Destination</strong> value of <code>BrokeredEndpoint("/modules/objectcountingmodule/inputs/input1")</code>. This sends all messages from the Source of this route to the <code>objectcountingmodule</code> IoT Edge Module’s input.</p>
+  </li>
+  <li>
+    <p>Review the value assigned to the <strong>ObjectCountingModuleToIoTHub</strong> route.</p>
+
+    <p>This route specifies the <strong>Source</strong> value of <code>/messages/modules/objectcountingmodule/outputs/*</code>. This applies the route to all messages output from the <code>objectcountingmodule</code> IoT Edge Module.</p>
+
+    <p>This route specifies the <strong>Destination</strong> value of <code>$upstream</code>. This sends all messages from the Source of this route to the Azure IoT Hub service within Microsoft Azure.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  For more information on the configuration of Message Routing with Azure IoT Hub and IoT Edge Module, reference the following links:</p>
+      <ul>
+        <li><a href="https://docs.microsoft.com/en-us/azure/iot-edge/module-composition">Learn how to deploy modules and establish routes in IoT Edge</a></li>
+        <li><a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-routing-query-syntax">IoT Hub message routing query syntax</a></li>
+      </ul>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Next: Review + create &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>Review the Deployment Manifest for the device, and then click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<p>This completes the development of the <code>objectcountingmodule</code> custom IoT Edge Module. Now that an IoT Edge Device is registered, the modules specified and the routes configured, the <code>objectcountingmodule</code> is ready to be deployed once the associated IoT Edge Device is connected to the Azure IoT Hub as shown in previous labs.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.js"></script>
+
+
+
+</body></html>

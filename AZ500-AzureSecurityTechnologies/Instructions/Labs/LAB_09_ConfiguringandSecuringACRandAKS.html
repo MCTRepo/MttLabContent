@@ -1,0 +1,593 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ500-AzureSecurityTechnologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ500-AzureSecurityTechnologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-configuring-and-securing-acr-and-aks">Exercise 1: Configuring and Securing ACR and AKS</a></li><li class="nav-item"><a class="nav-link active" href="#estimated-timing-45-minutes">Estimated timing: 45 minutes</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-09-configuring-and-securing-acr-and-aks">Lab 09: Configuring and Securing ACR and AKS</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>You have been asked to deploy a proof of concept with Azure Container Registry and Azure Kubernetes Service. Specifically, the proof of concept should demonstrate:</p>
+
+<ul>
+  <li>Using Dockerfile to build an image.</li>
+  <li>Using Azure Container Registry to store images.</li>
+  <li>Configuring an Azure Kubernetes Service.</li>
+  <li>Securing and accessing container applications both internally and externally.</li>
+</ul>
+
+<blockquote>
+  <p>For all the resources in this lab, we are using the <strong>East US</strong> region. Verify with your instructor this is the region to use for class.</p>
+</blockquote>
+
+<h2 id="lab-objectives">Lab objectives</h2>
+
+<p>In this lab, you will complete the following exercise:</p>
+
+<ul>
+  <li>Exercise 1: Configuring and Securing ACR and AKS</li>
+</ul>
+
+<h2 id="lab-files">Lab files:</h2>
+
+<ul>
+  <li><strong>\Allfiles\Labs\09\nginxexternal.yaml</strong></li>
+  <li><strong>\Allfiles\Labs\09\nginxinternal.yaml</strong></li>
+</ul>
+
+<h3 id="exercise-1-configuring-and-securing-acr-and-aks">Exercise 1: Configuring and Securing ACR and AKS</h3>
+
+<h3 id="estimated-timing-45-minutes">Estimated timing: 45 minutes</h3>
+
+<blockquote>
+  <p>For all the resources in this lab, we are using the <strong>East (US)</strong> region. Verify with your instructor this is region to use for you class.</p>
+</blockquote>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: Create an Azure Container Registry</li>
+  <li>Task 2: Create a Dockerfile, build a container and push it to Azure Container Registry</li>
+  <li>Task 3: Create an Azure Kubernetes Service cluster</li>
+  <li>Task 4: Grant the AKS cluster permissions to access the ACR</li>
+  <li>Task 5: Deploy an external service to AKS</li>
+  <li>Task 6: Verify the you can access an external AKS-hosted service</li>
+  <li>Task 7: Deploy an internal service to AKS</li>
+  <li>Task 8: Verify the you can access an internal AKS-hosted service</li>
+</ul>
+
+<h4 id="task-1-create-an-azure-container-registry">Task 1: Create an Azure Container Registry</h4>
+
+<p>In this task, you will create a resource group for the lab an an Azure Container Registry.</p>
+
+<ol>
+  <li>
+    <p>Sign-in to the Azure portal <strong><code>https://portal.azure.com/</code></strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Sign in to the Azure portal using an account that has the Owner or Contributor role in the Azure subscription you are using for this lab and the Global Administrator role in the Azure AD tenant associated with that subscription.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, open the Cloud Shell by clicking the first icon in the top right of the Azure Portal. If prompted, click <strong>Bash</strong> and <strong>Create storage</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>Bash</strong> is selected in the drop-down menu in the upper-left corner of the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to create a new resource group for this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-sh hljs bash"> az group create --name AZ500LAB09 --location eastus
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to verify the resource group was created:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs cpp"> az group <span class="hljs-built_in"><span class="hljs-built_in">list</span></span> --query <span class="hljs-string"><span class="hljs-string">"[?name=='AZ500LAB09']"</span></span> -o table
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to create a new Azure Container Registry (ACR) instance (The name of the ACR must be globally unique):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-sh hljs bash"> az acr create --resource-group AZ500LAB09 --name az500<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span> --sku Basic
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to confirm that the new ACR was created:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sh hljs bash"> az acr list --resource-group AZ500LAB09
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the name of the ACR. You will need it in the next task.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-create-a-dockerfile-build-a-container-and-push-it-to-azure-container-registry">Task 2: Create a Dockerfile, build a container and push it to Azure Container Registry</h4>
+
+<p>In this task, you will create a Dockerfile, build an image from the Dockerfile, and deploy the image to the ACR.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to create a Dockerfile to create an Nginx-based image:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash"> <span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> FROM nginx &gt; Dockerfile
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to build an image from the Dockerfile and push the image to the new ACR.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The trailing period at the end of the command line is required. It designates the current directory as the location of Dockerfile.</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sh hljs bash"> ACRNAME=$(az acr list --resource-group AZ500LAB09 --query <span class="hljs-string"><span class="hljs-string">'[].{Name:name}'</span></span> --output tsv)
+
+ az acr build --image sample/nginx:v1 --registry <span class="hljs-variable"><span class="hljs-variable">$ACRNAME</span></span> --file Dockerfile .
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the command to successfully complete. This might take about 2 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>AZ500Lab09</strong> resource group and, in the list of resources, click the entry representing the Azure Container Registry instance you provisioned in the previous task.</p>
+  </li>
+  <li>
+    <p>On the Container registry blade, in the <strong>Services</strong> section, click <strong>Repositories</strong>.</p>
+  </li>
+  <li>
+    <p>Verify that the list of repositories includes the new container image named <strong>sample/nginx</strong>.</p>
+  </li>
+  <li>
+    <p>Click the <strong>sample/nginx</strong> entry and verify presence of the <strong>v1</strong> tag that identifies the image version.</p>
+  </li>
+  <li>
+    <p>Click the <strong>v1</strong> entry to view the image manifest.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The manifest includes the sha256 digest, manifest creation date, and platform entries.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-create-an-azure-kubernetes-service-cluster">Task 3: Create an Azure Kubernetes Service cluster</h4>
+
+<p>In this task, you will create an Azure Kubernetes service and review the deployed resources.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Kubernetes services</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Kubernetes services</strong> blade, click <strong>+ Create</strong> and, in the drop-down menu, click <strong>+ Create a Kubernetes cluster</strong></p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create Kubernetes cluster</strong> blade, click <strong>View all preset configurations</strong>, select <strong>Dev/Test ($)</strong> and click <strong>Apply</strong>. Now specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>AZ500LAB09</strong></td>
+        </tr>
+        <tr>
+          <td>Kubernetes cluster name</td>
+          <td><strong>MyKubernetesCluster</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td><strong>(US) East US</strong></td>
+        </tr>
+        <tr>
+          <td>Availability zones</td>
+          <td><strong>None</strong></td>
+        </tr>
+        <tr>
+          <td>Node count</td>
+          <td><strong>1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next: Node Pools &gt;</strong> and, on the <strong>Node Pools</strong> tab of the <strong>Create Kubernetes cluster</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Enable virtual nodes</td>
+          <td>cleared checkbox</td>
+        </tr>
+        <tr>
+          <td>VM scale sets</td>
+          <td>cleared checkbox</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next: Authentication &gt;</strong>, on the <strong>Authentication</strong> tab of the <strong>Create Kubernetes cluster</strong> blade, accept the defaults, and click <strong>Next: Networking &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Networking</strong> tab of the <strong>Create Kubernetes cluster</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Network configuration</td>
+          <td><strong>Azure CNI</strong></td>
+        </tr>
+        <tr>
+          <td>DNS name prefix</td>
+          <td><strong>Leave the default value</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: AKS can be configured as a private cluster. This assigns a private IP to the API server to ensure network traffic between your API server and your node pools remains on the private network only. For more information, visit <a href="https://docs.microsoft.com/en-us/azure/aks/private-clusters">Create a private Azure Kubernetes Service cluster</a> page.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Next: Integrations &gt;</strong> and, on the <strong>Integrations</strong> tab of the <strong>Create Kubernetes cluster</strong> blade, set <strong>Container monitoring</strong> to <strong>Disabled</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In production scenarios, you would want to enable monitoring. Monitoring is disabled in this case since it is not covered in the lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Review + Create</strong> and then click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete. This might take about 10 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Once the deployment completes, in the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Resource groups</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, in the listing of resource groups, note a new resource group named <strong>MC_AZ500LAB09_MyKubernetesCluster_eastus</strong> that holds components of the AKS Nodes. Review resources in this resource group.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Resource groups</strong> blade and click the <strong>AZ500LAB09</strong> entry.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In the list of resources, note the AKS Cluster and the corresponding virtual network.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, open a Bash session in the Cloud Shell.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Ensure <strong>Bash</strong> is selected in the drop-down menu in the upper-left corner of the Cloud Shell pane.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to connect to the Kubernetes cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-sh hljs bash">az aks get-credentials --resource-group AZ500LAB09 --name MyKubernetesCluster
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to list nodes of the Kubenetes cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-sh hljs bash">kubectl get nodes
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the <strong>Status</strong> of the cluster node is listed as <strong>Ready</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-grant-the-aks-cluster-permissions-to-access-the-acr-and-manage-its-virtual-network">Task 4: Grant the AKS cluster permissions to access the ACR and manage its virtual network</h4>
+
+<p>In this task, you will grant the AKS cluster permission to access the ACR and manage its virtual network.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to configure the AKS cluster to use the Azure Container Registry instance you created earlier in this lab.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-sh hljs bash"> ACRNAME=$(az acr list --resource-group AZ500LAB09 --query <span class="hljs-string"><span class="hljs-string">'[].{Name:name}'</span></span> --output tsv)
+
+ az aks update -n MyKubernetesCluster -g AZ500LAB09 --attach-acr <span class="hljs-variable"><span class="hljs-variable">$ACRNAME</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This command grants the ‘acrpull’ role assignment to the ACR.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: It may take a few minutes for this command to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to grant the AKS cluster the Contributor role to its virtual network.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-sh hljs bash"> RG_AKS=AZ500LAB09
+    
+ AKS_VNET_NAME=AZ500LAB09-vnet
+    
+ AKS_CLUSTER_NAME=MyKubernetesCluster
+    
+ AKS_VNET_ID=$(az network vnet show --name <span class="hljs-variable"><span class="hljs-variable">$AKS_VNET_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_AKS</span></span> --query id -o tsv)
+    
+ AKS_MANAGED_ID=$(az aks show --name <span class="hljs-variable"><span class="hljs-variable">$AKS_CLUSTER_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_AKS</span></span> --query identity.principalId -o tsv)
+    
+ az role assignment create --assignee <span class="hljs-variable"><span class="hljs-variable">$AKS_MANAGED_ID</span></span> --role <span class="hljs-string"><span class="hljs-string">"Contributor"</span></span> --scope <span class="hljs-variable"><span class="hljs-variable">$AKS_VNET_ID</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-5-deploy-an-external-service-to-aks">Task 5: Deploy an external service to AKS</h4>
+
+<p>In this task,  you will download the Manifest files, edit the YAML file, and apply your changes to the cluster.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, click the <strong>Upload/Download files</strong> icon, in the drop-down menu, click <strong>Upload</strong>, in the <strong>Open</strong> dialog box, naviate to the location where you downloaded the lab files, select <strong>\Allfiles\Labs\09\nginxexternal.yaml</strong> click <strong>Open</strong>. Next, select <strong>\Allfiles\Labs\09\nginxinternal.yaml</strong>, and click <strong>Open</strong>.</p>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to identify the name of the Azure Container Registry instance:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-sh hljs bash"> <span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> <span class="hljs-variable"><span class="hljs-variable">$ACRNAME</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the Azure Container Registry instance name. You will need it later in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to open the nginxexternal.yaml file, so you can edit its content.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-sh hljs bash"> code ./nginxexternal.yaml
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is the <em>external</em> yaml file.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the editor pane, scroll down to <strong>line 24</strong> and replace the <strong><code>&lt;ACRUniquename&gt;</code></strong> placeholder with the ACR name.</p>
+  </li>
+  <li>
+    <p>In the editor pane, in the upper right corner, click the <strong>ellipses</strong> icon, click <strong>Save</strong> and then click <strong>Close editor</strong>.</p>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to apply the change to the cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-sh hljs bash"> kubectl apply -f nginxexternal.yaml
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, review the output of the command you run in the previous task to verify that the deployment and the corresponding service have been created.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs"> deployment.apps/nginxexternal created
+ service/nginxexternal created
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-6-verify-the-you-can-access-an-external-aks-hosted-service">Task 6: Verify the you can access an external AKS-hosted service</h4>
+
+<p>In this task, verify the container can be accessed externally using the public IP address.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to retrieve information about the nginxexternal service including name, type, IP addresses, and ports.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-sh hljs bash"> kubectl get service nginxexternal
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, review the output and record the value in the External-IP column. You will need it in the next step.</p>
+  </li>
+  <li>
+    <p>Open Internet Explorer and browse to the IP address you identified in the previous step.</p>
+  </li>
+  <li>
+    <p>Ensure the <strong>Welcome to nginx!</strong> page displays.</p>
+  </li>
+</ol>
+
+<h4 id="task-7-deploy-an-internal-service-to-aks">Task 7: Deploy an internal service to AKS</h4>
+
+<p>In this task, you will deploy the internal facing service on the AKS.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to open the nginxintenal.yaml file, so you can edit its content.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-sh hljs bash"> code ./nginxinternal.yaml
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is the <em>internal</em> yaml file.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the editor pane, scroll down to the line containing the reference to the container image and replace the <strong><code>&lt;ACRUniquename&gt;</code></strong> placeholder with the ACR name.</p>
+  </li>
+  <li>
+    <p>In the editor pane, in the upper right corner, click the <strong>ellipses</strong> icon, click <strong>Save</strong> and then click <strong>Close editor</strong>.</p>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to apply the change to the cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-sh hljs bash"> kubectl apply -f nginxinternal.yaml
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, review the output to verify your deployment and the service have been created:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs">deployment.apps/nginxinternal created
+service/nginxinternal created
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to retrieve information about the nginxinternal service including name, type, IP addresses, and ports.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-sh hljs bash"> kubectl get service nginxinternal
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, review the output. The External-IP is, in this case, a private IP address.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record this IP address. You will need it in the next task.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: To access the internal service endpoint, you will connect interactively to one of the pods running in the cluster.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Alternatively you could use the CLUSTER-IP address.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-8-verify-the-you-can-access-an-internal-aks-hosted-service">Task 8: Verify the you can access an internal AKS-hosted service</h4>
+
+<p>In this task, you will use one of the pods running on the AKS cluster to access the internal service.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to list the pods in the default namespace on the AKS cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-sh hljs bash"> kubectl get pods
+</code></pre>
+  </li>
+  <li>
+    <p>In the listing of the pods, copy the first entry in the <strong>NAME</strong> column.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is the pod you will use in the subsequent steps.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to connect interactively to the first pod (replace the <code>&lt;pod_name&gt;</code> placeholder with the name you copied in the previous step):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-sh hljs bash"> kubectl <span class="hljs-built_in"><span class="hljs-built_in">exec</span></span> -it &lt;pod_name&gt; -- /bin/bash
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session within the Cloud Shell pane, run the following to verify that the nginx web site is available via the private IP address of the service (replace the <code>&lt;internal_IP&gt;</code> placeholder with the IP address you recorded in the previous task):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-sh hljs bash"> curl http://&lt;internal_IP&gt;
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p>Result: You have configured and secured ACR and AKS.</p>
+</blockquote>
+
+<p><strong>Clean up resources</strong></p>
+
+<blockquote>
+  <p>Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not incur unexpected costs.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the Cloud Shell by clicking the first icon in the top right of the Azure Portal.</p>
+  </li>
+  <li>
+    <p>In the upper-left drop-down menu of the Cloud Shell pane, select <strong>PowerShell</strong> and, when prompted, click <strong>Confirm</strong>.</p>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to remove the resource groups you created in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-powershell"> Remove-AzResourceGroup -Name "AZ500LAB09" -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ500-AzureSecurityTechnologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="read-text-in-images">Read Text in Images</h1>
+
+<p>Optical character recognition (OCR) is a subset of computer vision that deals with reading text in images and documents. The <strong>Computer Vision</strong> service provides two APIs for reading text, which you’ll explore in this exercise.</p>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have not already done so, you must clone the code repository for this course:</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="provision-a-cognitive-services-resource">Provision a Cognitive Services resource</h2>
+
+<p>If you don’t already have one in your subscription, you’ll need to provision a <strong>Cognitive Services</strong> resource.</p>
+
+<ol>
+  <li>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>Select the <strong>＋Create a resource</strong> button, search for <em>cognitive services</em>, and create a <strong>Cognitive Services</strong> resource with the following settings:
+    <ul>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Region</strong>: <em>Choose any available region</em></li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Pricing tier</strong>: Standard S0</li>
+    </ul>
+  </li>
+  <li>Select the required checkboxes and create the resource.</li>
+  <li>Wait for deployment to complete, and then view the deployment details.</li>
+  <li>When the resource has been deployed, go to it and view its <strong>Keys and Endpoint</strong> page. You will need the endpoint and one of the keys from this page in the next procedure.</li>
+</ol>
+
+<h2 id="prepare-to-use-the-computer-vision-sdk">Prepare to use the Computer Vision SDK</h2>
+
+<p>In this exercise, you’ll complete a partially implemented client application that uses the Computer Vision SDK to read text.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: You can choose to use the SDK for either <strong>C#</strong> or <strong>Python</strong>. In the steps below, perform the actions appropriate for your preferred language.</p>
+</blockquote>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>Explorer</strong> pane, browse to the <strong>20-ocr</strong> folder and expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>Right-click the <strong>read-text</strong> folder and open an integrated terminal. Then install the Computer Vision SDK package by running the appropriate command for your language preference:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.ComputerVision</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 6<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-computervision==<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">7</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+
+<ol>
+  <li>View the contents of the <strong>read-text</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+
+    <p>Open the configuration file and update the configuration values it contains to reflect the <strong>endpoint</strong> and an authentication <strong>key</strong> for your cognitive services resource. Save your changes.</p>
+  </li>
+  <li>
+    <p>Note that the <strong>read-text</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: read-text.py</li>
+    </ul>
+
+    <p>Open the code file and at the top, under the existing namespace references, find the comment <strong>Import namespaces</strong>. Then, under this comment, add the following language-specific code to import the namespaces you will need to use the Computer Vision SDK:</p>
+  </li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-C# hljs"><span class="hljs-comment"><span class="hljs-comment">// import namespaces</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># import namespaces</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.computervision <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> ComputerVisionClient
+<span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.computervision.models <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> OperationStatusCodes
+<span class="hljs-keyword"><span class="hljs-keyword">from</span></span> msrest.authentication <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> CognitiveServicesCredentials
+</code></pre>
+
+<ol>
+  <li>In the code file for your client application, in the <strong>Main</strong> function, note that the code to load the configuration settings has been provided. Then find the comment <strong>Authenticate Computer Vision client</strong>. Then, under this comment, add the following language-specific code to create and authenticate a Computer Vision client object:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-C# hljs"><span class="hljs-comment"><span class="hljs-comment">// Authenticate Computer Vision client</span></span>
+ApiKeyServiceClientCredentials credentials = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ApiKeyServiceClientCredentials(cogSvcKey);
+cvClient = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ComputerVisionClient(credentials)
+{
+    Endpoint = cogSvcEndpoint
+};
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Authenticate Computer Vision client</span></span>
+credential = CognitiveServicesCredentials(cog_key) 
+cv_client = ComputerVisionClient(cog_endpoint, credential)
+</code></pre>
+
+<h2 id="use-the-ocr-api">Use the OCR API</h2>
+
+<p>The <strong>OCR</strong> API is an optical character recognition API that is optimized for reading small to medium amounts of printed text in <em>.jpg</em>, <em>.png</em>, <em>.gif</em>, and <em>.bmp</em> format images. It supports a wide range of languages and in addition to reading text in the image it can determine the orientation of each text region and return information about the rotation angle of the text in relation to the image</p>
+
+<ol>
+  <li>In the code file for your application, in the <strong>Main</strong> function, examine the code that runs if the user selects menu option <strong>1</strong>. This code calls the <strong>GetTextOcr</strong> function, passing the path to an image file.</li>
+  <li>In the <strong>read-text/images</strong> folder, open <strong>Lincoln.jpg</strong> to view the image that your code will process.</li>
+  <li>Back in the code file, find the <strong>GetTextOcr</strong> function, and under the existing code that prints a message to the console, add the following code:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-C# hljs"><span class="hljs-comment"><span class="hljs-comment">// Use OCR API to read text in image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{    
+    var ocrResults = await cvClient.RecognizePrintedTextInStreamAsync(detectOrientation:<span class="hljs-literal"><span class="hljs-literal">false</span></span>, image:imageData);
+
+    <span class="hljs-comment"><span class="hljs-comment">// Prepare image for drawing</span></span>
+    Image image = Image.FromFile(imageFile);
+    Graphics graphics = Graphics.FromImage(image);
+    Pen pen = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.Magenta, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+
+    foreach(var region in ocrResults.Regions)
+    {
+        foreach(var line in region.Lines)
+        {
+            <span class="hljs-comment"><span class="hljs-comment">// Show the position of the line of text</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">int</span></span>[] dims = line.BoundingBox.Split(<span class="hljs-string"><span class="hljs-string">","</span></span>).Select(<span class="hljs-keyword"><span class="hljs-keyword">int</span></span>.Parse).ToArray();
+            Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(dims[<span class="hljs-number"><span class="hljs-number">0</span></span>], dims[<span class="hljs-number"><span class="hljs-number">1</span></span>], dims[<span class="hljs-number"><span class="hljs-number">2</span></span>], dims[<span class="hljs-number"><span class="hljs-number">3</span></span>]);
+            graphics.DrawRectangle(pen, rect);
+
+            <span class="hljs-comment"><span class="hljs-comment">// Read the words in the line of text</span></span>
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> lineText = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+            foreach(var word in line.Words)
+            {
+                lineText += word.Text + <span class="hljs-string"><span class="hljs-string">" "</span></span>;
+            }
+            Console.WriteLine(lineText.Trim());
+        }
+    }
+
+    <span class="hljs-comment"><span class="hljs-comment">// Save the image with the text locations highlighted</span></span>
+    String output_file = <span class="hljs-string"><span class="hljs-string">"ocr_results.jpg"</span></span>;
+    image.Save(output_file);
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Results saved in "</span></span> + output_file);
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Use OCR API to read text in image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    ocr_results = cv_client.recognize_printed_text_in_stream(image_data)
+
+<span class="hljs-comment"><span class="hljs-comment"># Prepare image for drawing</span></span>
+fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">7</span></span>, <span class="hljs-number"><span class="hljs-number">7</span></span>))
+img = Image.open(image_file)
+draw = ImageDraw.Draw(img)
+
+<span class="hljs-comment"><span class="hljs-comment"># Process the text line by line</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> region <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> ocr_results.regions:
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> line <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> region.lines:
+
+        <span class="hljs-comment"><span class="hljs-comment"># Show the position of the line of text</span></span>
+        l,t,w,h = list(map(int, line.bounding_box.split(<span class="hljs-string"><span class="hljs-string">','</span></span>)))
+        draw.rectangle(((l,t), (l+w, t+h)), outline=<span class="hljs-string"><span class="hljs-string">'magenta'</span></span>, width=<span class="hljs-number"><span class="hljs-number">5</span></span>)
+
+        <span class="hljs-comment"><span class="hljs-comment"># Read the words in the line of text</span></span>
+        line_text = <span class="hljs-string"><span class="hljs-string">''</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> word <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> line.words:
+            line_text += word.text + <span class="hljs-string"><span class="hljs-string">' '</span></span>
+        print(line_text.rstrip())
+
+<span class="hljs-comment"><span class="hljs-comment"># Save the image with the text locations highlighted</span></span>
+plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+plt.imshow(img)
+outputfile = <span class="hljs-string"><span class="hljs-string">'ocr_results.jpg'</span></span>
+fig.savefig(outputfile)
+print(<span class="hljs-string"><span class="hljs-string">'Results saved in'</span></span>, outputfile)
+</code></pre>
+
+<ol>
+  <li>Examine the code you added to the <strong>GetTextOcr</strong> function. It detects regions of printed text from an image file, and for each region it extracts the lines of text and highlights there position on the image. It then extracts the words in each line and prints them.</li>
+  <li>Save your changes and return to the integrated terminal for the <strong>read-text</strong> folder, and enter the following command to run the program:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><em>The C# output may display warnings about asynchronous functions now using the <strong>await</strong> operator. You can ignore these.</em></p>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs bash">python <span class="hljs-built_in"><span class="hljs-built_in">read</span></span>-text.py
+</code></pre>
+
+<ol>
+  <li>When prompted, enter <strong>1</strong> and observe the output, which is the text extracted from the image.</li>
+  <li>View the <strong>ocr_results.jpg</strong> file that is generated in the same folder as your code file to see the annotated lines of text in the image.</li>
+</ol>
+
+<h2 id="use-the-read-api">Use the Read API</h2>
+
+<p>The <strong>Read</strong> API uses a newer text recognition model than the OCR API, and performs better for larger images that contain a lot of text. It also supports text extraction from <em>.pdf</em> files, and can recognize both printed text (in multiple languages) and handwritten text (in English).</p>
+
+<p>The <strong>Read</strong> API uses an asynchronous operation model, in which a request to start text recognition is submitted; and the operation ID returned from the request can subsequently be used to check progress and retrieve results.</p>
+
+<ol>
+  <li>In the code file for your application, in the <strong>Main</strong> function, examine the code that runs if the user selects menu option <strong>2</strong>. This code calls the <strong>GetTextRead</strong> function, passing the path to a PDF document file.</li>
+  <li>In the <strong>read-text/images</strong> folder, right-click <strong>Rome.pdf</strong> and select <strong>Reveal in File Explorer</strong>. Then in File Explorer, open the PDF file to view it.</li>
+  <li>Back in the code file in Visual Studio Code, find the <strong>GetTextRead</strong> function, and under the existing code that prints a message to the console, add the following code:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-C# hljs"><span class="hljs-comment"><span class="hljs-comment">// Use Read API to read text in image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{    
+    var readOp = await cvClient.ReadInStreamAsync(imageData);
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get the async operation ID so we can check for the results</span></span>
+    <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> operationLocation = readOp.OperationLocation;
+    <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> operationId = operationLocation.Substring(operationLocation.Length - <span class="hljs-number"><span class="hljs-number">36</span></span>);
+
+    <span class="hljs-comment"><span class="hljs-comment">// Wait for the asynchronous operation to complete</span></span>
+    ReadOperationResult results;
+    <span class="hljs-keyword"><span class="hljs-keyword">do</span></span>
+    {
+        Thread.Sleep(<span class="hljs-number"><span class="hljs-number">1000</span></span>);
+        results = await cvClient.GetReadResultAsync(Guid.Parse(operationId));
+    }
+    <span class="hljs-keyword"><span class="hljs-keyword">while</span></span> ((results.Status == OperationStatusCodes.Running ||
+            results.Status == OperationStatusCodes.NotStarted));
+
+    <span class="hljs-comment"><span class="hljs-comment">// If the operation was successfuly, process the text line by line</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (results.Status == OperationStatusCodes.Succeeded)
+    {
+        var textUrlFileResults = results.AnalyzeResult.ReadResults;
+        foreach (ReadResult page in textUrlFileResults)
+        {
+            foreach (Line line in page.Lines)
+            {
+                Console.WriteLine(line.Text);
+            }
+        }
+    }
+}  
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Use Read API to read text in image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    read_op = cv_client.read_in_stream(image_data, raw=<span class="hljs-keyword"><span class="hljs-keyword">True</span></span>)
+
+    <span class="hljs-comment"><span class="hljs-comment"># Get the async operation ID so we can check for the results</span></span>
+    operation_location = read_op.headers[<span class="hljs-string"><span class="hljs-string">"Operation-Location"</span></span>]
+    operation_id = operation_location.split(<span class="hljs-string"><span class="hljs-string">"/"</span></span>)[<span class="hljs-number"><span class="hljs-number">-1</span></span>]
+
+    <span class="hljs-comment"><span class="hljs-comment"># Wait for the asynchronous operation to complete</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">while</span></span> <span class="hljs-keyword"><span class="hljs-keyword">True</span></span>:
+        read_results = cv_client.get_read_result(operation_id)
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> read_results.status <span class="hljs-keyword"><span class="hljs-keyword">not</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> [OperationStatusCodes.running, OperationStatusCodes.not_started]:
+            <span class="hljs-keyword"><span class="hljs-keyword">break</span></span>
+        time.sleep(<span class="hljs-number"><span class="hljs-number">1</span></span>)
+
+    <span class="hljs-comment"><span class="hljs-comment"># If the operation was successfuly, process the text line by line</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> read_results.status == OperationStatusCodes.succeeded:
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> page <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> read_results.analyze_result.read_results:
+            <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> line <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> page.lines:
+                print(line.text)
+</code></pre>
+
+<ol>
+  <li>Examine the code you added to the <strong>GetTextRead</strong> function. It submits a request for a read operation, and then repeatedly checks status until the operation has completed. If it was successful, the code processes the results by iterating through each page, and then through each line.</li>
+  <li>Save your changes and return to the integrated terminal for the <strong>read-text</strong> folder, and enter the following command to run the program:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs bash">python <span class="hljs-built_in"><span class="hljs-built_in">read</span></span>-text.py
+</code></pre>
+
+<ol>
+  <li>When prompted, enter <strong>2</strong> and observe the output, which is the text extracted from the document.</li>
+</ol>
+
+<h2 id="read-handwritten-text">Read handwritten text</h2>
+
+<p>In addition to printed text, the <strong>Read</strong> API can extract handwritten text in English..</p>
+
+<ol>
+  <li>In the code file for your application, in the <strong>Main</strong> function, examine the code that runs if the user selects menu option <strong>3</strong>. This code calls the <strong>GetTextRead</strong> function, passing the path to an image file.</li>
+  <li>In the <strong>read-text/images</strong> folder, open <strong>Note.jpg</strong> to view the image that your code will process.</li>
+  <li>In the integrated terminal for the <strong>read-text</strong> folder, and enter the following command to run the program:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs bash">python <span class="hljs-built_in"><span class="hljs-built_in">read</span></span>-text.py
+</code></pre>
+
+<ol>
+  <li>When prompted, enter <strong>3</strong> and observe the output, which is the text extracted from the document.</li>
+</ol>
+
+<h2 id="more-information">More information</h2>
+
+<p>For more information about using the <strong>Computer Vision</strong> service to read text, see the <a href="https://docs.microsoft.com/azure/cognitive-services/computer-vision/concept-recognizing-text">Computer Vision documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

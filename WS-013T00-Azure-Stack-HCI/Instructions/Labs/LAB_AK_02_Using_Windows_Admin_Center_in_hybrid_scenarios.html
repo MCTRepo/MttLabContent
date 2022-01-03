@@ -1,0 +1,755 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            WS-013T00-Azure-Stack-HCI
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                WS-013T00-Azure-Stack-HCI
+            </a>
+            <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#task-1-prepare-the-lab-artifacts">Task 1: Prepare the lab artifacts</a></li><li class="nav-item"><a class="nav-link" href="#task-2-deploy-the-lab-infrastructure">Task 2: Deploy the lab infrastructure</a></li><li class="nav-item"><a class="nav-link" href="#task-1-prepare-the-lab-infrastructure-vms-for-integration-with-azure-services">Task 1: Prepare the lab infrastructure VMs for integration with Azure services</a></li><li class="nav-item"><a class="nav-link active" href="#task-2-provision-a-storage-spaces-direct-cluster-within-the-lab-environment">Task 2: Provision a Storage Spaces Direct cluster within the lab environment</a></li><li class="nav-item"><a class="nav-link" href="#task-3-configure-cloud-witness-quorum-for-the-storage-spaces-direct-cluster">Task 3: Configure Cloud Witness quorum for the Storage Spaces Direct cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-4-enable-storage-spaces-direct-on-the-cluster">Task 4: Enable Storage Spaces Direct on the cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-5-provision-azure-log-analytics-workspace-and-azure-log-analytics-gateway">Task 5: Provision Azure Log Analytics workspace and Azure Log Analytics gateway</a></li><li class="nav-item"><a class="nav-link" href="#task-6-configure-azure-log-analytics-workspace">Task 6: Configure Azure Log Analytics workspace</a></li><li class="nav-item"><a class="nav-link" href="#task-7-integrate-hyperconverged-infrastructure-with-azure-automation">Task 7: Integrate hyperconverged infrastructure with Azure Automation</a></li><li class="nav-item"><a class="nav-link" href="#task-8-integrate-storage-spaces-direct-cluster-nodes-with-with-azure-monitor">Task 8: Integrate Storage Spaces Direct cluster nodes with with Azure Monitor</a></li><li class="nav-item"><a class="nav-link" href="#task-1-review-log-analytics-functionality">Task 1: Review Log Analytics functionality</a></li><li class="nav-item"><a class="nav-link" href="#task-2-review-azure-automation-functionality">Task 2: Review Azure Automation functionality</a></li><li class="nav-item"><a class="nav-link" href="#task-3-review-service-map-functionality">Task 3: Review Service Map functionality</a></li><li class="nav-item"><a class="nav-link" href="#task-1-implement-cluster-aware-updating-by-using-windows-admin-center">Task 1: Implement Cluster Aware Updating by using Windows Admin Center</a></li><li class="nav-item"><a class="nav-link" href="#task-2-use-azure-automation-update-management">Task 2: Use Azure Automation update management</a></li><li class="nav-item"><a class="nav-link" href="#task-1-deprovision-the-azure-resources">Task 1: Deprovision the Azure resources</a></li><li class="nav-item"><a class="nav-link" href="#task-2-deprovision-the-lab-resources">Task 2: Deprovision the lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-answer-key-using-windows-admin-center-in-hybrid-scenarios">Lab answer key: Using Windows Admin Center in hybrid scenarios</h1>
+
+<h2 id="exercise-1-provisioning-the-lab-environment-by-using-powershell">Exercise 1: Provisioning the lab environment by using PowerShell</h2>
+
+<h3 id="task-1-prepare-the-lab-artifacts">Task 1: Prepare the lab artifacts</h3>
+
+<ol>
+  <li>From the lab virtual machine (VM), start Windows PowerShell ISE as Administrator.</li>
+  <li>
+    <p>In the Administrator: Windows PowerShell ISE window, from the console pane, run the following to remove the <strong>Zone.Identifier</strong> alternate data stream, which has a value of <strong>3</strong>, indicating that it was downloaded from the Internet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Get-ChildItem -Path F:\WSLab-master\ -File -Recurse | Unblock-File
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="task-2-deploy-the-lab-infrastructure">Task 2: Deploy the lab infrastructure</h3>
+
+<ol>
+  <li>
+    <p>On the lab VM, in the console pane of the PowerShell ISE window, run the following to set the current directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">Set-Location -Path F:\WSLab-master\Scripts
+</code></pre>
+  </li>
+  <li>
+    <p>In the script pane of the PowerShell ISE window, run the following to rename <strong>Scenario.ps1</strong> and <strong>LabConfig.ps1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Move-Item -Path '.\LabConfig.ps1' -Destination '.\LabConfig.m2l0.ps1' -Force -ErrorAction SilentlyContinue
+Move-Item -Path '.\Scenario.ps1' -Destination '.\Scenario.m2l0.ps1' -Force -ErrorAction SilentlyContinue
+</code></pre>
+  </li>
+  <li>
+    <p>In the script pane of the PowerShell ISE window, run the following to copy <strong>Scenario.ps1</strong> and <strong>Labconfig.ps1</strong> files from <strong>F:\WSLab-master\Scenarios\S2D and Cloud Services Onboarding</strong> to the current directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">Copy-Item -Path 'F:\WSLab-master\Scenarios\S2D and Cloud Services Onboarding\Scenario.ps1' -Destination '.\'
+Copy-Item -Path 'F:\WSLab-master\Scenarios\S2D and Cloud Services Onboarding\Labconfig.ps1' -Destination '.\'
+</code></pre>
+  </li>
+  <li>
+    <p>In the script pane of the PowerShell ISE window, open the <strong>F:\WSLab-master\Scripts\LabConfig.ps1</strong> file, in the first line, replace <code>Prefix = 'WSLab-'</code> with <code>Prefix = 'WSLabOnboard-'</code>, save the changes, and then close the file.</p>
+  </li>
+  <li>
+    <p>In the PowerShell ISE window, open and run the <strong>F:\WSLab-master\Scripts\3_Deploy.ps1</strong> script to VMs for the lab environment.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: For the Telemetry Level prompt, select the default setting of None. The script should complete in about seven minutes. For the prompt to start the VMs, select All to Start the VMs. When prompted with Press enter to continue, select <strong>Enter</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="exercise-2-integrating-hyperconverged-infrastructure-with-azure-services">Exercise 2: Integrating hyperconverged infrastructure with Azure services</h2>
+
+<h3 id="task-1-prepare-the-lab-infrastructure-vms-for-integration-with-azure-services">Task 1: Prepare the lab infrastructure VMs for integration with Azure services</h3>
+
+<ol>
+  <li>
+    <p>On the lab VM, from the console pane of the PowerShell ISE window, run the following to start all of the lab infrastructure VMs:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">Get-VM | Where-Object Name -ne 'WSLabOnboard-DC' | Start-VM
+</code></pre>
+  </li>
+  <li>On the lab VM, start the Hyper-V Manager console and select the node representing the lab VM; in the list of VMs, right-click or access the context menu on the <strong>WSLabOnboard-DC</strong> entry; and then select <strong>Connect</strong>. When you receive a prompt, select <strong>Connect</strong>, and then sign in by using <strong>CORP\LabAdmin</strong> as the username and <strong>LS1setup!</strong> as the password.</li>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, start File Explorer, and then create a folder <strong>C:\Library</strong>.</li>
+  <li>Switch back to the lab VM and use the copy and paste functionality of the Hyper-V console session to copy <strong>F:\WSLab-master\Scripts\Scenario.ps1</strong> on the lab VM to <strong>C:\Library</strong> on the <strong>WSLabOnboard-DC</strong> VM.</li>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, start Windows PowerShell ISE as Administrator.</li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, open the <strong>C:\Library\Scenario.ps1</strong> file in the script pane, select the first part of the script between the lines <strong>1</strong> and <strong>25</strong> marked as <strong>#region Prereqs</strong>, and then run that part of the script either by selecting the <strong>F8</strong> key or selecting the <strong>Run selection</strong> button in the toolbar of the PowerShell ISE window.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This part of the script installs prerequisites that allow subsequent parts of the script to run, including Remote Server Administration Tools and Azure PowerShell modules.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the script to complete. Ignore any errors regarding <strong>Login-AZaccount</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, in the <strong>C:\Library\Scenario.ps1</strong> file in the script pane, select the second part of the script between the lines <strong>27</strong> and <strong>61</strong> marked as <strong>#region Install Windows Admin Center in a GW mode</strong>, and then run that part of the script either by selecting the <strong>F8</strong> key or selecting the <strong>Run selection</strong> button in the toolbar of the PowerShell ISE window.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This part of the script installs Windows Admin Center in the gateway mode on the <strong>WACGW</strong> VM.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Ignore error messages regarding aborted I/O operation.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, download and install Microsoft Edge for Business.</p>
+  </li>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, complete the Microsoft Edge for Business installation by selecting <strong>Complete setup</strong>, select <strong>Confirm</strong>, select <strong>Continue without signing in</strong>, and then close the browser window.</li>
+</ol>
+
+<h3 id="task-2-provision-a-storage-spaces-direct-cluster-within-the-lab-environment">Task 2: Provision a Storage Spaces Direct cluster within the lab environment</h3>
+
+<ol>
+  <li>
+    <p>Switch to the lab VM and in the PowerShell ISE window, from the console pane, run the following to shut down the VMs that will serve as nodes of the Storage Spaces Direct cluster in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">$VMs = @('WSLabOnboard-S2D1','WSLabOnboard-S2D2','WSLabOnboard-S2D3','WSLabOnboard-S2D4')
+Stop-VM -VMName $VMs -Force
+</code></pre>
+  </li>
+  <li>
+    <p>On the lab VM, in the PowerShell ISE window, from the console pane, run the following to configure nested virtualization for the VMs that will serve as nodes of the Storage Spaces Direct cluster in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Set-VMProcessor -VMName $VMs -ExposeVirtualizationExtensions $true
+</code></pre>
+  </li>
+  <li>
+    <p>On the lab VM, in the PowerShell ISE window, from the console pane, run the following to configure static memory for the VMs that will serve as nodes of the Storage Spaces Direct cluster in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">Set-VM $VMs -ProcessorCount 2 -StaticMemory -MemoryStartupBytes 4GB
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is not required for nested virtualization but mitigates problems with memory during startup.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the lab VM, in the PowerShell ISE window, from the console pane, run the following to start the VMs that will serve as nodes of the Storage Spaces Direct cluster in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">Start-VM -VMName $VMs
+</code></pre>
+  </li>
+  <li>
+    <p>Switch to the console session to the <strong>WSLabOnboard-DC</strong> VM. In the PowerShell ISE window, open a new tab in the script pane, paste the following script, and then run it to install Windows Server 2019 roles and features necessary to provision Storage Spaces Direct cluster on the four VMs in the lab environment (<strong>S2D1</strong>, <strong>S2D2</strong>, <strong>S2D3</strong>, and <strong>S2D4</strong>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">$servers = @('S2D1','S2D2','S2D3','S2D4')
+$features = 'Hyper-V', 'Failover-Clustering', 'Data-Center-Bridging', 'RSAT-Clustering-PowerShell', 'Hyper-V-PowerShell', 'FS-FileServer'
+Invoke-Command ($servers) {
+  Install-WindowsFeature -Name $using:features
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, open a new tab in the script pane, paste the following script, and then run it to complete installation of server roles and features by restarting the four VMs in the lab environment (<strong>S2D1</strong>, <strong>S2D2</strong>, <strong>S2D3</strong>, and <strong>S2D4</strong>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-powershell">Invoke-Command ($servers) {
+  Restart-Computer -Force
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait a few minutes until the operating system in all four VMs is running.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, open a new tab in the script pane, paste the following script, and then run it to configure storage to prepare for provisioning of a Storage Spaces Direct cluster on the four VMs in the lab environment (<strong>S2D1</strong>, <strong>S2D2</strong>, <strong>S2D3</strong>, and <strong>S2D4</strong>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-powershell">Invoke-Command ($servers) {
+  Update-StorageProviderCache
+  Get-StoragePool | ? IsPrimordial -eq $false | Set-StoragePool -IsReadOnly:$false -ErrorAction SilentlyContinue
+  Get-StoragePool | ? IsPrimordial -eq $false | Get-VirtualDisk | Remove-VirtualDisk -Confirm:$false -ErrorAction SilentlyContinue
+  Get-StoragePool | ? IsPrimordial -eq $false | Remove-StoragePool -Confirm:$false -ErrorAction SilentlyContinue
+  Get-PhysicalDisk | Reset-PhysicalDisk -ErrorAction SilentlyContinue
+  Get-Disk | ? Number -ne $null | ? IsBoot -ne $true | ? IsSystem -ne $true | ? PartitionStyle -ne RAW | % {
+     $_ | Set-Disk -isoffline:$false
+     $_ | Set-Disk -isreadonly:$false
+     $_ | Clear-Disk -RemoveData -RemoveOEM -Confirm:$false
+     $_ | Set-Disk -isreadonly:$true
+     $_ | Set-Disk -isoffline:$true
+ }
+ Get-Disk | Where Number -Ne $Null | Where IsBoot -Ne $True | Where IsSystem -Ne $True | Where PartitionStyle -Eq RAW | Group -NoElement -Property FriendlyName
+} | Sort -Property PsComputerName, Count
+</code></pre>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, from the console pane, run the following cmdlet to install the Failover Clustering and restart the <strong>WSLabOnboard-DC</strong> VM.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-powershell">Install-WindowsFeature -Name failover-clustering -IncludeManagementTools
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-powershell">Restart-Computer -Force
+</code></pre>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, from the console pane, run the following cmdlet to perform cluster validation for the four VMs in the lab environment (<strong>S2D1</strong>, <strong>S2D2</strong>, <strong>S2D3</strong>, and <strong>S2D4</strong>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-powershell">Test-Cluster -Node 'S2D1','S2D2','S2D3','S2D4' -Include 'Storage Spaces Direct', 'Inventory', 'Network', 'System Configuration'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Ignore cluster validation warnings. That’s expected.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, from the console pane, run the following cmdlet to create a new cluster consisting of the four VMs in the lab environment (<strong>S2D1</strong>, <strong>S2D2</strong>, <strong>S2D3</strong>, and <strong>S2D4</strong>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-powershell">New-Cluster -Name 'S2DCL1' -Node 'S2D1','S2D2','S2D3','S2D4' -NoStorage
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the cluster to be provisioned.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-3-configure-cloud-witness-quorum-for-the-storage-spaces-direct-cluster">Task 3: Configure Cloud Witness quorum for the Storage Spaces Direct cluster</h3>
+
+<ol>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, start the Microsoft Edge based on Chromium browser, navigate to the <a href="https://portal.azure.com">Azure portal</a> and, when you receive a prompt, sign in with the Owner or Contributor role in the Azure subscription you will be using in this lab.</li>
+  <li>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, enter <strong>Storage accounts</strong>, and then select the <strong>Enter</strong> key.</li>
+  <li>On the <strong>Storage accounts</strong> blade, select <strong>+ Create</strong>.</li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create storage account</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <p><em>Table 1: Storage account settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>Create a new resource group called ‘WS013-02-RG’</td>
+        </tr>
+        <tr>
+          <td>Storage account name</td>
+          <td>any globally unique name between 3 and 24 in length consisting of letters and digits</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>the name of an Azure region in proximity to the location of the lab environment</td>
+        </tr>
+        <tr>
+          <td>Performance</td>
+          <td>Standard</td>
+        </tr>
+        <tr>
+          <td>Account kind</td>
+          <td>Storage (general purpose v1)</td>
+        </tr>
+        <tr>
+          <td>Replication</td>
+          <td>Locally redundant storage (LRS)</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create storage account</strong> blade, select <strong>Review + Create</strong>, wait for the validation process to complete, and then select <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the Storage account to be created. This should take about two minutes.</p>
+    </blockquote>
+  </li>
+  <li>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, enter <strong>Resource groups</strong>, and then select the <strong>Enter</strong> key.</li>
+  <li>On the <strong>Resource groups</strong> blade, in the list of resource group, select the <strong>WS013-02-RG</strong> entry.</li>
+  <li>On the <strong>WS013-02-RG</strong> resource group blade, in the list of resources, select the entry representing the newly created storage account.</li>
+  <li>On the storage account blade, in the <strong>Settings</strong> section, select <strong>Access keys</strong>.</li>
+  <li>
+    <p>From the blade displaying access keys, copy the values of <strong>Storage account name</strong> and <strong>key1</strong> into Notepad.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will need both values later in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, start another instance of the Microsoft Edge based on Chromium browser, and then navigate to <code>https://wacgw.corp.contoso.com</code>. When you receive a prompt, sign in by using <strong>CORP\LabAdmin</strong> as the user name and <strong>LS1setup!</strong> as the password.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Select <strong>Continue</strong> if you receive an error that the connection is not secure.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Windows Admin Center</strong> interface, on the <strong>All connections</strong> page, select <strong>+ Add</strong>. On the <strong>Add resources</strong> panel, in the <strong>Server clusters</strong> tile, select <strong>Add</strong>. In the <strong>Cluster name</strong> text box, enter <code>S2DCL1.corp.contoso.com</code>and select <strong>Use another account for this connection</strong>. In the <strong>Username</strong> text box, enter <strong>CORP\LabAdmin</strong>, in the <strong>Password</strong> text box, enter <strong>LS1setup!</strong>; select <strong>Connect with account</strong>, and then select <strong>Add</strong>.</p>
+  </li>
+  <li>Back on the <strong>All connections</strong> page, select the <code>S2DCL1.corp.contoso.com</code> entry.</li>
+  <li>On the <code>S2DCL1.corp.contoso.com</code> page, examine the <strong>Overview</strong> panel, and then select <strong>Settings</strong>.</li>
+  <li>On the <strong>Settings</strong> panel, in the <strong>Cluster</strong> section, select <strong>Witness</strong>, and then in the <strong>Witness type</strong> drop down list, select <strong>Cloud witness</strong>.</li>
+  <li>In the <strong>Azure storage account name</strong> text box, paste the value of the <strong>Storage account name</strong> you copied earlier in this task.</li>
+  <li>In the <strong>Azure storage account key</strong> text box, paste the value of the <strong>key1</strong> you copied earlier in this task.</li>
+  <li>Select <strong>Save</strong> and when you receive a prompt to enable CredSSP, select <strong>Yes</strong>.</li>
+</ol>
+
+<h3 id="task-4-enable-storage-spaces-direct-on-the-cluster">Task 4: Enable Storage Spaces Direct on the cluster</h3>
+
+<ol>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, switch to the PowerShell ISE window and from the console pane, run the following cmdlet to enable Storage Spaces Direct on the newly created cluster (when you receive a prompt whether to proceed, select <strong>Yes to All</strong>).</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-powershell">Enable-ClusterStorageSpacesDirect -CimSession 'S2DCL1'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Disregard the warnings regarding <strong>No disks found to be used for cache</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Switch back to the browser window displaying the <strong>Windows Admin Center</strong> interface; on the <strong>Settings</strong> panel of <code>S2DCL1.corp.contoso.com</code> page, select <strong>Storage Spaces and Pools</strong>; and then examine its settings.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to refresh the browser page to connect to the cluster.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-5-provision-azure-log-analytics-workspace-and-azure-log-analytics-gateway">Task 5: Provision Azure Log Analytics workspace and Azure Log Analytics gateway</h3>
+
+<ol>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, switch to the browser window displaying the Azure portal, and then select the <strong>Cloud Shell</strong> icon in the toolbar of the portal interface.</li>
+  <li>
+    <p>If you receive a prompt to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and then select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to register the <strong>Microsoft.Insights</strong> and <strong>Microsoft.AlertsManagement</strong> resource providers:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-powershell">Register-AzResourceProvider -ProviderNamespace Microsoft.Insights  
+Register-AzResourceProvider -ProviderNamespace Microsoft.AlertsManagement
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to verify that the registration was successful:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-powershell">Get-AzResourceProvider -ProviderNamespace Microsoft.Insights  
+Get-AzResourceProvider -ProviderNamespace Microsoft.AlertsManagement
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait until the <strong>RegistrationState</strong> is listed as <strong>Registered</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, switch to the PowerShell ISE window. In the <strong>C:\Library\Scenario.ps1</strong> file in the script pane, in line <strong>77</strong>, replace <strong>OutpuMode</strong> with <strong>OutputMode</strong>, and then save the change.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Run <strong>Install-Module AZ</strong> on the <strong>WSLabOnboard-DC</strong> VM prior to performing the next step.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, in the <strong>C:\Library\Scenario.ps1</strong> file in the script pane, select the fourth part of the script between the lines <strong>74</strong> and <strong>105</strong> marked as <strong>#region Connect to Azure and create Log Analytics workspace if needed</strong>, and then run that part of the script either by selecting the <strong>F8</strong> key or selecting the <strong>Run selection</strong> button in the toolbar of the PowerShell ISE window.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This part of the script creates the Log Analytics workspace.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>The script will display instructions to follow to authenticate to an Azure subscription. Start another instance of the Microsoft Edge based on Chromium browser, navigate to <a href="https://aka.ms/device-login">https://microsoft.com/devicelogin</a>, and then enter the code provided in the instructions. When you receive a prompt, authenticate by using a user account with the Owner or Contributor role in the Azure subscription you are using in this lab, and then close the browser window.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the user account is associated with multiple Azure subscriptions, the script will automatically display a grid with the list of your subscriptions. Select the one you want to use in this lab, and then select <strong>OK</strong>.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you have existing Azure Log Analytics workspaces in the Azure subscription that you select, the script will automatically display a grid with the list of available Log Analytics workspaces in the Azure subscription you selected. Select <strong>Cancel</strong>, and the script will automatically provision one with a name that consists of the <strong>WSLabWinAnalytics</strong> prefix followed by the Azure subscription ID.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>The script will automatically display a grid containing the list of Azure regions. Select <strong>eastus</strong>, and then select <strong>OK</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure to select <strong>eastus</strong> as the target Azure region. The Azure Log Analytics location and the corresponding Azure Automation account locations must follow mappings documented in <a href="https://aka.ms/region-mappings">Supported regions for linked Log Analytics workspace</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, in the <strong>C:\Library\Scenario.ps1</strong> file in the script pane, select the fifth part of the script between the lines <strong>107</strong> and <strong>151</strong> marked as <strong>#region setup Log Analytics Gateway</strong>, and then run that part of the script either by selecting the <strong>F8</strong> key or selecting the <strong>Run selection</strong> button in the toolbar of the PowerShell ISE window.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This part of the script installs Log Analytics Gateway.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Disregard the warning about breaking changes to the cmdlet <strong>Get-AzOperationalInsightsWorkspaceSharedKey</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-6-configure-azure-log-analytics-workspace">Task 6: Configure Azure Log Analytics workspace</h3>
+
+<ol>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, switch back to the browser window displaying the Azure portal interface.</li>
+  <li>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, enter ‘Log Analytics workspaces’, and then select the <strong>Enter</strong> key.</li>
+  <li>
+    <p>On the <strong>Log Analytics workspaces</strong> blade, select the workspace you created in the previous task.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The workspace name has the <strong>WSLabWorkspace</strong> prefix.</p>
+    </blockquote>
+  </li>
+  <li>On the Log Analytics workspace blade, in the <strong>Settings</strong> section, select <strong>Agents Configuration</strong>.</li>
+  <li>In the <strong>Windows event logs</strong> tab, enter ‘System’, and then select <strong>+ Add windows event log</strong>.</li>
+  <li>Use the procedure described in the previous step to add the <strong>Application</strong> log.</li>
+  <li>On the <strong>Agents Configuration</strong> blade, select <strong>Windows performance counters</strong> tab, select <strong>+ Add performance counter</strong>, enter ‘Processor(*)\\% Processor Time’ and select <strong>Apply</strong>.</li>
+</ol>
+
+<h3 id="task-7-integrate-hyperconverged-infrastructure-with-azure-automation">Task 7: Integrate hyperconverged infrastructure with Azure Automation</h3>
+
+<ol>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, switch to the PowerShell ISE window and, in the <strong>C:\Library\Scenario.ps1</strong> file in the script pane, replace line <strong>163</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-powershell">$location=(Get-AzOperationalInsightsWorkspace -Name $WorkspaceName -ResourceGroupName $ResourceGroupName).Location
+</code></pre>
+
+    <p>with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-powershell">$location = 'eastus2'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This ensures that the location of the Azure Automation account maps to the location of the Azure Log Analytics workspace, as documented in <a href="https://aka.ms/region-mappings">Supported regions for linked Log Analytics workspace</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, in the <strong>C:\Library\Scenario.ps1</strong> file in the script pane, select the sixth part of the script between the lines <strong>153</strong> and <strong>287</strong> marked as <strong>#region deploy a Windows Hybrid Runbook Worker</strong>, and then run that part of the script either by selecting the <strong>F8</strong> key or selecting the <strong>Run selection</strong> button in the toolbar of the PowerShell ISE window.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This part of the script creates an Azure Automation Account and configures Hybrid Runbook Worker on the <strong>HRWorker01</strong> VM.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Disregard the warning about breaking changes to the cmdlet <strong>Get-AzOperationalInsightsWorkspaceSharedKey</strong>.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Disregard error messages during registration of the Hybrid Runbook Worker. You can verify that the registration was successful by switching to the browser displaying the Azure portal interface, navigating to the <strong>WSLabAutomationAccount</strong> Azure Automation account you created in this task, selecting <strong>Hybrid worker groups</strong>, and then finally selecting the <strong>System hybrid worker groups</strong>. You will find the <code>HRWorker01.Corp.contoso.com</code> entry there, representing the newly registered Hybrid Runbook worker.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, in the <strong>C:\Library\Scenario.ps1</strong> file in the script pane, replace line <strong>286</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-powershell">$location=(Get-AzOperationalInsightsWorkspace -Name $WorkspaceName -ResourceGroupName $ResourceGroupName).Location
+</code></pre>
+
+    <p>with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-powershell">$location = 'eastus2'
+</code></pre>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, in the <strong>C:\Library\Scenario.ps1</strong> file in the script pane, select the seventh part of the script between the lines <strong>289</strong> and <strong>328</strong> marked as <strong>#region configure Hybrid Runbook Worker Addresses and Azure Automation Agent Service URL on Log Analytics Gateway</strong>, and then run that part of the script either by selecting the <strong>F8</strong> key or selecting the <strong>Run selection</strong> button in the toolbar of the PowerShell ISE window.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This part configures the Log Analytics Gateway to connect to the Azure Automation endpoints.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-8-integrate-storage-spaces-direct-cluster-nodes-with-with-azure-monitor">Task 8: Integrate Storage Spaces Direct cluster nodes with with Azure Monitor</h3>
+
+<ol>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, in the <strong>F:\WSLab-master\Scripts\Scenario.ps1</strong> file in the script pane, select the eighth part of the script between the lines <strong>330</strong> and <strong>372</strong> marked as <strong>#region download and deploy MMA Agent to S2D cluster nodes</strong>, and then run that part of the script either by selecting the <strong>F8</strong> key or selecting the <strong>Run selection</strong> button in the toolbar of the PowerShell ISE window.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This part installs the Log Analytics agent to Storage Spaces Direct cluster nodes.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Disregard the warning about breaking changes to the cmdlet <strong>Get-AzOperationalInsightsWorkspaceSharedKey</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the PowerShell ISE window, in the <strong>F:\WSLab-master\Scripts\Scenario.ps1</strong> file in the script pane, select the ninth part of the script between the lines <strong>374</strong> and <strong>401</strong> marked as <strong>#region download and install dependency agent (for service map solution)</strong>, and then run that part of the script either by selecting the <strong>F8</strong> key or selecting the <strong>Run selection</strong> button in the toolbar of the PowerShell ISE window.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This part installs the Dependency agent, which provides the Service Map functionality.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="exercise-3-reviewing-azure-integration-functionality">Exercise 3: Reviewing Azure integration functionality</h2>
+
+<h3 id="task-1-review-log-analytics-functionality">Task 1: Review Log Analytics functionality</h3>
+
+<ol>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, switch back to the browser window displaying the Azure portal interface.</li>
+  <li>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, enter <strong>Log Analytics workspaces</strong>, and then select the <strong>Enter</strong> key.</li>
+  <li>On the <strong>Log Analytics workspaces</strong> blade, select the workspace you created earlier in this lab (its name starts with the <strong>WSLabWorkspace</strong> prefix).</li>
+  <li>On the Log Analytics workspace blade, in the <strong>General</strong> section, select <strong>Logs</strong>, and then select <strong>Get Started</strong>.</li>
+  <li>In the <strong>Example queries</strong> pane, in the list of <strong>All Queries</strong>, select <strong>Virtual machines</strong>.
+In the list of sample queries, select <strong>Top 10 Virtual Machines by CPU utilization in the last 7 days</strong>, and then select <strong>Run</strong>. This will automatically display the corresponding query and its results.
+    <blockquote>
+      <p><strong>Note</strong>: Review the query and the results.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: The query might result in the syntax error message if the data has not been collected yet. If so, wait for a few minutes and try again or return to this task once you complete the rest of the lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-2-review-azure-automation-functionality">Task 2: Review Azure Automation functionality</h3>
+
+<ol>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the browser window displaying the Azure portal, navigate back to the blade displaying the Log Analytics workspace you were reviewing in the previous task.</li>
+  <li>On the Log Analytics workspace blade, in the <strong>Related Resources</strong> section, select <strong>Automation Account</strong>.</li>
+  <li>Note the information regarding the linked Automation account, and then select <strong>Go to account</strong>. You will be redirected to the <strong>WSLabAutomationAccount</strong> blade.</li>
+  <li>On the <strong>WSLabAutomationAccount</strong> blade, in the <strong>Configuration Management</strong> section, select <strong>Inventory</strong>.</li>
+  <li>On the <strong>Inventory</strong> blade, note that you have the option to <strong>Enable</strong> the Inventory solution.</li>
+  <li>Without making any changes, on the <strong>WSLabAutomationAccount</strong> blade, in the <strong>Configuration Management</strong> section, select <strong>Change tracking</strong>.</li>
+  <li>On the <strong>Change tracking</strong> blade, note that you have the option to <strong>Enable</strong> the Change tracking solution.</li>
+  <li>Without making any changes, on the <strong>WSLabAutomationAccount</strong> blade, in the <strong>Process automation</strong> section, select <strong>Hybrid worker groups</strong>.</li>
+  <li>
+    <p>On the <strong>Hybrid worker groups</strong> blade, select the <strong>System hybrid worker groups</strong> tab and note that it contains a separate group for each server that was registered with Azure Automation, with a single worker per group.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that last seen time for each worker group is within one hour of the current time.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-3-review-service-map-functionality">Task 3: Review Service Map functionality</h3>
+
+<ol>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the browser window displaying the Azure portal, navigate back to the blade displaying the Log Analytics workspace you were reviewing in the first task of this exercise.</li>
+  <li>On the Log Analytics workspace blade, in the <strong>General</strong> section, select <strong>Workspace summary</strong>.</li>
+  <li>
+    <p>On the <strong>Overview</strong> blade, review the list of solutions that you implemented in the previous exercise, and then select the <strong>Service Map</strong> tile.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: It may take several minutes for the <strong>Service Map</strong> blade to appear.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Service Map</strong> blade, on the <strong>Machines</strong> tab, in the list of monitored servers, select <strong>S2D1</strong> (one of the nodes of the Storage Spaces Direct cluster), select the <strong>+</strong> icon in the diagram to the right of the server list to zoom into the diagram in the center of the blade, and then review the <strong>Summary</strong> pane on the right-hand side of the blade.</li>
+  <li>
+    <p>With the <strong>S2D1</strong> server selected, display each of the sections on the right-hand side of the pane, including <strong>Summary</strong>, <strong>Properties</strong>, <strong>Alerts</strong>, <strong>Log Events</strong>, <strong>Performance</strong>, <strong>Security</strong>, and <strong>Updates</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In the <strong>Security</strong> section, if you find the <strong>Logons with a clear text password</strong> entry, select it. You will be automatically redirected to the Log Analytics workspace blade displaying the corresponding Kusto Query Language (KQL) query.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>With the <strong>S2D1</strong> server selected, zoom in further on the diagram, and then expand the rectangle representing the <strong>S2D2</strong> cluster node by selecting the inverted caret character (<strong>^</strong>).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Review the list of connections and verify that they involve multiple processes (such as <strong>clussvc</strong> and <strong>System</strong>).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Review the diagram and note that it includes connections to <code>DC.corp.contoso.com</code> over ports 53 (dns), 67 (bootps), 88, 123, 135, 389, and 445 (there might be others).</p>
+
+    <p><strong>Note</strong>: These connections are listed even though the <strong>DC</strong> server does not have the Log Analytics and Dependency agents installed.</p>
+  </li>
+</ol>
+
+<h2 id="exercise-4-managing-updates-to-hyperconverged-infrastructure">Exercise 4: Managing updates to hyperconverged infrastructure</h2>
+
+<h3 id="task-1-implement-cluster-aware-updating-by-using-windows-admin-center">Task 1: Implement Cluster Aware Updating by using Windows Admin Center</h3>
+
+<ol>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, switch back to the <strong>Windows Admin Center</strong> interface, and in the list of <strong>Tools</strong> of the <code>S2DCL1.corp.contoso.com</code> page, select <strong>Updates</strong>.</li>
+  <li>Select <strong>Add Cluster-Aware Updating role</strong>.</li>
+  <li>On the <strong>Updates</strong> panel, select <strong>Check for updates</strong>.</li>
+  <li>
+    <p>Review the list of available updates without making any changes.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You have the option to <strong>Apply All Updates</strong>. Do not select it.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can monitor the status of applying the updates directly from the <strong>Cluster Aware Updating</strong> panel.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-2-use-azure-automation-update-management">Task 2: Use Azure Automation update management</h3>
+
+<ol>
+  <li>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, switch back to the browser window displaying the <strong>WSLabAutomationAccount</strong> blade in the Azure portal.</li>
+  <li>On the <strong>WSLabAutomationAccount</strong> blade, in the <strong>Update Management</strong> section, select <strong>Update Management</strong>.</li>
+  <li>
+    <p>On the <strong>Update Management</strong> blade, review the list of machines, and identify noncompliant ones.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: To schedule an update deployment, you must first create a computer group.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>WSLabOnboard-DC</strong> VM, in the browser displaying the Azure portal, navigate back to the blade displaying the Log Analytics workspace you were reviewing in the previous exercise.</p>
+  </li>
+  <li>On the Log Analytics workspace blade, in the <strong>General</strong> section, select <strong>Logs</strong>.</li>
+  <li>On the <strong>Example queries</strong> pane, scroll down to the <strong>Virtual machines</strong> section, select it, in the listing of queries, locate the <strong>Missing security or critical updates</strong> from the <strong>Virtual Machine</strong> tile, hover over the <strong>Run</strong> button, and select <strong>Load to editor</strong>.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>In the editor window, remove the line ‘</td>
+          <td>summarize count() by Classification’, select <strong>Run</strong> and review results of the query.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: the query lists all of missing security or critical updates.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the editor window, replace the query with the following one:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-kql">Update
+| where UpdateState == 'Needed' and Optional == false and Classification == 'Security Updates' and Approved != false and Computer hassuffix "corp.contoso.com" and Computer !contains "S2D"
+| distinct Computer
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Computer group queries must use the <code>distinct Computer</code> clause.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: The query excludes servers which are members of the Storage Spaces Direct cluster because these are updated by using Cluster Aware Updating.</p>
+    </blockquote>
+  </li>
+  <li>Select <strong>Run</strong> to verify that the query returns the list of noncompliant servers in the <code>Corp.contoso.com</code> domain that are not part of the Storage Spaces Direct cluster.</li>
+  <li>
+    <p>Select <strong>Save</strong>; in the drop down list, select <strong>Save as function</strong>; in the <strong>Save as function</strong> pane, specify the following settings; and then select <strong>Save</strong>:</p>
+
+    <p><em>Table 2: Group query settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Function Name</td>
+          <td>corp_non_s2d_non_compliant</td>
+        </tr>
+        <tr>
+          <td>Legacy category</td>
+          <td><code>corp.contoso.com non-compliant non S2D servers</code></td>
+        </tr>
+        <tr>
+          <td>Save as a computer group</td>
+          <td>enabled</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>In the Azure portal, navigate back to the <strong>WSLabAutomationAccount Automation Account</strong> blade, and in the <strong>Update Management</strong> section, select <strong>Update Management</strong>.</li>
+  <li>On the <strong>Update Management</strong> blade, select <strong>Schedule update deployment</strong>.</li>
+  <li>On the <strong>New update deployment</strong> blade, in the <strong>Name</strong> text box, enter <strong>ws01302 update deployment</strong> and ensure that the <strong>Operating system</strong> switch is set to <strong>Windows</strong>.</li>
+  <li>On the <strong>New update deployment</strong> blade, in the <strong>Items to update</strong> section, select <strong>Groups to update</strong>.</li>
+  <li>On the <strong>Select groups</strong> blade, select the <strong>Non-Azure</strong> tab; in the <strong>Available Items</strong> section, in the <code>corp.contoso.com non-compliant non S2D servers</code> row, select <strong>add</strong>; and then select <strong>OK</strong>.</li>
+  <li>On the <strong>New update deployment</strong> blade, in the <strong>Items to update</strong> section, select <strong>Machines to update</strong>.</li>
+  <li>On the <strong>Select machines</strong> blade, select the <code>corp.contoso.com non-compliant non S2D servers</code> entry, and then select <strong>OK</strong>.</li>
+  <li>
+    <p>Leave the settings within the <strong>Update classifications</strong> drop down list with the default values.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can use the <strong>Include/exclude updates</strong> setting to include or exclude individual updates.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>New update deployment</strong> blade, in the <strong>Items to update</strong> section, select <strong>Schedule settings</strong>, specify the date and time at least 5 minutes ahead of the current date and time, select your current time zone, ensure that <strong>Recurrence</strong> switch is set to <strong>Once</strong>, and then select <strong>OK</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can use the <strong>Pre-scripts + Post-scripts</strong> setting to specify scripts to run before and after patch deployment.</p>
+    </blockquote>
+  </li>
+  <li>Leave the <strong>Maintenance window (minutes)</strong> and <strong>Reboot options</strong> with their default values (<strong>120</strong> and <strong>Reboot if required</strong>, respectively) and select <strong>Create</strong>.</li>
+  <li>Back on the <strong>WSLabAutomationAccount | Update management</strong> blade, select the <strong>Deployment schedules</strong> tab and ensure that the deployment has been successfully scheduled.</li>
+</ol>
+
+<h2 id="exercise-5-deprovisioning-the-lab-environment">Exercise 5: Deprovisioning the lab environment</h2>
+
+<h3 id="task-1-deprovision-the-azure-resources">Task 1: Deprovision the Azure resources</h3>
+
+<ol>
+  <li>Switch to the lab VM.</li>
+  <li>Start a browser, navigate to the Azure portal, and then sign in with the Owner or Contributor role in the Azure subscription you will be using in this lab.</li>
+  <li>Within the Azure portal, select the <strong>Cloud Shell</strong> icon in the toolbar of the portal interface.</li>
+  <li>If you receive a prompt to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to remove all Azure resources you provisioned in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'WS013-02-RG' | Remove-AzResourceGroup -Force -AsJob
+Get-AzResourceGroup -Name 'WSLabWinAnalytics' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="task-2-deprovision-the-lab-resources">Task 2: Deprovision the lab resources</h3>
+
+<ol>
+  <li>On the lab VM, start Windows PowerShell ISE as Administrator.</li>
+  <li>In the PowerShell ISE window, open and run the <strong>F:\WSLab-master\Scripts\Cleanup.ps1</strong> script to remove all VMs provisioned in this lab.</li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="ml-2">
+                    MicrosoftLearning/WS-013T00-Azure-Stack-HCI
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.js"></script>
+
+
+
+</body></html>

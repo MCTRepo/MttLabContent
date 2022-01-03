@@ -1,0 +1,1094 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            WS-012T00-Windows-Server-2019-Hybrid-and-Azure-IaaS
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D0a85806b00854f6395723020d7125becaf7760ed.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                WS-012T00-Windows-Server-2019-Hybrid-and-Azure-IaaS
+            </a>
+            <a href="https://github.com/MicrosoftLearning/WS-012T00-Windows-Server-2019-Hybrid-and-Azure-IaaS" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#scenario-1">Scenario</a></li><li class="nav-item"><a class="nav-link" href="#scenario-2">Scenario</a></li><li class="nav-item"><a class="nav-link" href="#scenario-3">Scenario</a></li><li class="nav-item"><a class="nav-link" href="#scenario-4">Scenario</a></li><li class="nav-item"><a class="nav-link" href="#task-3-install-the-azure-recovery-services-agent">Task 3: Install the Azure Recovery Services agent</a></li><li class="nav-item"><a class="nav-link" href="#task-4-schedule-azure-backup">Task 4: Schedule Azure Backup</a></li><li class="nav-item"><a class="nav-link" href="#scenario-5">Scenario</a></li><li class="nav-item"><a class="nav-link" href="#task-1-remove-the-protected-items">Task 1: Remove the protected items</a></li><li class="nav-item"><a class="nav-link" href="#task-2-delete-the-lab-resource-groups">Task 2: Delete the lab resource groups</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-implementing-azure-based-recovery-services">Lab: Implementing Azure-based recovery services</h1>
+
+<h2 id="scenario">Scenario</h2>
+<p>To address concerns regarding the outdated operational model, the limited use of automation, and reliance on tape backups for restores and disaster recovery, you decide to use Azure-based recovery services. As the first step, you’ll implement Azure Site Recovery and Azure Backup.</p>
+
+<h2 id="objectives">Objectives</h2>
+<p>After completing this lab, you’ll be able to:</p>
+
+<ul>
+  <li>Implement the lab environment.</li>
+  <li>Create and configure an Azure Site Recovery vault.</li>
+  <li>Implement Hyper-V VM protection by using Azure Site Recovery vault.</li>
+  <li>Implement Azure Backup.</li>
+  <li>Deprovision the Azure lab environment.</li>
+</ul>
+
+<h2 id="estimated-time-60-minutes">Estimated time: 60 minutes</h2>
+
+<h2 id="lab-setup">Lab setup</h2>
+<p>Virtual machines: SEA-CL1 and SEA-DC1</p>
+
+<p>User name: <strong>Contoso\Administrator</strong></p>
+
+<p>Password: <strong>Pa55w.rd</strong></p>
+
+<h2 id="exercise-1-implementing-the-lab-environment">Exercise 1: Implementing the lab environment</h2>
+
+<h3 id="scenario-1">Scenario</h3>
+
+<p>You need to test a number of Azure VM backup and recovery scenarios. To start, you will provision an Azure VM running Windows Server 2019 with the Hyper-V role installed by using an Azure Quickstart template. You will then install Hyper-V VM running Windows Server 2019 within that Azure VM.</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>Deploy an Azure VM running Windows Server 2019 with the Hyper-V role installed.</li>
+  <li>Connect to the Azure VM running the Windows Server 2019 with the Hyper-V role installed.</li>
+  <li>Download a Windows Server 2019 VHD file.</li>
+  <li>Deploy a Windows Server 2019 Hyper-V VM within an Azure VM.</li>
+</ol>
+
+<h4 id="task-1-deploy-an-azure-vm-running-windows-server-2019-with-the-hyper-v-role-installed">Task 1: Deploy an Azure VM running Windows Server 2019 with the Hyper-V role installed</h4>
+
+<ol>
+  <li>On <strong>SEA-CL1</strong>, start Microsoft Edge, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in using a user account with the Owner role in the Azure subscription you will be using in this lab.</li>
+  <li>
+    <p>In the Azure portal, create a resource group with the following settings:</p>
+
+    <p><em>Table 1: Resource group settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Use the name of the Azure subscription you will be using in this lab.</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>ws2019-08-rg1</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>Use the name of an Azure region in which you can provision Azure virtual machines.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On <strong>SEA-CL1</strong>, open another Microsoft Edge tab, navigate to the <a href="https://github.com/Azure/azure-quickstart-templates/tree/master/demos/nested-vms-in-virtual-network">301-nested-vms-in-virtual-network Azure QuickStart template</a> and use initiate a deployment the following settings:</p>
+
+    <p><em>Table 2: QuickStart template deployment settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>ws2019-08-rg1</td>
+        </tr>
+        <tr>
+          <td>Host Public IP Address Name</td>
+          <td>ws2019-08-hvm0-pip</td>
+        </tr>
+        <tr>
+          <td>Virtual Network Name</td>
+          <td>ws2019-08-hv-vnet</td>
+        </tr>
+        <tr>
+          <td>Host Network Interface1Name</td>
+          <td>ws2019-08-hvm0-nic1</td>
+        </tr>
+        <tr>
+          <td>Host Network Interface2Name</td>
+          <td>ws2019-08-hvm0-nic2</td>
+        </tr>
+        <tr>
+          <td>Host Virtual Machine Name</td>
+          <td>ws2019-08-hvm0</td>
+        </tr>
+        <tr>
+          <td>Host Admin Username</td>
+          <td>Student</td>
+        </tr>
+        <tr>
+          <td>Host Admin Password</td>
+          <td>Pa55w.rd1234</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong> Wait for the deployment to complete. The deployment might take about 10 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-connect-to-the-azure-vm-running-the-windows-server-2019-with-the-hyper-v-role-installed">Task 2: Connect to the Azure VM running the Windows Server 2019 with the Hyper-V role installed</h4>
+
+<ol>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On <strong>SEA-CL1</strong>, from the Microsoft Edge displaying the Azure Portal, navigate to the the **ws2019-08-hvm0</td>
+          <td>Networking** blade.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>From the **ws2019-08-hvm0</td>
+          <td>Networking** blade, create an inbound port rule of the network security group associated with the <strong>ws2019-08-hvm0-nic1</strong> network adapter with the following settings:</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><em>Table 3: Inbound security rule settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Destination port ranges</td>
+          <td>3389</td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td>Any</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td>AllowRDPInBound</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong> Make sure that you modify the settings of <strong>ws2019-08-hvm0-nic1</strong>, which has the public IP address assigned to it.</p>
+    </blockquote>
+  </li>
+  <li>In the Azure portal, navigate to the <strong>ws2019-08-hvm0</strong> blade.</li>
+  <li>From the <strong>ws2019-08-hvm0</strong> blade, connect via Remote Desktop to <strong>ws2019-08-hvm0</strong>. When prompted to authenticate, sign in as <strong>Student</strong> with the <strong>Pa55w.rd1234</strong> password.</li>
+</ol>
+
+<h4 id="task-3-download-a-windows-server-2019-vhd-file">Task 3: Download a Windows Server 2019 VHD file</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, from the <strong>Server Manager</strong> console, disable the <strong>IE Enhanced Security Configuration</strong> for Administrators.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, use Internet Explorer to download a VHD file containing the <strong>Windows Server 2019</strong> evaluation image to the <strong>F:\VHDs</strong> folder from the Microsoft Evaluation Center web site.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-deploy-a-windows-server-2019-hyper-v-vm-within-an-azure-vm">Task 4: Deploy a Windows Server 2019 Hyper-V VM within an Azure VM</h4>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, start <strong>Hyper-V Manager</strong>.</li>
+  <li>
+    <p>In the <strong>Hyper-V Manager</strong> console, create a new <strong>Virtual Machine</strong> with the following settings:</p>
+
+    <p><em>Table 4: New virtual machine name and location settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td>ws2019-08-vm1</td>
+        </tr>
+        <tr>
+          <td>Store the virtual machine in a different location</td>
+          <td>selected</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>F:\VMs</td>
+        </tr>
+        <tr>
+          <td>Generation</td>
+          <td>Generation 1</td>
+        </tr>
+        <tr>
+          <td>Startup memory</td>
+          <td>2048</td>
+        </tr>
+        <tr>
+          <td>Use Dynamic Memory</td>
+          <td>enabled</td>
+        </tr>
+        <tr>
+          <td>Connection</td>
+          <td>NestedSwitch</td>
+        </tr>
+        <tr>
+          <td>Use an existing virtual hard disk</td>
+          <td>the VHD file you downloaded in the previous task</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>In the <strong>Hyper-V Manager</strong> console, connect to the newly provisioned Hyper-V VM and initialize the operating system with the default settings. When prompted, set the password of the built-in Administrator account to <strong>Pa55w.rd1234</strong>.</li>
+  <li>
+    <p>Sign in to the newly provisioned Hyper-V VM and run the following Windows PowerShell command to set the computer name:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Rename-Computer -NewName 'ws2019-08-vm1' -Restart
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command will rename the operating system and restart it.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="exercise-2-creating-and-configuring-an-azure-site-recovery-vault">Exercise 2: Creating and configuring an Azure Site Recovery vault</h2>
+
+<h3 id="scenario-2">Scenario</h3>
+
+<p>In order to implement Azure Site Recovery for the nested Windows Server 2019 VM running in an Azure VM, with Azure as the disaster recovery site, you have to first create and configure an Azure Site Recovery vault.</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>Create an Azure Site Recovery vault.</li>
+  <li>Configure the Azure Site Recovery vault.</li>
+</ol>
+
+<h4 id="task-1-create-an-azure-site-recovery-vault">Task 1: Create an Azure Site Recovery vault</h4>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Internet Explorer window, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in using a user account with the Owner role in the Azure subscription you will be using in this lab.</li>
+  <li>
+    <p>In the Azure portal, create a Recovery Services vault with the following settings (leave others with their default values):</p>
+
+    <p><em>Table 5: Recovery Services vault settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group ws2019-08-rg2</td>
+        </tr>
+        <tr>
+          <td>Vault name</td>
+          <td>ws2019-08a-rsvault</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>the name of an Azure region different from the one into which you deployed the Azure VM in the first exercise of this lab</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong> By default, the default configuration for Storage Replication type is set to Geo-redundant (GRS) and Soft Delete is enabled. You will change these settings in the lab to simplify deprovisioning, but you should use them in your production environments.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-the-azure-site-recovery-vault">Task 2: Configure the Azure Site Recovery vault</h4>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Azure portal, navigate to the <strong>ws2019-08a-rsvault</strong> blade.</li>
+  <li>
+    <p>From the <strong>ws2019-08a-rsvault</strong> blade, set <strong>Storage replication type</strong> of the vault to <strong>Locally-redundant</strong> which is in the Recovery Vault’s Properties - Backup Configuration blade.</p>
+
+    <blockquote>
+      <p><strong>Note</strong> Storage replication type cannot be changed once you implement protection.</p>
+    </blockquote>
+  </li>
+  <li>From the <strong>ws2019-08a-rsvault</strong> blade, disable <strong>Soft Delete</strong> of the vault which is in the Recovery Vault’s Properties - Security Settings blade.</li>
+</ol>
+
+<h2 id="exercise-3-implementing-hyper-v-vm-protection-by-using-azure-site-recovery-vault">Exercise 3: Implementing Hyper-V VM protection by using Azure Site Recovery vault</h2>
+
+<h3 id="scenario-3">Scenario</h3>
+
+<p>With a test Hyper-V VM and a Recovery Services vault created, you can now proceed to implement Hyper-V VM protection by using Azure Site Recovery. You will perform a test failover and review the settings of the planned and unplanned failover.</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>Implement an Azure recovery site.</li>
+  <li>Prepare protection of a Hyper-V virtual machine.</li>
+  <li>Enable replication of a Hyper-V virtual machine.</li>
+  <li>Review Azure VM replication settings.</li>
+  <li>Perform a failover of the Hyper-V virtual machine.</li>
+</ol>
+
+<h4 id="task-1-implement-an-azure-recovery-site">Task 1: Implement an Azure recovery site</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Azure portal, create a virtual network with the following settings (leave others with their default values):</p>
+
+    <p><em>Table 6: Virtual network ws2019-08-dr-vnet settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group ws2019-08-rg3</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td>ws2019-08-dr-vnet</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the name of the Azure region into which you deployed the Recovery Services vault earlier in this lab</td>
+        </tr>
+        <tr>
+          <td>IPv4 address space</td>
+          <td>10.8.0.0/22</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Within the new virtual network, create a subnet with the following settings (leave others with their default values):</p>
+
+    <p><em>Table 7: Virtual network ws2019-08-dr-vnet subnet subnet0 settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subnet name</td>
+          <td>subnet0</td>
+        </tr>
+        <tr>
+          <td>Subnet address range</td>
+          <td>10.8.0.0/24</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Azure portal, create another virtual network with the following settings (leave others with their default values):</p>
+
+    <p><em>Table 8: Virtual network ws2019-08-test-vnet settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>ws2019-08-rg3</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td>ws2019-08-test-vnet</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the name of the Azure region into which you deployed the Recovery Services vault earlier in this lab</td>
+        </tr>
+        <tr>
+          <td>IPv4 address space</td>
+          <td>10.0.0.0/22</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Within the new virtual network, create a subnet with the following settings (leave others with their default values):</p>
+
+    <p><em>Table 9: Virtual network ws2019-08-test-vnet subnet subnet3 settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subnet name</td>
+          <td>subnet3</td>
+        </tr>
+        <tr>
+          <td>Subnet address range</td>
+          <td>10.0.2.0/24</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong> This matches the IP address range of the production network and the subnet containing the Hyper-V that needs to be protected.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Azure portal, create a storage account with the following settings (leave others with their default values):</p>
+
+    <p><em>Table 10: Storage account settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>ws2019-08-rg3</td>
+        </tr>
+        <tr>
+          <td>Storage account name</td>
+          <td>any globally unique name between 3 and 24 in length consisting of letters and digits, starting with a letter</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>the name of the Azure region into which you deployed the Recovery Services vault earlier in this lab</td>
+        </tr>
+        <tr>
+          <td>Performance</td>
+          <td>Standard</td>
+        </tr>
+        <tr>
+          <td>Account kind</td>
+          <td>Storage (general purpose v1)</td>
+        </tr>
+        <tr>
+          <td>Replication</td>
+          <td>Locally redundant storage (LRS)</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="task-2-prepare-protection-of-a-hyper-v-virtual-machine">Task 2: Prepare protection of a Hyper-V virtual machine</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Azure portal, navigate to the <strong>ws2019-08a-rsvault</strong> Recovery Services vault blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>ws2019-08a-rsvault</strong> blade, in the vertical menu, start configuration of <strong>Site Recovery</strong></p>
+  </li>
+  <li>
+    <p>On the <strong>ws2019-08a-rsvault | Site Recovery</strong> blade, in the <strong>Hyper-V machines to Azure</strong> section, select <strong>1. Prepare infrastructure</strong> and specify the following settings:</p>
+
+    <p><em>Table 11: Site Recovery Prepare infrastructure settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Deployment planning completed?</td>
+          <td>Yes, I have done it</td>
+        </tr>
+        <tr>
+          <td>Are you Using System Center VMM to manage Hyper-V hosts</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td>Source setting: Hyper-V Site</td>
+          <td>ws2019-08 Hyper-V site</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Source settings</strong> tab of the <strong>Prepare infrastructure</strong> blade, select the <strong>Add Hyper-V server</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add Server</strong> blade, select the <strong>Download</strong> link in step 3 of the procedure for adding on-premises Hyper-V hosts in order to download the Microsoft Azure Site Recovery Provider.</p>
+  </li>
+  <li>
+    <p>Install <strong>AzureSiteRecoveryProvider.exe</strong> with <strong>Microsoft Update</strong> option disabled.</p>
+  </li>
+  <li>
+    <p>From the Azure portal, download the vault registration key into the <strong>Downloads</strong> folder.</p>
+  </li>
+  <li>
+    <p>Complete the <strong>Provider installation</strong> wizard and start the <strong>Microsoft Azure Site Recovery Registration Wizard</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted, in the <strong>Microsoft Azure Site Recovery Registration Wizard</strong>, provide the location of the vault credentials file.</p>
+  </li>
+  <li>
+    <p>Complete the <strong>Microsoft Azure Site Recovery Registration Wizard</strong> with the default settings.</p>
+  </li>
+  <li>
+    <p>Refresh the browser page displaying the Azure portal and repeat the initial steps of the <strong>1. Prepare infrastructure</strong> procedure.</p>
+  </li>
+  <li>
+    <p>Once you reach the <strong>Source settings</strong> tab of the <strong>Prepare infrastructure</strong> blade, verify that the <strong>Hyper-V site</strong> and <strong>Hyper-V servers</strong> settings are set correctly and continue to the next step.</p>
+  </li>
+  <li>
+    <p>On the <strong>Target settings</strong> tab of the <strong>Prepare infrastructure</strong> blade, accept the default settings.</p>
+  </li>
+  <li>
+    <p>On the <strong>Replication policy</strong> tab of the <strong>Prepare infrastructure</strong> blade, create a new policy with the following settings and associate it with the the Hyper-V site:</p>
+
+    <p><em>Table 12: Policy settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td>ws2019-08 replication policy</td>
+        </tr>
+        <tr>
+          <td>Copy frequency</td>
+          <td>30 seconds</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Complete the <strong>Prepare infrastructure</strong> procedure and wait until the association process completes</p>
+  </li>
+</ol>
+
+<h4 id="task-3-enable-replication-of-a-hyper-v-virtual-machine">Task 3: Enable replication of a Hyper-V virtual machine</h4>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Azure portal, on the <strong>ws2019-08a-rsvault | Site Recovery</strong> blade, in the <strong>Hyper-V machines to Azure</strong> section, select <strong>2. Enable replication</strong>.</li>
+  <li>On the <strong>Source environment</strong> tab of the <strong>Enable replication</strong> blade, in the <strong>Source location</strong> drop-down list, select <strong>ws2019-08 Hyper-V site</strong>.</li>
+  <li>
+    <p>On the <strong>Target environment</strong> tab of the <strong>Enable replication</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <p><em>Table 13: Target environment settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Post-failover resource group</td>
+          <td>ws2019-08-rg3</td>
+        </tr>
+        <tr>
+          <td>Post-failover deployment model</td>
+          <td>Resource Manager</td>
+        </tr>
+        <tr>
+          <td>Storage account</td>
+          <td>the name of the storage account you created in the first task of this exercise</td>
+        </tr>
+        <tr>
+          <td>Azure network</td>
+          <td>Configure now for selected machines</td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td>ws2019-08-dr-vnet</td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td>subnet0 (10.8.0.0/24)</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>On the <strong>Virtual machine selection</strong> tab of the <strong>Enable replication</strong> blade, select the <strong>ws2019-08-vm1</strong> entry.</li>
+  <li>On the <strong>Replication settings</strong> tab of the <strong>Enable replication</strong> blade, set the <strong>Defaults</strong> and <strong>OS type</strong> to <strong>Windows</strong>.</li>
+  <li>Complete the <strong>Enable replication</strong> procedure with the default settings.</li>
+</ol>
+
+<h4 id="task-4-review-azure-vm-replication-settings">Task 4: Review Azure VM replication settings</h4>
+
+<ol>
+  <li>In the Azure portal, back on the <strong>ws2019-08a-rsvault | Site Recovery</strong> blade, in navigate to the the <strong>ws2019-08a-rsvault | Replicated items</strong> blade.</li>
+  <li>
+    <p>On the <strong>ws2019-08a-rsvault | Replicated items</strong> blade, ensure that there is an entry representing the <strong>ws2019-08-vm1</strong> virtual machine and verify that its <strong>Replication Health</strong> is listed as <strong>Healthy</strong> and that its <strong>Status</strong> is listed as either <strong>Enabling protection</strong> or displaying a current percentage of synchronization progress.</p>
+
+    <blockquote>
+      <p><strong>Note</strong> You might need to wait a few minutes until the <strong>ws2019-08-vm1</strong> entry appears on the <strong>ws2019-08a-rsvault | Replicated items</strong> blade.</p>
+    </blockquote>
+  </li>
+  <li>From the <strong>ws2019-08a-rsvault | Replicated items</strong> blade, navigate to the <strong>ws2019-08-vm1</strong> replicated items blade.</li>
+  <li>
+    <p>On the <strong>ws2019-08-vm1</strong> replicated items blade, review the <strong>Health and status</strong>, <strong>Failover readiness</strong>, <strong>Latest recovery points</strong>, and <strong>Infrastructure view</strong> sections. Note the <strong>Planned Failover</strong>, <strong>Failover</strong> and <strong>Test Failover</strong> toolbar icons.</p>
+
+    <blockquote>
+      <p><strong>Note</strong> Wait until the status changes to <strong>Protected</strong>. This might take additional 15 minutes. You will need to refresh the browser page for the status to be updated. While waiting for the replication of the nested VM to complete, proceed to Exercise 4.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>ws2019-08-vm1</strong> replicated items blade, select <strong>Latest recovery points</strong> and review <strong>Latest crash-consistent</strong> and <strong>Latest app-consistent</strong> recovery points.</li>
+</ol>
+
+<h4 id="task-5-perform-a-failover-of-the-hyper-v-virtual-machine">Task 5: Perform a failover of the Hyper-V virtual machine</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the browser window displaying the Azure portal, on the <strong>ws2019-08-vm1</strong> replicated items blade, initiate <strong>Test failover</strong> with the following settings (leave others with their default values) and select <strong>OK</strong>:</p>
+
+    <p><em>Table 14: Test failover settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Choose a recovery point</td>
+          <td>the default option</td>
+        </tr>
+        <tr>
+          <td>Azure virtual network</td>
+          <td>ws2019-08-test-vnet</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>In the Azure portal, navigate back to the <strong>ws2019-08a-rsvault</strong> blade and, from there, navigate to the listing of <strong>Site Recovery jobs</strong>. Wait until the status of the <strong>Test failover</strong> job is listed as <strong>Successful</strong>.</li>
+  <li>In the Azure portal, navigate to the <strong>Virtual machines</strong> blade and note the entry representing the newly provisioned virtual machine <strong>ws2019-08-vm1-test</strong>.</li>
+  <li>In the Azure portal, navigate back to the <strong>ws2019-08-vm1</strong> replicated item blade and initiate <strong>Cleanup test failover</strong>.</li>
+  <li>Once the test failover cleanup job completes, refresh the browser page displaying the <strong>ws2019-08-vm1</strong> replicated items blade and note that you have the option to perform planned and unplanned failover.</li>
+  <li>From the <strong>ws2019-08-vm1</strong> replicated items blade, navigate to the <strong>Planned failover</strong> blade.</li>
+  <li>On the <strong>Planned failover</strong> blade, note that the failover direction settings are already set and not modifiable.</li>
+  <li>Close the <strong>Planned failover</strong> blade without initiating a failover.</li>
+  <li>From the <strong>ws2019-08-vm1</strong> replicated items blade, navigate to the <strong>Failover</strong> blade.</li>
+  <li>On the <strong>Failover</strong> blade, note that you have the option to choose a recovery point.</li>
+  <li>Close the <strong>Failover</strong> blade without initiating a failover.</li>
+</ol>
+
+<h2 id="exercise-4-implementing-azure-backup">Exercise 4: Implementing Azure Backup</h2>
+
+<h3 id="scenario-4">Scenario</h3>
+
+<p>While waiting for the replication of the nested VM to complete, implement Azure Backup of the second Azure VM by using an Azure VM agent and Azure VM-level backup of the third Azure VM.</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>Create an Azure Site Recovery vault.</li>
+  <li>Configure the Azure Site Recovery vault.</li>
+  <li>Install the Azure Recovery Services agent.</li>
+  <li>Schedule Azure Backup.</li>
+  <li>Perform file recovery by using Azure Recovery Services agent.</li>
+</ol>
+
+<h4 id="task-1-create-an-azure-site-recovery-vault-1">Task 1: Create an Azure Site Recovery vault</h4>
+
+<blockquote>
+  <p><strong>Note</strong> While, in general, the same vault can be used to implement Azure Site Recovery and Azure Backup functionality, the one hosting Azure Backup should be located close to the location of the backed up items. For this reason, you will create another Azure Site Recovery vault in the same Azure region as the Azure VM you deployed in the second exercise of this lab.</p>
+</blockquote>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, switch to the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>.</li>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>, from the <strong>Server Manager</strong> console, disable the <strong>IE Enhanced Security Configuration</strong> for Administrators.</li>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>, in the Internet Explorer window, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in using a user account with the Owner role in the Azure subscription you will be using in this lab.</li>
+  <li>
+    <p>In the Azure portal, create a Recovery Services vault with the following settings (leave others with their default values):</p>
+
+    <p><em>Table 15: Recovery Services vault settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group ws2019-08-rg4</td>
+        </tr>
+        <tr>
+          <td>Vault name</td>
+          <td>ws2019-08b-rsvault</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>the name of an Azure region into which you deployed the Azure VM in the first exercise of this lab</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong> By default, the default configuration for Storage Replication type is set to Geo-redundant (GRS) and Soft Delete is enabled. You will change these settings in the lab to simplify deprovisioning, but you should use them in your production environments.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-the-azure-site-recovery-vault-1">Task 2: Configure the Azure Site Recovery vault</h4>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>, in the Azure portal, navigate to the <strong>ws2019-08b-rsvault</strong> blade.</li>
+  <li>
+    <p>From the <strong>ws2019-08b-rsvault</strong> blade, set <strong>Storage replication type</strong> of the vault to <strong>Locally-redundant</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong> Storage replication type cannot be changed once you implement protection.</p>
+    </blockquote>
+  </li>
+  <li>From the <strong>ws2019-08b-rsvault</strong> blade, disable <strong>Soft Delete</strong> of the vault.</li>
+</ol>
+
+<h3 id="task-3-install-the-azure-recovery-services-agent">Task 3: Install the Azure Recovery Services agent</h3>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>, in the Internet Explorer window displaying the Azure portal, on the <strong>ws2019-08b-rsvault</strong> Recovery Services vault blade, initiate <strong>Backup</strong> configuration with the following settings:</p>
+
+    <p><em>Table 16: Backup settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Settings</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Where is your workload running?</td>
+          <td>On-premises</td>
+        </tr>
+        <tr>
+          <td>What do you want to backup?</td>
+          <td>Files and folders</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong> Even though the virtual machine you are using in this task is running in Azure, you can leverage it to evaluate the backup capabilities applicable to any on-premises computer running Windows Server operating system.</p>
+    </blockquote>
+  </li>
+  <li>From the <strong>ws2019-08b-rsvault |Backup</strong> blade, initiate the <strong>Prepare infrastructure</strong> procedure.</li>
+  <li>From the <strong>Prepare infrastructure</strong> blade, download Azure Recovery Services Agent, start the <strong>Microsoft Azure Recovery Services Agent Setup Wizard</strong>, disable the Microsoft Updates option, and complete the installation with the default settings.</li>
+  <li>After the installation completes, start the <strong>Register Server Wizard</strong>.</li>
+  <li>Switch to the Internet Explorer window displaying the Azure portal and, from the <strong>Prepare infrastructure</strong> blade, download the vault credentials file to the local Downloads folder.</li>
+  <li>Switch back to the <strong>Register Server Wizard</strong> window and, when prompted to provide Vault Credentials, point to the newly downloaded file.</li>
+  <li>On the <strong>Encryption Setting</strong> page of the <strong>Register Server Wizard</strong>, generate passphrase and store it in the local <strong>Documents</strong> folder.</li>
+  <li>
+    <p>Review the <strong>Microsoft Azure Backup</strong> warning and proceed to complete the registration. This will automatically open the <strong>Microsoft Azure Backup</strong> console.</p>
+
+    <blockquote>
+      <p><strong>Note</strong> In a production environment, you should store the passphrase file in a secure location other than the server being backed up.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-4-schedule-azure-backup">Task 4: Schedule Azure Backup</h3>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>, in the <strong>Microsoft Azure Backup</strong> console, schedule backup with the following settings (leave others with their default values):</p>
+
+    <p><em>Table 17: Scheduled backup settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Settings</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Items to back up</td>
+          <td>C:\Windows\System32\drivers\etc\hosts</td>
+        </tr>
+        <tr>
+          <td>Backup Schedule</td>
+          <td>Daily at 4:30 AM</td>
+        </tr>
+        <tr>
+          <td>Retention Policy</td>
+          <td>default</td>
+        </tr>
+        <tr>
+          <td>Initial Backup type</td>
+          <td>default</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the <strong>Microsoft Azure Backup</strong> console, initiate an on-demand backup with the default settings.</p>
+
+    <blockquote>
+      <p><strong>Note</strong> The option to run backup on demand becomes available once you create a scheduled backup.</p>
+    </blockquote>
+  </li>
+  <li>Switch to the Internet Explorer window displaying the Azure portal, navigate back to the <strong>ws2019-08b-rsvault</strong> Recovery Services vault blade and display <strong>Backup items</strong>.</li>
+  <li>From the <strong>ws2019-08b-rsvault | Backup items</strong> blade, navigate to the <strong>Backup Items (Azure Backup Agent)</strong> blade and verify that there is an entry referencing the <strong>C:\</strong> drive of <strong>ws2019-08-vm1.</strong>.</li>
+</ol>
+
+<h4 id="task-5-perform-file-recovery-by-using-azure-recovery-services-agent">Task 5: Perform file recovery by using Azure Recovery Services agent</h4>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>, open File Explorer, navigate to the <strong>C:\Windows\System32\drivers\etc\</strong> folder and delete the <strong>hosts</strong> file.</li>
+  <li>
+    <p>Switch to the Microsoft Azure Backup window and start <strong>Recover Data Wizard</strong> with the following settings (leave others with their default values):</p>
+
+    <p><em>Table 18: Restore settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Settings</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Restore target</td>
+          <td>This server (ws2019-08-vm1.)</td>
+        </tr>
+        <tr>
+          <td>Restore items</td>
+          <td>Individual files and folders</td>
+        </tr>
+        <tr>
+          <td>Select the volume</td>
+          <td>C:|</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong> Wait for the mount operation to complete. This might take about 2 minutes.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Browse And Recover Files</strong> page, note the drive letter of the recovery volume, select <strong>Browse</strong>, and review the tip regarding the use of <strong>Robocopy</strong>.</li>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>, start <strong>Command Prompt</strong>.</li>
+  <li>
+    <p>From the <strong>Administrator: Command Prompt</strong> window, run the following to copy the restore the <strong>hosts</strong> file to the original location (replace <code>[recovery_volume]</code> with the drive letter of the recovery volume you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-cmd">robocopy [recovery_volume]:\Windows\System32\drivers\etc C:\Windows\system32\drivers\etc hosts /r:1 /w:1
+</code></pre>
+  </li>
+  <li>
+    <p>From the <strong>Administrator: Command Prompt</strong> window, run the following to verify that the file has been restored:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-cmd">dir C:\Windows\system32\drivers\etc\hosts
+</code></pre>
+  </li>
+  <li>Switch back to the <strong>Recover Data Wizard</strong> and unmount the mounted backup file.</li>
+</ol>
+
+<h2 id="exercise-5-deprovisioning-the-azure-lab-environment">Exercise 5: Deprovisioning the Azure lab environment</h2>
+
+<h3 id="scenario-5">Scenario</h3>
+
+<p>To minimize Azure-related charges, you want to deprovision the Azure resources provisioned throughout this lab.</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>Remove the protected items.</li>
+  <li>Delete the lab resource groups.</li>
+</ol>
+
+<h3 id="task-1-remove-the-protected-items">Task 1: Remove the protected items</h3>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>, switch to the Internet Explorer window displaying the <strong>Backup Items (Azure Backup Agent)</strong> blade of the Azure portal and select the entry referencing the <strong>C:\</strong> drive of <strong>ws2019-08-vm1.</strong>.</li>
+  <li>On the <strong>C:\ on ws2019-08-vm1.</strong> blade, navigate to the <strong>ws2019-08-vm1.</strong> blade.</li>
+  <li>
+    <p>From the <strong>ws2019-08-vm1.</strong> blade, specify the following information and delete the backup:</p>
+
+    <p><em>Table 19: Backup item delete settings</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Settings</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>TYPE THE SERVER NAME</td>
+          <td>ws2019-08-vm1.</td>
+        </tr>
+        <tr>
+          <td>Reason</td>
+          <td>Decommissioned</td>
+        </tr>
+        <tr>
+          <td>Comments</td>
+          <td>Decommissioned</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Close the Virtual Machine Connection window to <strong>ws2019-08-vm1</strong>, in the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, in the Internet Explorer displaying the Azure portal, navigate to the **ws2019-08a-rsvault</td>
+          <td>Replicated items** blade, and select the <strong>ws2019-08-vm1</strong> entry.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>From the <strong>ws2019-08-vm1</strong> replicated items blade, disable replication and remove remove replicated items without providing feedback.</li>
+</ol>
+
+<h3 id="task-2-delete-the-lab-resource-groups">Task 2: Delete the lab resource groups</h3>
+
+<ol>
+  <li>On <strong>SEA-CL1</strong>, close the Remote Desktop session to <strong>ws2019-08-hvm0</strong>, switch to the Microsoft Edge window displaying the Azure portal.</li>
+  <li>
+    <p>In the Azure portal, open a PowerShell session in the <strong>Azure Cloud Shell</strong> pane.</p>
+
+    <blockquote>
+      <p><strong>Note</strong> If this is the first time you’re starting <strong>Cloud Shell</strong> and you’re presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and then select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell blade, run the following command to delete all resource groups created in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'ws2019-08-*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong> The command executes asynchronously (as determined by the <em>-AsJob</em> parameter), so while you will be able to run another PowerShell command immediately after within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/WS-012T00-Windows-Server-2019-Hybrid-and-Azure-IaaS" target="_blank" class="ml-2">
+                    MicrosoftLearning/WS-012T00-Windows-Server-2019-Hybrid-and-Azure-IaaS
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D0a85806b00854f6395723020d7125becaf7760ed.js"></script>
+
+
+
+</body></html>

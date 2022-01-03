@@ -1,0 +1,1155 @@
+<!DOCTYPE html><html lang="en-US"><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>实验室 3：创建基本筛选机器人 | AI-100ZH-Design-Implement-Azure-AISol</title>
+<meta name="generator" content="Jekyll v3.9.0">
+<meta property="og:title" content="实验室 3：创建基本筛选机器人">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="AI100T01A ILT 课程的实验文件">
+<meta property="og:description" content="AI100T01A ILT 课程的实验文件">
+<link rel="canonical" href="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab3-Basic_Filter_Bot/02-Basic_Filter_Bot.html">
+<meta property="og:url" content="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab3-Basic_Filter_Bot/02-Basic_Filter_Bot.html">
+<meta property="og:site_name" content="AI-100ZH-Design-Implement-Azure-AISol">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="实验室 3：创建基本筛选机器人">
+<script type="application/ld+json">
+{"description":"AI100T01A ILT 课程的实验文件","url":"https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab3-Basic_Filter_Bot/02-Basic_Filter_Bot.html","@type":"WebPage","headline":"实验室 3：创建基本筛选机器人","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <style class="anchorjs"></style><link rel="stylesheet" href="../assets/css/style_v%3D3a0ab1c74f6d3ca7c17e819da8185129fa5047f9.css">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/AI-100ZH-Design-Implement-Azure-AISol/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="../">AI-100ZH-Design-Implement-Azure-AISol</a></h1>
+      
+
+      <h1 id="实验室-3创建基本筛选机器人">实验室 3：创建基本筛选机器人</h1>
+
+<h2 id="简介">简介<a class="anchorjs-link " href="#简介" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>每一项新技术在带来许多机遇的同时也会带来许多问题，AI 支持的技术有其独特的注意事项。
+在设计和实现 AI 工具时，请注意以下 AI 道德准则：</p>
+
+<ol>
+  <li><em>公平性</em>：在不损害尊严的情况下最大限度地提高效率</li>
+  <li><em>责任性</em>：AI 必须对其算法负责</li>
+  <li><em>透明度</em>：防止偏见和对人类尊严的损害</li>
+  <li><em>合乎道德的应用程序</em>：AI 必须帮助人类，并且针对智能隐私而设计</li>
+</ol>
+
+<p>建议<a href="https://ai-ethics.azurewebsites.net/">深入了解</a>生成智能应用时的道德考虑因素。</p>
+
+<h2 id="先决条件">先决条件<a class="anchorjs-link " href="#先决条件" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>请按照 <a href="../Lab1-Technical_Requirements/02-Technical_Requirements.html">Lab1-Technical_Requirements.md</a> 中提供的指示下载 v4 Bot Framework Emulator，以便在本地测试机器人。</li>
+</ol>
+
+<h2 id="实验-30-创建-azure-web-app-bot">实验 3.0 创建 Azure Web App Bot<a class="anchorjs-link " href="#实验-30-创建-azure-web-app-bot" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>使用 Microsoft Bot Framework 创建的机器人可以托管在任何可公开访问的 URL 上。  出于本实验的目的，我们将使用 <a href="https://docs.microsoft.com/zh-cn/bot-framework/bot-service-overview-introduction">Azure 机器人服务</a>注册我们的机器人。</p>
+
+<ol>
+  <li>
+    <p>导航到 <a href="https://portal.azure.com">Azure 门户</a>。</p>
+  </li>
+  <li>
+    <p>在门户中，导航到资源组，然后选择 <strong>“+ 添加”</strong> 并搜索 <strong>“机器人”</strong>。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“Web 应用机器人”</strong>，然后选择 <strong>“创建”</strong>。</p>
+  </li>
+  <li>
+    <p>对于名称，必须创建唯一标识符。我们建议使用类似 PictureBot[i][n] 的名称，其中 [i] 是你的姓名首字母缩写，[n] 是一个数字（例如，我的是 PictureBotamt6）。</p>
+  </li>
+  <li>
+    <p>选择一个区域</p>
+  </li>
+  <li>
+    <p>对于定价层，请选择 <strong>“F0（10K 高级消息）”</strong>。</p>
+  </li>
+  <li>
+    <p>选择 Bot 模板区域</p>
+  </li>
+  <li>
+    <p>选择 <strong>“C#”</strong>，然后选择 <strong>“Echo Bot”</strong>，之后我们将其更新到我们的 PictureBot。</p>
+
+    <p><img src="../images/lab02-createbot.png" alt="机器人模板区域会突出显示，并选择语言和机器人类型。" title="Select the bot type"></p>
+  </li>
+  <li>
+    <p>单击 <strong>“确定”</strong>，确保显示 <strong>“Echo Bot”</strong>。</p>
+  </li>
+  <li>
+    <p>配置新的应用服务计划（将其放在机器人所在的位置）</p>
+  </li>
+  <li>
+    <p>可以选择打开或关闭 Application Insights。</p>
+  </li>
+  <li>
+    <p><strong>请勿</strong>更改或选择 <strong>“自动创建应用 ID 和密码”</strong>，我们稍后会对此进行说明。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“创建”</strong></p>
+  </li>
+  <li>
+    <p>部署后，请导航到新的 Azure Web App Bot 资源。</p>
+  </li>
+  <li>
+    <p>在 <strong>“机器人管理”</strong> 下，选择 <strong>“设置”</strong></p>
+  </li>
+  <li>
+    <p>选择 <strong>“Microsoft 应用 ID”</strong> 的 <strong>“管理”</strong> 链接</p>
+
+    <p><img src="../images/ManageBot.png" alt="选择“管理”链接"></p>
+  </li>
+  <li>
+    <p>选择 <strong>“新建客户端密码”</strong></p>
+  </li>
+  <li>
+    <p>对于名称，输入 <strong>PictureBot</strong></p>
+  </li>
+  <li>
+    <p>对于过期，请选择 <strong>“从不”</strong></p>
+  </li>
+  <li>
+    <p>选择 <strong>“添加”</strong></p>
+  </li>
+  <li>
+    <p>将密码记录在记事本或类似应用中，以备日后在实验室中使用。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“概述”</strong>，将应用程序 ID 记录到记事本或类似应用中，以备日后在实验室中使用。</p>
+  </li>
+  <li>
+    <p>导航回 <strong>“Web 应用机器人”</strong> 资源，在 <strong>“机器人管理”</strong> 下选择 <strong>“在网上聊天中测试”</strong> 选项卡</p>
+  </li>
+  <li>
+    <p>启动机器人后，探索它的功能。  如你所见，该机器人只回应你的消息。</p>
+  </li>
+</ol>
+
+<p><img src="../images/EchoBot.png" alt="基本版聊天机器人应答"></p>
+
+<h2 id="实验-31创建一个简单的机器人并运行它">实验 3.1：创建一个简单的机器人并运行它<a class="anchorjs-link " href="#实验-31创建一个简单的机器人并运行它" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>
+    <p>打开 <strong>Visual Studio 2019</strong> 或更高版本</p>
+  </li>
+  <li>
+    <p>选择 <strong>“创建新的项目”</strong>，搜索 <strong>“机器人”</strong>。</p>
+  </li>
+  <li>
+    <p>向下滚动，直到看到 <strong>“Echo Bot (Bot Framework v4)”</strong></p>
+
+    <blockquote>
+      <p><strong>[!警告]</strong>
+以下屏幕截图可能跟你的情况有所不同，具体取决于安装的 Visual Studio 版本。  如果列出了多个适用于 Echo Bot 模板的版本，请选择“<strong>版本 3.1</strong>”，而不是版本 2.1。</p>
+    </blockquote>
+
+    <p><img src="../images/NewBotProject.png" alt="选择 Echo Bot 项目模板"></p>
+  </li>
+  <li>
+    <p>选择 <strong>“下一步”</strong></p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>注意：</strong> 如果未看到 Echo Bot 模板，则需要按照必备条件中的步骤安装 Visual Studio 加载项。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>对于名称，输入 <strong>PictureBot</strong>，然后选择 <strong>“创建”</strong></p>
+  </li>
+  <li>
+    <p>花一些时间来看看通过 Echo Bot 模板所生成的所有不同的内容。我们不会花时间解释每个文件，但是我们<strong>强烈建议 稍后</strong>花一些时间执行并查看这个示例（以及其他 Web 应用机器人示例 - 基础机器人），如果你还没有这么做的话。它包含机器人开发所需的重要、有用的 shell。可以在<a href="https://github.com/Microsoft/BotBuilder-Samples">此处</a>找到它以及其他有用的 shell 和示例。</p>
+  </li>
+  <li>
+    <p>首先右键单击该解决方案，并选择 <strong>“生成”</strong>。这将还原 nuget 包。</p>
+  </li>
+  <li>
+    <p>打开 <strong>appsettings.json</strong> 文件，通过添加在上面记录的机器人服务信息进行更新：</p>
+
+    <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w"> </span><span class="p">{</span><span class="w">
+     </span><span class="nl">"MicrosoftAppId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"YOURAPPID"</span><span class="p">,</span><span class="w">
+     </span><span class="nl">"MicrosoftAppPassword"</span><span class="p">:</span><span class="w"> </span><span class="s2">"YOURAPPSECRET"</span><span class="w">
+ </span><span class="p">}</span><span class="w">
+</span></code></pre></div>    </div>
+  </li>
+  <li>
+    <p>你可能知道，重命名 Visual Studio 解决方案/项目是一项非常敏感的任务。请<strong>仔细</strong>完成以下任务，使所有名称反映 PictureBot 而不是 EchoBot：</p>
+  </li>
+  <li>
+    <p>右键单击 <strong>Bots/Echobot.cs</strong> 文件，然后选择 <strong>“重命名”</strong>，将类文件重命名为 <strong>“PictureBot.cs”</strong></p>
+  </li>
+  <li>
+    <p>如果系统未提示你，则需要手动重命名该类，然后将对该类的所有引用更改为 <strong>PictureBot</strong>。  这样在尝试生成项目时就可以知道是否缺失该类。</p>
+  </li>
+  <li>
+    <p>右键单击项目，选择“<strong>管理 NuGet 包</strong>”</p>
+  </li>
+  <li>
+    <p>选择“<strong>浏览</strong>”选项卡并安装以下包，确保使用的是最新版本：</p>
+
+    <ul>
+      <li>Microsoft.Bot.Builder.Azure.Blobs</li>
+      <li>Microsoft.Bot.Builder.Dialogs</li>
+      <li>Microsoft.Bot.Builder.AI.Luis</li>
+      <li>Microsoft.Bot.Builder.Integration.AspNet.Core</li>
+      <li>Azure.AI.TextAnalytics</li>
+    </ul>
+  </li>
+  <li>
+    <p>生成解决方案。</p>
+
+    <blockquote>
+      <p><strong>提示</strong>：  如果你只有一台监视器，并且希望在指令和 Visual Studio 之间轻松切换，现在可以通过右键单击“解决方案资源管理器”中的“项目”，并选择 <strong>“添加”&gt;“现有项目”</strong> 来将指令文件添加到 Visual Studio 解决方案。导航到“Lab2”，并添加“MD 文件”类型的所有文件。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="创建一个-hello-world-机器人">创建一个 Hello World 机器人<a class="anchorjs-link " href="#创建一个-hello-world-机器人" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>我们已更新基础 shell 以支持命名和将在其余实验室中使用的 NuGet 包，现在已准备好开始添加一些自定义代码。首先，我们将创建一个简单的“Hello world”机器人，它将帮助你熟悉如何使用 V4 SDK 生成机器人。</p>
+
+<p>有一个重要的概念是<code class="language-plaintext highlighter-rouge">回合</code>，用于说明用户的消息和来自机器人的响应。
+例如，如果我说“机器人你好”，并且机器人响应“嗨，你好吗？”，那就是<strong>一个</strong>回合。查看下面的图片，了解一个<strong>回合</strong>是如何在机器人应用程序的多个层中完成的。</p>
+
+<p><img src="../images/bots-concepts-middleware.png" alt="机器人概念"></p>
+
+<ol>
+  <li>
+    <p>打开 <strong>PictureBot.cs</strong> 文件。</p>
+  </li>
+  <li>
+    <p>使用下面的代码查看 <code class="language-plaintext highlighter-rouge">OnMessageActivityAsync</code> 方法。对话的每个回合都会调用这个方法。稍后你会明白为什么这个很重要，但是现在，请记住每个回合都会调用 OnMessageActivityAsync。</p>
+  </li>
+  <li>
+    <p>按 <strong>F5</strong> 开始调试。</p>
+
+    <p>需要<strong>注意</strong>的一些事项</p>
+
+    <ul>
+      <li>
+        <p>default.htm（在 wwwroot 下）页面将在浏览器中显示</p>
+      </li>
+      <li>
+        <p>记下网页的 localhost 端口号。这应该（并且必须）与模拟器中的终结点匹配。</p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<blockquote>
+  <p>卡住或中断？到目前为止，可以在 {GitHubPath}/code/Finished/PictureBot-Part0 下找到适用于本实验的解决方案。解决方案中的自述文件（你打开它后）将告诉你需要添加哪些密钥才能运行解决方案。</p>
+</blockquote>
+
+<h3 id="使用-bot-framework-emulator">使用 Bot Framework Emulator<a class="anchorjs-link " href="#使用-bot-framework-emulator" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>要与机器人互动，需要执行以下操作：</p>
+
+<ul>
+  <li>
+    <p>启动 Bot Framework Emulator（注意，我们使用的是 v4 模拟器）。  选择 <strong>“开始”</strong>，然后搜索 <strong>“机器人仿真器”</strong>。</p>
+  </li>
+  <li>
+    <p>在欢迎页面上，选择 <strong>“创建新的机器人配置”</strong></p>
+  </li>
+  <li>
+    <p>对于名称，输入 <strong>PictureBot</strong></p>
+  </li>
+  <li>
+    <p>输入机器人网页上显示的 URL</p>
+  </li>
+  <li>
+    <p>输入在 <code class="language-plaintext highlighter-rouge">appsettings.json</code> 中输入的 AppId 和应用机密</p>
+  </li>
+  <li>
+    <p>选择 <strong>“保存并连接”</strong>，然后将 .bot 文件保存在本地</p>
+  </li>
+  <li>
+    <p>你现在应该能够与机器人对话。</p>
+  </li>
+  <li>
+    <p>键入 <strong>“hello”</strong>。该机器人将通过回应你的消息做出响应，类似于我们之前创建的 Azure 机器人。</p>
+  </li>
+</ul>
+
+<blockquote>
+  <p><strong>注意：</strong> 可以选择“重启对话”以清除对话历史记录。</p>
+</blockquote>
+
+<p><img src="../images/botemulator3.png" alt="机器人仿真器"></p>
+
+<p>在日志中，你应该可以看到如下这类内容：</p>
+
+<p><img src="../images/ngrok.png" alt="ngrok"></p>
+
+<p>请注意它对我们将跳过 ngrok 以获取本地地址的描述。我们不会在本研讨会中使用 ngrok，但如果我们连接到已发布版本的机器人，我们会通过“生产”终结点来执行这个操作。打开“生产”终结点，观察不同环境中机器人之间的区别。在测试开发机器人并将它与生产机器人进行比较时，这可能是一个有用的功能。</p>
+
+<p>可在<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-service-debug-emulator?view=azure-bot-service-4.0">此处</a>阅读关于使用模拟器的详细信息。</p>
+
+<ol>
+  <li>
+    <p>浏览并检查示例机器人代码。特别之处在于：</p>
+
+    <ul>
+      <li>
+        <p><strong>Startup.cs</strong>：是我们将添加服务/中间件并配置 HTTP 请求管道的位置。其中有很多注释可以帮助你了解正在进行的操作。请花几分钟阅读。</p>
+      </li>
+      <li>
+        <p><strong>PictureBot.cs</strong>：<code class="language-plaintext highlighter-rouge">OnMessageActivityAsync</code> 方法是等待来自用户的消息的入口点，我们可以在收到消息后在此对消息做出响应并等待进一步的消息。  我们可以使用 <code class="language-plaintext highlighter-rouge">turnContext.SendActivityAsync</code> 将来自机器人的消息发送回给用户。</p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="实验-32--管理状态和服务">实验 3.2：  管理状态和服务<a class="anchorjs-link " href="#实验-32--管理状态和服务" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>
+    <p>再次导航到 <strong>Startup.cs</strong> 文件</p>
+  </li>
+  <li>
+    <p>通过<strong>添加</strong>以下内容来更新 <code class="language-plaintext highlighter-rouge">using</code> 语句列表：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Linq</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Text.RegularExpressions</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder.Integration</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Configuration</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Connector.Authentication</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Extensions.Options</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Extensions.Logging</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">PictureBot.Bots</span><span class="p">;</span>
+
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder.AI.Luis</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder.Dialogs</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder.Azure.Blobs</span><span class="p">;</span>
+</code></pre></div>    </div>
+
+    <p>我们暂时不会使用上述所有命名空间，但你可以猜一猜我们什么时候会用？</p>
+  </li>
+  <li>
+    <p>在 <strong>Startup.cs</strong> 类中，重点关注 <code class="language-plaintext highlighter-rouge">ConfigureServices</code> 方法，该方法用于向机器人添加服务。请仔细查看内容，注意内置内容。</p>
+
+    <blockquote>
+      <p>有助于加深理解的一些其他注释：</p>
+
+      <ul>
+        <li>如果你不熟悉依赖关系注入，可以<a href="https://docs.microsoft.com/zh-cn/aspnet/web-api/overview/advanced/dependency-injection">在此阅读更多相关信息</a>。</li>
+        <li>出于本实验和测试目的，可以使用本地内存。对于生产，必须实现一种<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-storage-concept?view=azure-bot-service-4.0">管理状态数据</a>的方式。在 <code class="language-plaintext highlighter-rouge">ConfigureServices</code> 中的大量注释中，有一些相关提示。</li>
+        <li>在方法的底部，你可能会注意到我们会创建并注册状态访问器。管理状态是创建智能机器人的关键，可以<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-dialog-state?view=azure-bot-service-4.0">在此阅读详细信息</a>。</li>
+      </ul>
+    </blockquote>
+
+    <p>幸运的是，这个 shell 非常全面，因此我们只需添加两个项目：</p>
+
+    <ul>
+      <li>中间件</li>
+      <li>自定义状态访问器。</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="中间件">中间件<a class="anchorjs-link " href="#中间件" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>中间件是位于适配器和机器人逻辑之间的一个类或一组类，在初始化期间添加到适配器的中间件集合中。</p>
+
+<p>通过 SDK，可以编写你自己的中间件或添加由其他人创建的中间件的可重用组件。进出机器人的每个活动都会经过中间件。我们稍后会在实验中进行深入了解，但是现在，请务必了解每个活动都会经过中间件，因为它位于运行时调用的 <code class="language-plaintext highlighter-rouge">ConfigureServices</code> 方法中（该方法在由用户发送的每条消息和 <code class="language-plaintext highlighter-rouge">OnMessageActivityAsync</code> 之间运行）。</p>
+
+<ol>
+  <li>
+    <p>添加名为 <strong>“中间件”</strong> 的新文件夹</p>
+  </li>
+  <li>
+    <p>右键单击 <strong>“中间件”</strong> 文件夹并选择 <strong>“添加”&gt;“现有项”</strong>。</p>
+  </li>
+  <li>
+    <p>导航到 <strong>{GitHubDir}\Lab3-Basic_Filter_Bot\code\Middleware</strong>，全选三个文件，然后选择 <strong>“添加”</strong></p>
+  </li>
+  <li>
+    <p>将以下变量添加到 <strong>Startup</strong> 类：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">private</span> <span class="n">ILoggerFactory</span> <span class="n">_loggerFactory</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>替换 <strong>ConfigureServices</strong> 方法中的以下代码：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">services</span><span class="p">.</span><span class="n">AddTransient</span><span class="p">&lt;</span><span class="n">IBot</span><span class="p">,</span> <span class="n">PictureBot</span><span class="p">&gt;();</span>
+</code></pre></div>    </div>
+
+    <p>替换为以下代码：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">services</span><span class="p">.</span><span class="n">AddBot</span><span class="p">&lt;</span><span class="n">PictureBot</span><span class="p">.</span><span class="n">Bots</span><span class="p">.</span><span class="n">PictureBot</span><span class="p">&gt;(</span><span class="n">options</span> <span class="p">=&gt;</span>
+ <span class="p">{</span>
+     <span class="kt">var</span> <span class="n">appId</span> <span class="p">=</span> <span class="n">Configuration</span><span class="p">.</span><span class="nf">GetSection</span><span class="p">(</span><span class="s">"MicrosoftAppId"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">;</span>
+                 <span class="kt">var</span> <span class="n">appSecret</span> <span class="p">=</span> <span class="n">Configuration</span><span class="p">.</span><span class="nf">GetSection</span><span class="p">(</span><span class="s">"MicrosoftAppPassword"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">;</span>
+
+                 <span class="n">options</span><span class="p">.</span><span class="n">CredentialProvider</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">SimpleCredentialProvider</span><span class="p">(</span><span class="n">appId</span><span class="p">,</span> <span class="n">appSecret</span><span class="p">);</span>
+
+     <span class="c1">// Creates a logger for the application to use.</span>
+     <span class="n">ILogger</span> <span class="n">logger</span> <span class="p">=</span> <span class="n">_loggerFactory</span><span class="p">.</span><span class="n">CreateLogger</span><span class="p">&lt;</span><span class="n">PictureBot</span><span class="p">.</span><span class="n">Bots</span><span class="p">.</span><span class="n">PictureBot</span><span class="p">&gt;();</span>
+
+     <span class="c1">// Catches any errors that occur during a conversation turn and logs them.</span>
+     <span class="n">options</span><span class="p">.</span><span class="n">OnTurnError</span> <span class="p">=</span> <span class="k">async</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span> <span class="p">=&gt;</span>
+     <span class="p">{</span>
+         <span class="n">logger</span><span class="p">.</span><span class="nf">LogError</span><span class="p">(</span><span class="s">$"Exception caught : </span><span class="p">{</span><span class="n">exception</span><span class="p">}</span><span class="s">"</span><span class="p">);</span>
+         <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">"Sorry, it looks like something went wrong."</span><span class="p">);</span>
+     <span class="p">};</span>
+
+
+     <span class="kt">var</span> <span class="n">middleware</span> <span class="p">=</span> <span class="n">options</span><span class="p">.</span><span class="n">Middleware</span><span class="p">;</span>
+     <span class="c1">// Add middleware below with "middleware.Add(...."</span>
+     <span class="c1">// Add Regex below</span>
+ <span class="p">});</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>将 <strong>Configure</strong>方法替换为以下代码：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">IApplicationBuilder</span> <span class="n">app</span><span class="p">,</span> <span class="n">ILoggerFactory</span> <span class="n">loggerFactory</span><span class="p">)</span>
+ <span class="p">{</span>
+     <span class="n">_loggerFactory</span> <span class="p">=</span> <span class="n">loggerFactory</span><span class="p">;</span>
+
+     <span class="n">app</span><span class="p">.</span><span class="nf">UseDefaultFiles</span><span class="p">()</span>
+                 <span class="p">.</span><span class="nf">UseBotFramework</span><span class="p">()</span>
+                 <span class="p">.</span><span class="nf">UseStaticFiles</span><span class="p">()</span>
+                 <span class="p">.</span><span class="nf">UseWebSockets</span><span class="p">()</span>
+                 <span class="p">.</span><span class="nf">UseRouting</span><span class="p">()</span>
+                 <span class="p">.</span><span class="nf">UseAuthorization</span><span class="p">()</span>
+                 <span class="p">.</span><span class="nf">UseEndpoints</span><span class="p">(</span><span class="n">endpoints</span> <span class="p">=&gt;</span>
+                 <span class="p">{</span>
+                     <span class="n">endpoints</span><span class="p">.</span><span class="nf">MapControllers</span><span class="p">();</span>
+                 <span class="p">});</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h3 id="自定义状态访问器">自定义状态访问器<a class="anchorjs-link " href="#自定义状态访问器" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>在我们讨论需要的自定义状态访问器之前，请务必备份。我们将在下一部分中正式介绍对话框，它们是实现多回合对话逻辑的一种方法，这意味着它们需要依赖持续状态来了解用户在对话中的位置。在基于对话框的机器人中，我们将使用 DialogSet 来保存各种对话框。DialogSet 是使用名为“访问器”的对象的句柄创建的。</p>
+
+<p>在 SDK 中，访问器实现 <code class="language-plaintext highlighter-rouge">IStatePropertyAccessor</code>接口，这基本上意味着它提供了获取、设置和删除有关状态的信息的功能，因此我们可以跟踪用户在对话中位于哪个步骤。</p>
+
+<ol>
+  <li>
+    <p>对于我们创建的每个访问器，我们必须先为它赋予一个属性名称。对于我们的场景，我们想要跟踪一些内容：</p>
+
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">PictureState</code>
+        <ul>
+          <li>我们问候用户了吗？
+            <ul>
+              <li>我们不想多次问候用户，但我们希望确保在对话开始时问候他们。</li>
+            </ul>
+          </li>
+          <li>用户当前是否正在搜索特定的词？如果是，这个词是什么？
+            <ul>
+              <li>我们需要跟踪用户是否已告知我们他们想要搜索的内容，以及搜索内容是什么（如果他们想要搜索）。</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><code class="language-plaintext highlighter-rouge">DialogState</code>
+        <ul>
+          <li>用户当前是否正在进行对话？
+            <ul>
+              <li>我们将用它来确定用户在给定对话或对话流中的位置。如果你不熟悉对话框，请不要担心，我们很快就会对此进行介绍。</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>我们可以使用这些构造函数来跟踪我们称之为 <code class="language-plaintext highlighter-rouge">PictureState</code> 的内容。</p>
+  </li>
+  <li>
+    <p>在 <strong>Startup.cs</strong> 文件的 <strong>ConfigureServices</strong> 方法中，在自定义状态访问器列表中添加 <code class="language-plaintext highlighter-rouge">PictureState</code> 并跟踪对话框，你将使用内置的 <code class="language-plaintext highlighter-rouge">DialogState</code>：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c1">// Create and register state accesssors.</span>
+ <span class="c1">// Acessors created here are passed into the IBot-derived class on every turn.</span>
+ <span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">PictureBotAccessors</span><span class="p">&gt;(</span><span class="n">sp</span> <span class="p">=&gt;</span>
+ <span class="p">{</span>
+     <span class="kt">var</span> <span class="n">options</span> <span class="p">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">GetRequiredService</span><span class="p">&lt;</span><span class="n">IOptions</span><span class="p">&lt;</span><span class="n">BotFrameworkOptions</span><span class="p">&gt;&gt;().</span><span class="n">Value</span><span class="p">;</span>
+     <span class="k">if</span> <span class="p">(</span><span class="n">options</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">(</span><span class="s">"BotFrameworkOptions must be configured prior to setting up the state accessors"</span><span class="p">);</span>
+     <span class="p">}</span>
+
+     <span class="kt">var</span> <span class="n">conversationState</span> <span class="p">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">GetRequiredService</span><span class="p">&lt;</span><span class="n">ConversationState</span><span class="p">&gt;();</span>
+     <span class="c1">//var conversationState = services.BuildServiceProvider().GetService&lt;ConversationState&gt;();</span>
+
+     <span class="k">if</span> <span class="p">(</span><span class="n">conversationState</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="k">throw</span> <span class="k">new</span> <span class="nf">InvalidOperationException</span><span class="p">(</span><span class="s">"ConversationState must be defined and added before adding conversation-scoped state accessors."</span><span class="p">);</span>
+     <span class="p">}</span>
+
+     <span class="c1">// Create the custom state accessor.</span>
+     <span class="c1">// State accessors enable other components to read and write individual properties of state.</span>
+     <span class="k">return</span> <span class="k">new</span> <span class="nf">PictureBotAccessors</span><span class="p">(</span><span class="n">conversationState</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="n">PictureState</span> <span class="p">=</span> <span class="n">conversationState</span><span class="p">.</span><span class="n">CreateProperty</span><span class="p">&lt;</span><span class="n">PictureState</span><span class="p">&gt;(</span><span class="n">PictureBotAccessors</span><span class="p">.</span><span class="n">PictureStateName</span><span class="p">),</span>
+         <span class="n">DialogStateAccessor</span> <span class="p">=</span> <span class="n">conversationState</span><span class="p">.</span><span class="n">CreateProperty</span><span class="p">&lt;</span><span class="n">DialogState</span><span class="p">&gt;(</span><span class="s">"DialogState"</span><span class="p">),</span>
+     <span class="p">};</span>
+
+ <span class="p">});</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>你应该可以在某些术语下面看到错误（红色波浪线）。但在修复它们之前，你可能想知道为什么我们必须创建两个访问器，为什么一个不够？</p>
+
+    <ul>
+      <li>
+        <p><code class="language-plaintext highlighter-rouge">DialogState</code> 是来自 <code class="language-plaintext highlighter-rouge">Microsoft.Bot.Builder.Dialogs</code> 库的特定访问器。发送消息时，对话框子系统将调用 <code class="language-plaintext highlighter-rouge">DialogSet</code> 上的 <code class="language-plaintext highlighter-rouge">CreateContext</code>。跟踪这个上下文需要 <code class="language-plaintext highlighter-rouge">DialogState</code> 访问器来专门获取相应的对话框状态 JSON。</p>
+      </li>
+      <li>
+        <p>另一方面，<code class="language-plaintext highlighter-rouge">PictureState</code> 将用于跟踪我们在整个对话中指定的特定对话属性（例如，我们是否已问候用户？）</p>
+      </li>
+    </ul>
+
+    <blockquote>
+      <p>现在不要担心对话术语，但这个过程应该有意义。如果你感到疑惑，可以<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-dialog-state?view=azure-bot-service-4.0">深入了解状态的运作方式</a>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>现在回到你看到的错误。你已经说过要存储这些信息，但是你还未说明存储位置或方式。我们必须更新“PictureState.cs”和“PictureBotAccessor.cs”才能拥有和访问我们想要存储的信息。</p>
+  </li>
+  <li>
+    <p>右键单击项目，然后选择 <strong>“添加”-&gt;“类”</strong>，选择类文件并将其命名为 <strong>PictureState</strong></p>
+  </li>
+  <li>
+    <p>将以下代码复制到 <strong>PictureState.cs</strong>。</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">System.Collections.Generic</span><span class="p">;</span>
+
+ <span class="k">namespace</span> <span class="nn">Microsoft.PictureBot</span>
+ <span class="p">{</span>
+     <span class="c1">/// &lt;summary&gt;</span>
+     <span class="c1">/// Stores counter state for the conversation.</span>
+     <span class="c1">/// Stored in &lt;see cref="Microsoft.Bot.Builder.ConversationState"/&gt; and</span>
+     <span class="c1">/// backed by &lt;see cref="Microsoft.Bot.Builder.MemoryStorage"/&gt;.</span>
+     <span class="c1">/// &lt;/summary&gt;</span>
+     <span class="k">public</span> <span class="k">class</span> <span class="nc">PictureState</span>
+     <span class="p">{</span>
+         <span class="c1">/// &lt;summary&gt;</span>
+         <span class="c1">/// Gets or sets the number of turns in the conversation.</span>
+         <span class="c1">/// &lt;/summary&gt;</span>
+         <span class="c1">/// &lt;value&gt;The number of turns in the conversation.&lt;/value&gt;</span>
+         <span class="k">public</span> <span class="kt">string</span> <span class="n">Greeted</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span> <span class="p">=</span> <span class="s">"not greeted"</span><span class="p">;</span>
+         <span class="k">public</span> <span class="kt">string</span> <span class="n">Search</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span> <span class="p">=</span> <span class="s">""</span><span class="p">;</span>
+         <span class="k">public</span> <span class="kt">string</span> <span class="n">Searching</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span> <span class="p">=</span> <span class="s">"no"</span><span class="p">;</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>查看代码。  我们在这里存储关于活动对话的信息。  可随时添加一些解释字符串用途的注释。正确初始化 PictureState 之后，可以创建 PictureBotAccessor，以删除在 <strong>Startup.cs</strong>中遇到的错误。</p>
+  </li>
+  <li>
+    <p>右键单击项目，然后选择 <strong>“添加”-&gt;“类”</strong>，选择类文件并将其命名为 <strong>PictureBotAccessors</strong></p>
+  </li>
+  <li>
+    <p>将以下内容复制到其中：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder.Dialogs</span><span class="p">;</span>
+
+ <span class="k">namespace</span> <span class="nn">Microsoft.PictureBot</span>
+ <span class="p">{</span>
+     <span class="c1">/// &lt;summary&gt;</span>
+     <span class="c1">/// This class is created as a Singleton and passed into the IBot-derived constructor.</span>
+     <span class="c1">///  - See &lt;see cref="PictureBot"/&gt; constructor for how that is injected.</span>
+     <span class="c1">///  - See the Startup.cs file for more details on creating the Singleton that gets</span>
+     <span class="c1">///    injected into the constructor.</span>
+     <span class="c1">/// &lt;/summary&gt;</span>
+     <span class="k">public</span> <span class="k">class</span> <span class="nc">PictureBotAccessors</span>
+     <span class="p">{</span>
+         <span class="c1">/// &lt;summary&gt;</span>
+         <span class="c1">/// Initializes a new instance of the &lt;see cref="PictureBotAccessors"/&gt; class.</span>
+         <span class="c1">/// Contains the &lt;see cref="ConversationState"/&gt; and associated &lt;see cref="IStatePropertyAccessor{T}"/&gt;.</span>
+         <span class="c1">/// &lt;/summary&gt;</span>
+         <span class="c1">/// &lt;param name="conversationState"&gt;The state object that stores the counter.&lt;/param&gt;</span>
+         <span class="k">public</span> <span class="nf">PictureBotAccessors</span><span class="p">(</span><span class="n">ConversationState</span> <span class="n">conversationState</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="n">ConversationState</span> <span class="p">=</span> <span class="n">conversationState</span> <span class="p">??</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentNullException</span><span class="p">(</span><span class="k">nameof</span><span class="p">(</span><span class="n">conversationState</span><span class="p">));</span>
+         <span class="p">}</span>
+
+         <span class="c1">/// &lt;summary&gt;</span>
+         <span class="c1">/// Gets the &lt;see cref="IStatePropertyAccessor{T}"/&gt; name used for the &lt;see cref="CounterState"/&gt; accessor.</span>
+         <span class="c1">/// &lt;/summary&gt;</span>
+         <span class="c1">/// &lt;remarks&gt;Accessors require a unique name.&lt;/remarks&gt;</span>
+         <span class="c1">/// &lt;value&gt;The accessor name for the counter accessor.&lt;/value&gt;</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="kt">string</span> <span class="n">PictureStateName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span> <span class="p">=</span> <span class="s">$"</span><span class="p">{</span><span class="k">nameof</span><span class="p">(</span><span class="n">PictureBotAccessors</span><span class="p">)}</span><span class="s">.PictureState"</span><span class="p">;</span>
+
+         <span class="c1">/// &lt;summary&gt;</span>
+         <span class="c1">/// Gets or sets the &lt;see cref="IStatePropertyAccessor{T}"/&gt; for CounterState.</span>
+         <span class="c1">/// &lt;/summary&gt;</span>
+         <span class="c1">/// &lt;value&gt;</span>
+         <span class="c1">/// The accessor stores the turn count for the conversation.</span>
+         <span class="c1">/// &lt;/value&gt;</span>
+         <span class="k">public</span> <span class="n">IStatePropertyAccessor</span><span class="p">&lt;</span><span class="n">PictureState</span><span class="p">&gt;</span> <span class="n">PictureState</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+         <span class="c1">/// &lt;summary&gt;</span>
+         <span class="c1">/// Gets the &lt;see cref="ConversationState"/&gt; object for the conversation.</span>
+         <span class="c1">/// &lt;/summary&gt;</span>
+         <span class="c1">/// &lt;value&gt;The &lt;see cref="ConversationState"/&gt; object.&lt;/value&gt;</span>
+         <span class="k">public</span> <span class="n">ConversationState</span> <span class="n">ConversationState</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
+
+         <span class="c1">/// &lt;summary&gt; Gets the IStatePropertyAccessor{T} name used for the DialogState accessor. &lt;/summary&gt;</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="kt">string</span> <span class="n">DialogStateName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span> <span class="p">=</span> <span class="s">$"</span><span class="p">{</span><span class="k">nameof</span><span class="p">(</span><span class="n">PictureBotAccessors</span><span class="p">)}</span><span class="s">.DialogState"</span><span class="p">;</span>
+
+         <span class="c1">/// &lt;summary&gt; Gets or sets the IStatePropertyAccessor{T} for DialogState. &lt;/summary&gt;</span>
+         <span class="k">public</span> <span class="n">IStatePropertyAccessor</span><span class="p">&lt;</span><span class="n">DialogState</span><span class="p">&gt;</span> <span class="n">DialogStateAccessor</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>查看代码，注意 <code class="language-plaintext highlighter-rouge">PictureStateName</code> 和 <code class="language-plaintext highlighter-rouge">PictureState</code> 的实现。</p>
+  </li>
+  <li>
+    <p>想知道你是否已正确对它进行配置？返回 <strong>Startup.cs</strong> 并确认已解决有关创建自定义状态访问器的错误。</p>
+  </li>
+</ol>
+
+<h2 id="实验-33为机器人组织代码">实验 3.3：为机器人组织代码<a class="anchorjs-link " href="#实验-33为机器人组织代码" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>有许多用于开发机器人的不同方法和首选项。通过 SDK，可以采用任何方式组织代码。在这些实验室中，我们将对话整理到不同的对话框中，并且将探索一种围绕对话的组织代码的 <a href="https://msdn.microsoft.com/zh-cn/library/hh848246.aspx">MVVM 样式</a>。</p>
+
+<p>这个 PictureBot 将按以下方式组织：</p>
+
+<ul>
+  <li><strong>对话框</strong> - 用于编辑模型的业务逻辑</li>
+  <li><strong>响应</strong> - 定义面向用户的输出的类</li>
+  <li><strong>模型</strong> - 要修改的对象</li>
+</ul>
+
+<p>右键单击项目并选择 <strong>“添加”-&gt;“新建文件夹”</strong>，在项目中创建两个新的文件夹“<strong>Responses</strong>”和“<strong>Models</strong>”</p>
+
+<h3 id="对话框">对话框<a class="anchorjs-link " href="#对话框" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>你可能已经熟悉对话框及其工作方式。如果你不熟悉，请阅读<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-dialog-manage-conversation-flow?view=azure-bot-service-4.0&amp;tabs=csharp">关于对话框的这个页面</a>，然后再继续。</p>
+
+<p>如果机器人能够执行多个任务，最好有多个对话框或一组对话框，以帮助用户浏览不同的对话流。对于 PictureBot，我们希望用户能够浏览初始菜单流（通常称为主对话框），然后分散到不同的对话框，具体取决于他们尝试进行的操作 - 搜索图片、分享图片、订购图片，或获取帮助。我们可以通过使用对话框容器或这里称为 <code class="language-plaintext highlighter-rouge">DialogSet</code> 的方式轻松完成此操作。请阅读关于如何<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-compositcontrol?view=azure-bot-service-4.0&amp;tabs=csharp">创建模块化机器人逻辑和复杂对话框</a>的内容，然后再继续。</p>
+
+<p>对于本实验室，我们将一切从简，但之后，你应该能够创建包含许多对话框的对话框集。对于 PictureBot，我们将有两个主对话框：</p>
+
+<ul>
+  <li>
+    <p><strong>MainDialog</strong> - 机器人启动时使用的默认对话框。这个对话框将根据用户请求启动其他对话框。作为对话框集的主对话框，这个对话框将负责创建对话框容器，并根据需要将用户重定向到其他对话框。</p>
+  </li>
+  <li>
+    <p><strong>SearchDialog</strong> - 一个对话框，用于管理处理搜索请求并将那些结果返回给用户。  <em><strong>注意：</strong> 我们将调用这个功能，但不会在本研讨会中实施搜索。</em></p>
+  </li>
+</ul>
+
+<p>由于我们只有两个对话框，因此可以保持简单，并将它们放在 PictureBot 类中。但是，在复杂的场景中，可能需要将它们拆分到一个文件夹的不同对话框中（类似于我们分离“响应”和“模型”那样）。</p>
+
+<ol>
+  <li>
+    <p>导航回 <strong>PictureBot.cs</strong> 并用以下内容替换 <code class="language-plaintext highlighter-rouge">using</code> 语句：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">System.Collections.Generic</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Threading</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Threading.Tasks</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder.Dialogs</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Schema</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.PictureBot</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">PictureBot.Responses</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p>你刚刚添加了对模型/响应以及对服务 LUIS 和 Azure 认知搜索的访问权限。最后，Newtonsoft 引用将帮助你分析来自 LUIS 的响应，我们将在后续实验室中看到它。</p>
+
+<p>接下来，我们需要将 <code class="language-plaintext highlighter-rouge">OnTurnAsync</code> 方法替换为具有以下功能的方法：处理传入的邮件，然后将邮件路由到各种对话框中。</p>
+
+<ol>
+  <li>
+    <p>将 <strong>PictureBot</strong> 类替换为以下代码：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c1">/// &lt;summary&gt;</span>
+ <span class="c1">/// Represents a bot that processes incoming activities.</span>
+ <span class="c1">/// For each user interaction, an instance of this class is created and the OnTurnAsync method is called.</span>
+ <span class="c1">/// This is a Transient lifetime service.  Transient lifetime services are created</span>
+ <span class="c1">/// each time they're requested. For each Activity received, a new instance of this</span>
+ <span class="c1">/// class is created. Objects that are expensive to construct, or have a lifetime</span>
+ <span class="c1">/// beyond the single turn, should be carefully managed.</span>
+ <span class="c1">/// For example, the &lt;see cref="MemoryStorage"/&gt; object and associated</span>
+ <span class="c1">/// &lt;see cref="IStatePropertyAccessor{T}"/&gt; object are created with a singleton lifetime.</span>
+ <span class="c1">/// &lt;/summary&gt;</span>
+ <span class="c1">/// &lt;seealso cref="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-2.1"/&gt;</span>
+ <span class="c1">/// &lt;summary&gt;Contains the set of dialogs and prompts for the picture bot.&lt;/summary&gt;</span>
+ <span class="k">public</span> <span class="k">class</span> <span class="nc">PictureBot</span> <span class="p">:</span> <span class="n">ActivityHandler</span>
+ <span class="p">{</span>
+     <span class="k">private</span> <span class="k">readonly</span> <span class="n">PictureBotAccessors</span> <span class="n">_accessors</span><span class="p">;</span>
+     <span class="c1">// Initialize LUIS Recognizer</span>
+
+     <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogger</span> <span class="n">_logger</span><span class="p">;</span>
+     <span class="k">private</span> <span class="n">DialogSet</span> <span class="n">_dialogs</span><span class="p">;</span>
+
+     <span class="c1">/// &lt;summary&gt;</span>
+     <span class="c1">/// Every conversation turn for our PictureBot will call this method.</span>
+     <span class="c1">/// There are no dialogs used, since it's "single turn" processing, meaning a single</span>
+     <span class="c1">/// request and response. Later, when we add Dialogs, we'll have to navigate through this method.</span>
+     <span class="c1">/// &lt;/summary&gt;</span>
+     <span class="c1">/// &lt;param name="turnContext"&gt;A &lt;see cref="ITurnContext"/&gt; containing all the data needed</span>
+     <span class="c1">/// for processing this conversation turn. &lt;/param&gt;</span>
+     <span class="c1">/// &lt;param name="cancellationToken"&gt;(Optional) A &lt;see cref="CancellationToken"/&gt; that can be used by other objects</span>
+     <span class="c1">/// or threads to receive notice of cancellation.&lt;/param&gt;</span>
+     <span class="c1">/// &lt;returns&gt;A &lt;see cref="Task"/&gt; that represents the work queued to execute.&lt;/returns&gt;</span>
+     <span class="c1">/// &lt;seealso cref="BotStateSet"/&gt;</span>
+     <span class="c1">/// &lt;seealso cref="ConversationState"/&gt;</span>
+     <span class="c1">/// &lt;seealso cref="IMiddleware"/&gt;</span>
+     <span class="k">public</span> <span class="k">override</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">OnTurnAsync</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">turnContext</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="n">CancellationToken</span><span class="p">))</span>
+     <span class="p">{</span>
+         <span class="k">if</span> <span class="p">(</span><span class="n">turnContext</span><span class="p">.</span><span class="n">Activity</span><span class="p">.</span><span class="n">Type</span> <span class="k">is</span> <span class="s">"message"</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="c1">// Establish dialog context from the conversation state.</span>
+             <span class="kt">var</span> <span class="n">dc</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_dialogs</span><span class="p">.</span><span class="nf">CreateContextAsync</span><span class="p">(</span><span class="n">turnContext</span><span class="p">);</span>
+             <span class="c1">// Continue any current dialog.</span>
+             <span class="kt">var</span> <span class="n">results</span> <span class="p">=</span> <span class="k">await</span> <span class="n">dc</span><span class="p">.</span><span class="nf">ContinueDialogAsync</span><span class="p">(</span><span class="n">cancellationToken</span><span class="p">);</span>
+
+             <span class="c1">// Every turn sends a response, so if no response was sent,</span>
+             <span class="c1">// then there no dialog is currently active.</span>
+             <span class="k">if</span> <span class="p">(!</span><span class="n">turnContext</span><span class="p">.</span><span class="n">Responded</span><span class="p">)</span>
+             <span class="p">{</span>
+                 <span class="c1">// Start the main dialog</span>
+                 <span class="k">await</span> <span class="n">dc</span><span class="p">.</span><span class="nf">BeginDialogAsync</span><span class="p">(</span><span class="s">"mainDialog"</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="n">cancellationToken</span><span class="p">);</span>
+             <span class="p">}</span>
+         <span class="p">}</span>
+     <span class="p">}</span>
+     <span class="c1">/// &lt;summary&gt;</span>
+     <span class="c1">/// Initializes a new instance of the &lt;see cref="PictureBot"/&gt; class.</span>
+     <span class="c1">/// &lt;/summary&gt;</span>
+     <span class="c1">/// &lt;param name="accessors"&gt;A class containing &lt;see cref="IStatePropertyAccessor{T}"/&gt; used to manage state.&lt;/param&gt;</span>
+     <span class="c1">/// &lt;param name="loggerFactory"&gt;A &lt;see cref="ILoggerFactory"/&gt; that is hooked to the Azure App Service provider.&lt;/param&gt;</span>
+     <span class="c1">/// &lt;seealso cref="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-2.1#windows-eventlog-provider"/&gt;</span>
+     <span class="k">public</span> <span class="nf">PictureBot</span><span class="p">(</span><span class="n">PictureBotAccessors</span> <span class="n">accessors</span><span class="p">,</span> <span class="n">ILoggerFactory</span> <span class="n">loggerFactory</span> <span class="cm">/*, LuisRecognizer recognizer*/</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="k">if</span> <span class="p">(</span><span class="n">loggerFactory</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">throw</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="nf">ArgumentNullException</span><span class="p">(</span><span class="k">nameof</span><span class="p">(</span><span class="n">loggerFactory</span><span class="p">));</span>
+         <span class="p">}</span>
+
+         <span class="c1">// Add instance of LUIS Recognizer</span>
+
+         <span class="n">_logger</span> <span class="p">=</span> <span class="n">loggerFactory</span><span class="p">.</span><span class="n">CreateLogger</span><span class="p">&lt;</span><span class="n">PictureBot</span><span class="p">&gt;();</span>
+         <span class="n">_logger</span><span class="p">.</span><span class="nf">LogTrace</span><span class="p">(</span><span class="s">"PictureBot turn start."</span><span class="p">);</span>
+         <span class="n">_accessors</span> <span class="p">=</span> <span class="n">accessors</span> <span class="p">??</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="nf">ArgumentNullException</span><span class="p">(</span><span class="k">nameof</span><span class="p">(</span><span class="n">accessors</span><span class="p">));</span>
+
+         <span class="c1">// The DialogSet needs a DialogState accessor, it will call it when it has a turn context.</span>
+         <span class="n">_dialogs</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">DialogSet</span><span class="p">(</span><span class="n">_accessors</span><span class="p">.</span><span class="n">DialogStateAccessor</span><span class="p">);</span>
+
+         <span class="c1">// This array defines how the Waterfall will execute.</span>
+         <span class="c1">// We can define the different dialogs and their steps here</span>
+         <span class="c1">// allowing for overlap as needed. In this case, it's fairly simple</span>
+         <span class="c1">// but in more complex scenarios, you may want to separate out the different</span>
+         <span class="c1">// dialogs into different files.</span>
+         <span class="kt">var</span> <span class="n">main_waterfallsteps</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WaterfallStep</span><span class="p">[]</span>
+         <span class="p">{</span>
+             <span class="n">GreetingAsync</span><span class="p">,</span>
+             <span class="n">MainMenuAsync</span><span class="p">,</span>
+         <span class="p">};</span>
+         <span class="kt">var</span> <span class="n">search_waterfallsteps</span> <span class="p">=</span> <span class="k">new</span> <span class="n">WaterfallStep</span><span class="p">[]</span>
+         <span class="p">{</span>
+             <span class="c1">// Add SearchDialog water fall steps</span>
+
+         <span class="p">};</span>
+
+         <span class="c1">// Add named dialogs to the DialogSet. These names are saved in the dialog state.</span>
+         <span class="n">_dialogs</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="k">new</span> <span class="nf">WaterfallDialog</span><span class="p">(</span><span class="s">"mainDialog"</span><span class="p">,</span> <span class="n">main_waterfallsteps</span><span class="p">));</span>
+         <span class="n">_dialogs</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="k">new</span> <span class="nf">WaterfallDialog</span><span class="p">(</span><span class="s">"searchDialog"</span><span class="p">,</span> <span class="n">search_waterfallsteps</span><span class="p">));</span>
+         <span class="c1">// The following line allows us to use a prompt within the dialogs</span>
+         <span class="n">_dialogs</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="k">new</span> <span class="nf">TextPrompt</span><span class="p">(</span><span class="s">"searchPrompt"</span><span class="p">));</span>
+     <span class="p">}</span>
+     <span class="c1">// Add MainDialog-related tasks</span>
+
+     <span class="c1">// Add SearchDialog-related tasks</span>
+
+     <span class="c1">// Add search related tasks</span>
+
+ <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>花一些时间与研讨会参与者一起回顾和讨论这个 shell。在继续之前，你应该了解每一行的用途。</p>
+  </li>
+  <li>
+    <p>我们稍后会对这个内容进行补充。现可忽略任何错误。</p>
+  </li>
+</ol>
+
+<h3 id="响应">响应<a class="anchorjs-link " href="#响应" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>所以在填写对话框之前，我们需要准备一些响应。请记住，我们将把对话框和响应分开，因为这样会产生更简洁的代码，并且更易于遵循对话框的逻辑。如果你现在不同意或不理解，相信你很快就会同意和理解。</p>
+
+<ol>
+  <li>
+    <p>在 <strong>“响应”</strong> 文件夹中，创建两个类，分别称为 <strong>MainResponses.cs</strong> 和 <strong>SearchResponses.cs</strong>。你可能已经明白，响应文件将只包含我们想要发送给用户的不同输出，而不是逻辑。</p>
+  </li>
+  <li>
+    <p>在 <strong>MainResponses.cs</strong> 中将代码替换为以下代码：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">System.Threading.Tasks</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder</span><span class="p">;</span>
+
+ <span class="k">namespace</span> <span class="nn">PictureBot.Responses</span>
+ <span class="p">{</span>
+     <span class="k">public</span> <span class="k">class</span> <span class="nc">MainResponses</span>
+     <span class="p">{</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithGreeting</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">"Hello, Im a Picture Bot"</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithHelp</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"I can search for pictures, share pictures and order prints of pictures."</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithResumeTopic</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"What can I do for you?"</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithConfused</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="c1">// Add a response for the user if Regex or LUIS doesn't know</span>
+             <span class="c1">// What the user is trying to communicate</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"I'm sorry, I don't understand."</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithLuisScore</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">,</span> <span class="kt">string</span> <span class="n">key</span><span class="p">,</span> <span class="kt">double</span> <span class="n">score</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"Intent: </span><span class="p">{</span><span class="n">key</span><span class="p">}</span><span class="s"> (</span><span class="p">{</span><span class="n">score</span><span class="p">}</span><span class="s">)."</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithShareConfirmation</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"Posting your picture(s) on twitter..."</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithOrderConfirmation</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"Ordering standard prints of your picture(s)..."</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithSearchConfirmation</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"Searching picture(s)..."</span><span class="p">);</span>
+         <span class="p">}</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+
+    <p>请注意，有两个不包含值的响应（ReplyWithGreeting 和 ReplyWithConfused）。根据需要填写这些内容。</p>
+  </li>
+  <li>
+    <p>在“SearchResponses.cs”中，将代码替换为以下代码：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Collections.Generic</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Linq</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Threading.Tasks</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Schema</span><span class="p">;</span>
+
+ <span class="k">namespace</span> <span class="nn">PictureBot.Responses</span>
+ <span class="p">{</span>
+     <span class="k">public</span> <span class="k">class</span> <span class="nc">SearchResponses</span>
+     <span class="p">{</span>
+         <span class="c1">// add a task called "ReplyWithSearchRequest"</span>
+         <span class="c1">// it should take in the context and ask the</span>
+         <span class="c1">// user what they want to search for</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithSearchConfirmation</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">,</span> <span class="kt">string</span> <span class="n">utterance</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"Ok, searching for pictures of </span><span class="p">{</span><span class="n">utterance</span><span class="p">}</span><span class="s">"</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReplyWithNoResults</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">context</span><span class="p">,</span> <span class="kt">string</span> <span class="n">utterance</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">await</span> <span class="n">context</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">"There were no results found for \""</span> <span class="p">+</span> <span class="n">utterance</span> <span class="p">+</span> <span class="s">"\"."</span><span class="p">);</span>
+         <span class="p">}</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>请注意，这里缺少一个完整的任务。根据需要填写，但请确保新任务的名称为“ReplyWithSearchRequest”，否则你之后可能会遇到问题。</p>
+  </li>
+</ol>
+
+<h3 id="模型">模型<a class="anchorjs-link " href="#模型" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>由于时间限制，我们不会介绍如何创建所有模型。它们很简单，但我们建议你在添加代码后花些时间进行评审。</p>
+
+<ol>
+  <li>
+    <p>右键单击 <strong>“模型”</strong> 文件夹并选择 <strong>“添加”&gt;“现有项目”</strong>。</p>
+  </li>
+  <li>
+    <p>导航到 <strong>{GitHubDir}\Lab3-Basic_Filter_Bot\code\Models</strong>，全选三个文件，然后选择 <strong>“添加”</strong>。</p>
+  </li>
+</ol>
+
+<h2 id="实验-34regex-和中间件">实验 3.4：Regex 和中间件<a class="anchorjs-link " href="#实验-34regex-和中间件" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>我们可以通过很多操作来改进机器人。首先，我们可能不想通过调用 LUIS 来获取简单的“搜索图片”消息，机器人将经常从其用户那里获得这个消息。  一个简单的正则表达式可以满足此需求，并节省我们的时间（由于网络延迟）和费用（调用 LUIS 服务产生的费用）。</p>
+
+<p>此外，随着我们机器人复杂程度的加深，我们将接受用户的输入并使用多种服务来解释它，因此，我们需要一个过程来管理此流。  例如，先尝试正则表达式，如果不匹配，则调用 LUIS，然后还可以下拉菜单尝试其他服务，例如 <a href="http://qnamaker.ai">QnA Maker</a> 或 Azure 认知搜索。管理这个流的好方法是借助 <a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-concept-middleware?view=azure-bot-service-4.0">Middleware</a>，SDK 可为这方面提供出色支持。</p>
+
+<p>在继续进行实验室之前，请了解有关中间件和 Bot Framework SDK 的详细信息：</p>
+
+<ul>
+  <li>
+    <p><a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-basics?view=azure-bot-service-4.0">概述和架构</a></p>
+  </li>
+  <li>
+    <p><a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-concept-middleware?view=azure-bot-service-4.0">中间件</a></p>
+  </li>
+  <li>
+    <p><a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-create-middleware?view=azure-bot-service-4.0&amp;tabs=csaddmiddleware%2Ccsetagoverwrite%2Ccsmiddlewareshortcircuit%2Ccsfallback%2Ccsactivityhandler">创建中间件</a></p>
+  </li>
+</ul>
+
+<p>最终，我们将使用一些中间件来尝试先理解用户使用正则表达式 (Regex) 所说的内容，如果不能理解，我们将调用 LUIS。如果仍然不能理解，我们将继续并采用通用回复“I’m not sure what you mean”或者你为“ReplyWithConfused”设置的任何内容。</p>
+
+<ol>
+  <li>
+    <p>在 <strong>Startup.cs</strong>的 <code class="language-plaintext highlighter-rouge">ConfigureServices</code> 中的“添加以下 Regex”注释下，添加以下内容：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">middleware</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="k">new</span> <span class="nf">RegExpRecognizerMiddleware</span><span class="p">()</span>
+ <span class="p">.</span><span class="nf">AddIntent</span><span class="p">(</span><span class="s">"search"</span><span class="p">,</span> <span class="k">new</span> <span class="nf">Regex</span><span class="p">(</span><span class="s">"search picture(?:s)*(.*)|search pic(?:s)*(.*)"</span><span class="p">,</span> <span class="n">RegexOptions</span><span class="p">.</span><span class="n">IgnoreCase</span><span class="p">))</span>
+ <span class="p">.</span><span class="nf">AddIntent</span><span class="p">(</span><span class="s">"share"</span><span class="p">,</span> <span class="k">new</span> <span class="nf">Regex</span><span class="p">(</span><span class="s">"share picture(?:s)*(.*)|share pic(?:s)*(.*)"</span><span class="p">,</span> <span class="n">RegexOptions</span><span class="p">.</span><span class="n">IgnoreCase</span><span class="p">))</span>
+ <span class="p">.</span><span class="nf">AddIntent</span><span class="p">(</span><span class="s">"order"</span><span class="p">,</span> <span class="k">new</span> <span class="nf">Regex</span><span class="p">(</span><span class="s">"order picture(?:s)*(.*)|order print(?:s)*(.*)|order pic(?:s)*(.*)"</span><span class="p">,</span> <span class="n">RegexOptions</span><span class="p">.</span><span class="n">IgnoreCase</span><span class="p">))</span>
+ <span class="p">.</span><span class="nf">AddIntent</span><span class="p">(</span><span class="s">"help"</span><span class="p">,</span> <span class="k">new</span> <span class="nf">Regex</span><span class="p">(</span><span class="s">"help(.*)"</span><span class="p">,</span> <span class="n">RegexOptions</span><span class="p">.</span><span class="n">IgnoreCase</span><span class="p">)));</span>
+
+</code></pre></div>    </div>
+
+    <blockquote>
+      <p>我们实际上只是粗略了解了如何使用正则表达式。如果你有兴趣，可以<a href="https://docs.microsoft.com/zh-cn/dotnet/standard/base-types/regular-expression-language-quick-reference">在此处了解详细信息</a>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>你可能会注意到 <code class="language-plaintext highlighter-rouge">options.State</code> 已被弃用。  接下来改用最新方法：</p>
+  </li>
+  <li>
+    <p>删除以下代码：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="kt">var</span> <span class="n">conversationState</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">ConversationState</span><span class="p">(</span><span class="n">dataStore</span><span class="p">);</span>
+
+ <span class="n">options</span><span class="p">.</span><span class="n">State</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="n">conversationState</span><span class="p">);</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>在 <code class="language-plaintext highlighter-rouge">ConfigureServices</code> 底部添加以下代码</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c1">// Create the User state.</span>
+ <span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">UserState</span><span class="p">&gt;(</span><span class="n">sp</span> <span class="p">=&gt;</span> <span class="p">{</span>
+     <span class="kt">var</span> <span class="n">dataStore</span> <span class="p">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">GetRequiredService</span><span class="p">&lt;</span><span class="n">IStorage</span><span class="p">&gt;();</span>
+         <span class="k">return</span> <span class="k">new</span> <span class="nf">UserState</span><span class="p">(</span><span class="n">dataStore</span><span class="p">);</span>
+ <span class="p">});</span>
+
+ <span class="c1">// Create the Conversation state.</span>
+ <span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">ConversationState</span><span class="p">&gt;(</span><span class="n">sp</span> <span class="p">=&gt;</span>
+ <span class="p">{</span>
+     <span class="kt">var</span> <span class="n">dataStore</span> <span class="p">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">GetRequiredService</span><span class="p">&lt;</span><span class="n">IStorage</span><span class="p">&gt;();</span>
+     <span class="k">return</span> <span class="k">new</span> <span class="nf">ConversationState</span><span class="p">(</span><span class="n">dataStore</span><span class="p">);</span>
+ <span class="p">});</span>
+
+ <span class="c1">// Create the IStorage.</span>
+ <span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">IStorage</span><span class="p">,</span> <span class="n">MemoryStorage</span><span class="p">&gt;(</span><span class="n">sp</span> <span class="p">=&gt;</span>
+ <span class="p">{</span>
+     <span class="k">return</span> <span class="k">new</span> <span class="nf">MemoryStorage</span><span class="p">();</span>
+ <span class="p">});</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>如果没有添加 LUIS，我们的机器人实际上只会获取一些变体，但如果用户使用机器人搜索、共享和订购图片，它应该会捕获许多消息。</p>
+
+    <blockquote>
+      <p>题外话：有人可能会争论说，用户应该不必键入“help”即可获得一个清楚明了的选项菜单，其中包含机器人可以执行的操作；更确切地说，这应该是第一次接触机器人时的默认体验。<strong>可发现性</strong>是机器人面临的最大挑战之一 - 让用户了解机器人能够做什么。  优秀的<a href="https://docs.microsoft.com/zh-cn/bot-framework/bot-design-principles">机器人设计原则</a>可能有所帮助。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="实验室-35运行机器人">实验室 3.5：运行机器人<a class="anchorjs-link " href="#实验室-35运行机器人" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<h3 id="再次介绍-maindialog">再次介绍 MainDialog<a class="anchorjs-link " href="#再次介绍-maindialog" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>现在开始进入正题。我们需要在 PictureBot.cs 中填写 MainDialog，以便我们的机器人可以对用户所说的要做的事情做出反应。根据 Regex 的结果，我们需要将对话指向正确的方向。仔细阅读代码，确认了解代码的作用。</p>
+
+<ol>
+  <li>
+    <p>在 <strong>PictureBot.cs</strong> 中，将以下命名空间添加到文件顶部</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">Microsoft.Bot.Schema</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.PictureBot</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">PictureBot.Responses</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>将以下行添加到类的顶部。</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">private</span> <span class="k">readonly</span> <span class="n">PictureBotAccessors</span> <span class="n">_accessors</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>通过粘贴代码来添加以下方法：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c1">// If we haven't greeted a user yet, we want to do that first, but for the rest of the</span>
+ <span class="c1">// conversation we want to remember that we've already greeted them.</span>
+ <span class="k">private</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">DialogTurnResult</span><span class="p">&gt;</span> <span class="nf">GreetingAsync</span><span class="p">(</span><span class="n">WaterfallStepContext</span> <span class="n">stepContext</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span><span class="p">)</span>
+ <span class="p">{</span>
+     <span class="c1">// Get the state for the current step in the conversation</span>
+     <span class="kt">var</span> <span class="n">state</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_accessors</span><span class="p">.</span><span class="n">PictureState</span><span class="p">.</span><span class="nf">GetAsync</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="nf">PictureState</span><span class="p">());</span>
+
+     <span class="c1">// If we haven't greeted the user</span>
+     <span class="k">if</span> <span class="p">(</span><span class="n">state</span><span class="p">.</span><span class="n">Greeted</span> <span class="p">==</span> <span class="s">"not greeted"</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="c1">// Greet the user</span>
+         <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithGreeting</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+         <span class="c1">// Update the GreetedState to greeted</span>
+         <span class="n">state</span><span class="p">.</span><span class="n">Greeted</span> <span class="p">=</span> <span class="s">"greeted"</span><span class="p">;</span>
+         <span class="c1">// Save the new greeted state into the conversation state</span>
+         <span class="c1">// This is to ensure in future turns we do not greet the user again</span>
+         <span class="k">await</span> <span class="n">_accessors</span><span class="p">.</span><span class="n">ConversationState</span><span class="p">.</span><span class="nf">SaveChangesAsync</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+         <span class="c1">// Ask the user what they want to do next</span>
+         <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithHelp</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+         <span class="c1">// Since we aren't explicitly prompting the user in this step, we'll end the dialog</span>
+         <span class="c1">// When the user replies, since state is maintained, the else clause will move them</span>
+         <span class="c1">// to the next waterfall step</span>
+         <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">EndDialogAsync</span><span class="p">();</span>
+     <span class="p">}</span>
+     <span class="k">else</span> <span class="c1">// We've already greeted the user</span>
+     <span class="p">{</span>
+         <span class="c1">// Move to the next waterfall step, which is MainMenuAsync</span>
+         <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">NextAsync</span><span class="p">();</span>
+     <span class="p">}</span>
+
+ <span class="p">}</span>
+
+ <span class="c1">// This step routes the user to different dialogs</span>
+ <span class="c1">// In this case, there's only one other dialog, so it is more simple,</span>
+ <span class="c1">// but in more complex scenarios you can go off to other dialogs in a similar</span>
+ <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">DialogTurnResult</span><span class="p">&gt;</span> <span class="nf">MainMenuAsync</span><span class="p">(</span><span class="n">WaterfallStepContext</span> <span class="n">stepContext</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span><span class="p">)</span>
+ <span class="p">{</span>
+     <span class="c1">// Check if we are currently processing a user's search</span>
+     <span class="kt">var</span> <span class="n">state</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_accessors</span><span class="p">.</span><span class="n">PictureState</span><span class="p">.</span><span class="nf">GetAsync</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+
+     <span class="c1">// If Regex picks up on anything, store it</span>
+     <span class="kt">var</span> <span class="n">recognizedIntents</span> <span class="p">=</span> <span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">.</span><span class="n">TurnState</span><span class="p">.</span><span class="n">Get</span><span class="p">&lt;</span><span class="n">IRecognizedIntents</span><span class="p">&gt;();</span>
+     <span class="c1">// Based on the recognized intent, direct the conversation</span>
+     <span class="k">switch</span> <span class="p">(</span><span class="n">recognizedIntents</span><span class="p">.</span><span class="n">TopIntent</span><span class="p">?.</span><span class="n">Name</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="k">case</span> <span class="s">"search"</span><span class="p">:</span>
+             <span class="c1">// switch to the search dialog</span>
+             <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">BeginDialogAsync</span><span class="p">(</span><span class="s">"searchDialog"</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="n">cancellationToken</span><span class="p">);</span>
+         <span class="k">case</span> <span class="s">"share"</span><span class="p">:</span>
+             <span class="c1">// respond that you're sharing the photo</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithShareConfirmation</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">EndDialogAsync</span><span class="p">();</span>
+         <span class="k">case</span> <span class="s">"order"</span><span class="p">:</span>
+             <span class="c1">// respond that you're ordering</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithOrderConfirmation</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">EndDialogAsync</span><span class="p">();</span>
+         <span class="k">case</span> <span class="s">"help"</span><span class="p">:</span>
+             <span class="c1">// show help</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithHelp</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">EndDialogAsync</span><span class="p">();</span>
+         <span class="k">default</span><span class="p">:</span>
+             <span class="p">{</span>
+                 <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithConfused</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+                 <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">EndDialogAsync</span><span class="p">();</span>
+             <span class="p">}</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>找到函数 <code class="language-plaintext highlighter-rouge">OnMessageActivityAsync</code>，并替换为新函数 <code class="language-plaintext highlighter-rouge">OnTurnAsync</code></p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">public</span> <span class="k">override</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">OnTurnAsync</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">turnContext</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="n">CancellationToken</span><span class="p">))</span>
+ <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="n">turnContext</span><span class="p">.</span><span class="n">Activity</span><span class="p">.</span><span class="n">Type</span> <span class="k">is</span> <span class="s">"message"</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="c1">// Establish dialog context from the conversation state.</span>
+         <span class="kt">var</span> <span class="n">dc</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_dialogs</span><span class="p">.</span><span class="nf">CreateContextAsync</span><span class="p">(</span><span class="n">turnContext</span><span class="p">);</span>
+         <span class="c1">// Continue any current dialog.</span>
+         <span class="kt">var</span> <span class="n">results</span> <span class="p">=</span> <span class="k">await</span> <span class="n">dc</span><span class="p">.</span><span class="nf">ContinueDialogAsync</span><span class="p">(</span><span class="n">cancellationToken</span><span class="p">);</span>
+
+         <span class="c1">// Every turn sends a response, so if no response was sent,</span>
+         <span class="c1">// then there no dialog is currently active.</span>
+         <span class="k">if</span> <span class="p">(!</span><span class="n">turnContext</span><span class="p">.</span><span class="n">Responded</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="c1">// Start the main dialog</span>
+             <span class="k">await</span> <span class="n">dc</span><span class="p">.</span><span class="nf">BeginDialogAsync</span><span class="p">(</span><span class="s">"mainDialog"</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="n">cancellationToken</span><span class="p">);</span>
+         <span class="p">}</span>  
+     <span class="p">}</span>          
+ <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>按 <strong>F5</strong> 键运行机器人。</p>
+  </li>
+  <li>
+    <p>使用机器人模拟器并发送一些命令来测试机器人：</p>
+
+    <ul>
+      <li>帮助</li>
+      <li>共享图片</li>
+      <li>整理图片</li>
+      <li>搜索图片</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>注意：</strong> 如果机器人出现 500 错误，则可以在 <strong>Startup.cs</strong>文件的 <strong>OnTurnError</strong> 委托方法中放置一个断点。  最常见的错误是 AppId 和 AppSecret 不匹配。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>如果唯一没有提供预期结果的命令是“search pics”，那么一切都是按照你的配置方式运行的。“search pics”失败目前是本实验室的预期行为，但这是为什么呢？请在继续之前提供一个答案！</p>
+
+    <blockquote>
+      <p>提示：从 <strong>PictureBot.cs</strong> 开始，使用断点跟踪与情况“搜索”的匹配。
+卡住或中断？到目前为止，可以在 <a href="code/Finished/">resources/code/Finished</a> 下找到适用于本实验的解决方案。解决方案中的自述文件（你打开它后）将告诉你需要添加哪些密钥才能运行解决方案。建议使用此代码作为参考，而不是作为解决方案运行，但如果选择运行此代码，请务必为你的环境添加必需的密钥。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="资源">资源<a class="anchorjs-link " href="#资源" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-basics?view=azure-bot-service-4.0&amp;tabs=cs">Bot Builder 基础知识</a></li>
+  <li><a href="https://docs.microsoft.com/zh-cn/azure/bot-service/dotnet/bot-builder-dotnet-sdk-quickstart?view=azure-bot-service-4.0">.NET Bot Builder SDK 教程</a></li>
+  <li><a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-service-overview-introduction?view=azure-bot-service-4.0">机器人服务文档</a></li>
+  <li><a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-deploy-az-cli?view=azure-bot-service-4.0&amp;tabs=newrg">部署机器人</a></li>
+</ul>
+
+<h2 id="后续步骤">后续步骤<a class="anchorjs-link " href="#后续步骤" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="../Lab4-Log_Chat/01-Introduction.html">实验 04-01：记录聊天信息</a></li>
+</ul>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  
+
+</body></html>

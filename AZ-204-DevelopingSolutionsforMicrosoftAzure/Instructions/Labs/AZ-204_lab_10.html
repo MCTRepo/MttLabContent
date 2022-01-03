@@ -1,0 +1,790 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-204: Developing solutions for Microsoft Azure
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-204: Developing solutions for Microsoft Azure
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-create-azure-resources">Exercise 1: Create Azure resources</a></li><li class="nav-item"><a class="nav-link active" href="#exercise-2-create-a-net-core-project-to-publish-messages-to-a-service-bus-queue">Exercise 2: Create a .NET Core project to publish messages to a Service Bus queue</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-create-a-net-core-project-to-read-messages-from-a-service-bus-queue">Exercise 3: Create a .NET Core project to read messages from a Service Bus queue</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-clean-up-your-subscription">Exercise 4: Clean up your subscription</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-10-asynchronously-process-messages-by-using-azure-service-bus-queues">Lab 10: Asynchronously process messages by using Azure Service Bus Queues</h1>
+
+<h2 id="microsoft-azure-user-interface">Microsoft Azure user interface</h2>
+
+<p>Given the dynamic nature of Microsoft cloud tools, you might experience Azure UI changes that occur after the development of this training content. As a result, the lab instructions and lab steps might not align correctly.</p>
+
+<p>Microsoft updates this training course when the community alerts us to needed changes. However, cloud updates occur frequently, so you might encounter UI changes before this training content updates. <strong>If this occurs, adapt to the changes, and then work through them in the labs as needed.</strong></p>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-environment">Sign in to the lab environment</h4>
+
+<p>Sign in to your Windows 10 virtual machine (VM) by using the following credentials:</p>
+
+<ul>
+  <li>
+    <p>Username: <strong>Admin</strong></p>
+  </li>
+  <li>
+    <p>Password: <strong>Pa55w.rd</strong></p>
+  </li>
+</ul>
+
+<blockquote>
+  <p><strong>Note</strong>: Your instructor will provide instructions to connect to the virtual lab environment.</p>
+</blockquote>
+
+<h4 id="review-the-installed-applications">Review the installed applications</h4>
+
+<p>Find the taskbar on your Windows 10 desktop. The taskbar contains the icons for the applications that you’ll use in this lab, including:</p>
+
+<ul>
+  <li>
+    <p>Microsoft Edge</p>
+  </li>
+  <li>
+    <p>Visual Studio Code</p>
+  </li>
+</ul>
+
+<h2 id="architecture-diagram">Architecture diagram</h2>
+
+<p><a href="media/Lab10-Diagram.png" target="_blank"><img src="media/Lab10-Diagram.png" alt="Architecture diagram depicting a user asynchronously processing messages by using Azure Service Bus Queues"></a></p>
+
+<h3 id="exercise-1-create-azure-resources">Exercise 1: Create Azure resources</h3>
+
+<h4 id="task-1-open-the-azure-portal">Task 1: Open the Azure portal</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Microsoft Edge</strong> icon.</p>
+  </li>
+  <li>
+    <p>In the browser window, browse to the Azure portal (<a href="https://portal.azure.com">portal.azure.com</a>) and sign in with the account you’ll be using for this lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is your first time signing in to the Azure portal, you’ll be offered a tour of the portal. Select <strong>Get Started</strong> to skip the tour and begin using the portal.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-create-an-azure-service-bus-queue">Task 2: Create an Azure Service Bus queue</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, use the <strong>Search resources, services, and docs</strong> text box to search for <strong>Service Bus</strong> and then, in the list of results, select <strong>Service Bus</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Service Bus</strong> blade, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create namespace</strong> blade, on the <strong>Basics</strong> tab, perform the following actions, and select <strong>Review + create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Subscription</strong> drop-down list</td>
+          <td>Retain the default value.</td>
+        </tr>
+        <tr>
+          <td><strong>Resource group</strong>&nbsp;section</td>
+          <td>Select <strong>Create new</strong>, enter <strong>AsyncProcessor</strong>, and then select <strong>OK</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Namespace name</strong>&nbsp;text box</td>
+          <td>Enter <strong>sbnamespace</strong><em>[yourname]</em>.</td>
+        </tr>
+        <tr>
+          <td><strong>Region</strong>&nbsp;drop-down list</td>
+          <td>Select any Azure region in which you can deploy an Azure Service Bus.</td>
+        </tr>
+        <tr>
+          <td><strong>Pricing tier</strong>&nbsp;drop-down list</td>
+          <td>Select <strong>Basic</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings on the <strong>Basics</strong> tab on the <strong>Create namespace</strong> blade.</p>
+
+    <p><a href="media/l10_create_sb_namespace.png" target="_blank"><img src="media/l10_create_sb_namespace.png" alt="Create an Azure Service Bus namespace blade"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, review the options that you selected during the previous steps.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> to create the <strong>Service Bus</strong> namespace by using your specified configuration.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the creation task to complete before you proceed with this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Deployment</strong> blade, select the <strong>Go to resource</strong> button to navigate to the blade of the newly created <strong>Service Bus</strong> namespace.</p>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Service Bus</strong> namespace blade, in the <strong>Settings</strong> section, select <strong>Shared access policies</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of policies, select <strong>RootManageSharedAccessKey</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>SAS Policy: RootManageSharedAccessKey</strong> pane, next to the <strong>Primary Connection String</strong> entry, select the <strong>Copy to clipboard</strong> button, and record the copied value. You’ll use it later in this lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: It doesn’t matter which of the two available keys you choose. They are interchangeable.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Service Bus</strong> namespace blade, in the <strong>Entities</strong> section, select <strong>Queues</strong>, and then select <strong>+ Queue</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create queue</strong> blade, review the available settings, in the <strong>Name</strong> text box, enter <strong>messagequeue</strong>, and then select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>messagequeue</strong> to display the properties of the <strong>Service Bus</strong> queue.</p>
+  </li>
+  <li>
+    <p>Leave the browser window open. You’ll use it again later in this lab.</p>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this exercise, you created an Azure <strong>Service Bus</strong> namespace and a <strong>Service Bus</strong> queue that you’ll use through the remainder of the lab.</p>
+
+<h3 id="exercise-2-create-a-net-core-project-to-publish-messages-to-a-service-bus-queue">Exercise 2: Create a .NET Core project to publish messages to a Service Bus queue</h3>
+
+<h4 id="task-1-create-a-net-core-project">Task 1: Create a .NET Core project</h4>
+
+<ol>
+  <li>
+    <p>From the lab computer, start Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>In Visual Studio Code, in the <strong>File</strong> menu, select <strong>Open Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Open Folder</strong> window, browse to <strong>Allfiles (F):\Allfiles\Labs\10\Starter\MessagePublisher</strong>, and then select <strong>Select Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the terminal prompt, run the following command to create a new .NET project named <strong>MessagePublisher</strong> in the current folder:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs coffeescript">dotnet <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> <span class="hljs-built_in"><span class="hljs-built_in">console</span></span> --name MessagePublisher --output .
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>dotnet new</strong> command will create a new <strong>console</strong> project in a folder with the same name as the project.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following command to import version 7.2.1 of the <strong>Azure.Messaging.ServiceBus</strong> package from NuGet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Messaging</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.ServiceBus</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 7<span class="hljs-selector-class"><span class="hljs-selector-class">.2</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.1</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>dotnet add package</strong> command will add the <strong>Azure.Messaging.ServiceBus</strong> package from NuGet. For more information, go to <a href="https://www.nuget.org/packages/Azure.Messaging.ServiceBus/">Azure.Messaging.ServiceBus</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the terminal prompt, run the following command to build the .NET Core console application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> build
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> (the <strong>Recycle Bin</strong> icon) to close the terminal pane and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-publish-messages-to-an-azure-service-bus-queue">Task 2: Publish messages to an Azure Service Bus queue</h4>
+
+<ol>
+  <li>
+    <p>In the&nbsp;<strong>Explorer</strong>&nbsp;pane of the <strong>Visual Studio Code</strong> window, open the <strong>Program.cs</strong> file.</p>
+  </li>
+  <li>
+    <p>On the code editor tab for the&nbsp;<strong>Program.cs</strong>&nbsp;file, delete all the code in the existing file.</p>
+  </li>
+  <li>
+    <p>Add the following lines of code to facilitate the use of the built-in namespaces that will be referenced in this file:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+</code></pre>
+  </li>
+  <li>
+    <p>Add the following code to import the <strong>Azure.Messaging.ServiceBus</strong> namespace included in the <strong>Azure.Storage.Queues</strong> package imported from NuGet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Messaging.ServiceBus;
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create a new <strong>Program</strong> class in the MessagePublisher namespace:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">namespace</span></span> <span class="hljs-title"><span class="hljs-title">MessagePublisher</span></span>
+{
+   <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">Program</span></span>
+   {
+   }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following code to create a string constant named <strong>storageConnectionString</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> storageConnectionString = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Update the <strong>storageConnectionString</strong> string constant by setting its value to <strong>Primary Connection String</strong> of the Service Bus namespace you recorded earlier in this lab.</p>
+  </li>
+  <li>
+    <p>Enter the following code to create a string constant named <strong>queueName</strong> with a value of <strong>messagequeue</strong>, matching the name of the Service Bus queue you created earlier in this exercise.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> queueName = <span class="hljs-string"><span class="hljs-string">"messagequeue"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create an integer constant which stores the number of messages to be sent to the target queue:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> numOfMessages = <span class="hljs-number"><span class="hljs-number">3</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create a Service Bus client that will own the connection to the target queue:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">static</span></span> ServiceBusClient client;
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create a Service Bus sender that will be used to publish messages to the target queue:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">static</span></span> ServiceBusSender sender;
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create an asynchronous <strong>Main</strong> method:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>Program.cs</strong> file, which should now include the following code. Note that the <code>&lt;storage-connection-string&gt;</code> placeholder represents the connection string to the target Azure Service Bus namespace:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Messaging.ServiceBus;
+
+<span class="hljs-keyword"><span class="hljs-keyword">namespace</span></span> <span class="hljs-title"><span class="hljs-title">MessagePublisher</span></span>
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">Program</span></span>
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> storageConnectionString = <span class="hljs-string"><span class="hljs-string">"&lt;storage-connection-string&gt;"</span></span>;
+        <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> queueName = <span class="hljs-string"><span class="hljs-string">"messagequeue"</span></span>;
+        <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> numOfMessages = <span class="hljs-number"><span class="hljs-number">3</span></span>;
+
+        <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> ServiceBusClient client;
+        <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> ServiceBusSender sender;
+
+        <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+        </span></span>{
+        }
+    }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following code to initialize <em>client</em> of type <strong>ServiceBusClient</strong> that will provide connectivity to the Service Bus namespace and <strong>sender</strong> that will be responsible for sending messages:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-csharp hljs">client = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ServiceBusClient(storageConnectionString);
+sender = client.CreateSender(queueName);  
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The Service Bus client is safe to cache and use as a singleton for the lifetime of the application. This is considered one of the best practices when publishing and reading messages on a regular basis.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following code to create a <strong>ServiceBusMessageBatch</strong> object that will allow you to combine multiple messages into a batch by using the <strong>TryAddMessage</strong> method:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> ServiceBusMessageBatch messageBatch = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> sender.CreateMessageBatchAsync();
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following lines of code to add messages to a batch and throw an exception if a message size exceeds the limits supported by the batch:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">int</span></span> i = <span class="hljs-number"><span class="hljs-number">1</span></span>; i &lt;= numOfMessages; i++)
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (!messageBatch.TryAddMessage(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ServiceBusMessage(<span class="hljs-string"><span class="hljs-string">$"Message </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{i}</span></span></span><span class="hljs-string">"</span></span>)))
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">throw</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Exception(<span class="hljs-string"><span class="hljs-string">$"The message </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{i}</span></span></span><span class="hljs-string"> is too large to fit in the batch."</span></span>);
+    }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following lines of code to create a try block, with <strong>sender</strong> asynchronously publishing messages in the batch to the target queue:</p>
+
+    <p>```csharp      <br>
+try
+{
+    await sender.SendMessagesAsync(messageBatch);
+    Console.WriteLine($”A batch of {numOfMessages} messages has been published to the queue.”);
+}</p>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following lines of code to create a finally block that asynchronously disposes of the <strong>sender</strong> and <strong>client</strong> objects, releasing any network and unmanaged resources:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">finally</span></span>
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> sender.DisposeAsync();
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.DisposeAsync();
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>Main</strong> method, which should now consist of the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+    client = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ServiceBusClient(storageConnectionString);
+    sender = client.CreateSender(queueName);
+
+    <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> ServiceBusMessageBatch messageBatch = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> sender.CreateMessageBatchAsync();
+
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">int</span></span> i = <span class="hljs-number"><span class="hljs-number">1</span></span>; i &lt;= numOfMessages; i++)
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (!messageBatch.TryAddMessage(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ServiceBusMessage(<span class="hljs-string"><span class="hljs-string">$"Message </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{i}</span></span></span><span class="hljs-string">"</span></span>)))
+        {
+            <span class="hljs-keyword"><span class="hljs-keyword">throw</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Exception(<span class="hljs-string"><span class="hljs-string">$"The message </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{i}</span></span></span><span class="hljs-string"> is too large to fit in the batch."</span></span>);
+        }
+    }
+
+    <span class="hljs-keyword"><span class="hljs-keyword">try</span></span>
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> sender.SendMessagesAsync(messageBatch);
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"A batch of </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{numOfMessages}</span></span></span><span class="hljs-string"> messages has been published to the queue."</span></span>);
+    }
+    <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span>
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> sender.DisposeAsync();
+        <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.DisposeAsync();
+    }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Save the&nbsp;<strong>Program.cs</strong>&nbsp;file.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the terminal prompt, run the following command to launch the .NET Core console app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you encounter any errors, review the <strong>Program.cs</strong> file in the <strong>Allfiles (F):\Allfiles\Labs\10\Solution\MessagePublisher</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Verify that the console message displayed at the terminal prompt states that a batch of three messages has been published to queue.</p>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> (the <strong>Recycle Bin</strong> icon) to close the terminal pane and any associated processes.</p>
+  </li>
+  <li>
+    <p>Switch to the Microsoft Edge browser displaying the Service Bus queue <strong>messagequeue</strong> in the Azure portal.</p>
+  </li>
+  <li>
+    <p>Review the <strong>Essentials</strong> pane and note that the queue contains three active messages.</p>
+
+    <p>The following screenshot displays the Service Bus queue metrics and message count.</p>
+
+    <p><a href="media/l10_display_queue_with_messages_portal.png" target="_blank"><img src="media/l10_display_queue_with_messages_portal.png" alt="Service Bus queue metrics and message count in the Azure portal"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Settings</strong> section, select <strong>Service Bus Explorer (preview)</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Service Bus Explorer (preview)</strong> blade, select the <strong>Peek</strong> tab header and, on the <strong>Peek</strong> tab, select the <strong>Peek</strong> button.</p>
+  </li>
+  <li>
+    <p>Verify that the queue contains three messages.</p>
+  </li>
+  <li>
+    <p>Select the first message and review its content in the <strong>Message</strong> pane.</p>
+
+    <p>The following screenshot displays the first message’s content.</p>
+
+    <p><a href="media/l10_peek_queue_with_messages_explorer.png" target="_blank"><img src="media/l10_peek_queue_with_messages_explorer.png" alt="Service Bus queue content in Service Bus Explorer"></a></p>
+  </li>
+  <li>
+    <p>Close the <strong>Message</strong> pane.</p>
+  </li>
+</ol>
+
+<h4 id="review-1">Review</h4>
+
+<p>In this exercise, you configured your .NET project that published messages into an Azure Service Bus queue.</p>
+
+<h3 id="exercise-3-create-a-net-core-project-to-read-messages-from-a-service-bus-queue">Exercise 3: Create a .NET Core project to read messages from a Service Bus queue</h3>
+
+<h4 id="task-1-create-a-net-project">Task 1: Create a .NET project</h4>
+
+<ol>
+  <li>
+    <p>From the lab computer, start Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>In Visual Studio Code, in the <strong>File</strong> menu, select <strong>Open Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Open Folder</strong> window, browse to <strong>Allfiles (F):\Allfiles\Labs\10\Starter\MessageReader</strong>, and then select <strong>Select Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the terminal prompt, run the following command to create a new .NET project named <strong>MessageReader</strong> in the current folder:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs coffeescript">dotnet <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> <span class="hljs-built_in"><span class="hljs-built_in">console</span></span> --name MessageReader --output .
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to import version 7.2.1 of the <strong>Azure.Messaging.ServiceBus</strong> package from NuGet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Messaging</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.ServiceBus</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 7<span class="hljs-selector-class"><span class="hljs-selector-class">.2</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.1</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>At the terminal prompt, run the following command to build the .NET Core console application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> build
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> (the <strong>Recycle Bin</strong> icon) to close the terminal pane and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-read-messages-from-an-azure-service-bus-queue">Task 2: Read messages from an Azure Service Bus queue</h4>
+
+<ol>
+  <li>
+    <p>In the&nbsp;<strong>Explorer</strong>&nbsp;pane of the <strong>Visual Studio Code</strong> window, open the <strong>Program.cs</strong> file.</p>
+  </li>
+  <li>
+    <p>On the code editor tab for the&nbsp;<strong>Program.cs</strong>&nbsp;file, delete all the code in the existing file.</p>
+  </li>
+  <li>
+    <p>Add the same code which was included in the Program.cs file to allow for interaction with Azure Service Bus queues, but set the namespace to <strong>MessageReader</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Messaging.ServiceBus;
+    
+<span class="hljs-keyword"><span class="hljs-keyword">namespace</span></span> <span class="hljs-title"><span class="hljs-title">MessageReader</span></span>
+{
+   <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">Program</span></span>
+   {
+      <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> storageConnectionString = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+      <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> queueName = <span class="hljs-string"><span class="hljs-string">"messagequeue"</span></span>;
+      <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> ServiceBusClient client;
+
+   }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>As before, update the <strong>storageConnectionString</strong> string constant by setting its value to <strong>Primary Connection String</strong> of the <strong>Service Bus</strong> namespace you recorded earlier in this lab.</p>
+  </li>
+  <li>
+    <p>Enter the following code to create a ServiceBusProcessor that will be used to process messages from the queue:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">static</span></span> ServiceBusProcessor processor;
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create a static async <strong>MessageHandler</strong> task that displays the body of messages in the queue as they are being processed and deletes them after the processing completes:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">MessageHandler</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">ProcessMessageEventArgs args</span></span></span><span class="hljs-function">)
+</span></span>{
+    <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> body = args.Message.Body.ToString();
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"Received: </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{body}</span></span></span><span class="hljs-string">"</span></span>);
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> args.CompleteMessageAsync(args.Message);
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create a static async <strong>ErrorHandler</strong> task that manages any exceptions encountered during message processing:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">ErrorHandler</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">ProcessErrorEventArgs args</span></span></span><span class="hljs-function">)
+</span></span>{
+    Console.WriteLine(args.Exception.ToString());
+    <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> Task.CompletedTask;
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create an asynchronous <strong>Main</strong> method:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>Program.cs</strong> file, which should now include the following code. The <code>&lt;storage-connection-string&gt;</code> placeholder represents the connection string to the target Azure Service Bus namespace:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Messaging.ServiceBus;
+
+<span class="hljs-keyword"><span class="hljs-keyword">namespace</span></span> <span class="hljs-title"><span class="hljs-title">MessageReader</span></span>
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">Program</span></span>
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> storageConnectionString = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+        <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> queueName = <span class="hljs-string"><span class="hljs-string">"messagequeue"</span></span>;
+        <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> ServiceBusClient client;
+        <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> ServiceBusProcessor processor;
+
+        <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">MessageHandler</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">ProcessMessageEventArgs args</span></span></span><span class="hljs-function">)
+        </span></span>{
+            <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> body = args.Message.Body.ToString();
+            Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"Received: </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{body}</span></span></span><span class="hljs-string">"</span></span>);
+            <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> args.CompleteMessageAsync(args.Message);
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">ErrorHandler</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">ProcessErrorEventArgs args</span></span></span><span class="hljs-function">)
+        </span></span>{
+            Console.WriteLine(args.Exception.ToString());
+            <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> Task.CompletedTask;
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"></span><span class="hljs-function"><span class="hljs-params"></span>)
+        </span></span>{
+        }
+    }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following code to initialize <em>client</em> of type <strong>ServiceBusClient</strong> that will provide connectivity to the Service Bus namespace and <strong>processor</strong> that will be responsible for processing of messages:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-csharp hljs">client = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ServiceBusClient(storageConnectionString);
+processor = client.CreateProcessor(queueName, <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ServiceBusProcessorOptions());
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: As mentioned earlier, the Service Bus client is safe to cache and use as a singleton for the lifetime of the application. This is considered one of the best practices when publishing and reading messages on a regular basis.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following lines of code to create a try block, which first implements a message and error processing handler, initiates message processing, and stops processing following a user input:</p>
+
+    <p>```csharp      <br>
+try
+{
+    processor.ProcessMessageAsync += MessageHandler;
+    processor.ProcessErrorAsync += ErrorHandler;</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">await</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">processor</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.StartProcessingAsync</span></span>();
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">Console</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.WriteLine</span></span>("<span class="hljs-selector-tag"><span class="hljs-selector-tag">Wait</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">for</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">a</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">minute</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">and</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">then</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">press</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">any</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">key</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">to</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">end</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">the</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">processing</span></span>");
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">Console</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.ReadKey</span></span>();
+
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">Console</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.WriteLine</span></span>("\<span class="hljs-selector-tag"><span class="hljs-selector-tag">nStopping</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">the</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">receiver</span></span>...");
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">await</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">processor</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.StopProcessingAsync</span></span>();
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">Console</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.WriteLine</span></span>("<span class="hljs-selector-tag"><span class="hljs-selector-tag">Stopped</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">receiving</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">messages</span></span>"); }
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following lines of code to create a finally block that asynchronously disposes of the <strong>processor</strong> and <strong>client</strong> objects, releasing any network and unmanaged resources:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">finally</span></span>
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> processor.DisposeAsync();
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.DisposeAsync();
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>Main</strong> method, which should now consist of the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"></span><span class="hljs-function"><span class="hljs-params"></span>)
+</span></span>{
+    client = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ServiceBusClient(storageConnectionString);
+    processor = client.CreateProcessor(queueName, <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ServiceBusProcessorOptions());
+
+    <span class="hljs-keyword"><span class="hljs-keyword">try</span></span>
+    {
+        processor.ProcessMessageAsync += MessageHandler;
+        processor.ProcessErrorAsync += ErrorHandler;
+
+        <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> processor.StartProcessingAsync();
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Wait for a minute and then press any key to end the processing"</span></span>);
+        Console.ReadKey();
+
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"\nStopping the receiver..."</span></span>);
+        <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> processor.StopProcessingAsync();
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Stopped receiving messages"</span></span>);
+    }
+    <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span>
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> processor.DisposeAsync();
+        <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.DisposeAsync();
+    }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Save the&nbsp;<strong>Program.cs</strong>&nbsp;file.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the terminal prompt, run the following command to launch the .NET Core console app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you encounter any errors, review the <strong>Program.cs</strong> file in the <strong>Allfiles (F):\Allfiles\Labs\10\Solution\MessageReader</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Verify that the console message displayed at the terminal prompt states that each of the three messages in the queue has been received.</p>
+  </li>
+  <li>
+    <p>At the terminal prompt, press any key to stop the receiver and terminate the app execution.</p>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> (the <strong>Recycle Bin</strong> icon) to close the terminal pane and any associated processes.</p>
+  </li>
+  <li>
+    <p>Switch back to the Microsoft Edge browser displaying the Service Bus queue <strong>messagequeue</strong> in the Azure portal.</p>
+  </li>
+  <li>
+    <p>On the <strong>Service Bus Explorer (preview)</strong> blade, select <strong>Refresh</strong>, and note that the number of active messages in the queue has changed to <strong>0</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="review-2">Review</h4>
+
+<p>In this exercise, you read and deleted messages from the Azure Service Bus queue by using the .NET library.</p>
+
+<h3 id="exercise-4-clean-up-your-subscription">Exercise 4: Clean up your subscription</h3>
+
+<h4 id="task-1-open-azure-cloud-shell">Task 1: Open Azure Cloud Shell</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, select the <strong>Cloud Shell</strong> icon <a href="media/az204_lab_CloudShell.png" target="_blank"><img src="media/az204_lab_CloudShell.png" alt="Cloud Shell icon"></a> to open a new Bash session. If Cloud Shell defaults to a PowerShell session, select <strong>PowerShell</strong> and, in the drop-down menu, select <strong>Bash</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong>, when prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>. When you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-delete-resource-groups">Task 2: Delete resource groups</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>Cloud Shell</strong> pane, run the following command to delete the <strong>AsyncProcessor</strong> resource group:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="hljs coffeescript">az group <span class="hljs-keyword"><span class="hljs-keyword">delete</span></span> --name AsyncProcessor --<span class="hljs-literal"><span class="hljs-literal">no</span></span>-wait --<span class="hljs-literal"><span class="hljs-literal">yes</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the <em>–no-wait</em> parameter), so while you’ll be able to run another Azure CLI command immediately afterwards within the same Bash session, it’ll take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane in the portal.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-close-the-active-applications">Task 3: Close the active applications</h4>
+
+<ol>
+  <li>
+    <p>Close the currently running Microsoft Edge application.</p>
+  </li>
+  <li>
+    <p>Close the currently running Visual Studio Code application.</p>
+  </li>
+</ol>
+
+<h4 id="review-3">Review</h4>
+
+<p>In this exercise, you cleaned up your subscription by removing the resource groups used in this lab.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.js"></script>
+
+
+
+</body></html>

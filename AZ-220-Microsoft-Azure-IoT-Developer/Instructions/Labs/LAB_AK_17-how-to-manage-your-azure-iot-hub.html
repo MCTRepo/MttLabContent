@@ -1,0 +1,1006 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-simulate-devices">Exercise 2: Simulate Devices</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-set-up-and-use-metrics-and-diagnostic-logs-with-an-iot-hub">Exercise 3: Set Up and Use Metrics and Diagnostic Logs with an IoT Hub</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-configure-an-alert">Exercise 4: Configure an Alert</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-review-metrics-alerts-and-archive">Exercise 4: Review Metrics, Alerts and Archive</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="how-to-manage-your-azure-iot-hub">How to manage your Azure IoT Hub</h1>
+
+<h2 id="lab-scenario">Lab Scenario</h2>
+
+<p>Contoso’s Asset Monitoring and Tracking Solution is working great. The system provides continuous monitoring throughout the packaging and shipping process. You have implemented Group Enrollments within DPS to provision devices at scale, and when the container arrives at the destination, the IoT device is “decommissioned” through DPS so that it can re-used for future shipments.</p>
+
+<p>To help manage device utilization and other characteristics of the solution, the IT department has asked your team to implement Azure monitoring and logging services within the IoT solution.</p>
+
+<p>You agree to begin by implementing some simple metrics that can be reviewed with the IT folks before you commit to any additional workload.</p>
+
+<p>In this lab, you will implement monitoring to track the number of connected devices, the number of telemetry messages sent, and you will also send connection events to a log. In addition, you will create an alert that is triggered when the number of connected devices drops below one. To test the system, you will connect a single device and stream telemetry, then disconnect the device to generate an alert.</p>
+
+<p>The following resources will be created:</p>
+
+<p><a href="media/LAB_AK_17-architecture.png" target="_blank"><img src="media/LAB_AK_17-architecture.png" alt="Lab 17 Architecture"></a></p>
+
+<h2 id="in-this-lab">In This Lab</h2>
+
+<p>In this lab, you will complete the following activities:</p>
+
+<ul>
+  <li>Verify that the lab prerequisites are met (that you have the required Azure resources).</li>
+  <li>Download and run an app that simulates an IoT device sending messages to the hub.</li>
+  <li>Run the app to generate telemetry.</li>
+  <li>Enable diagnostic logs.</li>
+  <li>Enable metrics.</li>
+  <li>Set up alerts for those metrics.</li>
+  <li>Exit the app to raise an alert.</li>
+  <li>Observe the metrics and check the diagnostic logs.</li>
+</ul>
+
+<h2 id="lab-instructions">Lab Instructions</h2>
+
+<h3 id="exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</h3>
+
+<p>This lab assumes that the following Azure resources are available:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Resource Type</th>
+      <th style="text-align: left">Resource Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Resource Group</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Hub</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Storage Account</td>
+      <td style="text-align: left">staz220training{your-id}</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Device ID</td>
+      <td style="text-align: left">sensor-thl-2001</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To ensure these resources are available, complete the following tasks.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Deploy to Azure</strong>:</p>
+
+    <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoftLearning%2FAZ-220-Microsoft-Azure-IoT-Developer%2Fbicep%2FAllfiles%2FARM%2Flab17.json">Deploy To Azure</a></p>
+  </li>
+  <li>
+    <p>If prompted, login to the <strong>Azure Portal</strong>.</p>
+
+    <p>The <strong>Custom deployment</strong> page will be displayed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Project details</strong>, in the <strong>Subscription</strong> dropdown, ensure that the Azure subscription that you intend to use for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, select <strong>rg-az220</strong>.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If <strong>rg-az220</strong> is not listed:</p>
+
+      <ol>
+        <li>Under the <strong>Resource group</strong> dropdown, click <strong>Create new</strong>.</li>
+        <li>Under <strong>Name</strong>, enter <strong>rg-az220</strong>.</li>
+        <li>Click <strong>OK</strong>.</li>
+      </ol>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, in the <strong>Region</strong> dropdown, select the region closest to you.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If the <strong>rg-az220</strong> group already exists, the <strong>Region</strong> field is set to the region used by the resource group and is read-only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Your ID</strong> field, enter the unique ID you created in Exercise 1.</p>
+  </li>
+  <li>
+    <p>In the <strong>Course ID</strong> field, enter <strong>az220</strong>.</p>
+  </li>
+  <li>
+    <p>To validate the template, click <strong>Review and create</strong>.</p>
+  </li>
+  <li>
+    <p>If validation passes, click <strong>Create</strong>.</p>
+
+    <p>The deployment will start.</p>
+  </li>
+  <li>
+    <p>Once the deployment has completed, in the left navigation area, to review any output values from the template,  click <strong>Outputs</strong>.</p>
+
+    <p>Make a note of the outputs for use later:</p>
+
+    <ul>
+      <li>connectionString</li>
+      <li>deviceConnectionString</li>
+      <li>devicePrimaryKey</li>
+      <li>storageAccountName</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The resources have now been created.</p>
+
+<h3 id="exercise-2-simulate-devices">Exercise 2: Simulate Devices</h3>
+
+<p>In this exercise, you will be configuring a device simulator, using the device connection string generated above, to connect to the IoT Hub. When executed, the application will create an active connection (counting as a connected device) and will generate telemetry.</p>
+
+<h4 id="task-1-configure-and-run-device-simulator">Task 1: Configure and run device simulator</h4>
+
+<p>You will now configure and run the device simulator.</p>
+
+<ol>
+  <li>
+    <p>Open Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Open Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Open Folder</strong> dialog, navigate to the lab 17 Starter folder, click <strong>Starter</strong>, and then click <strong>Select Folder</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If Visual Studio Code suggested loading assets or performing a Restore, follow the suggestions.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>EXPLORER</strong> pane, to open the Program.cs file, click <strong>Program.cs</strong>.</p>
+
+    <p>You should also see the certificate files listed.</p>
+  </li>
+  <li>
+    <p>Ensure that you have the <strong>Program.cs</strong> file opened in Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>Near the top of the <strong>Program</strong> class, locate the declaration of the <code>deviceConnectionString</code> variable:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> deviceConnectionString = <span class="hljs-string"><span class="hljs-string">"&lt;your device connection string&gt;"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Replace <code>&lt;your device connection string&gt;</code> with the device connection string that you saved earlier.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is the only change that you are required to make to this code.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Optionally, take a moment to review the code.</p>
+  </li>
+</ol>
+
+<p>This app is very similar to the apps used in the earlier labs.</p>
+
+<h4 id="task-2-run-the-simulator">Task 2: Run the Simulator</h4>
+
+<ol>
+  <li>
+    <p>In Visual Studio Code, on the <strong>Terminal</strong> menu, click <strong>New Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the Terminal command prompt, to run the app, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs"> dotnet run
+</code></pre>
+
+    <p>This command will run the <strong>Program.cs</strong> file in the current folder.</p>
+  </li>
+  <li>
+    <p>Console output should be displayed that is similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-text"> ❯ dotnet run
+ IoT Hub C# Simulated Cave Device. Ctrl-C to exit.
+ 9/21/2021 5:29:03 PM &gt; Sending message: {"temperature":21.709826510264456,"humidity":69.90892255208871,"pressure":1013.2884857487113,"latitude":39.866200822820204,"longitude":-98.44082869457793}
+ 9/21/2021 5:29:04 PM &gt; Sending message: {"temperature":27.536429445043407,"humidity":79.17065790815775,"pressure":1020.8587537331547,"latitude":40.150104471097904,"longitude":-98.40412401158297}
+ 9/21/2021 5:29:05 PM &gt; Sending message: {"temperature":30.732068391857702,"humidity":65.15873178148583,"pressure":1017.6406480895312,"latitude":40.09271254628759,"longitude":-98.26298329932496}
+</code></pre>
+  </li>
+</ol>
+
+<p>Leave the app running, so that a device is connected and telemetry is being sent.</p>
+
+<h3 id="exercise-3-set-up-and-use-metrics-and-diagnostic-logs-with-an-iot-hub">Exercise 3: Set Up and Use Metrics and Diagnostic Logs with an IoT Hub</h3>
+
+<p>Azure Resource logs are platform logs emitted by Azure resources that describe their internal operation. All resource logs share a common top-level schema with the flexibility for each service to emit unique properties for their own events.</p>
+
+<p>When you have an IoT Hub solution running in production, you will want to set up various metrics and enable diagnostic logs. Then, if a problem occurs, you have data to look at that will help you to diagnose the problem and fix it more quickly.</p>
+
+<p>In this exercise, you will enable diagnostic logs and use them to check for errors. You will also set up some metrics to watch, and alerts that fire when the metrics hit a certain boundary criteria.</p>
+
+<h4 id="task-1-enable-diagnostics">Task 1: Enable diagnostics</h4>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On your Azure dashboard, click <strong>iot-az220-training-{your-id}</strong>.</p>
+
+    <p>Your dashboard should have a link to your IoT Hub on the on the rg-az220 resource group tile.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, under <strong>Monitoring</strong>, click <strong>Diagnostic settings</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Current documentation suggests that Diagnostics may be disabled by default. If so, you may need to “Turn on diagnostics” in order to collect diagnostics data for your IoT Hub. When you click <strong>Turn on diagnostics</strong>, a <strong>Diagnostic settings</strong> pane will open.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Diagnostics settings</strong> pane, under <strong>Name</strong>, click <strong>+ Add diagnostic setting</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Diagnostic settings name</strong> textbox, enter <strong>diags-hub</strong></p>
+  </li>
+  <li>
+    <p>Take a moment to review the options listed under <strong>Destination details</strong>.</p>
+
+    <p>You can see that there are 4 options available for routing the metrics - you can learn more about each by following the links below:</p>
+
+    <ul>
+      <li><a href="https://docs.microsoft.com/en-us/azure/azure-monitor/platform/resource-logs-collect-storage">Archive Azure resource logs to storage account</a></li>
+      <li><a href="https://docs.microsoft.com/en-us/azure/azure-monitor/platform/stream-monitoring-data-event-hubs">Stream Azure monitoring data to an event hub</a></li>
+      <li><a href="https://docs.microsoft.com/en-us/azure/azure-monitor/platform/resource-logs-collect-workspace">Collect Azure resource logs in Log Analytics workspace in Azure Monitor</a></li>
+      <li><a href="https://docs.microsoft.com/en-us/azure/azure-monitor/partners">Sending to Partner solutions</a></li>
+    </ul>
+
+    <p>In this lab, you will use the storage account option.</p>
+  </li>
+  <li>
+    <p>Under <strong>Destination details</strong>, click <strong>Archive to a storage account</strong>.</p>
+
+    <p>Additional fields are made available once you select this destination option, including the option to specify <strong>Retention (days)</strong> for the log categories.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Take a moment to review the notes about storage accounts and costs.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>For the <strong>Subscription</strong> field, select the subscription that you used to create your IoT Hub.</p>
+  </li>
+  <li>
+    <p>For the <strong>Storage account</strong> field, select the <strong>staz220training{your-id}</strong> storage account.</p>
+
+    <p>This account was created by the lab17-setup.azcli script. If it is not listed in the dropdown, you may need to create an account manually (check with your instructor).</p>
+  </li>
+  <li>
+    <p>On the <strong>Diagnostic settings</strong> blade, under <strong>Category details</strong>, click <strong>Connections</strong>, and then click <strong>DeviceTelemetry</strong>.</p>
+  </li>
+  <li>
+    <p>For each of the Log Categories that you selected, in the <strong>Retention (days)</strong> field, enter <strong>7</strong></p>
+  </li>
+  <li>
+    <p>At the top of the blade, click <strong>Save</strong>, and then close the blade</p>
+
+    <p>You should now be on the <strong>Diagnostics settings</strong> pane of your IoT Hub, and you should see that the list of <strong>Diagnostics settings</strong> has been updated to show the <strong>diags-hub</strong> setting that you just created.</p>
+
+    <p>Later, when you look at the diagnostic logs, you’ll be able to see the telemetry and connect/disconnect logging for the device.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-setup-metrics">Task 2: Setup Metrics</h4>
+
+<p>In this task, you will set up various metrics to watch for when messages are sent to your IoT hub.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: To ensure the results are available quickly, shorter timelines will be used in this exercise. In production, longer intervals may be more appropriate.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>Ensure that you have your IoT Hub blade open.</p>
+
+    <p>The previous task left you on the <strong>Diagnostics settings</strong> pane of the IoT HUb blade.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, under <strong>Monitoring</strong>, click <strong>Metrics</strong>.</p>
+
+    <p>The <strong>Metrics</strong> pane is displayed showing a new, empty, chart.</p>
+  </li>
+  <li>
+    <p>In the top-right corner of the screen, to change the time range and granularity for the chart, click <strong>Last 24 hours (Automatic)</strong>.</p>
+  </li>
+  <li>
+    <p>In the context menu that appears, under <strong>Time range</strong>, click <strong>Last 30 minutes</strong>.</p>
+  </li>
+  <li>
+    <p>In the same context menu, in the <strong>Time granularity</strong> dropdown, click <strong>1 minute</strong>, and under <strong>Show time as</strong>, ensure that <strong>Local</strong> is selected.</p>
+  </li>
+  <li>
+    <p>To save your time settings, click <strong>Apply</strong>.</p>
+  </li>
+  <li>
+    <p>Take a minute to examine the settings that are used to specify the chart Metrics.</p>
+
+    <p>Under the <strong>Chart Title</strong> and the toolbar for the chart, you will see an area to specify Metrics.</p>
+
+    <ul>
+      <li>Notice that the <strong>Scope</strong> is already set to <strong>iot-az220-training-{your-id}</strong>.</li>
+      <li>Notice that <strong>Metric Namespace</strong> is already set to <strong>IoT Hub standard metrics</strong>.</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: By default, there is only one metric namespace available. Namespaces are a way to categorize or group similar metrics together. By using namespaces, you can achieve isolation between groups of metrics that might collect different insights or performance indicators. For example, you might have a namespace called <strong>az220memorymetrics</strong> that tracks memory-use metrics which profile your app. Another namespace called <strong>az220apptransaction</strong> might track all metrics about user transactions in your application. You can learn more about custom metrics and namespaces <a href="https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-custom-overview?toc=%2Fazure%2Fazure-monitor%2Ftoc.json#namespace">here</a>.</p>
+    </blockquote>
+
+    <p>Your next steps is add a metric that will be used to monitor how many telemetry messages have been sent to your IoT Hub.</p>
+  </li>
+  <li>
+    <p>In the <strong>Metric</strong> dropdown, click <strong>Telemetry messages sent</strong>.</p>
+
+    <p>Notice the large number of metrics that are available for you to select from!</p>
+  </li>
+  <li>
+    <p>Under <strong>Aggregation</strong>, ensure that <strong>Sum</strong> is selected.</p>
+
+    <p>Notice there are 4 aggregation operations available - <em>Avg</em>, <em>Min</em>, <em>Max</em> and <em>Sum</em>.</p>
+  </li>
+  <li>
+    <p>Take a moment to review your chart.</p>
+
+    <p>Notice that the chart title has updated to reflect the metric chosen.</p>
+
+    <p>You have completed the specification for the first metric. Next, you will add another metric to monitor the number of connected devices.</p>
+  </li>
+  <li>
+    <p>Under the chart title, on the toolbar, click <strong>Add metric</strong>.</p>
+
+    <p>A new metric will appear. Notice that the <strong>Scope</strong> and <strong>Metric Namespace</strong> values are pre-populated.</p>
+  </li>
+  <li>
+    <p>In the <strong>Metric</strong> dropdown, click <strong>Connected devices</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Aggregation</strong>, ensure that <strong>Avg</strong> is selected.</p>
+
+    <p>Your screen should now show the minimized metric for Telemetry messages sent, as well as the new metric for avg connected devices. Notice that the chart title has updated to reflect both metrics.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: To edit the chart title, click the <strong>pencil</strong> to the right of the title.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under the <strong>Chart Title</strong>, on the right side of the toolbar, click <strong>Pin to dashboard</strong>, and then click <strong>Pin to current dashboard</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In order to retain the chart you have just created, it <strong>must</strong> be pinned to a dashboard.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Navigate to the dashboard chosen above and verify the chart is displayed.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can customize the size and position of the chart by using drag and drop operations.</p>
+    </blockquote>
+
+    <p>If the device simulator is running, you should see that telemetry messages have been sent and the device is connected:</p>
+
+    <p><a href="media/LAB_AK_17-telemetry-device-chart.png" target="_blank"><img src="media/LAB_AK_17-telemetry-device-chart.png" alt="Telemetry Chart"></a></p>
+  </li>
+</ol>
+
+<p>Now that you have enabled logging and setup a chart to monitor metrics, it’s a good time for you to set up an alert.</p>
+
+<h3 id="exercise-4-configure-an-alert">Exercise 4: Configure an Alert</h3>
+
+<p>Alerts are used to proactively notify you when important conditions are found in your monitoring data. They allow you to identify and address issues before the users of your system notice them.</p>
+
+<p>In your asset tracking scenario, you use sensors to track the containers that are being shipped to customers. Each time a sensor is added in a shipping container, it is auto-provisioned through DPS. In production, you wish to send an alert if the number of sensors in transit exceed a predetermined capacity.</p>
+
+<p>However, for your upcoming proof-of-concept demonstration, to keep things simple, you want to create an Alert that triggers when the number containers drops below one. To trigger the Alert, you will use the number of Device Connected events from IoT Hub.</p>
+
+<p>In this exercise, you are going to add an alert that triggers when 5 or more devices have connected.</p>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On your Azure dashboard, click <strong>iot-az220-training-{your-id}</strong>.</p>
+
+    <p>Your dashboard should have a link to your IoT Hub on the on the rg-az220 resource group tile.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, under <strong>Monitoring</strong>, click <strong>Alerts</strong>.</p>
+
+    <p>The empty <strong>Alerts</strong> pane is displayed. Notice that the <strong>Subscription</strong>, <strong>Resource group</strong>, <strong>Resource</strong> and <strong>Time range</strong> fields are pre-populated.</p>
+  </li>
+  <li>
+    <p>In the <strong>Time range</strong> dropdown, click <strong>Past hour</strong>.</p>
+  </li>
+  <li>
+    <p>At the top of the <strong>Alerts</strong> pane, click <strong>+ New alert rule</strong></p>
+
+    <p>The <strong>Create alert rule</strong> blade should now be displayed.</p>
+  </li>
+  <li>
+    <p>Take a moment to review the <strong>Create alert rule</strong> blade.</p>
+
+    <p>The blade includes four sections: Scope, Condition, Action group, and Alert rule details. Scope you can see two fields - Resource and Hierarchy. Notice that these fields are pre-populated with properties from your IoT Hub. You can edit the pre-selected resource if needed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Condition</strong>, click <strong>Add condition</strong>.</p>
+
+    <p>The <strong>Configure signal logic</strong> pane should now be displayed. Notice that there is a paginated table of available signals displayed. The fields above the table filter the table to assist in finding the signal types you want.</p>
+  </li>
+  <li>
+    <p>Under <strong>Signal type</strong>, ensure that <strong>All</strong> is selected.</p>
+
+    <p>If you open the Signal type dropdown, you would see that there are 3 available options: <em>All</em>, <em>Metrics</em> and <em>Activity Log</em>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The signal types available for monitoring vary based on the selected target(s). The signal types may be metrics, log search queries or activity logs.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Monitor service</strong>, ensure that <strong>All</strong> is selected.</p>
+
+    <p>If you open the Monitor service dropdown, you would see that there are 3 available options: <em>All</em>, <em>Platform</em> and <em>Activity Log - Administrative</em>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  The platform service provides metrics on service utilization, where as the activity log tracks administrative activities.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Search by signal name</strong> textbox, type <strong>connected</strong></p>
+  </li>
+  <li>
+    <p>Notice that the list of signals is immediately filtered based on your entry.</p>
+  </li>
+  <li>
+    <p>Under <strong>Signal name</strong>, click <strong>Connected devices</strong>.</p>
+
+    <p>The pane will update to display a chart that is similar to what you created for <strong>Metrics</strong>. The chart displays the values associated with the selected signal (in this case <em>Connected devices (preview)</em>).</p>
+
+    <p>Beneath the chart is the area that defines the <strong>Alert logic</strong>.</p>
+  </li>
+  <li>
+    <p>Take a moment to review the options under <strong>Alert logic</strong></p>
+
+    <p>Notice that <strong>Threshold</strong> has two possible selections - <em>Static</em> and <em>Dynamic</em>. Also notice that <strong>Static</strong> is selected and <strong>Dynamic</strong> is unavailable for this signal type.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  As the names suggest, <em>Static Thresholds</em> specify a constant expression for the threshold, whereas <em>Dynamic Thresholds</em> detection leverages advanced machine learning (ML) to learn metrics’ historical behavior, identify patterns and anomalies that indicate possible service issues. You can learn more about <em>Dynamic Thresholds</em> <a href="https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-dynamic-thresholds">here</a>.</p>
+    </blockquote>
+
+    <p>You are going to create a static threshold that raises and alert whenever the <em>connected devices (preview)</em> signal is equal to 5 or more.</p>
+  </li>
+  <li>
+    <p>In the <strong>Operator</strong> dropdown, click <strong>Less than</strong>.</p>
+
+    <p>You may want to make note of the other options for this and the other fields.</p>
+  </li>
+  <li>
+    <p>Under <strong>Aggregation type</strong>, ensure that <strong>Average</strong> is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Threshold value</strong> textbox, enter <strong>1</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>Condition preview</strong> shows you the condition under which the display will refresh based on the Operator, Aggregation type, and Threshold value settings that you entered. Below the <strong>Condition preview</strong> is the <strong>Evaluation based on</strong> area. These values determine the historical time period that is aggregated using the <strong>Aggregation type</strong> selected above and how often the condition is evaluated.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Unit</strong>, select <strong>Count</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Aggregation granularity (Period)</strong>, ensure that <strong>1 minute</strong> is selected.</p>
+  </li>
+  <li>
+    <p>Under <strong>Frequency of evaluation</strong>, ensure that <strong>Every 1 Minute</strong> is selected.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the <strong>Frequency of evaluation</strong> is shorter than <strong>Aggregation granularity (Period)</strong>, this results in a sliding window evaluation. For example if the <strong>Aggregation granularity (Period)</strong> is 5 minutes and <strong>Frequency of evaluation</strong> is 1 minute, it means that every minute, the preceding 5 minutes of values will be aggregated (in this case, averaged), and then evaluated against the condition. After a minute of time has passed, once again the preceding 5 minutes of data will be aggregated - this will include one minute of new data and four minutes of data that was already evaluated. Thus, we have a sliding window that moves forward a minute at a time, but is always including 4 minutes of data that was also evaluated as part of an earlier window.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the bottom of the <strong>Configure signal logic</strong> pane, to configure the alert condition, click <strong>Done</strong>.</p>
+
+    <p>The <strong>Configure signal logic</strong> pane closes and the <strong>Create alert rule</strong> blade is shown. Notice that the <strong>Condition</strong> is now populated and a <strong>Estimated monthly cost</strong> is displayed. At the time of writing, the estimated cost of the alert condition is $0.10 (USD).</p>
+
+    <p>Next, you need to configure the action taken when the alert condition is met.</p>
+  </li>
+  <li>
+    <p>Take a moment to review the <strong>Action group</strong> area.</p>
+
+    <p>Notice that no action group is selected. There is an option to <strong>Select action group</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: An action group is a collection of notification preferences defined by the owner of an Azure subscription. An action group name must be unique within the Resource Group is is associated with. Azure Monitor and Service Health alerts use action groups to notify users that an alert has been triggered. Various alerts may use the same action group or different action groups depending on the user’s requirements. You may configure up to 2,000 action groups in a subscription. You can learn more about creating and managing Action Groups <a href="https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups">here</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Actions</strong>, click <strong>Add action groups</strong>.</p>
+
+    <p>The <strong>Select an action group to attach to this alert rule</strong> pane is displayed. If there are existing Action Groups available within the selected subscription, they will be listed here. Notice that you can change the subscription and filter the list. In this lab, we will create a new action group.</p>
+  </li>
+  <li>
+    <p>On the <strong>Select an action group to attach to this alert rule</strong> pane, click <strong>Create action group</strong>.</p>
+
+    <p>The <strong>Create action group</strong> pane is displayed.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, under <strong>Subscription</strong>, ensure that the subscription you have been using for this lab is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, click <strong>rg-az220</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Action Groups are usually shared across a subscription and would likely be centrally managed by the Azure subscription owner. As such they are more likely to be included in a common resource group rather than in a project specific resource group such as “rg-az220”. We are using “rg-az220” to make it easier to clean up the resources after the lab.</p>
+    </blockquote>
+
+    <p>The next area, <strong>Instance details</strong> is used to specify the full and display names for the group.</p>
+  </li>
+  <li>
+    <p>Under <strong>Action group name</strong>, enter <strong>AZ-220 Email Action Group</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: An action group name must be unique within the Resource Group it is associated with.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Display name</strong>, enter <strong>AZ220EmailAG</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The display name is used in place of a full action group name when notifications are sent using this group and is limited to a max of 12 characters.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Next: Notifications</strong>, to view the action group notification fields.</p>
+  </li>
+  <li>
+    <p>Open the <strong>Notification Type</strong> dropdown, and then review the available options.</p>
+  </li>
+  <li>
+    <p>In the <strong>Notification Type</strong> dropdown, click <strong>Email/SMS message/Push/Voice</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: After selecting the notification type, a new, blank, row is added to enable multiple notifications to be added. To the right of each row with values, <strong>Edit details</strong> and <strong>Delete</strong> icons are available.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>Email/SMS message/Push/Voice</strong> blade opens automatically.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Name</strong>, enter <strong>AZ220Notifications</strong></p>
+  </li>
+  <li>
+    <p>On the <strong>Email/SMS message/Push/Voice</strong> blade, select <strong>Email</strong>, and then enter an email address that you have easy access to.</p>
+  </li>
+  <li>
+    <p>Click <strong>SMS</strong>, and then enter the <strong>Country code</strong> and the <strong>Phone number</strong> for the phone that you wish to use to receive the SMS alert.</p>
+  </li>
+  <li>
+    <p>Skip <strong>Azure app Push Notifications</strong> and <strong>Voice</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Enable the common alert schema</strong>, click <strong>Yes</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  There are many benefits to using the Common Alert Schema. It standardizes the consumption experience for alert notifications in Azure today. Historically, the three alert types in Azure today (metric, log, and activity log) have had their own email templates, webhook schemas, etc. With the common alert schema, you can now receive alert notifications with a consistent schema. You can learn more about the Common ALert6 Schema <a href="https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-common-schema">here</a>.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Important:</strong> Given the benefits, you may wonder why the common alert schema is not enabled by default - well, when you select <strong>Yes</strong> you will see a warning <strong>Enabling the common alert schema might break any existing integrations.</strong> Bear this in mind in your own environments.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the bottom of the <strong>Email/SMS message/Push/Voice</strong> blade, to save the action configuration, click <strong>OK</strong>.</p>
+
+    <p>The notification row should now show that Email and SMS message have been selected. The  <strong>Edit details</strong> icon can be clicked if further changes are required.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next: Actions</strong>, to view the action group action fields.</p>
+  </li>
+  <li>
+    <p>Open the <strong>Action type</strong> dropdown, and then review the available options.</p>
+
+    <p>At this point, we could add multiple actions if we needed to launch some business integration via <em>WebHooks</em> or an <em>Azure Function</em>, however for this lab, a simple notification is enough.</p>
+  </li>
+  <li>
+    <p>At the bottom of the <strong>Add action group</strong> blade, to validate this action group, click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Once the validation has completed, click <strong>Create</strong>.</p>
+
+    <p>A few things happen at the same time. First, <strong>Add action group</strong> blade closes, leaving you on the <strong>Create rule</strong> blade, with the new Action Group added to the list of <strong>ACTIONS</strong>.</p>
+
+    <p>Then, in quick succession, you should receive both an SMS notification and an email, both of which inform you that you have been added to the <strong>AZ220EmailAG</strong> action group. In the SMS message, you will note that you can reply to the message to stop receiving future notifications and so on - you can learn more about the options <a href="https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-sms-behavior">here</a>. In the email, you have links that you can click to view the details on action groups and, towards the bottom of the email (in a smaller font) you can see the option to unsubscribe.</p>
+
+    <p>Next, you will configure the <strong>Alert rule details</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create alert rule</strong> blade, in the <strong>Alert rule name</strong> field, enter <strong>Connected Devices Less than 1</strong></p>
+
+    <p>The name should be descriptive enough to identify the alert.</p>
+  </li>
+  <li>
+    <p>In the <strong>Description</strong> field, enter <strong>This alert is raised when the number of devices connected to the iot-az220-training-{your-id} hub is less than 1.</strong></p>
+
+    <p>The description field is optional, but recommended.</p>
+  </li>
+  <li>
+    <p>In the <strong>Save alert to resource group</strong> field, ensure the expected resource group is selected - i.e. <strong>rg-az220</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Severity</strong> field, ensure that <strong>3 - Informational</strong> is selected.</p>
+
+    <p>In our scenario, this alert is <em>informational</em> and not indicative of any critical failure, therefore <strong>Sev 3</strong> is the correct choice.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  The severity level option range between <strong>0 - Critical</strong> and <strong>4 - Verbose</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>For the <strong>Enable alert rule upon creation</strong> field, ensure that the checkbox is selected (checked).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  It can take up to 10 minutes for a metric alert rule to become active.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>For the <strong>Automatically resolve alerts</strong> field, ensure that the checkbox is selected (checked).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  This ensures an alert is resolved should the condition no longer be met.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Create alert rule</strong>.</p>
+
+    <p>The <strong>Alerts</strong> pane of your IoT Hub should now be displayed. A message in the middle of the should be telling you that you have no alerts, and you should see that a <strong>Manage alert rules(1)</strong> button has been added below that status message.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If the pane has not automatically updated, click <strong>Refresh</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-4-review-metrics-alerts-and-archive">Exercise 4: Review Metrics, Alerts and Archive</h3>
+
+<p>In this exercise, you will examine some of the reporting and logging resources that you configured earlier in this lab, and review the event data has been recorded in the short time that has elapsed.</p>
+
+<h4 id="task-1-see-the-metrics-in-the-portal">Task 1: See the Metrics in the Portal</h4>
+
+<p>In order to generate the alert where the number of connected devices is less than one, the device simulator app must be closed.</p>
+
+<ol>
+  <li>
+    <p>Return to to Visual Studio code and exit the running app.</p>
+
+    <p>Wait 30 seconds or so before proceeding to the next step.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open the Metrics chart that you pinned to the dashboard by clicking on the chart title.</p>
+
+    <p>The chart will open and fill the page.</p>
+  </li>
+  <li>
+    <p>Change the time values to the <strong>Last 30 minutes</strong>.</p>
+
+    <p>Notice that you can see <em>Telemetry messages sent</em> and *Connected devices** values, with the most recent numbers at the bottom of the chart - move your mouse over the chart to see values a specific points in time. You should notice that the telemetry and connected devices plot lines have reduced to zero.</p>
+
+    <p><a href="media/LAB_AK_17-telemetry-device-chart-more.png" target="_blank"><img src="media/LAB_AK_17-telemetry-device-chart-more.png" alt="Telemetry Chart"></a></p>
+  </li>
+</ol>
+
+<h4 id="task-2-see-the-alerts">Task 2: See the Alerts</h4>
+
+<p>To use the Azure Portal to review alerts, complete the following steps.</p>
+
+<ol>
+  <li>
+    <p>In the Azure Portal, navigate back to your Dashboard.</p>
+  </li>
+  <li>
+    <p>On the Azure portal toolbar, in the search box, type <strong>monitor</strong></p>
+  </li>
+  <li>
+    <p>In the search result pane, under <strong>Services</strong>, click <strong>Monitor</strong>.</p>
+
+    <p>The <strong>Monitor - Overview</strong> page is displayed. This is the overview for all of the monitoring activities for the current subscription.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, near the top of the list, click <strong>Alerts</strong>.</p>
+
+    <p>This alerts view shows all alerts for all subscriptions. Let’s filter this to the IoT Hub.</p>
+  </li>
+  <li>
+    <p>Near the top of the blade, under <strong>Subscription</strong>, select the subscription you are using for this class.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, click <strong>rg-az220</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource</strong> dropdown, click <strong>iot-az220-training-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Time range</strong> dropdown, click <strong>Past hour</strong>.</p>
+
+    <p>You should now see a summary of alerts for the last hour. Under <strong>Total alert rules</strong> you should see <strong>1</strong>, the alert you created earlier. Below this, you will see a list of the severity categories as well as the count of alerts per category. The alerts we are interested in are <strong>3 - Informational</strong>. You should see at least one (if you have stopped and restarted the device simulator, you may have generated more that one alert).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you do not yet see an alert, wait a few more minutes - there is sometimes a delay in the laerts being raised.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the list of severities, click <strong>3 - Informational</strong>.</p>
+
+    <p>The <strong>All Alerts</strong> page will open. At the top of the page you will see a number of filter fields - these have been populated with the values from the preceding screen so that only the <strong>3 - Informational</strong> alerts for the selected IoT hub are shown. It will show you the alerts that are active, and if there are any warnings.</p>
+  </li>
+  <li>
+    <p>Under <strong>Name</strong>, to select your 3 - Informational alert, click <strong>Connected Devices Less than 1</strong>.</p>
+
+    <p>A pane will open showing a <strong>Summary</strong> of the details for the alert. This includes a chart illustrating why the alert fired - a dash line shows the threshold value as well as the current values for the monitored metric. Below this are details of the <strong>Criterion</strong> and other details.</p>
+  </li>
+  <li>
+    <p>At the top of the pane, below the title, click <strong>History</strong>.</p>
+
+    <p>In this view you can see when the alert fired, the action group that was invoked, and any other changes such as when the alert is resolved and so on.</p>
+  </li>
+  <li>
+    <p>At the top of the pane, below the title, click <strong>Diagnostics</strong>.</p>
+
+    <p>If there were any issues related to the alert, addition details would be shown here.</p>
+  </li>
+  <li>
+    <p>At this point check your email and/or text and verify you received an alert message.</p>
+  </li>
+  <li>
+    <p>To automatically resolve the alert, return to Visual Studio Code and restart the app.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: As it will take a few minutes to resolve the alert, continue with the remaining tasks.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-see-the-diagnostic-logs">Task 3: See the Diagnostic Logs</h4>
+
+<p>Earlier in this lab, you set up your diagnostic logs to be exported to blob storage. It is a good time to check and see what was written.</p>
+
+<ol>
+  <li>
+    <p>Navigate to your Dashboard, and then locate your “rg-az220” resource group tile.</p>
+  </li>
+  <li>
+    <p>In the list of resources, select the Storage Account that was created earlier - <strong>staz220training{your-id}</strong>.</p>
+
+    <p>The <strong>Overview</strong> for the storage account will be displayed.</p>
+  </li>
+  <li>
+    <p>To view the storage metrics, on the <strong>Overview</strong> page, select the <strong>Monitoring</strong> tab.</p>
+  </li>
+  <li>
+    <p>Scroll down until you can see the metrics charts for the Storage Account: <em>Total egress</em>, <em>Total ingress</em>, <em>Average latency</em> and <em>Request breakdown</em>.</p>
+
+    <p>You should see that there is activity displayed.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, to view the data that has been logged, click <strong>Storage Explorer (preview)</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Storage Explorer</strong> pane, expand the <strong>BLOB CONTAINERS</strong> node.</p>
+
+    <p>When Azure Monitor first sends data to a storage account, it creates a container called <strong>insights-logs-connection</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>BLOB CONTAINERS</strong>, click <strong>insights-logs-connection</strong>.</p>
+
+    <p>The contents of the container will be listed to the right.</p>
+
+    <p>Logs are written to the container in a very nested fashion. You will need to open each subfolder in turn to navigate to the actual log data. The structure is similar to that shown below:</p>
+
+    <ul>
+      <li><strong>resourceId=</strong>
+        <ul>
+          <li><strong>SUBSCRIPTIONS</strong>
+            <ul>
+              <li><strong>&lt;GUID&gt;</strong> - this is the ID for the subscription that generated the log
+                <ul>
+                  <li><strong>RESOURCEGROUPS</strong> - contains a folder for each resource group that generated a log
+                    <ul>
+                      <li><strong>RG-AZ220</strong> - the resource group that contains the IoT Hub
+                        <ul>
+                          <li><strong>PROVIDERS</strong>
+                            <ul>
+                              <li><strong>MICROSOFT.DEVICES</strong>
+                                <ul>
+                                  <li><strong>IOTHUBS</strong>
+                                    <ul>
+                                      <li><strong>IOT-AZ220-TRAINING-{YOUR-ID}</strong> - contains a folder for each year where a log was generated
+                                        <ul>
+                                          <li><strong>Y=2019</strong> - contains a folder for each month where a log was generated
+                                            <ul>
+                                              <li><strong>m=12</strong> - contains a folder for each day where a log was generated
+                                                <ul>
+                                                  <li><strong>d=15</strong> - contains a folder for each hour where a log was generated
+                                                    <ul>
+                                                      <li><strong>h=15</strong> - contains a folder for each minute where a log was generated
+                                                        <ul>
+                                                          <li><strong>m=00</strong> - contains the log file for that minute</li>
+                                                        </ul>
+                                                      </li>
+                                                    </ul>
+                                                  </li>
+                                                </ul>
+                                              </li>
+                                            </ul>
+                                          </li>
+                                        </ul>
+                                      </li>
+                                    </ul>
+                                  </li>
+                                </ul>
+                              </li>
+                            </ul>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>Drill down until you get to the current date and select the most recent file.</p>
+  </li>
+  <li>
+    <p>With the file selected, on the toolbar at the top of the pane, click <strong>Download</strong>.</p>
+  </li>
+  <li>
+    <p>Open the downloaded file in Visual Studio Code.</p>
+
+    <p>You should see a number of lines of JSON.</p>
+  </li>
+  <li>
+    <p>To make the JSON easier to read, press <strong>F1</strong>, enter <strong>Format document</strong> and select <strong>Format document</strong> from the list of options.</p>
+
+    <p>The JSON will show a list of connection and disconnection events similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"time"</span></span>: <span class="hljs-string"><span class="hljs-string">"2021-09-21T22:16:00Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"resourceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"/SUBSCRIPTIONS/AE82FF3B-4BD0-462B-8449-D713DD18E11E/RESOURCEGROUPS/RG-AZ220/PROVIDERS/MICROSOFT.DEVICES/IOTHUBS/IOT-AZ220-TRAINING-DM092121"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"operationName"</span></span>: <span class="hljs-string"><span class="hljs-string">"deviceConnect"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"category"</span></span>: <span class="hljs-string"><span class="hljs-string">"Connections"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"level"</span></span>: <span class="hljs-string"><span class="hljs-string">"Information"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: <span class="hljs-string"><span class="hljs-string">"{\"deviceId\":\"sensor-thl-2001\",\"sdkVersion\":\".NET/1.38.0 (.NET Core 3.1.19; Microsoft Windows 10.0.22000 WindowsProduct:0x00000030; X64; {FF88E933-1C12-457D-A098-A5093B53FBA2})\",\"protocol\":\"Mqtt\",\"authType\":null,\"maskedIpAddress\":\"24.9.142.XXX\",\"statusCode\":null,\"errorMessage\":\"\"}"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"location"</span></span>: <span class="hljs-string"><span class="hljs-string">"centralus"</span></span>
+ }
+ {
+     <span class="hljs-attr"><span class="hljs-attr">"time"</span></span>: <span class="hljs-string"><span class="hljs-string">"2021-09-21T22:33:34Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"resourceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"/SUBSCRIPTIONS/AE82FF3B-4BD0-462B-8449-D713DD18E11E/RESOURCEGROUPS/RG-AZ220/PROVIDERS/MICROSOFT.DEVICES/IOTHUBS/IOT-AZ220-TRAINING-DM092121"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"operationName"</span></span>: <span class="hljs-string"><span class="hljs-string">"deviceDisconnect"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"category"</span></span>: <span class="hljs-string"><span class="hljs-string">"Connections"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"level"</span></span>: <span class="hljs-string"><span class="hljs-string">"Error"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"resultType"</span></span>: <span class="hljs-string"><span class="hljs-string">"404104"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"resultDescription"</span></span>: <span class="hljs-string"><span class="hljs-string">"DeviceConnectionClosedRemotely"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: <span class="hljs-string"><span class="hljs-string">"{\"deviceId\":\"sensor-thl-2001\",\"protocol\":\"Mqtt\",\"authType\":null,\"maskedIpAddress\":\"24.9.142.XXX\",\"statusCode\":\"404\",\"errorMessage\":\"Device disconnected, see cause and resolution at https://aka.ms/iothub404104\"}"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"location"</span></span>: <span class="hljs-string"><span class="hljs-string">"centralus"</span></span>
+ }
+</code></pre>
+
+    <p>Notice that each individual entry is a single JSON record - although the overall document is not a valid JSON document as the JSON objects are not delcared within a JSON array <code>[]</code> and comma separated. Within each record you can see details relating to the originating IoT Hub and <strong>properties</strong> for each event. Within the <strong>properties</strong> object, you can see the connecting (or disconnecting) <strong>deviceId</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-review-resolved-alert">Task 4: Review resolved Alert</h4>
+
+<p>By this point, you should have received an email or SMS indicating the Monitor Alert has been resolved. COmplete the following steps to review the resolved Alert in the portal.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: If you have not yet received the email/SMS - wait until it arrives before proceeding.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure Portal, navigate back to your Dashboard.</p>
+  </li>
+  <li>
+    <p>On the Azure portal toolbar, in the search box, type <strong>monitor</strong></p>
+  </li>
+  <li>
+    <p>In the search result pane, under <strong>Services</strong>, click <strong>Monitor</strong>.</p>
+
+    <p>The <strong>Monitor - Overview</strong> page is displayed. This is the overview for all of the monitoring activities for the current subscription.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, near the top of the list, click <strong>Alerts</strong>.</p>
+
+    <p>This alerts view shows all alerts for all subscriptions. Let’s filter this to the IoT Hub.</p>
+  </li>
+  <li>
+    <p>In the list of severities, click <strong>3 - Informational</strong>.</p>
+
+    <p>The <strong>All Alerts</strong> page will open. At the top of the page you will see a number of filter fields - these have been populated with the values from the preceding screen so that only the <strong>3 - Informational</strong> alerts for the selected IoT hub are shown. It will show you the alerts that are active, and if there are any warnings.</p>
+  </li>
+  <li>
+    <p>Under <strong>Name</strong>, to select your 3 - Informational alert, click the latest <strong>Connected Devices Less than 1</strong> alert.</p>
+
+    <p>A pane will open showing a <strong>Summary</strong> of the details for the alert. As before, this includes a chart illustrating why the alert fired - a dash line shows the threshold value as well as the current values for the monitored metric. Below this are details of the <strong>Criterion</strong> and other details.</p>
+  </li>
+  <li>
+    <p>At the top of the pane, below the title, click <strong>History</strong>.</p>
+
+    <p>In this view you can see when the alert fired, the action group that was invoked, and when the alert is resolved and so on.</p>
+  </li>
+</ol>
+
+<p>Once you have completed this exercise, you may close the Device Simulator App.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.js"></script>
+
+
+
+</body></html>

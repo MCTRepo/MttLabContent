@@ -1,0 +1,266 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            SC-200T00CN-Microsoft-Security-Operations-Analyst
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                SC-200T00CN-Microsoft-Security-Operations-Analyst
+            </a>
+            <a href="https://github.com/MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#任务-1创建计划查询">任务 1：创建计划查询。</a></li><li class="nav-item"><a class="nav-link" href="#任务-2测试我们的新规则">任务 2：测试我们的新规则。</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="模块-7---实验室-1---练习-3---创建计划查询">模块 7 - 实验室 1 - 练习 3 - 创建计划查询</h1>
+
+<h3 id="任务-1创建计划查询">任务 1：创建计划查询。</h3>
+
+<p>在此任务中，你将创建一个计划查询，并将其连接到在上一个练习中创建的 Teams 频道。</p>
+
+<ol>
+  <li>
+    <p>使用以下密码以管理员身份登录到 WIN1 虚拟机：<strong>Pa55w.rd</strong>。</p>
+  </li>
+  <li>
+    <p>在“<strong>登录</strong>”对话框中，复制粘贴实验室托管提供者提供的<strong>租户电子</strong>邮件帐户，然后选择“<strong>下一步</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>输入密码</strong>”对话框中，复制粘贴实验室托管提供者提供的<strong>租户密码</strong>，然后选择“<strong>登录</strong>”。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户的搜索栏中，键入 <em>Sentinel</em>，然后选择 <strong>“Azure Sentinel”</strong>。</p>
+  </li>
+  <li>
+    <p>选择 Azure Sentinel 工作区。</p>
+  </li>
+  <li>
+    <p>从“配置”区域选择 <strong>“分析”</strong>。</p>
+  </li>
+  <li>
+    <p>选择“<strong>+ 创建</strong>”按钮，然后选择“<strong>计划查询规则</strong>”。</p>
+  </li>
+  <li>
+    <p>在分析规则向导中的“常规”选项卡上，输入名称“<em>Azure AD 角色分配审核线索</em>”。</p>
+  </li>
+  <li>
+    <p>对于“策略”，选择“<strong>持续</strong>”。</p>
+  </li>
+  <li>
+    <p>对于“严重性”，选择“<strong>低</strong>”。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“下一步: 设置规则逻辑 &gt;”</strong> 按钮：</p>
+  </li>
+  <li>
+    <p>对于规则查询，粘贴以下 KQL 语句：</p>
+  </li>
+</ol>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>警告：</strong> 对虚拟机使用粘贴功能时。  可能添加额外的</td>
+      <td>（竖线）字符。确保先使用记事本粘贴以下查询。</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-KQL">AuditLogs 
+| where isnotempty(InitiatedBy.user.userPrincipalName) and Result == 'success' and OperationName contains "member to role" and AADOperationType startswith "Assign"
+| extend InitiatedByUPN = tostring(InitiatedBy.user.userPrincipalName)
+| extend InitiatedFromIP = iff(tostring(AdditionalDetails.[7].value) == '', tostring(AdditionalDetails.[6].value), tostring(AdditionalDetails.[7].value))
+| extend TargetUser = tostring(TargetResources.[2].displayName)
+| extend TargetRoleName = tostring(TargetResources.[0].displayName)
+| project TimeGenerated, InitiatedByUPN, InitiatedFromIP, TargetUser, TargetRoleName, AADOperationType, OperationName
+</code></pre>
+
+<p><strong>备注</strong>：如果选择“查看查询结果”链接，应该不会收到任何结果或错误。如果收到错误，请检查查询是否与前面的 KQL 语句一样。</p>
+
+<ol>
+  <li>
+    <p>返回到“分析规则向导 - 创建新的计划规则”边栏选项卡，在“<em>警报扩充(预览)</em>”区域，选择“<strong>实体映射</strong>”，并选择以下值： <strong>实体类型：</strong> 帐户，<strong>标识符：</strong> FullName，<strong>值：</strong> InitiatedByUPN，然后选择“<em>添加新实体</em>”并选择以下值： <strong>实体类型：</strong> IP，<strong>标识符：</strong> 地址，<strong>值：</strong> InitiatedFromIP</p>
+  </li>
+  <li>
+    <p>在“查询计划”区域中，为“<em>查询运行时间间隔</em>”输入“<strong>5</strong>”并选择“<strong>分钟</strong>”，为“<strong>查找过去…的数据</strong>”选项输入“<strong>1</strong>”并选择“<strong>天</strong>”。</p>
+  </li>
+</ol>
+
+<p><strong>备注</strong>：我们特意针对同一数据生成了多个事件。  这样，实验室就可使用这些警报。</p>
+
+<ol>
+  <li>对于“<em>警报阈值</em>”区域，不更改任何选项。</li>
+</ol>
+
+<p><strong>备注</strong>：最佳做法是在 KQL 查询语句中管理阈值。</p>
+
+<ol>
+  <li>
+    <p>对于“<em>事件分组</em>”区域，保持选中“<strong>将所有事件分组到一个警报中</strong>”。</p>
+  </li>
+  <li>
+    <p>选择“<strong>下一步: 事件设置 &gt;</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>在“<em>事件设置(预览)</em>”选项卡上，查看默认选项。</p>
+  </li>
+  <li>
+    <p>选择“<strong>下一步: 自动响应 &gt;</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>在“<em>自动响应</em>”选项卡的“警报自动化”区域，选择在上一个练习中创建的“<em>PostMessageTeams-OnAlert</em>”playbook。</p>
+  </li>
+  <li>
+    <p>选择“<strong>下一步: 查看 &gt;</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>选择“<strong>创建</strong>”。</p>
+  </li>
+</ol>
+
+<h3 id="任务-2测试我们的新规则">任务 2：测试我们的新规则。</h3>
+
+<p>在此任务中，你将测试新的计划查询规则。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户的搜索栏中，键入“<em>Azure Active Directory</em>”。然后选择“<strong>Azure Active Directory</strong>”。</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>在“管理”区域中选择“<strong>用户</strong>”，这会显示“用户</td>
+          <td>所有用户(预览)”页面。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>在列表中选择用户 <strong>Christie Cline</strong>，这会显示“Christie Cline</td>
+          <td>个人资料”页面。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>在“<strong>管理”区域中选择</strong>“分配的角色”，这会显示“Christie Cline</td>
+          <td>分配的角色”页面。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>从命令栏中选择“<strong>+ 添加分配</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>添加分配</strong>”页的“<strong>成员资格</strong>”选项卡中，在“<strong>选择角色</strong>”下选择“<strong>用户管理员</strong>”，然后选择“<strong>下一步 &gt;</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>设置</strong>”选项中查看默认分配类型，然后选择“<strong>分配</strong>”。如果无法完成分配，请重试。</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>选择右上角的“x”两次，关闭“Christie Cline</td>
+          <td>分配的角色”和“用户</td>
+          <td>所有用户(预览)”页面。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>在 Contoso</td>
+          <td>概述页面的“<strong>监视</strong>”下，选择“<strong>审核日志</strong>”。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>选择“<strong>导出数据设置</strong>”，验证“Azure Active Directory”数据连接器是否在 Sentinel 中正确设置。</p>
+  </li>
+  <li>
+    <p>检查之前为 Sentinel 创建的 <em>Log Analytics 工作</em>区是否有一个“<em>诊断设置</em>”条目。</p>
+  </li>
+  <li>
+    <p>选择右上角的“x”关闭页面。</p>
+  </li>
+  <li>
+    <p>选择“<strong>刷新</strong>”，直到看到“类别” “<em>的条目：RoleManagement</em>”，它指示之前在角色中所做的更改。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户的搜索栏中，键入“<em>Sentinel</em>”，然后选择“<strong>Azure Sentinel</strong>”。</p>
+  </li>
+  <li>
+    <p>选择 Azure Sentinel 工作区。</p>
+  </li>
+  <li>选择“<strong>事件</strong>”菜单选项。</li>
+</ol>
+
+<p><strong>备注</strong>：处理触发的警报可能需要超过 5 分钟时间。你可以继续进行下一个练习，稍后再返回到这里。若要自动更新“事件”页，请选择“<strong>自动刷新事件</strong>”切换开关。</p>
+
+<ol>
+  <li>
+    <p>应该会看到新创建的事件。选择“事件”并查看右侧边栏选项卡中的信息。</p>
+  </li>
+  <li>
+    <p>打开浏览器选项卡并转到 https://teams.microsoft.com，以打开 Microsoft Teams。转到 <em>SOC</em> 团队，查看发布的有关该事件的消息。</p>
+  </li>
+</ol>
+
+<h2 id="转到练习-4">转到练习 4</h2>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst" target="_blank" class="ml-2">
+                    MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

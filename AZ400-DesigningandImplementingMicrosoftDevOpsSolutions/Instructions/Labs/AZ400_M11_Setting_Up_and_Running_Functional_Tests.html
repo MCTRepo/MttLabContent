@@ -1,0 +1,404 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-implement-selenium-tests-by-using-a-self-hosted-azure-devops-agent">Exercise 1: Implement Selenium tests by using a self-hosted Azure DevOps agent</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-11b-settingupandrunningfunctionaltests">Lab 11b: Setting&nbsp;Up&nbsp;and&nbsp;Running&nbsp;Functional&nbsp;Tests</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-overview">Lab overview</h2>
+
+<p><a href="http://www.seleniumhq.org/">Selenium</a> is a portable open source software-testing framework for web applications. It has the capability to operate on almost every operating system. It supports all modern browsers and multiple languages including .NET (C#), Java.</p>
+
+<p>In this lab, you will learn how to execute Selenium test cases on a C# web application, as part of the Azure DevOps Release pipeline.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After you complete this lab, you will be able to:</p>
+
+<ul>
+  <li>Configure a self-hosted Azure DevOps agent</li>
+  <li>Configure release pipeline</li>
+  <li>Trigger build and release</li>
+  <li>Run tests in Chrome and Firefox</li>
+</ul>
+
+<h2 id="lab-duration">Lab duration</h2>
+
+<ul>
+  <li>Estimated time: <strong>60 minutes</strong></li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-virtual-machine">Sign in to the lab virtual machine</h4>
+
+<p>Ensure that you’re signed in to your Windows 10 virtual machine by using the following credentials:</p>
+
+<ul>
+  <li>Username: <strong>Student</strong></li>
+  <li>Password: <strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="review-applications-required-for-this-lab">Review applications required for this lab</h4>
+
+<p>Identify the applications that you’ll use in this lab:</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="set-up-an-azure-devops-organization">Set up an Azure DevOps organization.</h4>
+
+<p>If you don’t already have an Azure DevOps organization that you can use for this lab, create one by following the instructions available at <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/create-organization?view=azure-devops">Create an organization or project collection</a>.</p>
+
+<h4 id="prepare-an-azure-subscription">Prepare an Azure subscription</h4>
+
+<ul>
+  <li>Identify an existing Azure subscription or create a new one.</li>
+  <li>Verify that you have a Microsoft account or an Azure AD account with the Owner role in the Azure subscription and the Global Administrator role in the Azure AD tenant associated with the Azure subscription. For details, refer to <a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-list-portal">List Azure role assignments using the Azure portal</a> and <a href="https://docs.microsoft.com/en-us/azure/active-directory/roles/manage-roles-portal#view-my-roles">View and assign administrator roles in Azure Active Directory</a>.</li>
+</ul>
+
+<h3 id="exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</h3>
+
+<p>In this exercise, you will set up the prerequisites for the lab, which include the preconfigured Parts Unlimited team project based on an Azure DevOps Demo Generator template and Azure resources.</p>
+
+<h4 id="task-1-configure-the-team-project">Task 1: Configure the team project</h4>
+
+<p>In this task, you will use Azure DevOps Demo Generator to generate a new project based on the <strong>Selenium</strong> template.</p>
+
+<ol>
+  <li>
+    <p>On your lab computer, start a web browser and navigate to <a href="https://azuredevopsdemogenerator.azurewebsites.net">Azure DevOps Demo Generator</a>. This utility site will automate the process of creating a new Azure DevOps project within your account that is prepopulated with content (work items, repos, etc.) required for the lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: For more information on the site, see <a href="https://docs.microsoft.com/en-us/azure/devops/demo-gen">What is the Azure DevOps Services Demo Generator?</a>.</p>
+    </blockquote>
+  </li>
+  <li>Click <strong>Sign in</strong> and sign in using the Microsoft account associated with your Azure DevOps subscription.</li>
+  <li>If required, on the <strong>Azure DevOps Demo Generator</strong> page, click <strong>Accept</strong> to accept the permission requests for accessing your Azure DevOps subscription.</li>
+  <li>On the <strong>Create New Project</strong> page, in the <strong>New Project Name</strong> textbox, type <strong>Setting&nbsp;Up&nbsp;and&nbsp;Running&nbsp;Functional&nbsp;Tests</strong>, in the <strong>Select organization</strong> dropdown list, select your Azure DevOps organization, and then click <strong>Choose template</strong>.</li>
+  <li>In the list of templates, in the toolbar, click <strong>DevOps Labs</strong>, select the <strong>Selenium</strong> template and click <strong>Select Template</strong>.</li>
+  <li>
+    <p>Back on the <strong>Create New Project</strong> page, click <strong>Create Project</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the process to complete. This should take about 2 minutes. In case the process fails, navigate to your DevOps organization, delete the project, and try again.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Create New Project</strong> page, click <strong>Navigate to project</strong>.</li>
+</ol>
+
+<h4 id="task-2-create-azure-resources">Task 2: Create Azure resources</h4>
+
+<p>In this task, you will provision an Azure VM running Windows Server 2016 along with SQL Express 2017, Chrome, and Firefox.</p>
+
+<ol>
+  <li>Click here in <strong><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2Falmvm%2Fmaster%2Flabs%2Fvstsextend%2Fselenium%2Farmtemplate%2Fazuredeploy.json">Deploy to Azure</a></strong> link. This will automatically redirect you to the <strong>Custom deployment</strong> blade in the Azure portal.</li>
+  <li>If prompted, sign in with the user account that has the Owner role in the Azure subscription you will be using in this lab and has the role of the Global Administrator in the Azure AD tenant associated with this subscription.</li>
+  <li>On the <strong>Custom deployment</strong> blade, select <strong>Edit template</strong>.</li>
+  <li>On the <strong>Edit template</strong> blade, locate the line <code>"https://raw.githubusercontent.com/microsoft/azuredevopslabs/master/labs/vstsextend/selenium/armtemplate/chrome_firefox_VSTSagent_IIS.ps1"</code>, replace it with <code>https://raw.githubusercontent.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions/master/Allfiles/Labs/11b/chrome_firefox_VSTSagent_IIS.ps1</code>, and click <strong>Save</strong>.</li>
+  <li>
+    <p>Back on the <strong>Custom deployment</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group <strong>az400m11l02-RG</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the name of the Azure region in which you want to deploy the Azure resources in this lab</td>
+        </tr>
+        <tr>
+          <td>Virtual Machine Name</td>
+          <td><strong>az40011bvm</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong> and then click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the process to complete. This should take about 15 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-1-implement-selenium-tests-by-using-a-self-hosted-azure-devops-agent">Exercise 1: Implement Selenium tests by using a self-hosted Azure DevOps agent</h3>
+
+<p>In this exercise, you will implement Selenium tests by using a self-hosted Azure DevOps agent.</p>
+
+<h4 id="task-1-configure-a-self-hosted-azure-devops-agent">Task 1: Configure a self-hosted Azure DevOps agent</h4>
+
+<p>In this task, you will configure a self-hosted agent by using the VM you deployed in the previous exercise. Selenium requires the agent to be run in the interactive mode to execute the UI tests.</p>
+
+<ol>
+  <li>In the web browser window displaying the Azure portal, search for and select <strong>Virtual machines</strong> and, from the <strong>Virtual machines</strong> blade, select <strong>az40011bvm</strong>.</li>
+  <li>On the <strong>az40011bvm</strong> blade, select <strong>Connect</strong>, in the drop-down menu, select <strong>RDP</strong>, on the <strong>RDP</strong> tab of the <strong>az40011bvm | Connect</strong> blade, select <strong>Download RDP File</strong> and open the downloaded file.</li>
+  <li>
+    <p>When prompted, sign in with the following credentials:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>User Name</td>
+          <td><strong>vmadmin</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>P2ssw0rd@123</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Within the Remote Desktop session to <strong>az40011bvm</strong>, open a Chrome web browser window, navigate to <strong>https://dev.azure.com</strong> and sign in to your Azure DevOps organization.</li>
+  <li>In the lower left corner of the <strong>Azure DevOps</strong> portal, click <strong>Organization settings</strong>.</li>
+  <li>In the vertical menu on the left hand side of the page, in the <strong>Pipelines</strong> section, click <strong>Agent pools</strong>.</li>
+  <li>On the <strong>Agent pools</strong> pane, click <strong>Default</strong>.</li>
+  <li>On the <strong>Default</strong> pane, click <strong>New agent</strong>.</li>
+  <li>On  the <strong>Get the agent</strong> panel, ensure that the <strong>Windows</strong> tab and the <strong>x64</strong> section are selected and then click <strong>Download</strong>.</li>
+  <li>Start File Explorer, create a directory <strong>C:\AzAgent</strong> and extract content of the downloaded agent zip file residing in the <strong>Downloads</strong> folder into this directory.</li>
+  <li>Within the Remote Desktop session to <strong>az40011bvm</strong>, right-click the <strong>Start</strong> menu and click <strong>Command Prompt (Admin)</strong>.</li>
+  <li>
+    <p>Within the <strong>Administrator: Command Prompt</strong> window, run the following to start the installation of the agent binaries:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-cmd">cd C:\AzAgent
+Config.cmd
+</code></pre>
+  </li>
+  <li>In the <strong>Administrator: Command Prompt</strong> window, when prompted to <strong>Enter server URL</strong>, type <strong>https://dev.azure.com/&lt;your-DevOps-organization-name&gt;</strong>, where <strong>&lt;your-DevOps-organization-name&gt;</strong> represents the name of your Azure DevOps Organization, and press the <strong>Enter</strong> key.</li>
+  <li>In the <strong>Administrator: Command Prompt</strong> window, when prompted <strong>Enter Authentication type (press enter for PAT)</strong>, press the <strong>Enter key</strong>.</li>
+  <li>In the <strong>Administrator: Command Prompt</strong> window, when prompted <strong>Enter personal access token</strong>, switch to the Azure DevOps portal, close the <strong>Get the agent</strong> panel, in the upper right corner of the Azure DevOps page, click the <strong>User settings</strong> icon, in the dropdown menu, click <strong>Personal access tokens</strong>, on the <strong>Personal Access Tokens</strong> pane, and click <strong>+ New Token</strong>.</li>
+  <li>
+    <p>On the <strong>Create a new personal access token</strong> pane, specify the following settings and click <strong>Create</strong> (leave all others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>Setting&nbsp;Up&nbsp;and&nbsp;Running&nbsp;Functional&nbsp;Tests lab</strong></td>
+        </tr>
+        <tr>
+          <td>Scopes</td>
+          <td><strong>Custom Defined</strong></td>
+        </tr>
+        <tr>
+          <td>Scopes</td>
+          <td>Click <strong>Show all scopes</strong> (at the bottom of the window)</td>
+        </tr>
+        <tr>
+          <td>Scopes</td>
+          <td><strong>Agent Pools</strong> - <strong>Read &amp; Manage</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Success</strong> pane, copy the value of the personal access token to Clipboard.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure you copy the token. You will not be able to retrieve it once you close this pane.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Success</strong> pane, click <strong>Close</strong>.</li>
+  <li>Switch back to the <strong>Administrator: Command Prompt</strong> window and paste the content of Clipboard and press the <strong>Enter key</strong>.</li>
+  <li>In the <strong>Administrator: Command Prompt</strong> window, when prompted <strong>Enter agent pool (press enter for default)</strong>, press the <strong>Enter key</strong>.</li>
+  <li>In the <strong>Administrator: Command Prompt</strong> window, when prompted <strong>Enter agent name (press enter for az40011bvm)</strong>, press the <strong>Enter key</strong>.</li>
+  <li>In the <strong>Administrator: Command Prompt</strong> window, when prompted <strong>Enter work folder (press enter for _work)</strong>, press the <strong>Enter key</strong>.</li>
+  <li>In the <strong>Administrator: Command Prompt</strong> window, when prompted <strong>Enter run agent as service (Y/N) (press enter for N)</strong>, press the <strong>Enter key</strong>.</li>
+  <li>In the <strong>Administrator: Command Prompt</strong> window, when prompted <strong>Enter configure autologon and run agent on startup (Y/N) (press enter for N)</strong>, press the <strong>Enter key</strong>.</li>
+  <li>
+    <p>Once the agent is registered, in the <strong>Administrator: Command Prompt</strong> window, type <strong>run.cmd</strong> and press the <strong>Enter</strong> to start the agent.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You also need to install the Dac Framework which is used by the application you will be deploying later in the lab.</p>
+    </blockquote>
+  </li>
+  <li>Within the Remote Desktop session to <strong>az40011bvm</strong>, start another instance of the web browser, navigate to the <a href="https://www.microsoft.com/en-us/download/details.aspx?id=58207&amp;WT.mc_id=rss_alldownloads_extensions">Microsoft SQL Server Data-Tier Application Framework (18.2) download page</a> and click <strong>Download</strong>.</li>
+  <li>On the <strong>Choose the download you want</strong>, select the <strong>EN\x64\DacFramework.msi</strong> checkbox and click <strong>Next</strong>. This will trigger automatic download of the <strong>DacFramework.msi</strong> file.</li>
+  <li>Once the download of the <strong>DacFramework.msi</strong> file completes, use it to run the installation of the Microsoft SQL Server Data-Tier Application Framework with the default settings.</li>
+</ol>
+
+<h4 id="task-2-configure-a-release-pipeline">Task 2: Configure a release pipeline</h4>
+
+<p>In this task, you will configure the release pipeline.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: The Azure VM has the agent configured to deploy the applications and run Selenium testcases. The release definition uses <strong><a href="https://docs.microsoft.com/en-us/vsts/build-release/concepts/process/phases">Phases</a></strong> to deploy to target servers.</p>
+</blockquote>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>az40011bvm</strong>, in the browser window displaying the <strong>Azure DevOps</strong> portal, click the <strong>Azure DevOps</strong> symbol in the upper left corner.</li>
+  <li>On the pane displaying your organization projects, click the tile representing the <strong>Setting&nbsp;Up&nbsp;and&nbsp;Running&nbsp;Functional&nbsp;Tests</strong> project.</li>
+  <li>On the <strong>Setting&nbsp;Up&nbsp;and&nbsp;Running&nbsp;Functional&nbsp;Tests</strong> pane, in the vertical navigational pane, select <strong>Pipelines</strong>, within the <strong>Pipelines</strong> section, click <strong>Releases</strong> and then, on the <strong>Selenium</strong> pane, click <strong>Edit</strong>.</li>
+  <li>On the <strong>All pipelines &gt; Selenium</strong> pane, click the <strong>Tasks</strong> tab header and, in the dropdown menu, click <strong>Dev</strong>.</li>
+  <li>Within the list of tasks of the <strong>Dev</strong> stage, review the <strong>IIS Deployment</strong>, <strong>SQL Deployment</strong>, and <strong>Selenium test execution</strong> deployment phases.</li>
+</ol>
+
+<ul>
+  <li>
+    <p><strong>IIS Deployment phase</strong>: In this phase, we deploy application to the VM using the following tasks:</p>
+
+    <ul>
+      <li><strong>IIS Web App Manage</strong>: This task runs on the target machine where we registered agent. It creates a <em>website</em> and an <em>Application Pool</em> locally with the name <strong>PartsUnlimited</strong> running under the port <strong>82</strong> , <a href="http://localhost:82"><strong>http://localhost:82</strong></a></li>
+      <li><strong>IIS Web App Deploy</strong>: This task deploys the application to the IIS server using <strong>Web Deploy</strong>.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Database deploy phase</strong>: In this phase, we use <a href="https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/SqlDacpacDeploymentOnMachineGroup/README.md"><strong>SQL Server Database Deploy</strong></a> task to deploy <a href="https://docs.microsoft.com/en-us/sql/relational-databases/data-tier-applications/data-tier-applications"><strong>dacpac</strong></a> file to the DB server.</p>
+  </li>
+  <li>
+    <p><strong>Selenium tests execution</strong>: Executing <strong>UI testing</strong> as part of the release process allows us to detect unexpected changes. Setting up automated browser based testing drives quality in your application, without having to do it manually. In this phase, we will execute Selenium tests on the deployed web application. The subsequent tasks describe using Selenium to test the websites in the release pipeline.</p>
+
+    <ul>
+      <li><strong>Visual Studio Test Platform Installer</strong>: The <a href="https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/tool/vstest-platform-tool-installer?view=vsts">Visual Studio Test Platform Installer</a> task will acquire the Microsoft test platform from nuget.org or a specified feed, and add it to the tools cache. It satisfies the <strong>vstest</strong> requirements so any subsequent Visual Studio Test task in a build or release pipeline can run without needing a full Visual Studio install on the agent machine.</li>
+      <li><strong>Run Selenium UI tests</strong>: This <a href="https://github.com/Microsoft/azure-pipelines-tasks/blob/master/Tasks/VsTestV2/README.md">task</a> uses <strong>vstest.console.exe</strong> to execute the selenium testcases on the agent machines.</li>
+    </ul>
+  </li>
+</ul>
+
+<ol>
+  <li>On the <strong>All pipelines &gt; Selenium</strong> pane, click the <strong>IIS Deployment</strong> phase and, on the <strong>Agent job</strong> pane, verify that the <strong>Default</strong> Agent pool is selected.</li>
+  <li>Repeat the previous step for <strong>SQL Deployment</strong> and the <strong>Selenium tests execution</strong> phases. If needed, click <strong>Save</strong> to save the changes.</li>
+</ol>
+
+<h4 id="task-3-trigger-build-and-release">Task 3: Trigger Build and Release</h4>
+
+<p>In this task, we will trigger the <strong>Build</strong> to compile Selenium C# scripts along with the Web application. The resulting binaries are copied to self-hosted agent and the Selenium scripts are executed as part of the automated <strong>Release</strong>.</p>
+
+<ol>
+  <li>Within the Remote Desktop session to <strong>az40011bvm</strong>, in the browser window displaying the <strong>Azure DevOps</strong> portal, in the vertical navigational pane, in the <strong>Pipelines</strong> section, click <strong>Pipelines</strong> and then, on the <strong>Pipelines</strong> pane, click <strong>Selenium</strong>.</li>
+  <li>
+    <p>On the <strong>Selenium</strong> pane, click <strong>Run pipeline</strong> and, on the <strong>Run pipeline</strong>, click <strong>Run</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This build will publish the test artifacts to Azure DevOps, which will be used in release.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Once the build is successful, release will be triggered.</p>
+    </blockquote>
+  </li>
+  <li>On the pipeline runs pane, in the <strong>Jobs</strong> section, click <strong>Phase 1</strong> and monitor the build progress until its completion.</li>
+  <li>In the browser window displaying the <strong>Azure DevOps</strong> portal, in the vertical navigational pane, in the <strong>Pipelines</strong> section, click <strong>Releases</strong>, click the entry representing the release, and, on the <strong>Selenium &gt; Release-1</strong> pane, click <strong>Dev</strong>.</li>
+  <li>On the <strong>Selenium &gt; Release-1 &gt; Dev</strong> pane, monitor the corresponding deployment.</li>
+  <li>Once the <strong>Selenium test execution</strong> phase starts, monitor the web browser tests.</li>
+  <li>Once the release completes, on the <strong>Selenium &gt; Release-1 &gt; Dev</strong> pane, click on the <strong>Tests</strong> tab to analyze the test results. Select the required filters from the dropdown in <strong>Outcome</strong> section to view the tests and their status.</li>
+</ol>
+
+<h3 id="exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</h3>
+
+<p>In this exercise, you will remove the Azure resources provisione in this lab to eliminate unexpected charges.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<h4 id="task-1-remove-the-azure-lab-resources">Task 1: Remove the Azure lab resources</h4>
+
+<p>In this task, you will use Azure Cloud Shell to remove the Azure resources provisioned in this lab to eliminate unnecessary charges.</p>
+
+<ol>
+  <li>In the Azure portal, open the <strong>Bash</strong> shell session within the <strong>Cloud Shell</strong> pane.</li>
+  <li>
+    <p>List all resource groups created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m11l02-RG')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m11l02-RG')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the –nowait parameter), so while you will be able to run another Azure CLI command immediately afterwards within the same Bash session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="review">Review</h2>
+
+<p>In this lab, you learned how to execute Selenium test cases on a C# web application, as part of the Azure DevOps Release pipeline.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.js"></script>
+
+
+
+</body></html>

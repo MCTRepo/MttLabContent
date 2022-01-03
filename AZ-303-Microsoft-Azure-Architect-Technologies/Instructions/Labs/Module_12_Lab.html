@@ -1,0 +1,1012 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-303-Microsoft-Azure-Architect-Technologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D479f9cfd893a2bea83ac41ba638fc5e7bd9113e0.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-303-Microsoft-Azure-Architect-Technologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-0-prepare-the-lab-environment">Exercise 0: Prepare the lab environment</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-create-and-configure-an-azure-site-recovery-vault">Exercise 1: Create and configure an Azure Site Recovery vault</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-implement-hyper-v-protection-by-using-azure-site-recovery-vault">Exercise 2: Implement Hyper-V protection by using Azure Site Recovery vault</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-protecting-hyper-v-vms-by-using-azure-site-recovery">Lab: Protecting Hyper-V VMs by using Azure Site Recovery</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>While Adatum Corporation has, over the years, implemented a number of high availability provisions for their on-premises workloads, its disaster recovery capabilities are still insufficient to address the Recovery Point Objectives (RPOs) and Recovery Time Objectives (RTOs) demanded by its business. Maintaining the existing secondary on-premises site requires an extensive effort and incurs significant costs. The failover and failback procedures are, for the most part, manual and are poorly documented.</p>
+
+<p>To address these shortcomings, the Adatum Enterprise Architecture team decided to explore capabilities of Azure Site Recovery, with Azure taking on the role of the hoster of the secondary site. Azure Site Recovery automatically and continuously replicates workloads running on physical and virtual machines from the primary to the secondary site. Site Recovery uses storage-based replication mechanism, without intercepting application data. With Azure as the secondary site, data is stored in Azure Storage, with built-in resilience and low cost. The target Azure VMs are hydrated following a failover by using the replicated data. The Recovery Time Objectives (RTO) and Recovery Point objectives are minimized since Site Recovery provides continuous replication for VMware VMs and replication frequency as low as 30 seconds for Hyper-V VMs. In addition, Azure Site Recovery also handles orchestration of failover and failback processes, which, to large extent, can be automated. It is also possible to use Azure Site Recovery for migrations to Azure, although the recommended approach relies on Azure Migrate instead.</p>
+
+<p>The Adatum Enterprise Architecture team wants to evaluate the use of Azure Site Recovery for protecting on-premises Hyper-V virtual machines to Azure VM.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ul>
+  <li>
+    <p>Configure Azure Site Recovery</p>
+  </li>
+  <li>
+    <p>Perform test failover</p>
+  </li>
+  <li>
+    <p>Perform planned failover</p>
+  </li>
+  <li>
+    <p>Perform unplanned failover</p>
+  </li>
+</ul>
+
+<h2 id="lab-environment">Lab Environment</h2>
+
+<p>Windows Server admin credentials</p>
+
+<ul>
+  <li>
+    <p>User Name: <strong>Student</strong></p>
+  </li>
+  <li>
+    <p>Password: <strong>Pa55w.rd1234</strong></p>
+  </li>
+</ul>
+
+<p>Estimated Time: 120 minutes</p>
+
+<h2 id="lab-files">Lab Files</h2>
+
+<ul>
+  <li>\\AZ303\AllFiles\Labs\12\azuredeploy30312suba.json</li>
+</ul>
+
+<h3 id="exercise-0-prepare-the-lab-environment">Exercise 0: Prepare the lab environment</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Deploy an Azure VM by using an Azure Resource Manager QuickStart template</p>
+  </li>
+  <li>
+    <p>Configure nested virtualization in the Azure VM</p>
+  </li>
+</ol>
+
+<h4 id="task-1-deploy-an-azure-vm-by-using-an-azure-resource-manager-quickstart-template">Task 1: Deploy an Azure VM by using an Azure Resource Manager QuickStart template</h4>
+
+<ol>
+  <li>
+    <p>From your lab computer, start a web browser, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in by providing credentials of a user account with the Owner role in the subscription you will be using in this lab.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, select the <strong>Upload/Download files</strong> icon, in the drop-down menu select <strong>Upload</strong>, and upload the file <strong>\\AZ303\AllFiles\Labs\12\azuredeploy30312suba.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a resource groups (replace the <code>&lt;Azure region&gt;</code> placeholder with the name of the Azure region that is available for deployment of Azure VMs in your subscription and which is closest to the location of your lab computer):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location = '&lt;Azure region&gt;'
+New-AzSubscriptionDeployment `
+  -Location $location `
+  -Name az30312subaDeployment `
+  -TemplateFile $HOME/azuredeploy30312suba.json `
+  -rgLocation $location `
+  -rgName 'az30312a-labRG'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: To identify Azure regions where you can provision Azure VMs, refer to <a href="https://azure.microsoft.com/en-us/regions/offers/"><strong>https://azure.microsoft.com/en-us/regions/offers/</strong></a></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>From your lab computer, open another browser tab, navigate to the <a href="https://github.com/az140mp/azure-quickstart-templates/tree/master/demos/nested-vms-in-virtual-network">301-nested-vms-in-virtual-network Azure QuickStart template</a> and select <strong>Deploy to Azure</strong> (you find the button <strong>Deploy to Azure</strong> in the <code>README.md</code> file after the list of the resources created by the template) . This will automatically redirect the browser to the <strong>Hyper-V Host Virtual Machine with nested VMs</strong> blade in the Azure portal.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-url"> https://github.com/az140mp/azure-quickstart-templates/tree/master/demos/nested-vms-in-virtual-network
+</code></pre>
+  </li>
+  <li>
+    <p>On the <strong>Hyper-V Host Virtual Machine with nested VMs</strong> blade in the Azure portal, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30312a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual Network Name</td>
+          <td><strong>az30312a-hv-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>Host Network Interface1Name</td>
+          <td><strong>az30312a-hv-vm-nic1</strong></td>
+        </tr>
+        <tr>
+          <td>Host Network Interface2Name</td>
+          <td><strong>az30312a-hv-vm-nic2</strong></td>
+        </tr>
+        <tr>
+          <td>Host Virtual Machine Name</td>
+          <td><strong>az30312a-hv-vm</strong></td>
+        </tr>
+        <tr>
+          <td>Host Admin Username</td>
+          <td><strong>Student</strong></td>
+        </tr>
+        <tr>
+          <td>Host Admin Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Hyper-V Host Virtual Machine with nested VMs</strong> blade, select <strong>Review + create</strong> and then select <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete. The deployment might take about 10 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-deploy-azure-bastion">Task 2: Deploy Azure Bastion</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Azure Bastion allows for connection to the Azure VMs without public endpoints which you deployed in the previous task of this exercise, while providing protection against brute force exploits that target operating system level credentials.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the browser window displaying the Azure portal, open another tab and, in the browser tab, navigate to the Azure portal.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>From the PowerShell session in the Cloud Shell pane, run the following to add a subnet named <strong>AzureBastionSubnet</strong> to the virtual network named <strong>az30312a-hv-vnet</strong> you created earlier in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">$resourceGroupName = 'az30312a-labRG'
+$vnet = Get-AzVirtualNetwork -ResourceGroupName $resourceGroupName -Name 'az30312a-hv-vnet'
+$subnetConfig = Add-AzVirtualNetworkSubnetConfig `
+  -Name 'AzureBastionSubnet' `
+  -AddressPrefix 10.0.7.0/24 `
+  -VirtualNetwork $vnet
+$vnet | Set-AzVirtualNetwork
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Bastions</strong> and, from the <strong>Bastions</strong> blade, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basic</strong> tab of the <strong>Create a Bastion</strong> blade, specify the following settings and select <strong>Review + create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30312a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>az30312a-bastion</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the same Azure region to which you deployed the resources in the previous tasks of this exercise</td>
+        </tr>
+        <tr>
+          <td>Tier</td>
+          <td><strong>Basic</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az30312a-hv-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>AzureBastionSubnet (10.0.7.0/24)</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP address</td>
+          <td><strong>Create new</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP name</td>
+          <td><strong>az30312a-hv-vnet-ip</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab of the <strong>Create a Bastion</strong> blade, select <strong>Create</strong>:</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before you proceed to the next task. The deployment might take about 5 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-configure-nested-virtualization-in-the-azure-vm">Task 3: Configure nested virtualization in the Azure VM</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual machines</strong> and, on the <strong>Virtual machines</strong> blade, select <strong>az30312a-hv-vm</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30312a-hv-vm</strong> blade, select <strong>Connect</strong>, in the drop-down menu, select <strong>Bastion</strong>, on the <strong>Bastion</strong> tab of the <strong>az30312a-hv-vm | Connect</strong> blade, select <strong>Use Bastion</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted, provde the following credentials and select <strong>Connect</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>User Name</td>
+          <td><strong>Student</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30312a-hv-vm</strong>, in the Server Manager window, click <strong>Local Server</strong>, click the <strong>On</strong> link next to the <strong>IE Enhanced Security Configuration</strong> label, and, in the <strong>IE Enhanced Security Configuration</strong> dialog box, select both <strong>Off</strong> options.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30312a-hv-vm</strong>, start Internet Explorer, navigate to the download page of <a href="https://www.microsoft.com/en-us/edge/business/download">Microsoft Edge</a>, download Microsoft Edge installer and perform the installation.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30312a-hv-vm</strong>, use Microsoft Edge to browse to <a href="https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2019">Windows Server Evaluations</a>, and download the Windows Server 2019 <strong>VHD</strong> file to the <strong>F:\VHDs</strong> folder (you will need to create it first).</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30312a-hv-vm</strong>, start <strong>Hyper-V Manager</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Hyper-V Manager</strong> console, select the <strong>az30312a-hv-vm</strong> node, select <strong>New</strong> and, in the cascading menu, select <strong>Virtual Machine</strong>. This will start the <strong>New Virtual Machine Wizard</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Before You Begin</strong> page of the <strong>New Virtual Machine Wizard</strong>, select <strong>Next &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Specify Name and Location</strong> page of the <strong>New Virtual Machine Wizard</strong>, specify the following settings and select <strong>Next &gt;</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>az30312a-vm1</strong></td>
+        </tr>
+        <tr>
+          <td>Store the virtual machine in a different location</td>
+          <td>selected</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td><strong>F:\VMs</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure to create the <strong>F:\VMs</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Specify Generation</strong> page of the <strong>New Virtual Machine Wizard</strong>, ensure that the <strong>Generation 1</strong> option is selected and select <strong>Next &gt;</strong>:</p>
+  </li>
+  <li>
+    <p>On the <strong>Assign Memory</strong> page of the <strong>New Virtual Machine Wizard</strong>, set <strong>Startup memory</strong> to <strong>2048</strong> and select <strong>Next &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Configure Networking</strong> page of the <strong>New Virtual Machine Wizard</strong>, in the <strong>Connection</strong> drop-down list select <strong>NestedSwitch</strong> and select <strong>Next &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Connect Virtual Hard Disk</strong> page of the <strong>New Virtual Machine Wizard</strong>, select the option <strong>Use an existing virtual hard disk</strong>, set location to the VHD file you downloaded to the <strong>F:\VHDs</strong> folder, and select <strong>Next &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Summary</strong> page of the <strong>New Virtual Machine Wizard</strong>, select <strong>Finish</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Hyper-V Manager</strong> console, select the newly created virtual machine and select <strong>Start</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Hyper-V Manager</strong> console, verify that the virtual machine is running and select <strong>Connect</strong>.</p>
+  </li>
+  <li>
+    <p>In the Virtual Machine Connection window to <strong>az30312a-vm1</strong>, on the <strong>Hi there</strong> page, select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>In the Virtual Machine Connection window to <strong>az30312a-vm1</strong>, on the <strong>License terms</strong> page, select <strong>Accept</strong>.</p>
+  </li>
+  <li>
+    <p>In the Virtual Machine Connection window to <strong>az30312a-vm1</strong>, on the <strong>Customize settings</strong> page, set the password of the built-in Administrator account to <strong>Pa55w.rd1234</strong> and select <strong>Finish</strong>.</p>
+  </li>
+  <li>
+    <p>In the Virtual Machine Connection window to <strong>az30312a-vm1</strong>, sign in by using the newly set password.</p>
+  </li>
+  <li>
+    <p>In the Virtual Machine Connection window to <strong>az30312a-vm1</strong>, start Windows PowerShell and, in the <strong>Administrator: Windows PowerShell</strong> window run the following to set the computer name.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">Rename-Computer -NewName 'az30312a-vm1' -Restart
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="exercise-1-create-and-configure-an-azure-site-recovery-vault">Exercise 1: Create and configure an Azure Site Recovery vault</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Create an Azure Site Recovery vault</p>
+  </li>
+  <li>
+    <p>Configure the Azure Site Recovery vault</p>
+  </li>
+</ol>
+
+<h4 id="task-1-create-an-azure-site-recovery-vault">Task 1: Create an Azure Site Recovery vault</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30312a-hv-vm</strong>, start Microsoft Edge, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in by providing credentials of a user account with the Owner role in the subscription you will be using in this lab.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Recovery Services vaults</strong> and, on the <strong>Recovery Services vaults</strong> blade, select <strong>+ New</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create Recovery Services vault</strong> blade, specify the following settings (leave others with their default values) and select <strong>Review + create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group <strong>az30312b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Vault name</td>
+          <td><strong>az30312b-rsvault</strong></td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>the name of the Azure region different from the one into which you deployed the virtual machine earlier in this lab</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab of the <strong>Create Recovery Services vault</strong> blade, select <strong>Create</strong>:</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: By default, the default configuration for Storage Replication type is set to Geo-redundant (GRS) and Soft Delete is enabled. You will change these settings in the lab to simplify deprovisioning, but you should use them in your production environments.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-the-azure-site-recovery-vault">Task 2: Configure the Azure Site Recovery vault</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Recovery Services vaults</strong> and, on the <strong>Recovery Services vaults</strong> blade, select <strong>az30312b-rsvault</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30312b-rsvault</strong> blade, select <strong>Properties</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **az30312b-rsvault</td>
+          <td>Properties** blade, select the <strong>Update</strong> link under the <strong>Backup Configuration</strong> label.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Backup Configuration</strong> blade, set <strong>Storage replication type</strong> to <strong>Locally-redundant</strong>, select <strong>Save</strong> and close the <strong>Backup Configuration</strong> blade.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Storage replication type cannot be changed once you start protecting items.</p>
+    </blockquote>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **az30312b-rsvault</td>
+          <td>Properties** blade, select the <strong>Update</strong> link under the <strong>Security Settings</strong> label.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>On the <strong>Security Settings</strong> blade, set <strong>Soft Delete</strong> to <strong>Disable</strong>, select <strong>Save</strong> and close the <strong>Security Settings</strong> blade.</li>
+</ol>
+
+<h3 id="exercise-2-implement-hyper-v-protection-by-using-azure-site-recovery-vault">Exercise 2: Implement Hyper-V protection by using Azure Site Recovery vault</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Implement the target Azure environment</p>
+  </li>
+  <li>
+    <p>Implement protection of a Hyper-V virtual machine</p>
+  </li>
+  <li>
+    <p>Perform a failover of the Hyper-V virtual machine</p>
+  </li>
+  <li>
+    <p>Remove Azure resources deployed in the lab</p>
+  </li>
+</ol>
+
+<h4 id="task-1-implement-the-target-azure-environment">Task 1: Implement the target Azure environment</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual networks</strong> and, on the <strong>Virtual networks</strong> blade, select <strong>+ New</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create virtual network</strong> blade, specify the following settings (leave others with their default values) and select <strong>Next: IP Addresses</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group <strong>az30312c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>az30312c-dr-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the name of the Azure region into which you deployed the Recovery Services vault in the previous exercise of this lab</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>IP addresses</strong> tab of the <strong>Create virtual network</strong> blade, in the <strong>IPv4 address space</strong> text box, type <strong>10.7.0.0/16</strong> and select <strong>+ Add subnet</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add subnet</strong> blade, specify the following settings (leave others with their default values) and select <strong>Add</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subnet name</td>
+          <td><strong>subnet0</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet address range</td>
+          <td><strong>10.7.0.0/24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Back on the <strong>IP addresses</strong> tab of the <strong>Create virtual network</strong> blade, select <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab of the <strong>Create virtual network</strong> blade, select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual networks</strong> and, on the <strong>Virtual networks</strong> blade, select <strong>+ New</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create virtual network</strong> blade, specify the following settings (leave others with their default values) and select <strong>Next: IP Addresses</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30312c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>az30312c-test-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the name of the Azure region into which you deployed the Recovery Services vault in the previous exercise of this lab</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>IP addresses</strong> tab of the <strong>Create virtual network</strong> blade, in the <strong>IPv4 address space</strong> text box, type <strong>10.7.0.0/16</strong> and select <strong>+ Add subnet</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add subnet</strong> blade, specify the following settings (leave others with their default values) and select <strong>Add</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subnet name</td>
+          <td><strong>subnet0</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet address range</td>
+          <td><strong>10.7.0.0/24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Back on the <strong>IP addresses</strong> tab of the <strong>Create virtual network</strong> blade, select <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab of the <strong>Create virtual network</strong> blade, select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Storage accounts</strong> and, on the <strong>Storage accounts</strong> blade, select <strong>+ New</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create storage account</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30312c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Storage account name</td>
+          <td>any globally unique name between 3 and 24 in length consisting of letters and digits</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>the name of the Azure region in which you created the virtual network earlier in this task</td>
+        </tr>
+        <tr>
+          <td>Performance</td>
+          <td><strong>Standard: Recommended for most scenarios (general-purpose v2)</strong></td>
+        </tr>
+        <tr>
+          <td>Redundancy</td>
+          <td><strong>Locally redundant storage (LRS)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create storage account</strong> blade, select <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab of the <strong>Create storage account</strong> blade, select <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-implement-protection-of-a-hyper-v-virtual-machine">Task 2: Implement protection of a Hyper-V virtual machine</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30312a-hv-vm</strong>, in the Azure portal, on the <strong>az30312b-rsvault</strong> blade, in the <strong>Site Recovery</strong>section, select <strong>Getting started</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30312b-rsvault | Site Recovery</strong> blade, in the <strong>Hyper-V machines to Azure</strong> section, select <strong>1. Prepare infrastructure</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Deployment planning</strong> tab of the <strong>Prepare infrastructure</strong> blade, in the <strong>Deployment planning completed?</strong> drop-down list, select <strong>Yes, I have done it</strong> and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Source settings</strong> tab of the <strong>Prepare infrastructure</strong> blade, next to the <strong>Are you Using System Center VMM to manage Hyper-V hosts</strong> label, select the <strong>No</strong> option.</p>
+  </li>
+  <li>
+    <p>On the <strong>Source settings</strong> tab of the <strong>Prepare infrastructure</strong> blade, select the <strong>Add Hyper-V site</strong> link, on the <strong>Create Hyper-V Site</strong> blade, in the <strong>Name</strong> text box, type <strong>az30312b Hyper-V site</strong> and select <strong>OK</strong>:</p>
+  </li>
+  <li>
+    <p>On the <strong>Source settings</strong> tab of the <strong>Prepare infrastructure</strong> blade, select the <strong>Add Hyper-V server</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add Server</strong> blade, select the <strong>Download</strong> link in step 3 of the procedure for adding on-premises Hyper-V hosts in order to download the Microsoft Azure Site Recovery Provider.</p>
+  </li>
+  <li>
+    <p>When the download completes, select <strong>Open file</strong> then select <strong>Run</strong> to launch <strong>AzureSiteRecoveryProvider.exe</strong>. This will start the <strong>Azure Site Recovery Provider Setup (Hyper-V server)</strong> wizard.</p>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Update</strong> page, select <strong>Off</strong> and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Provider installation</strong> page, select <strong>Install</strong>.</p>
+  </li>
+  <li>
+    <p>Switch to the Azure portal and, on the <strong>Add Server</strong> blade, select the <strong>Download</strong> button in step 4 of the procedure for registering on-premises Hyper-V hosts in order to download the vault registration key. If prompted, select <strong>Save</strong> to save the vault credentials file in the <strong>Downloads</strong> folder.</p>
+  </li>
+  <li>
+    <p>Switch to the <strong>Provider installation</strong> wizard window and select <strong>Register</strong>. This will start the <strong>Microsoft Azure Site Recovery Registration Wizard</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Vault Settings</strong> page of the <strong>Microsoft Azure Site Recovery Registration Wizard</strong>, select <strong>Browse</strong>, in the <strong>Open</strong> window, navigate to the <strong>Downloads</strong> folder, select the vault credentials file, and select <strong>Open</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>Vault Settings</strong> page of the <strong>Microsoft Azure Site Recovery Registration Wizard</strong>, select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Proxy Settings</strong> page of the <strong>Microsoft Azure Site Recovery Registration Wizard</strong>, accept the default settings and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Registration</strong> page of the <strong>Microsoft Azure Site Recovery Registration Wizard</strong>, select <strong>Finish</strong>.</p>
+  </li>
+  <li>
+    <p>Switch back to the browser window displaying the Azure portal and refresh the page. When prompted, select <strong>Leave the page</strong> or <strong>Reload</strong> depending on the version of the browser.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Back on the **az30312b-rsvault</td>
+          <td>Site Recovery** blade, in the <strong>Hyper-V machines to Azure</strong> section, select <strong>1. Prepare infrastructure</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Deployment planning</strong> tab of the <strong>Prepare infrastructure</strong> blade, in the <strong>Deployment planning completed?</strong> drop-down list, select <strong>Yes, I have done it</strong> and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Source settings</strong> tab of the <strong>Prepare infrastructure</strong> blade, next to the <strong>Are you Using System Center VMM to manage Hyper-V hosts</strong> label, select the <strong>No</strong> option.</p>
+  </li>
+  <li>
+    <p>Verify that the <strong>Hyper-V site</strong> and <strong>Hyper-V servers</strong> settings are set correctly and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Target settings</strong> tab of the <strong>Prepare infrastructure</strong> blade, accept the default settings and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Replication policy</strong> tab of the <strong>Prepare infrastructure</strong> blade, select <strong>Create new policy and associate</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create and associate policy</strong> blade, specify the following settings (leave others with their default values) and select <strong>OK</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>az30312b replication policy</strong></td>
+        </tr>
+        <tr>
+          <td>Copy frequency</td>
+          <td><strong>30 seconds</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Back on the <strong>Replication policy</strong> tab of the <strong>Prepare infrastructure</strong> blade, wait until the site has been associated with the policy and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review</strong> tab of the <strong>Prepare infrastructure</strong> blade, select <strong>Prepare</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30312b-rsvault | Site Recovery</strong> blade, in the <strong>Hyper-V machines to Azure</strong> section, select <strong>2. Enable replication</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Source environment</strong> tab of the <strong>Enable replication</strong> blade, in the <strong>Source location</strong> drop-down list, select <strong>az30312b Hyper-V site</strong> and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Target environment</strong> tab of the <strong>Enable replication</strong> blade, specify the following settings (leave others with their default values) and select <strong>Next</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Post-failover resource group</td>
+          <td><strong>az30312c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Post-failover deployment model</td>
+          <td><strong>Resource Manager</strong></td>
+        </tr>
+        <tr>
+          <td>Storage account</td>
+          <td>the name of the storage account you created in the first task of this exercise</td>
+        </tr>
+        <tr>
+          <td>Network</td>
+          <td>Configure now for selected machines</td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az30312c-dr-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>subnet0 (10.7.0.0/24)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Virtual machine selection</strong> tab of the <strong>Enable replication</strong> blade, select the <strong>az30312a-vm1</strong> checkbox and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Replication settings</strong> tab of the <strong>Enable replication</strong> blade, in the <strong>Defaults</strong> row and <strong>OS type</strong> column, select <strong>Windows</strong> from the drop-down list and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Replication policy</strong> tab of the <strong>Enable replication</strong> blade, accept the default settings and select <strong>Next</strong>.</p>
+  </li>
+  <li>On the <strong>Review</strong> tab of the <strong>Enable replication</strong> blade, select <strong>Enable replication</strong>.</li>
+</ol>
+
+<h4 id="task-3-review-azure-vm-replication-settings">Task 3: Review Azure VM replication settings</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, back on the <strong>az30312b-rsvault | Site Recovery</strong> blade, in the vertical menu, select <strong>Replicated items</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30312b-rsvault | Replicated items</strong> blade, ensure that there is an entry representing the <strong>az30312a-vm1</strong> virtual machine and verify that its <strong>Replication Health</strong> is listed as <strong>Healthy</strong> and that its <strong>Status</strong> is listed as either <strong>Enabling protection</strong>, <strong>Waiting for first recovery point</strong>, or displaying a current percentage of synchronization progress.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to wait a few minutes until the <strong>az30312a-vm1</strong> entry appears on the <strong>az30312b-rsvault | Replicated items</strong> blade.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30312b-rsvault | Replicated items</strong> blade, select the <strong>az30312a-vm1</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30312a-vm1</strong> replicated items blade, review the <strong>Health and status</strong>, <strong>Failover readiness</strong>, <strong>Latest recovery points</strong>, and <strong>Infrastructure view</strong> sections. Note the <strong>Planned Failover</strong>, <strong>Failover</strong> and <strong>Test Failover</strong> toolbar icons.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait until the status changes to <strong>Protected</strong>. This might take additional 15 minutes. You will need to refresh the browser page for the status to be updated.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30312a-vm1</strong> replicated items blade, select <strong>Latest recovery points</strong> and review <strong>Latest crash-consistent</strong> and <strong>Latest app-consistent</strong> recovery points.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-perform-a-failover-of-the-hyper-v-virtual-machine">Task 4: Perform a failover of the Hyper-V virtual machine</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30312a-hv-vm</strong>, in the browser window displaying the Azure portal, on the <strong>az30312a-vm1</strong> replicated items blade, select <strong>Test failover</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Test failover</strong> blade, specify the following settings (leave others with their default values) and select <strong>OK</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Choose a recovery point</td>
+          <td>the default option</td>
+        </tr>
+        <tr>
+          <td>Azure virtual network</td>
+          <td><strong>az30312c-test-vnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>az30312b-rsvault</strong> blade and select <strong>Site Recovery jobs</strong>. Wait until the status of the <strong>Test failover</strong> job is listed as <strong>Successful</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual machines</strong> and, on the <strong>Virtual machines</strong> blade, note the entry representing the newly provisioned virtual machine <strong>az30312a-vm1-test</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the on the <strong>az30312a-vm1</strong> replicated items blade and select <strong>Cleanup test failover</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Test failover cleanup</strong> blade, select the checkbox <strong>Testing is complete. Delete test failover virtual machine(s)</strong> and select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Once the test failover cleanup job completes, refresh the browser page displaying the <strong>az30312a-vm1</strong> replicated items blade and note that you have the option to perform planned and unplanned failover.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30312a-vm1</strong> replicated items blade, select <strong>Planned failover</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Planned failover</strong> blade, note that the failover direction settings are already set and not modifiable.</p>
+  </li>
+  <li>
+    <p>Close the <strong>Planned failover</strong> blade and, on the <strong>az30312a-vm1</strong> replicated items blade, select <strong>Failover</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Failover</strong> blade, note the available options geared towards minimizing potential data loss.</p>
+  </li>
+  <li>
+    <p>Close the <strong>Failover</strong> blade. Failover operation may take 10 to 15 minutes to complete. <strong>DO NOT</strong> delete the resource group and other resources before completion or else Failover operation will abort. You can check the status of Failover on <strong>Site Recovery Jobs</strong> blade.</p>
+  </li>
+</ol>
+
+<h4 id="task-5-remove-azure-resources-deployed-in-the-lab">Task 5: Remove Azure resources deployed in the lab</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30312a-hv-vm</strong>, in the browser window displaying the Azure portal, start a PowerShell session within the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to list the resource group you created in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30312*'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the output contains only the resource group you created in this lab. This group will be deleted in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to delete the resource group you created in this lab</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30312*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D479f9cfd893a2bea83ac41ba638fc5e7bd9113e0.js"></script>
+
+
+
+</body></html>

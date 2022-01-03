@@ -1,0 +1,232 @@
+<!DOCTYPE html><html lang="en-US"><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>实验室 8 - 检测语言 | AI-100ZH-Design-Implement-Azure-AISol</title>
+<meta name="generator" content="Jekyll v3.9.0">
+<meta property="og:title" content="实验室 8 - 检测语言">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="AI100T01A ILT 课程的实验文件">
+<meta property="og:description" content="AI100T01A ILT 课程的实验文件">
+<link rel="canonical" href="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab8-Detect_Language/02-Detect_Language.html">
+<meta property="og:url" content="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab8-Detect_Language/02-Detect_Language.html">
+<meta property="og:site_name" content="AI-100ZH-Design-Implement-Azure-AISol">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="实验室 8 - 检测语言">
+<script type="application/ld+json">
+{"description":"AI100T01A ILT 课程的实验文件","url":"https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab8-Detect_Language/02-Detect_Language.html","@type":"WebPage","headline":"实验室 8 - 检测语言","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <style class="anchorjs"></style><link rel="stylesheet" href="../assets/css/style_v%3D3a0ab1c74f6d3ca7c17e819da8185129fa5047f9.css">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/AI-100ZH-Design-Implement-Azure-AISol/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="../">AI-100ZH-Design-Implement-Azure-AISol</a></h1>
+      
+
+      <h1 id="实验室-8---检测语言">实验室 8 - 检测语言</h1>
+
+<p>在本实验中，我们将把认知服务的语言检测功能集成到机器人中。</p>
+
+<h2 id="实验-81检索你的认知服务-url-和密钥">实验 8.1：检索你的认知服务 URL 和密钥<a class="anchorjs-link " href="#实验-81检索你的认知服务-url-和密钥" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>
+    <p>打开 <a href="https://portal.azure.com">Azure 门户</a></p>
+  </li>
+  <li>
+    <p>使用门户搜索搜索“<strong>认知服务</strong>”，选择通用的认知服务资源（即包含所有种类为 <strong>CognitiveServices</strong> 的终结点）。</p>
+  </li>
+  <li>
+    <p>选择“<strong>资源管理</strong>”下的“<strong>密钥和终结点</strong>”选项卡，并记录该认知服务资源的 URL 和密钥</p>
+  </li>
+</ol>
+
+<h2 id="实验-82向机器人添加语言支持">实验 8.2：向机器人添加语言支持<a class="anchorjs-link " href="#实验-82向机器人添加语言支持" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>
+    <p>如果尚未打开，请打开 <strong>“PictureBot”</strong> 解决方案</p>
+  </li>
+  <li>
+    <p>右键单击项目，选择 <strong>“管理 NuGet 包”</strong></p>
+  </li>
+  <li>
+    <p>选择 <strong>“浏览”</strong>。</p>
+  </li>
+  <li>
+    <p>搜索 <strong>“Microsoft.Azure.CognitiveServices.Language.TextAnalytics”</strong>，选择它并选择 <strong>“安装”</strong>，然后选择 <strong>“我接受”</strong></p>
+  </li>
+  <li>
+    <p>打开 <strong>“Startup.cs”</strong> 文件，添加以下 using 语句：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">Azure.AI.TextAnalytics</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Azure</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>将以下代码添加到 <strong>“ConfigureServices”</strong> 方法：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">TextAnalyticsClient</span><span class="p">&gt;(</span><span class="n">sp</span> <span class="p">=&gt;</span>
+ <span class="p">{</span>
+     <span class="n">Uri</span> <span class="n">cogsBaseUrl</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Uri</span><span class="p">(</span><span class="n">Configuration</span><span class="p">.</span><span class="nf">GetSection</span><span class="p">(</span><span class="s">"cogsBaseUrl"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">);</span>
+     <span class="kt">string</span> <span class="n">cogsKey</span> <span class="p">=</span> <span class="n">Configuration</span><span class="p">.</span><span class="nf">GetSection</span><span class="p">(</span><span class="s">"cogsKey"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">;</span>
+
+     <span class="kt">var</span> <span class="n">credentials</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">AzureKeyCredential</span><span class="p">(</span><span class="n">cogsKey</span><span class="p">);</span>
+     <span class="k">return</span> <span class="k">new</span> <span class="nf">TextAnalyticsClient</span><span class="p">(</span><span class="n">cogsBaseUrl</span><span class="p">,</span> <span class="n">credentials</span><span class="p">);</span>
+ <span class="p">});</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>打开 <strong>“PictureBot.cs”</strong> 文件，添加以下 using 语句：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">Azure.AI.TextAnalytics</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>添加以下类变量：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">private</span> <span class="n">TextAnalyticsClient</span> <span class="n">_textAnalyticsClient</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>修改此构造函数，以包含新的 <code class="language-plaintext highlighter-rouge">TextAnalyticsClient</code>：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">public</span> <span class="nf">PictureBot</span><span class="p">(</span><span class="n">PictureBotAccessors</span> <span class="n">accessors</span><span class="p">,</span> <span class="n">LuisRecognizer</span> <span class="n">recognizer</span><span class="p">,</span> <span class="n">TextAnalyticsClient</span> <span class="n">analyticsClient</span><span class="p">)</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>在构造函数中，初始化类变量：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">_textAnalyticsClient</span> <span class="p">=</span> <span class="n">analyticsClient</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>导航到 <strong>“OnTurnAsync”</strong> 方法并找到以下代码行：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="kt">var</span> <span class="n">utterance</span> <span class="p">=</span> <span class="n">turnContext</span><span class="p">.</span><span class="n">Activity</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
+ <span class="kt">var</span> <span class="n">state</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_accessors</span><span class="p">.</span><span class="n">PictureState</span><span class="p">.</span><span class="nf">GetAsync</span><span class="p">(</span><span class="n">turnContext</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="nf">PictureState</span><span class="p">());</span>
+ <span class="n">state</span><span class="p">.</span><span class="n">UtteranceList</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="n">utterance</span><span class="p">);</span>
+ <span class="k">await</span> <span class="n">_accessors</span><span class="p">.</span><span class="n">ConversationState</span><span class="p">.</span><span class="nf">SaveChangesAsync</span><span class="p">(</span><span class="n">turnContext</span><span class="p">);</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>在其后添加以下代码行</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c1">//Check the language</span>
+     <span class="n">DetectedLanguage</span> <span class="n">detectedLanguage</span> <span class="p">=</span> <span class="n">_textAnalyticsClient</span><span class="p">.</span><span class="nf">DetectLanguage</span><span class="p">(</span><span class="n">turnContext</span><span class="p">.</span><span class="n">Activity</span><span class="p">.</span><span class="n">Text</span><span class="p">);</span>
+     <span class="k">switch</span> <span class="p">(</span><span class="n">detectedLanguage</span><span class="p">.</span><span class="n">Name</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="k">case</span> <span class="s">"English"</span><span class="p">:</span>
+             <span class="k">break</span><span class="p">;</span>
+         <span class="k">default</span><span class="p">:</span>
+             <span class="c1">//throw error</span>
+             <span class="k">await</span> <span class="n">turnContext</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"I'm sorry, I can only understand English. [</span><span class="p">{</span><span class="n">detectedLanguage</span><span class="p">.</span><span class="n">Name</span><span class="p">}</span><span class="s">]"</span><span class="p">);</span>
+             <span class="k">break</span><span class="p">;</span>
+     <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>在该方法中 <code class="language-plaintext highlighter-rouge">switch</code> 结束后的所有内容都移动到 <code class="language-plaintext highlighter-rouge">case "English"</code>。最终，方法应如下所示：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">public</span> <span class="k">override</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">OnTurnAsync</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">turnContext</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="n">CancellationToken</span><span class="p">))</span>
+ <span class="p">{</span>
+     <span class="k">if</span> <span class="p">(</span><span class="n">turnContext</span><span class="p">.</span><span class="n">Activity</span><span class="p">.</span><span class="n">Type</span> <span class="k">is</span> <span class="s">"message"</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="kt">var</span> <span class="n">utterance</span> <span class="p">=</span> <span class="n">turnContext</span><span class="p">.</span><span class="n">Activity</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
+         <span class="kt">var</span> <span class="n">state</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_accessors</span><span class="p">.</span><span class="n">PictureState</span><span class="p">.</span><span class="nf">GetAsync</span><span class="p">(</span><span class="n">turnContext</span><span class="p">,()</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="nf">PictureState</span><span class="p">());</span>
+         <span class="n">state</span><span class="p">.</span><span class="n">UtteranceList</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="n">utterance</span><span class="p">);</span>
+         <span class="k">await</span> <span class="n">_accessors</span><span class="p">.</span><span class="n">ConversationState</span><span class="p">.</span><span class="nf">SaveChangesAsync</span><span class="p">(</span><span class="n">turnContext</span><span class="p">);</span>
+
+         <span class="c1">//Check the language</span>
+         <span class="n">DetectedLanguage</span> <span class="n">detectedLanguage</span> <span class="p">=</span> <span class="n">_textAnalyticsClient</span><span class="p">.</span><span class="nf">DetectLanguage</span><span class="p">(</span><span class="n">turnContext</span><span class="p">.</span><span class="n">Activity</span><span class="p">.</span><span class="n">Text</span><span class="p">);</span>
+         <span class="k">switch</span> <span class="p">(</span><span class="n">detectedLanguage</span><span class="p">.</span><span class="n">Name</span><span class="p">)</span>
+         <span class="p">{</span>
+                 <span class="k">case</span> <span class="s">"English"</span><span class="p">:</span>
+                     <span class="c1">// Establish dialog context from the conversation state.</span>
+                     <span class="kt">var</span> <span class="n">dc</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_dialogs</span><span class="p">.</span><span class="nf">CreateContextAsync</span><span class="p">(</span><span class="n">turnContext</span><span class="p">);</span>
+                     <span class="c1">// Continue any current dialog.</span>
+                     <span class="kt">var</span> <span class="n">results</span> <span class="p">=</span> <span class="k">await</span> <span class="n">dc</span><span class="p">.</span><span class="nf">ContinueDialogAsync</span><span class="p">(</span><span class="n">cancellationToken</span><span class="p">);</span>
+
+                     <span class="c1">// Every turn sends a response, so if no response was sent,</span>
+                     <span class="c1">// then there no dialog is currently active.</span>
+                     <span class="k">if</span> <span class="p">(!</span><span class="n">turnContext</span><span class="p">.</span><span class="n">Responded</span><span class="p">)</span>
+                     <span class="p">{</span>
+                         <span class="c1">// Start the main dialog</span>
+                         <span class="k">await</span> <span class="n">dc</span><span class="p">.</span><span class="nf">BeginDialogAsync</span><span class="p">(</span><span class="s">"mainDialog"</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="n">cancellationToken</span><span class="p">);</span>
+                     <span class="p">}</span>
+                     <span class="k">break</span><span class="p">;</span>
+                 <span class="k">default</span><span class="p">:</span>
+                     <span class="c1">//throw error</span>
+                     <span class="k">await</span> <span class="n">turnContext</span><span class="p">.</span><span class="nf">SendActivityAsync</span><span class="p">(</span><span class="s">$"I'm sorry, I can only understand English. [</span><span class="p">{</span><span class="n">detectedLanguage</span><span class="p">.</span><span class="n">Name</span><span class="p">}</span><span class="s">]"</span><span class="p">);</span>
+                     <span class="k">break</span><span class="p">;</span>
+         <span class="p">}</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>打开 <strong>“appsettings.json”</strong> 文件，并确保输入你的认知服务设置：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="s">"cogsBaseUrl"</span><span class="p">:</span> <span class="s">""</span><span class="p">,</span>
+ <span class="s">"cogsKey"</span> <span class="p">:</span>  <span class="s">""</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>按 <strong>F5</strong>启动机器人</p>
+  </li>
+  <li>
+    <p>使用 Bot Emulator，输入一些短语，看看会发生什么：</p>
+  </li>
+</ol>
+
+<ul>
+  <li>Como Estes?</li>
+  <li>Bon Jour!</li>
+  <li>Привет</li>
+  <li>Hello</li>
+</ul>
+
+<h2 id="延伸阅读">延伸阅读<a class="anchorjs-link " href="#延伸阅读" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>我们已在先前的实验中介绍 LUIS，所以请考虑一下可能需要进行哪些更改才能使用 LUIS 支持多种语言。  一些对你有帮助的文章：</p>
+
+<ul>
+  <li><a href="https://docs.microsoft.com/zh-cn/azure/cognitive-services/luis/luis-language-support">LUIS 的语言和区域支持</a></li>
+</ul>
+
+<h2 id="资源">资源<a class="anchorjs-link " href="#资源" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="https://docs.microsoft.com/zh-cn/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-language-detection">示例：使用文本分析检测语言</a></li>
+  <li><a href="https://docs.microsoft.com/zh-cn/azure/cognitive-services/text-analytics/quickstarts/csharp">快速入门：.NET 的文本分析客户端库</a></li>
+</ul>
+
+<h2 id="后续步骤">后续步骤<a class="anchorjs-link " href="#后续步骤" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="../Lab9-Test_Bots_DirectLine/01-Introduction.html">实验 09-01：测试机器人 DirectLine</a></li>
+</ul>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  
+
+</body></html>

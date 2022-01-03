@@ -1,0 +1,420 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m05-unit-6-create-a-front-door-for-a-highly-available-web-application-using-the-azure-portal">M05-Unit 6 Create a Front Door for a highly available web application using the Azure portal</h1>
+
+<p>In this exercise, you will set up an Azure Front Door configuration that pools two instances of a web application that runs in different Azure regions. This configuration directs traffic to the nearest site that runs the application. Azure Front Door continuously monitors the web application. You will demonstrate automatic failover to the next available site when the nearest site is unavailable. The network configuration is shown in the following diagram:</p>
+
+<p><a href="../media/front-door-environment-diagram.png" target="_blank"><img src="../media/front-door-environment-diagram.png" alt="Network configuration for Azure Front Door."></a></p>
+
+<p>In this exercise, you will:</p>
+
+<ul>
+  <li>Task 1: Create two instances of a web app</li>
+  <li>Task 2: Create a Front Door for your application</li>
+  <li>Task 3: View Azure Front Door in action</li>
+  <li>Task 4: Clean up resources</li>
+</ul>
+
+<h2 id="task-1-create-two-instances-of-a-web-app">Task 1: Create two instances of a web app</h2>
+
+<p>This exercise requires two instances of a web application that run in different Azure regions. Both the web application instances run in Active/Active mode, so either one can take traffic. This configuration differs from an Active/Stand-By configuration, where one acts as a failover.</p>
+
+<ol>
+  <li>
+    <p>Sign in to the Azure portal at <a href="https://portal.azure.com/">https://portal.azure.com</a>.</p>
+  </li>
+  <li>
+    <p>On the Azure home page, using the global search type <strong>WebApp</strong> and select <strong>App Services</strong> under services.</p>
+  </li>
+  <li>
+    <p>Click <strong>+ Create</strong> to create a Web App.</p>
+  </li>
+  <li>
+    <p>On the Create Web App page, on the <strong>Basics</strong> tab, enter or select the following information.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription.</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>Select the resource group ContosoResourceGroup</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td>Enter a unique Name for your web app. This example uses WebAppContoso-1.</td>
+        </tr>
+        <tr>
+          <td>Publish</td>
+          <td>Select <strong>Code</strong>.</td>
+        </tr>
+        <tr>
+          <td>Runtime stack</td>
+          <td>Select <strong>.NET Core 3.1 (LTS)</strong>.</td>
+        </tr>
+        <tr>
+          <td>Operating System</td>
+          <td>Select <strong>Windows</strong>.</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>Select <strong>Central US</strong>.</td>
+        </tr>
+        <tr>
+          <td>Windows Plan</td>
+          <td>Select <strong>Create new</strong> and enter myAppServicePlanCentralUS in the text box.</td>
+        </tr>
+        <tr>
+          <td>SKU and size</td>
+          <td>Select <strong>Standard S1 100 total ACU, 1.75 GB memory</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Review + create</strong>, review the Summary, and then select <strong>Create</strong>. <br>
+‎It might take several minutes for the deployment to complete.</p>
+  </li>
+  <li>
+    <p>Create a second web app. On the Azure Portal home page, search  <strong>WebApp</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>+ Create</strong> to create a Web App.</p>
+  </li>
+  <li>
+    <p>On the Create Web App page, on the <strong>Basics</strong> tab, enter or select the following information.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription.</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>Select the resource group ContosoResourceGroup</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td>Enter a unique Name for your web app. This example uses WebAppContoso-2.</td>
+        </tr>
+        <tr>
+          <td>Publish</td>
+          <td>Select <strong>Code</strong>.</td>
+        </tr>
+        <tr>
+          <td>Runtime stack</td>
+          <td>Select <strong>.NET Core 3.1 (LTS)</strong>.</td>
+        </tr>
+        <tr>
+          <td>Operating System</td>
+          <td>Select <strong>Windows</strong>.</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>Select <strong>East US</strong>.</td>
+        </tr>
+        <tr>
+          <td>Windows Plan</td>
+          <td>Select <strong>Create new</strong> and enter myAppServicePlanEastUS in the text box.</td>
+        </tr>
+        <tr>
+          <td>SKU and size</td>
+          <td>Select <strong>Standard S1 100 total ACU, 1.75 GB memory</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Review + create</strong>, review the Summary, and then select <strong>Create</strong>. <br>
+‎It might take several minutes for the deployment to complete.</p>
+  </li>
+</ol>
+
+<h2 id="task-2-create-a-front-door-for-your-application">Task 2: Create a Front Door for your application</h2>
+
+<p>Configure Azure Front Door to direct user traffic based on lowest latency between the two web apps servers. To begin, add a frontend host for Azure Front Door.</p>
+
+<ol>
+  <li>
+    <p>On any Azure Portal page, in <strong>Search resources, services and docs (G+/)</strong>, enter front door, and then select <strong>Front Doors</strong> from the results.</p>
+
+    <p><a href="../media/search-front-door.png" target="_blank"><img src="../media/search-front-door.png" alt="Azure Portal Search for Front Door"></a></p>
+  </li>
+  <li>
+    <p>On the Front Doors page, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>In Create a Front Door, enter or select the following information.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription.</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>Select ContosoResourceGroup</td>
+        </tr>
+        <tr>
+          <td>Resource group location</td>
+          <td>Accept default setting</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Next: Configuration</strong>.</p>
+  </li>
+  <li>
+    <p>On the Configuration tab, in <strong>Frontends/domains</strong>, select <strong>+</strong> to add a frontend host.</p>
+
+    <p><a href="../media/add-frontends-domains.png" target="_blank"><img src="../media/add-frontends-domains.png" alt="Create a Front Door add Frontends/Domains"></a></p>
+  </li>
+  <li>
+    <p>Enter a globally unique <strong>host name</strong>, like contoso-frontend, and then select <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>Next, create a backend pool that contains your two web apps.<br>
+‎In Create a Front Door, in <strong>Backend</strong> pools, select + to add a backend pool.</p>
+
+    <p><a href="../media/add-backends.png" target="_blank"><img src="../media/add-backends.png" alt="Create a Front Door add a backend pool"></a></p>
+  </li>
+  <li>
+    <p>Enter a globally unique <strong>host name</strong>, like BackendPool.</p>
+  </li>
+  <li>
+    <p>Under <strong>BACKENDS</strong>, select + <strong>Add a backend</strong>.</p>
+  </li>
+  <li>
+    <p>In Add a backend, enter, or select the following information.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Backend host type</td>
+          <td>Select <strong>App service</strong>.</td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription.</td>
+        </tr>
+        <tr>
+          <td>Backend host name</td>
+          <td>Select the first web app you created. In this example, the web app was <strong>WebAppContoso-1</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Leave all other fields as default and then select <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add a backend</strong> again, enter or select the following.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Backend host type</td>
+          <td>Select App service.</td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription.</td>
+        </tr>
+        <tr>
+          <td>Backend host name</td>
+          <td>Select the second web app you created. In this example, the web app was <strong>WebAppContoso-2</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Leave all other fields as default and then select <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a backend</strong> <strong>pool</strong> blade, select <strong>Add</strong> to complete the configuration of the backend pool.</p>
+  </li>
+  <li>
+    <p>Finally, add a routing rule. A routing rule maps your frontend host to the backend pool. This rule forwards a request for contoso-frontend.azurefd.net to myBackendPool.</p>
+  </li>
+  <li>
+    <p>In Create a Front Door, in <strong>Routing rules</strong>, select <strong>+</strong> to configure a routing rule.</p>
+
+    <p><a href="../media/add-routing-rules.png" target="_blank"><img src="../media/add-routing-rules.png" alt="Create a Front Door add a routing rule"></a></p>
+  </li>
+  <li>
+    <p>In Add a rule, for <strong>Name</strong>, enter LocationRule.</p>
+  </li>
+  <li>
+    <p>Accept all the default values, then select <strong>Add</strong> to add the routing rule.</p>
+  </li>
+  <li>
+    <p>Select <strong>Review + Create</strong>, and then <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<p><strong>You must ensure that each of the frontend hosts in your Front Door has a routing rule with a default path (*) associated with it. That is, across all your routing rules there must be at least one routing rule for each of your frontend hosts defined at the default path (*). Failing to do so may result in your end-user traffic not getting routed correctly</strong>.</p>
+
+<h2 id="task-3-view-azure-front-door-in-action">Task 3: View Azure Front Door in action</h2>
+
+<p>Once you create a Front Door, it takes a few minutes for the configuration to be deployed globally. Once complete, access the frontend host you created.</p>
+
+<ol>
+  <li>
+    <p>In the Azure Portal, navigate to your Front Door frontend. Select <strong>Go to Resource</strong>. Or in Search resources, services, and docs (G+/), enter <strong>front door</strong>, and select <strong>Front Doors</strong> from the results, and then select your Front Door.</p>
+  </li>
+  <li>
+    <p>On the Front Door page, note the <strong>Frontend host</strong> URL. This exercise uses contoso-frontend.azurefd.net, but you may have altered it to ensure the name is unique.</p>
+
+    <p><a href="../media/frontend-url.png" target="_blank"><img src="../media/frontend-url.png" alt="Azure portal Frontend page - Verify Frontend URL"></a></p>
+  </li>
+  <li>
+    <p>In a browser, go to your Frontend host URL (contoso-frontend.azurefd.net). Your request will automatically be routed to the nearest server to you from the specified servers in the backend pool.</p>
+  </li>
+  <li>
+    <p>You’ll see the following information page:</p>
+
+    <p><a href="../media/app-service-info-page.png" target="_blank"><img src="../media/app-service-info-page.png" alt="Browser showing App Service information page"></a></p>
+  </li>
+  <li>
+    <p>To test instant global failover in action, try the following steps:</p>
+  </li>
+  <li>
+    <p>Switch to the Azure portal, search for and select <strong>App services</strong>.</p>
+  </li>
+  <li>
+    <p>Select one of your web apps, then select <strong>Stop</strong>, and then select <strong>Yes</strong> to verify.</p>
+
+    <p><a href="../media/stop-web-app.png" target="_blank"><img src="../media/stop-web-app.png" alt="Azure Portal showing stopped Web App"></a></p>
+  </li>
+  <li>
+    <p>Switch back to your browser and select Refresh. You should see the same information page.</p>
+  </li>
+</ol>
+
+<p><strong>There may be a delay while the web app stops. If you get an error page in your browser, refresh the page</strong>.</p>
+
+<ol>
+  <li>
+    <p>Switch back to the Azure Portal, locate the other web app, and stop it.</p>
+  </li>
+  <li>
+    <p>Switch back to your browser and select Refresh. This time, you should see an error message.</p>
+
+    <p><a href="../media/web-apps-both-stopped.png" target="_blank"><img src="../media/web-apps-both-stopped.png" alt="Browser showing App Service error page"></a></p>
+
+    <p>Congratulations! You have configured and tested an Azure Front Door.</p>
+
+    <h2 id="task-4-clean-up-resources">Task 4: Clean up resources</h2>
+
+    <blockquote>
+      <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">
+Remove-AzResourceGroup -Name 'ContosoResourceGroup' -Force -AsJob
+
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the -AsJob parameter), so while you will be able to run another PowerShell command immediately afterwards within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

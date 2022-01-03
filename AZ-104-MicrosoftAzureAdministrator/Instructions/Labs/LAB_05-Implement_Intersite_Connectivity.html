@@ -1,0 +1,538 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D907526b117000ffdbc71b1bcc102e524d83415a3.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#instructions">Instructions</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-05---implement-intersite-connectivity">Lab 05 - Implement Intersite Connectivity</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>Contoso has its datacenters in Boston, New York, and Seattle offices connected via a mesh wide-area network links, with full connectivity between them. You need to implement a lab environment that will reflect the topology of the Contoso’s on-premises networks and verify its functionality.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>In this lab, you will:</p>
+
+<ul>
+  <li>Task 1: Provision the lab environment</li>
+  <li>Task 2: Configure local and global virtual network peering</li>
+  <li>Task 3: Test intersite connectivity</li>
+</ul>
+
+<h2 id="estimated-timing-30-minutes">Estimated timing: 30 minutes</h2>
+
+<h2 id="architecture-diagram">Architecture diagram</h2>
+
+<p><a href="../media/lab05.png" target="_blank"><img src="../media/lab05.png" alt="image"></a></p>
+
+<h3 id="instructions">Instructions</h3>
+
+<h4 id="task-1-provision-the-lab-environment">Task 1: Provision the lab environment</h4>
+
+<p>In this task, you will deploy three virtual machines, each into a separate virtual network, with two of them in the same Azure region and the third one in another Azure region.</p>
+
+<ol>
+  <li>
+    <p>Sign in to the <a href="https://portal.azure.com">Azure portal</a>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open the <strong>Azure Cloud Shell</strong> by clicking on the icon in the top right of the Azure Portal.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and click <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, click the <strong>Upload/Download files</strong> icon, in the drop-down menu, click <strong>Upload</strong> and upload the files <strong>\Allfiles\Labs\05\az104-05-vnetvm-loop-template.json</strong> and <strong>\Allfiles\Labs\05\az104-05-vnetvm-loop-parameters.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create the resource group that will be hosting the lab environment. The first two virtual networks and a pair of virtual machines will be deployed in <code>[Azure_region_1]</code>. The third virtual network and the third virtual machine will be deployed in the same resource group but another <code>[Azure_region_2]</code>. (replace the <code>[Azure_region_1]</code> and <code>[Azure_region_2]</code> placeholder with the names of two different Azure regions where you intend to deploy these Azure virtual machines):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location1 = '[Azure_region_1]'
+
+$location2 = '[Azure_region_2]'
+
+$rgName = 'az104-05-rg1'
+
+New-AzResourceGroup -Name $rgName -Location $location1
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: In order to identify Azure regions, from a PowerShell session in Cloud Shell, run <strong>(Get-AzLocation).Location</strong></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create the three virtual networks and deploy virtual machines into them by using the template and parameter files you uploaded:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-05-vnetvm-loop-template.json `
+   -TemplateParameterFile $HOME/az104-05-vnetvm-loop-parameters.json `
+   -location1 $location1 `
+   -location2 $location2
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before proceeding to the next step. This should take about 2 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-local-and-global-virtual-network-peering">Task 2: Configure local and global virtual network peering</h4>
+
+<p>In this task, you will configure local and global peering between the virtual networks you deployed in the previous tasks.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual networks</strong>.</p>
+  </li>
+  <li>
+    <p>Review the virtual networks you created in the previous task and verify that the first two are located in the same Azure region and the third one in a different Azure region.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The template you used for deployment of the three virtual networks ensures that the IP address ranges of the three virtual networks do not overlap.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the list of virtual networks, click <strong>az104-05-vnet0</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-05-vnet0</strong> virtual network blade, in the <strong>Settings</strong> section, click <strong>Peerings</strong> and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a peering with the following settings (leave others with their default values) and click <strong>Add</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>This virtual network: Peering link name</td>
+          <td><strong>az104-05-vnet0_to_az104-05-vnet1</strong></td>
+        </tr>
+        <tr>
+          <td>This virtual network: Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>This virtual network: Traffic forwarded from remote virtual network</td>
+          <td><strong>Block traffic that originates from outside this virtual network</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None</strong></td>
+        </tr>
+        <tr>
+          <td>Remote virtual network: Peering link name</td>
+          <td><strong>az104-05-vnet1_to_az104-05-vnet0</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network deployment model</td>
+          <td><strong>Resource manager</strong></td>
+        </tr>
+        <tr>
+          <td>I know my resource ID</td>
+          <td>unselected</td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az104-05-vnet1</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic forwarded from remote virtual network</td>
+          <td><strong>Block traffic that originates from outside this virtual network</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: This step establishes two local peerings - one from az104-05-vnet0 to az104-05-vnet1 and the other from az104-05-vnet1 to az104-05-vnet0.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: In case you run into an issue with the Azure portal interface not displaying the virtual networks created in the previous task, you can configure peering by running the following PowerShell commands from Cloud Shell:</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">$rgName = 'az104-05-rg1'
+
+$vnet0 = Get-AzVirtualNetwork -Name 'az104-05-vnet0' -ResourceGroupName $rgname
+
+$vnet1 = Get-AzVirtualNetwork -Name 'az104-05-vnet1' -ResourceGroupName $rgname
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet0_to_az104-05-vnet1' -VirtualNetwork $vnet0 -RemoteVirtualNetworkId $vnet1.Id
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet1_to_az104-05-vnet0' -VirtualNetwork $vnet1 -RemoteVirtualNetworkId $vnet0.Id
+</code></pre>
+  </li>
+  <li>
+    <p>On the <strong>az104-05-vnet0</strong> virtual network blade, in the <strong>Settings</strong> section, click <strong>Peerings</strong> and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a peering with the following settings (leave others with their default values) and click <strong>Add</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>This virtual network: Peering link name</td>
+          <td><strong>az104-05-vnet0_to_az104-05-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>This virtual network: Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>This virtual network: Traffic forwarded from remote virtual network</td>
+          <td><strong>Block traffic that originates from outside this virtual network</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None</strong></td>
+        </tr>
+        <tr>
+          <td>Remote virtual network: Peering link name</td>
+          <td><strong>az104-05-vnet2_to_az104-05-vnet0</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network deployment model</td>
+          <td><strong>Resource manager</strong></td>
+        </tr>
+        <tr>
+          <td>I know my resource ID</td>
+          <td>unselected</td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az104-05-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic forwarded from remote virtual network</td>
+          <td><strong>Block traffic that originates from outside this virtual network</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: This step establishes two global peerings - one from az104-05-vnet0 to az104-05-vnet2 and the other from az104-05-vnet2 to az104-05-vnet0.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: In case you run into an issue with the Azure portal interface not displaying the virtual networks created in the previous task, you can configure peering by running the following PowerShell commands from Cloud Shell:</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">$rgName = 'az104-05-rg1'
+
+$vnet0 = Get-AzVirtualNetwork -Name 'az104-05-vnet0' -ResourceGroupName $rgname
+
+$vnet2 = Get-AzVirtualNetwork -Name 'az104-05-vnet2' -ResourceGroupName $rgname
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet0_to_az104-05-vnet2' -VirtualNetwork $vnet0 -RemoteVirtualNetworkId $vnet2.Id
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet2_to_az104-05-vnet0' -VirtualNetwork $vnet2 -RemoteVirtualNetworkId $vnet0.Id
+</code></pre>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Virtual networks</strong> blade and, in the list of virtual networks, click <strong>az104-05-vnet1</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-05-vnet1</strong> virtual network blade, in the <strong>Settings</strong> section, click <strong>Peerings</strong> and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a peering with the following settings (leave others with their default values) and click <strong>Add</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>This virtual network: Peering link name</td>
+          <td><strong>az104-05-vnet1_to_az104-05-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>This virtual network: Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>This virtual network: Traffic forwarded from remote virtual network</td>
+          <td><strong>Block traffic that originates from outside this virtual network</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None</strong></td>
+        </tr>
+        <tr>
+          <td>Remote virtual network: Peering link name</td>
+          <td><strong>az104-05-vnet2_to_az104-05-vnet1</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network deployment model</td>
+          <td><strong>Resource manager</strong></td>
+        </tr>
+        <tr>
+          <td>I know my resource ID</td>
+          <td>unselected</td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az104-05-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic forwarded from remote virtual network</td>
+          <td><strong>Block traffic that originates from outside this virtual network</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: This step establishes two global peerings - one from az104-05-vnet1 to az104-05-vnet2 and the other from az104-05-vnet2 to az104-05-vnet1.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: In case you run into an issue with the Azure portal interface not displaying the virtual networks created in the previous task, you can configure peering by running the following PowerShell commands from Cloud Shell:</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">$rgName = 'az104-05-rg1'
+
+$vnet1 = Get-AzVirtualNetwork -Name 'az104-05-vnet1' -ResourceGroupName $rgname
+
+$vnet2 = Get-AzVirtualNetwork -Name 'az104-05-vnet2' -ResourceGroupName $rgname
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet1_to_az104-05-vnet2' -VirtualNetwork $vnet1 -RemoteVirtualNetworkId $vnet2.Id
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet2_to_az104-05-vnet1' -VirtualNetwork $vnet2 -RemoteVirtualNetworkId $vnet1.Id
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-3-test-intersite-connectivity">Task 3: Test intersite connectivity</h4>
+
+<p>In this task, you will test connectivity between virtual machines on the three virtual networks that you connected via local and global peering in the previous task.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual machines</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of virtual machines, click <strong>az104-05-vm0</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-05-vm0</strong> blade, click <strong>Connect</strong>, in the drop-down menu, click <strong>RDP</strong>, on the <strong>Connect with RDP</strong> blade, click <strong>Download RDP File</strong> and follow the prompts to start the Remote Desktop session.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This step refers to connecting via Remote Desktop from a Windows computer. On a Mac, you can use Remote Desktop Client from the Mac App Store and on Linux computers you can use an open source RDP client software.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can ignore any warning prompts when connecting to the target virtual machines.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>When prompted, sign in by using the <strong>Student</strong> username and <strong>Pa55w.rd1234</strong> password.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az104-05-vm0</strong>, right-click the <strong>Start</strong> button and, in the right-click menu, click <strong>Windows PowerShell (Admin)</strong>.</p>
+  </li>
+  <li>
+    <p>In the Windows PowerShell console window, run the following to test connectivity to <strong>az104-05-vm1</strong> (which has the private IP address of <strong>10.51.0.4</strong>) over TCP port 3389:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Test-NetConnection -ComputerName 10.51.0.4 -Port 3389 -InformationLevel 'Detailed'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The test uses TCP 3389 since this is this port is allowed by default by operating system firewall.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Examine the output of the command and verify that the connection was successful.</p>
+  </li>
+  <li>
+    <p>In the Windows PowerShell console window, run the following to test connectivity to <strong>az104-05-vm2</strong> (which has the private IP address of <strong>10.52.0.4</strong>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Test-NetConnection -ComputerName 10.52.0.4 -Port 3389 -InformationLevel 'Detailed'
+</code></pre>
+  </li>
+  <li>
+    <p>Switch back to the Azure portal on your lab computer and navigate back to the <strong>Virtual machines</strong> blade.</p>
+  </li>
+  <li>
+    <p>In the list of virtual machines, click <strong>az104-05-vm1</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-05-vm1</strong> blade, click <strong>Connect</strong>, in the drop-down menu, click <strong>RDP</strong>, on the <strong>Connect with RDP</strong> blade, click <strong>Download RDP File</strong> and follow the prompts to start the Remote Desktop session.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This step refers to connecting via Remote Desktop from a Windows computer. On a Mac, you can use Remote Desktop Client from the Mac App Store and on Linux computers you can use an open source RDP client software.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can ignore any warning prompts when connecting to the target virtual machines.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>When prompted, sign in by using the <strong>Student</strong> username and <strong>Pa55w.rd1234</strong> password.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az104-05-vm1</strong>, right-click the <strong>Start</strong> button and, in the right-click menu, click <strong>Windows PowerShell (Admin)</strong>.</p>
+  </li>
+  <li>
+    <p>In the Windows PowerShell console window, run the following to test connectivity to <strong>az104-05-vm2</strong> (which has the private IP address of <strong>10.52.0.4</strong>) over TCP port 3389:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">Test-NetConnection -ComputerName 10.52.0.4 -Port 3389 -InformationLevel 'Detailed'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The test uses TCP 3389 since this is this port is allowed by default by operating system firewall.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Examine the output of the command and verify that the connection was successful.</p>
+  </li>
+</ol>
+
+<h4 id="clean-up-resources">Clean up resources</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>List all resource groups created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-05*'
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-05*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the -AsJob parameter), so while you will be able to run another PowerShell command immediately afterwards within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this lab, you have:</p>
+
+<ul>
+  <li>Provisioned the lab environment</li>
+  <li>Configured local and global virtual network peering</li>
+  <li>Tested intersite connectivity</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D907526b117000ffdbc71b1bcc102e524d83415a3.js"></script>
+
+
+
+</body></html>

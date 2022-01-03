@@ -1,0 +1,1212 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-enable-azure-defender-for-iot-hub">Exercise 2: Enable Azure Defender for IoT Hub</a></li><li class="nav-item"><a class="nav-link active" href="#exercise-3-create-and-register-a-new-device">Exercise 3: Create and Register a New Device</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-create-a-security-module-twin">Exercise 4: Create a Security Module Twin</a></li><li class="nav-item"><a class="nav-link" href="#exercise-5-deploy-azure-defender-for-iot-c-security-agent">Exercise 5: Deploy Azure Defender for IoT C# Security Agent</a></li><li class="nav-item"><a class="nav-link" href="#exercise-6-configure-solution-management">Exercise 6: Configure Solution Management</a></li><li class="nav-item"><a class="nav-link" href="#exercise-7-introduce-custom-alerts">Exercise 7: Introduce custom alerts</a></li><li class="nav-item"><a class="nav-link" href="#exercise-8-configure-the-device-app">Exercise 8: Configure the Device App</a></li><li class="nav-item"><a class="nav-link" href="#exercise-9-review-azure-defender-for-iot-alerts">Exercise 9: Review Azure Defender for IoT Alerts</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="detect-device-tampering-with-azure-defender-for-iot">Detect Device Tampering with Azure Defender for IoT</h1>
+
+<h2 id="lab-scenario">Lab Scenario</h2>
+
+<p>Contoso has built all their solutions with security in mind. However, they want to see how they can better get a unified view of security across all of their on-premises and cloud workloads, including their Azure IoT solutions. Plus, when onboarding new devices, the company wants to apply security policies across workloads (Leaf devices, Microsoft Edge devices, IoT Hub) to ensure compliance with security standards and improved security posture.</p>
+
+<p>Contoso is adding a brand new assembly line outfitted with new IoT devices to help with the increasing shipping and packing demands for new orders. You want to ensure that any new devices are secured, and you also want to be able to see security recommendations that could help you to continue improving your solution’s security (considering the full end-to-end IoT solution). You will start investigating using Azure IoT Center for IoT for your solution.</p>
+
+<p>Contoso is also installing new connected Thermostats that will improve the ability to monitor and control temperature across different cheese caves. As part of Contoso’s security requirements, you will create a custom alert to monitor whether the Thermostats exceed expected telemetry transmission frequency.</p>
+
+<p>The following resources will be created:</p>
+
+<p><a href="media/LAB_AK_18-architecture.png" target="_blank"><img src="media/LAB_AK_18-architecture.png" alt="Lab 18 Architecture"></a></p>
+
+<blockquote>
+  <p><strong>TIP</strong>: <strong>Azure Defender for IoT</strong> was previously referred to as <strong>Azure Security Center for IoT</strong>. You may find some inconsistencies in the online documentation, GitHub resources and in this content due to the phased rollout of the name change.</p>
+</blockquote>
+
+<h2 id="in-this-lab">In This Lab</h2>
+
+<p>In this lab, you will complete the following activities:</p>
+
+<ul>
+  <li>
+    <p>Verify that the lab prerequisites are met (that you have the required Azure resources)</p>
+
+    <ul>
+      <li>The script will create an IoT Hub if needed</li>
+    </ul>
+  </li>
+  <li>Enable Azure Defender for IoT</li>
+  <li>Create and register a new Device</li>
+  <li>Create a Security Module Twin</li>
+  <li>Install C#-based Security Agent on a Linux Device</li>
+  <li>Configure monitored resources</li>
+  <li>Create custom alerts</li>
+  <li>Create a console app to trigger the alert</li>
+  <li>Review the alert in the Azure Defender for IoT</li>
+</ul>
+
+<h2 id="lab-instructions">Lab Instructions</h2>
+
+<h3 id="exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</h3>
+
+<p>This lab assumes that the following Azure resources are available:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Resource Type</th>
+      <th style="text-align: left">Resource Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Resource Group</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Hub</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To ensure these resources are available, complete the following tasks.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Deploy to Azure</strong>:</p>
+
+    <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoftLearning%2FAZ-220-Microsoft-Azure-IoT-Developer%2Fbicep%2FAllfiles%2FARM%2Flab18.json">Deploy To Azure</a></p>
+  </li>
+  <li>
+    <p>If prompted, login to the <strong>Azure Portal</strong>.</p>
+
+    <p>The <strong>Custom deployment</strong> page will be displayed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Project details</strong>, in the <strong>Subscription</strong> dropdown, ensure that the Azure subscription that you intend to use for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, select <strong>rg-az220</strong>.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If <strong>rg-az220</strong> is not listed:</p>
+
+      <ol>
+        <li>Under the <strong>Resource group</strong> dropdown, click <strong>Create new</strong>.</li>
+        <li>Under <strong>Name</strong>, enter <strong>rg-az220</strong>.</li>
+        <li>Click <strong>OK</strong>.</li>
+      </ol>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, in the <strong>Region</strong> dropdown, select the region closest to you.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If the <strong>rg-az220</strong> group already exists, the <strong>Region</strong> field is set to the region used by the resource group and is read-only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Your ID</strong> field, enter the unique ID you created in Exercise 1.</p>
+  </li>
+  <li>
+    <p>In the <strong>Course ID</strong> field, enter <strong>az220</strong>.</p>
+  </li>
+  <li>
+    <p>To validate the template, click <strong>Review and create</strong>.</p>
+  </li>
+  <li>
+    <p>If validation passes, click <strong>Create</strong>.</p>
+
+    <p>The deployment will start.</p>
+  </li>
+  <li>
+    <p>Once the deployment has completed, in the left navigation area, to review any output values from the template,  click <strong>Outputs</strong>.</p>
+
+    <p>Make a note of the outputs for use later:</p>
+
+    <ul>
+      <li>connectionString</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The resources have now been created.</p>
+
+<h3 id="exercise-2-enable-azure-defender-for-iot-hub">Exercise 2: Enable Azure Defender for IoT Hub</h3>
+
+<p>Azure Defender for IoT enables you to unify security management and enable end-to-end threat detection and analysis across hybrid cloud workloads and your Azure IoT solution.</p>
+
+<p>Azure Defender for IoT is composed of the following components:</p>
+
+<ul>
+  <li>IoT Hub integration</li>
+  <li>Device agents (optional)</li>
+  <li>Send security message SDK</li>
+  <li>Analytics pipeline</li>
+</ul>
+
+<h4 id="task-1-enable-azure-defender-for-iot">Task 1: Enable Azure Defender for IoT</h4>
+
+<p>In this task, you will enable <strong>Azure Defender for IoT</strong> for your IoT Hub.</p>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On your Azure dashboard, click <strong>iot-az220-training-{your-id}</strong>.</p>
+
+    <p>The rg-az220 resource group tile on your dashboard should have a link to your IoT Hub.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, under <strong>Defender for IoT</strong>, and then click <strong>Overview</strong>.</p>
+
+    <p>Azure Defender for IoT Hub will onboard the first time a Security pane is opened.</p>
+  </li>
+  <li>
+    <p>If the <strong>Secure your IoT solution</strong> button is displayed, click <strong>Secure your IoT solution</strong>, and then refresh your browser window when prompted.</p>
+
+    <p>After a few moments you will see the message <strong>Onboarding succeeded for this IoT hub, please refresh for changes to take effect</strong></p>
+  </li>
+  <li>
+    <p>Take a moment to review the contents on the Security Overview pane.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Threats are not instantly detected the first moment that you onboard Azure Defender for IoT, you will begin to see threat detections reported on this Overview pane before the end of this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-log-analytics-creation">Task 2: Log Analytics creation</h4>
+
+<p>When Azure Defender for IoT is turned on, an Azure Log Analytics workspace should be created to store raw security events, alerts, and recommendations for your IoT devices, IoT Edge, and IoT Hub.</p>
+
+<p>In this task, you will take a quick look at the workspace configuration of Log Analytics.</p>
+
+<ol>
+  <li>
+    <p>In the left navigation area, under <strong>Security</strong>, click <strong>Settings</strong>..</p>
+
+    <p>The <strong>Settings Page</strong> is displayed, listing the four areas that can be configured:</p>
+
+    <ul>
+      <li>Data Collection</li>
+      <li>Recommendations Configuration</li>
+      <li>Monitored Resources</li>
+      <li>Custom Alerts</li>
+    </ul>
+  </li>
+  <li>
+    <p>To review the default <strong>Data Collection</strong> settings, click <strong>Data Collection</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Workspace configuration</strong> section, under <strong>Choose the Log Analytics workspace you wish to connect to:</strong>, ensure the toggle button is set to <strong>On</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Subscription</strong> dropdown, ensure the subscription you are using for this lab is selected.</p>
+  </li>
+  <li>
+    <p>Under the <strong>Workspace</strong> dropdown, click <strong>Create New Workspace</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Log Analytics workspace</strong> pane, under <strong>Log Analytics Workspace</strong>, enter <strong>log-az220-training-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Subscription</strong>, ensure that the Subscription you are using for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, click <strong>rg-az220</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Location</strong> dropdown, select the Azure Region closest to you, or the region where your Azure IoT Hub is provisioned.</p>
+  </li>
+  <li>
+    <p>Under <strong>Pricing tier</strong>, ensure <strong>Pay-as-you-go</strong> is selected,</p>
+  </li>
+  <li>
+    <p>To create the workspace, click <strong>OK</strong>.</p>
+
+    <p>After a few moments, the workspace will be created and the pane will close.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Back on the **Settings</td>
+          <td>Data Collection** page, in the <strong>Workspace</strong> dropdown, select <strong>log-az220-training-{your-id}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Ensure <strong>Access to raw security data</strong> is checked.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>In-depth security recommendations and custom alert</strong> is checked.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>IP data collection</strong> is checked.</p>
+  </li>
+  <li>To save the Data Collection configuration, click <strong>Save</strong> and to close the page, click the <strong>Close</strong> button at the top-right of the page.</li>
+</ol>
+
+<h3 id="exercise-3-create-and-register-a-new-device">Exercise 3: Create and Register a New Device</h3>
+
+<p>In this exercise, you will be setting up a virtual machine that you will then use to simulate an IoT device. Later on in this lab, you will use this device to measure vibrations on a conveyor belt.</p>
+
+<h4 id="task-1-create-a-new-iot-device">Task 1: Create a new IoT Device</h4>
+
+<p>In this task, you will create a Virtual Machine that will represent your IoT device. You are using a VM in this lab rather than simulated device code because you will be installing a security module to the IoT device (VM).</p>
+
+<ol>
+  <li>
+    <p>Login to <a href="https://portal.azure.com">portal.azure.com</a> using your Azure account credentials.</p>
+  </li>
+  <li>
+    <p>In the <strong>Search resources, services and docs</strong> field, enter <strong>Virtual machines</strong>.</p>
+  </li>
+  <li>
+    <p>In the search results, under <strong>Services</strong>, click <strong>Virtual machines</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual machines</strong> page, click <strong>+ Create</strong> and select <strong>Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a virtual machine</strong> blade, in the <strong>Subscription</strong> dropdown, ensure that the subscription you are using for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, click <strong>rg-az220vm</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: A single resource group is being used to track and manage all of the Virtual Machine resources created during this course. If the <strong>rg-az220vm</strong> resource group has not already been created, use the following instructions to create it now:</p>
+    </blockquote>
+
+    <ul>
+      <li>Under the <strong>Resource group</strong> dropdown, click <strong>Create new</strong>.</li>
+      <li>In the context menu, under <strong>Name</strong>, type <strong>rg-az220vm</strong> and then click <strong>OK</strong></li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: You may encounter guidance that suggests creating a separate resource group for each of your VMs. Having a separate resource group for each VM can help you to manage any addition resources that you add to the VM. For the simple manner in which you use VMs in this course, having separate resource groups for each VM is not necessary or practical.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, in the <strong>Virtual machine name</strong> textbox, enter <strong>vm-az220-training-edge0002-{your-id}</strong></p>
+  </li>
+  <li>
+    <p>In the <strong>Region</strong> dropdown, select the Azure Region closest to you, or the region where your Azure IoT Hub is provisioned.</p>
+  </li>
+  <li>
+    <p>In the <strong>Availability options</strong> dropdown, ensure that <strong>No infrastructure redundancy required</strong> is selected.</p>
+
+    <blockquote>
+      <p><strong>Tip</strong>:
+Azure offers a range of options for managing availability and resiliency for your applications. Architect your solution to use replicated VMs in Availability Zones or Availability Sets to protect your apps and data from datacenter outages and maintenance events. In this lab, we don’t required any high-availability features.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Image</strong> field, select <strong>Ubuntu Server 18.04 LTS - Gen2</strong> image.</p>
+  </li>
+  <li>
+    <p>Leave <strong>Azure Spot instance</strong> field unchecked.</p>
+  </li>
+  <li>
+    <p>To the right of <strong>Size</strong>, click <strong>Change size</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Select a VM size</strong> blade, under <strong>VM Size</strong>, click <strong>Standard_DS1_v2</strong>, and then click <strong>Select</strong>.</p>
+
+    <p>You may need to select the <strong>see all sizes</strong> link to select this size.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Not all VM sizes are available in all regions. If, in a later step, you are unable to select the VM size, try a different region. For example, if <strong>West US</strong> doesn’t have the sizes available, try <strong>West US 2</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Administrator account</strong>, to the right of <strong>Authentication type</strong>, click <strong>Password</strong>.</p>
+  </li>
+  <li>
+    <p>For the VM Administrator account, enter values for the <strong>Username</strong>, <strong>Password</strong>, and <strong>Confirm password</strong> fields.</p>
+
+    <blockquote>
+      <p><strong>Important:</strong> Do not lose/forget these values - you cannot connect to your VM without them.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Notice that the <strong>Inbound port rules</strong> are configured to enable inbound <strong>SSH</strong> access to the VM.</p>
+
+    <p>This will be used to remote into the VM to configure/manage it.</p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Wait for the <strong>Validation passed</strong> message to be displayed at the top of the blade, and then click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Deployment can take as much as 5 minutes to complete. You can continue on to the next exercise while it is deploying.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-register-new-devices">Task 2: Register New Devices</h4>
+
+<p>As a device must be registered with your IoT hub before it can connect, let’s create the registration.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal menu, click <strong>Dashboard</strong>.</p>
+  </li>
+  <li>
+    <p>On your rg-az220 resource group tile, click <strong>iot-az220-training-{your-id}</strong>.</p>
+
+    <p>There are plenty of other ways to open your IoT Hub blade, use whatever method you prefer.</p>
+  </li>
+  <li>
+    <p>In the left-side menu, under&nbsp;<strong>Explorers</strong>, click&nbsp;<strong>IoT devices</strong>.</p>
+  </li>
+  <li>
+    <p>At the top of <strong>IoT devices</strong> pane, click <strong>+ New</strong></p>
+  </li>
+  <li>
+    <p>Under <strong>Device ID</strong>, enter <strong>vm-az220-training-edge0002-{your-id}</strong></p>
+
+    <p>Yes, you are using the Name that you assigned to the VM as the Device ID.</p>
+
+    <p>You will be using a <strong>Symmetric key</strong> for authentication, so you can leave the other setting at the defaults.</p>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-4-create-a-security-module-twin">Exercise 4: Create a Security Module Twin</h3>
+
+<p>Azure Defender for IoT offers full integration with your existing IoT device management platform, enabling you to manage your device security status as well as make use of existing device control capabilities.</p>
+
+<p>Azure Defender for IoT makes use of the module twin mechanism and maintains a security module twin named azureiotsecurity for each of your devices. The security module twin holds all the information relevant to device security for each of your devices. To make full use of Azure Defender for IoT features, you will need to create, configure, and use these security module twins for your new IoT Edge device.</p>
+
+<p>The security module twin (<strong>azureiotsecurity</strong>) can be created by using either of the following methods:</p>
+
+<ul>
+  <li>Use the <a href="https://github.com/Azure/Azure-IoT-Security/tree/master/security_module_twin">Module batch script</a>. This script automatically creates a module twin for new devices (or devices without a module twin) using the default configuration.</li>
+  <li>Manually edit each module twin individually with specific configurations for each device.</li>
+</ul>
+
+<p>In this task, you will be creating a security module twin manually.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, if necessary, navigate to your the <strong>IoT devices</strong> pane of your IoT Hub.</p>
+
+    <p>To open the <strong>IoT devices</strong> pane from your IoT Hub blade, in the left-side menu, under <strong>Explorers</strong>, click <strong>IoT devices</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>DEVICE ID</strong>, click <strong>vm-az220-training-edge0002-{your-id}</strong>.</p>
+
+    <p>You may need to click <strong>Load More</strong> in order to see your device listed.</p>
+  </li>
+  <li>
+    <p>On the <strong>vm-az220-training-edge0002-{your-id}</strong> blade, near the top of the blade, click <strong>+ Add Module Identity</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add Module Identity</strong> pane, under <strong>Module Identity Name</strong>, enter <strong>azureiotsecurity</strong></p>
+
+    <p>You will be using Symmetric Keys for authentication, so you can leave all over fields at their defaults.</p>
+  </li>
+  <li>
+    <p>At the bottom of the pane, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>vm-az220-training-edge0002-{your-id}</strong> blade, under <strong>Module Identities</strong>, you should now see your <strong>azureiotsecurity</strong> device listed.</p>
+
+    <p>Notice that the connection state is <strong>Disconnected</strong>.</p>
+
+    <blockquote>
+      <p><strong>IMPORTANT</strong>: The Module Identity must be called <strong>azureiotsecurity</strong> and not another unique name.</p>
+    </blockquote>
+
+    <p><a href="media/LAB_AK_18-module-identity.png" target="_blank"><img src="media/LAB_AK_18-module-identity.png" alt="Screenshot of Azure IoT Security Module"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>vm-az220-training-edge0002-{your-id}</strong> blade, to the right of <strong>Primary Key</strong>, click <strong>Copy</strong>, and then save the value for later.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure to copy the device’s <strong>Primary Key</strong> and not the connection string.</p>
+    </blockquote>
+
+    <p><a href="media/LAB_AK_18-primary-key.png" target="_blank"><img src="media/LAB_AK_18-primary-key.png" alt="Screenshot of Azure IoT Security Module"></a></p>
+  </li>
+  <li>
+    <p>Navigate back to your IoT Hub blade.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, click <strong>Overview</strong>.</p>
+  </li>
+  <li>
+    <p>In the Essentials area near the top of the blade, to the right of <strong>Hostname</strong>, click <strong>Copy to clipboard</strong>, and then save the value for later.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The IoT Hub Hostname looks similar to: iot-az220-training-cah102119.azure-devices.net</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-5-deploy-azure-defender-for-iot-c-security-agent">Exercise 5: Deploy Azure Defender for IoT C# Security Agent</h3>
+
+<p>Azure Defender for IoT provides a reference architecture for security agents that log, process, aggregate, and send security data through IoT Hub. There are C and C# based agents. C agents are recommended for devices with more restricted or minimal device resources.</p>
+
+<p>Security agents support the following features:</p>
+
+<ul>
+  <li>Collect raw security events from the underlying Operating System (Linux, Windows). To read more about available security data collectors, see Azure Defender for IoT agent configuration.</li>
+  <li>Aggregate raw security events into messages sent through IoT Hub.</li>
+  <li>Authenticate with existing device identity, or a dedicated module identity. To read more, see Security agent authentication methods.</li>
+  <li>Configure remotely through use of the <strong>azureiotsecurity</strong> module twin. To read more, see Configure an Azure Defender for IoT agent.</li>
+</ul>
+
+<p>In this exercise, you will be adding a security agent for C# that you will deploy to your simulated device (Linux VM).</p>
+
+<h4 id="task-1-logging-into-iot-device---linux-vm">Task 1: Logging into IoT Device - Linux VM</h4>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On the Azure portal menu, click <strong>All resources</strong>.</p>
+
+    <p>Be sure to select <strong>All resources</strong>, not <strong>All services</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>All resources</strong> blade, in the <strong>Filter by name</strong> textbox, enter <strong>vm-az220-training-edge0002</strong></p>
+  </li>
+  <li>
+    <p>Under <strong>Name</strong>, click <strong>vm-az220-training-edge0002-{your-id}</strong>.</p>
+
+    <p>The Overview pane for your newly created virtual machine (<strong>vm-az220-training-edge0002-{your-id}</strong>) should now be open.</p>
+  </li>
+  <li>
+    <p>At the top of the blade, click <strong>Connect</strong>, and then click <strong>SSH</strong>.</p>
+  </li>
+  <li>
+    <p>Take a minute to review the contents of the <strong>Connect</strong> pane</p>
+
+    <p>As you have seen previously in this course, you are provided with an example command for opening an SSH connection.</p>
+  </li>
+  <li>
+    <p>Use the sample SSH command to create a command for connection to your VM.</p>
+
+    <p>Copy the example command to a text editor, and then remove `-i <private key path> from the command. You should be left with a command in the following format:</private></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-cmd\sh"> ssh &lt;admin user&gt;@&lt;ip address&gt;
+</code></pre>
+
+    <p>Your command should look similar to: <code>ssh demouser@52.170.205.79</code></p>
+  </li>
+  <li>
+    <p>On the Azure portal toolbar, click <strong>Cloud Shell</strong>.</p>
+
+    <p>Ensure that the <strong>Bash</strong> environment is selected within the Cloud Shell.</p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, enter the <code>ssh</code> command that you created above, and then press <strong>Enter</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted with <strong>Are you sure you want to continue connecting?</strong>, type <strong>yes</strong> and then press <strong>Enter</strong>.</p>
+
+    <p>This prompt is a security confirmation since the certificate used to secure the connection to the VM is self-signed. The answer to this prompt will be remembered for subsequent connections, and is only prompted on the first connection.</p>
+  </li>
+  <li>
+    <p>When prompted to enter the password, enter the Administrator password that you created for the VM.</p>
+
+    <p>Notice that, once connected, the terminal command prompt will change to show the name of the Linux VM, similar to the following.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-cmd/sh"> demouser@vm-az220-training-edge0002-{your-id}:~$
+</code></pre>
+
+    <p>This helps you to keep track of which VM you are connected to and the current user.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-add-symmetric-keys-to-your-device">Task 3: Add Symmetric Keys to your device</h4>
+
+<p>You can connect to your IoT Hub with the C# version of the security agent. To implement the connection, you will need your device’s symmetric key or certificate information.</p>
+
+<p>In this lab, you will be using the symmetric key as authentication and will need to store it in a temporary text document on the device.</p>
+
+<ol>
+  <li>
+    <p>Verify that you have the <strong>Primary key</strong> value for your <strong>vm-az220-training-edge0002-{your-id}</strong> device available.</p>
+
+    <p>You should have saved the Primary key value earlier in this lab. If not, complete the following:</p>
+
+    <ol>
+      <li>Open a new browser tab, and on that new tab, navigate to the Azure portal.</li>
+      <li>On the Azure portal menu, click <strong>Dashboard</strong>, and then open your&nbsp;IoT Hub.</li>
+      <li>On the left-side menu, under <strong>Explorers</strong>, click <strong>IoT devices</strong>.</li>
+      <li>Under <strong>DEVICE ID</strong>, click <strong>vm-az220-training-edge0002-{your-id}</strong>.</li>
+      <li>From the list of details, copy your <strong>Primary Key</strong>.</li>
+      <li>Return the the Azure Cloud Shell browser tab - you should still be connected to your <strong>vm-az220-training-edge0002-{your-id}</strong> virtual machine.</li>
+    </ol>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-cmd/sh"> echo "&lt;primary_key&gt;" &gt; s.key
+</code></pre>
+
+    <p>This command will create a device Authentication type file with your <strong>vm-az220-training-edge0002-{your-id}</strong> device’s <strong>Primary Key</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: To check if you added the correct Primary key into the file, open your file with <code>nano s.key</code> command. Check to see your device’s <strong>Primary Key</strong> is in the file. To exit the nano editor, holding <code>Ctrl</code> and <code>X</code>. Save file by holding <code>shift</code> and <code>Y</code>. Then hit enter.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-installing-security-agent">Task 4: Installing Security Agent</h4>
+
+<ol>
+  <li>
+    <p>Ensure that the Cloud Shell session is still connected to your VM via SSH.</p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to download the most recent version of Security Agent for C# to your device, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> wget https://github.com/Azure/Azure-IoT-Security-Agent-CS/releases/download/0.0.6/ubuntu-18.04-x64.tar.gz
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Notice that the command above targets Ubuntu Server 18.04 LTS</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to extract the contents of the package and navigate to the <code>/Install</code> folder, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs"> tar -xzvf ubuntu-18.04-x64.tar.gz &amp;&amp; <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> Install
+</code></pre>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to add execute permissions to the <code>InstallSecurityAgent</code> script, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs"> chmod +x InstallSecurityAgent.sh
+</code></pre>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, customize and then run the following command:</p>
+
+    <p>You will need to replace the placeholder values with your authentication parameters.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-bash hljs"> sudo ./InstallSecurityAgent.sh -i -aui Device -aum SymmetricKey -f &lt;Insert file location of your s.key file&gt; -hn &lt;Insert your full IoT Hub host name&gt; -di vm-az220-training-edge0002-{your-id}
+</code></pre>
+
+    <p>Here is an example of what the command should look like:</p>
+
+    <p><code>sudo ./InstallSecurityAgent.sh -i -aui Device -aum SymmetricKey -f ../s.key -hn iot-az220-training-ab200213.azure-devices.net -di vm-az220-training-edge0002-{your-id}</code></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure that specify your IoT Hub Hostname instead of the one listed</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>IMPORTANT</strong>:
+Ensure you use the full IoT Hub host name - i.e. <strong>iot-az220-training-ab200213.azure-devices.net</strong> for the <code>-hn</code> switch value.</p>
+    </blockquote>
+
+    <p>This script performs the following function:</p>
+
+    <ul>
+      <li>Installs prerequisites.</li>
+      <li>Adds a service user (with interactive sign in disabled).</li>
+      <li>Installs the agent as a Daemon - assumes the device uses <strong>systemd</strong> for service management.</li>
+      <li>Configures <strong>sudo users</strong> to allow the agent to do certain tasks as root.</li>
+      <li>Configures the agent with the authentication parameters provided.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Observe the progress of the command by watching output in the Cloud Shell terminal.</p>
+
+    <p>Notice that a reboot is required to complete agent installation.</p>
+  </li>
+  <li>
+    <p>In the Cloud Shell terminal, to start the reboot, enter <strong>y</strong></p>
+
+    <p>The SSH session will be lost when the device reboots.</p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to reconnect to your virtual machine, enter the SSH command you used earlier.</p>
+
+    <p>Your Azure Defender for IoT Agent should now be active and running.</p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to check the deployment status of the Azure Defender for IoT Agent, enter the following command.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-cmd/sh"> systemctl status ASCIoTAgent.service
+</code></pre>
+
+    <p>You should see output similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-log"> ● ASCIoTAgent.service - Azure Security Center for IoT Agent
+    Loaded: loaded (/etc/systemd/system/ASCIoTAgent.service; enabled; vendor preset: enabled)
+    Active: active (running) since Wed 2020-01-15 19:08:15 UTC; 3min 3s ago
+  Main PID: 1092 (ASCIoTAgent)
+     Tasks: 7 (limit: 9513)
+    CGroup: /system.slice/ASCIoTAgent.service
+         └─1092 /var/ASCIoTAgent/ASCIoTAgent
+</code></pre>
+
+    <p>Specifically, you should verify that the service is <strong>Loaded: loaded</strong> and <strong>Active: active (running)</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If your Azure Defender for IoT Agent isn’t running or active, please check out <a href="https://docs.microsoft.com/en-us/azure/defender-for-iot/device-builders/how-to-deploy-linux-cs">Deploy Defender for IoT C# based security agent for Linux</a>. Common issues are that might leave the service <strong>Active: activating</strong> are an incorrect key value or not specifying the full IoT Hub hostname.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back your IoT Hub blade, and then open the <strong>vm-az220-training-edge0002-{your-id}</strong> device blade.</p>
+
+    <p>Open your IoT Hub blade, on the navigation menu under <strong>Explorers</strong>, click <strong>IoT devices</strong>, and then click <strong>vm-az220-training-edge0002-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Module Identities</strong>, notice that your <strong>azureiotsecurity</strong> module is now in a <strong>Connected</strong> state.</p>
+
+    <p><a href="media/LAB_AK_18-device-connected-agent.png" target="_blank"><img src="media/LAB_AK_18-device-connected-agent.png" alt="Screenshot of Azure IoT Security Module Connected"></a></p>
+  </li>
+</ol>
+
+<p>Now that your Azure Defender for IoT device agents are installed on your device, the agents will be able to collect, aggregate and analyze raw security events from your device.</p>
+
+<h3 id="exercise-6-configure-solution-management">Exercise 6: Configure Solution Management</h3>
+
+<p>Azure Defender for IoT provides end-to-end security for Azure-based IoT solutions.</p>
+
+<p>With Azure Defender for IoT, you can monitor your entire IoT solution in one dashboard, surfacing all of your IoT devices, IoT platforms and back-end resources in Azure.</p>
+
+<p>Once enabled on your IoT Hub, Azure Defender for IoT automatically identifies other Azure services, also connected to your IoT Hub and related to your IoT solution.</p>
+
+<p>In addition to automatic relationship detection, you can also pick and choose which other Azure resource groups to tag as part of your IoT solution. Your selections allow you to add entire subscriptions, resource groups, or single resources.</p>
+
+<h4 id="task-1-open-iot-hub">Task 1: Open IoT Hub</h4>
+
+<ol>
+  <li>
+    <p>In your browser, open the Azure Portal and navigate to your IoT Hub.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, under <strong>Security</strong>, click <strong>Settings</strong>.</p>
+
+    <p>The <strong>Settings Page</strong> lists the following areas:</p>
+
+    <ul>
+      <li>Data Collection</li>
+      <li>Recommendations Configuration</li>
+      <li>Monitored Resources</li>
+      <li>Custom Alerts</li>
+    </ul>
+  </li>
+  <li>
+    <p>To view the list of resources, click <strong>Monitored Resources</strong>.</p>
+
+    <p>Note that the list of resources already includes your IoT Hub, the workspace that was created when Azure Defender for IoT was activated earlier as well as the current subscription.</p>
+  </li>
+  <li>
+    <p>At the top of the pane, click <strong>Edit</strong>.</p>
+
+    <p>The <strong>Solution Management</strong> pane opens, where you can connect additional Azure resources to your security solution by selecting their owning resource groups.</p>
+  </li>
+  <li>
+    <p>Under <strong>Subscriptions</strong>, ensure that the subscription you are using for this course is selected.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong>
+You can add resources from multiple subscriptions to your security solution.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Resource groups</strong> dropdown, click <strong>rg-az220vm</strong>.</p>
+
+    <p>You should now have two Resource Groups selected. Notice that the Resources list has updated to reflect the additional resources in the resource group you just added.</p>
+  </li>
+  <li>
+    <p>At the bottom of the <strong>Solution Management</strong> pane, click <strong>Apply</strong>.</p>
+
+    <p>If the <strong>Apply</strong> button is not available, don’t worry, the resources were already added.</p>
+  </li>
+  <li>
+    <p>Close the <strong>Solution Management</strong> pane.</p>
+  </li>
+</ol>
+
+<p>After defining all of the resource relationships, Azure Defender for IoT leverages Azure Defender to provide you security recommendations and alerts for these resources.</p>
+
+<h4 id="task-2-view-azure-defender-for-iot-in-action">Task 2: View Azure Defender for IoT in Action</h4>
+
+<p>You now have your the security agent installed on your device and your solution configured. It is a good time to check out the different views for Azure Defender for IoT.</p>
+
+<ol>
+  <li>
+    <p>On the left-side menu, under <strong>Security</strong>, click <strong>Overview</strong>.</p>
+
+    <p>You will see the health overview for your devices, hubs, and other resources appear on two charts. You can see the Built-in real-time monitoring, recommendations and alerts that were enabled right when you turn on your Azure IoT Defender.</p>
+
+    <p><a href="media/LAB_AK_18-security-dashboard.png" target="_blank"><img src="media/LAB_AK_18-security-dashboard.png" alt="Screenshot of Azure IoT Security Module"></a></p>
+  </li>
+  <li>
+    <p>On the left-side menu, under <strong>Security</strong>, to view the monitored resources, click <strong>Settings</strong> and then click <strong>Monitored Resources</strong></p>
+
+    <p>This pane lists all of the resources current monitored for your IoT Solution. At a glance, you can see the overall health of your resources across your IoT solution and can then drill into each resource and see more details. If you wish to add additional resources, you can click <strong>Edit</strong>, and then select a subscription and resource group from which to add.</p>
+
+    <blockquote>
+      <p><strong>IMPORTANT</strong>:
+The process that evaluates the security configuration of your IoT resources may take up to 24 hours to run, therefore the initial status displayed on the dashboard does not reflect the actual state of your resources.</p>
+    </blockquote>
+
+    <p>The image below shows the dashboard status once the security evaluation has been performed.</p>
+
+    <p><a href="media/LAB_AK_18-updated-security-dashboard.png" target="_blank"><img src="media/LAB_AK_18-updated-security-dashboard.png" alt="Updated Screenshot of Azure IoT Security Module"></a></p>
+  </li>
+</ol>
+
+<h3 id="exercise-7-introduce-custom-alerts">Exercise 7: Introduce custom alerts</h3>
+
+<p>Custom security groups and alerts can be used to take full advantage of the end-to-end security information and categorical device knowledge across your full IoT solution. This will help you to provide better security for your solution.</p>
+
+<h4 id="why-use-custom-alerts">Why use custom alerts?</h4>
+
+<p>You know your IoT devices better than an out-of-the-box algorithm.</p>
+
+<p>For customers who fully understand their expected device behavior, Azure Defender for IoT allows you to translate this understanding into a device behavior policy and alert on any deviation from expected, normal behavior.</p>
+
+<h4 id="task-1---customize-an-alert">Task 1 - Customize an alert</h4>
+
+<p>As mentioned above, customers that understand the specific desired behavior of their solution can configure custom alerts that trigger when the desired behavior is exceeded. In this exercise, you will create a custom alert that monitors <strong>Device to Cloud</strong> messages sent via the <strong>MQTT</strong> protocol.</p>
+
+<p>Under normal circumstances, Contoso’s cheese cave monitoring system will not be sending IoT Hub temperature and humidity data at a high rate. You expect each device to send between one and five device-to-cloud messages in a five minute period. This range accommodates the dusk time period when temperature could be changing more rapidly and more frequent data might be needed to ensure values don’t slip outside the established boundary values.</p>
+
+<p>In this task, you will create a custom alert.</p>
+
+<ol>
+  <li>
+    <p>On your Azure portal, navigate to your IoT Hub blade.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, under <strong>Security</strong>, click <strong>Settings</strong>.</p>
+
+    <p>The <strong>Settings Page</strong> lists the following areas:</p>
+
+    <ul>
+      <li>Data Collection</li>
+      <li>Recommendations Configuration</li>
+      <li>Monitored Resources</li>
+      <li>Custom Alerts</li>
+    </ul>
+  </li>
+  <li>
+    <p>To view the list of custom alerts, click <strong>Custom Alerts</strong>.</p>
+  </li>
+  <li>
+    <p>Take a moment to examine the <strong>Custom Alerts</strong> pane.</p>
+
+    <p>At first glance, it may appear that this pane is empty, but the item listed under <strong>Name</strong> is actually the <strong>default</strong> security group, which is created for you automatically.</p>
+
+    <p>Security groups enable you to define logical groups of devices, and manage their security state in a centralized way. These groups can represent devices with specific hardware, devices deployed in a certain location, or any other group suitable to your specific needs.</p>
+  </li>
+  <li>
+    <p>To add a custom alert to the default security group, click <strong>default</strong>.</p>
+
+    <p>The <strong>Device Security Group</strong> blade lists all active custom alerts. Since this is the first time you have visited this blade, it will be empty.</p>
+  </li>
+  <li>
+    <p>At the top of the blade, click <strong>Create custom alert rule</strong>.</p>
+
+    <p>The <strong>Create custom alert rule</strong> pane will open. Notice that the <strong>Device Security Group</strong> field is populated with the <strong>default</strong> group.</p>
+  </li>
+  <li>
+    <p>In the <strong>Custom Alert</strong> dropdown, click <strong>Number of device to cloud messages (MQTT protocol) is not in allowed range</strong>.</p>
+
+    <blockquote>
+      <p><strong>Tip</strong>:
+Review the the many custom alerts available. Consider how they can be used to secure your solution.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>:
+The <strong>Description</strong> and <strong>Required Properties</strong> will change depending upon the <strong>Custom Alert</strong> that is chosen.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Required Properties</strong>, in the <strong>Minimal Threshold</strong> field, enter <strong>1</strong>.</p>
+
+    <p>This satisfies the expectation that at least one message should be sent in a 5 minute period.</p>
+  </li>
+  <li>
+    <p>Under <strong>Maximal Threshold</strong>, enter <strong>5</strong>.</p>
+
+    <p>This satisfies the expectation that no more than five messages should be sent in a 5 minute period.</p>
+  </li>
+  <li>
+    <p>In the <strong>Time Window Size</strong> dropdown, click <strong>00:05:00</strong>.</p>
+
+    <p>This satisfies the five minute time period that was established.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:
+ There are 4 available time windows:</p>
+      <ul>
+        <li>5 minutes</li>
+        <li>10 minutes</li>
+        <li>15 minutes</li>
+        <li>30 minutes</li>
+      </ul>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the bottom of the <strong>Create custom alert rule</strong> pane, click <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>At the top of the <strong>default</strong> (Device Security Group) blade, click <strong>Save</strong>.</p>
+
+    <p>Without saving the new alert, the alert is deleted the next time you close IoT Hub.</p>
+
+    <p>You will be returned to the list of custom alerts. Below is an image that shows a number of custom alerts:</p>
+
+    <p><a href="media/LAB_AK_18-many-custom-alerts.png" target="_blank"><img src="media/LAB_AK_18-many-custom-alerts.png" alt="Many custom alerts"></a></p>
+  </li>
+</ol>
+
+<h3 id="exercise-8-configure-the-device-app">Exercise 8: Configure the Device App</h3>
+
+<p>In this exercise, you will configure an IoT Hub device and a .Net Core console application (C#) that will leverage the <strong>Microsoft.Azure.Devices.Client</strong> nuget package to connect to an IoT Hub. The console application will send telemetry every 10 seconds and is designed to exceed the Device to Cloud message threshold configured in the Custom Alert (that you created in the previous exercise).</p>
+
+<h4 id="task-1-register-new-iot-device">Task 1: Register New IoT Device</h4>
+
+<p>A device must be registered with your IoT hub before it can connect.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal menu, click <strong>Dashboard</strong>, and then open your&nbsp;IoT Hub.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, under&nbsp;<strong>Explorers</strong>, click&nbsp;<strong>IoT devices</strong>.</p>
+  </li>
+  <li>
+    <p>At the top of the <strong>IoT devices</strong> pane, click  <strong>+ New</strong></p>
+  </li>
+  <li>
+    <p>On the <strong>Create a device</strong> blade, under <strong>Device ID</strong>, enter <strong>sensor-th-0070</strong></p>
+
+    <p>You will be using <strong>symmetric Keys</strong> for authentication, so leave the other values at the defaults.</p>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>IoT devices</strong> pane, under <strong>Device ID</strong>, click <strong>sensor-th-0070</strong>.</p>
+
+    <p>You may need to click <strong>Load More</strong> in order to access the <strong>sensor-th-0070</strong> device.</p>
+  </li>
+  <li>
+    <p>To display the device twin, click <strong>Device Twin</strong>.</p>
+
+    <p>The existing device twin JSON will be displayed and will be similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"sensor-th-0070"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"etag"</span></span>: <span class="hljs-string"><span class="hljs-string">"AAAAAAAAAAE="</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceEtag"</span></span>: <span class="hljs-string"><span class="hljs-string">"Mjg2NzY5NzAw"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"enabled"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"statusUpdateTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"connectionState"</span></span>: <span class="hljs-string"><span class="hljs-string">"Disconnected"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"lastActivityTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"cloudToDeviceMessageCount"</span></span>: <span class="hljs-number"><span class="hljs-number">0</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"authenticationType"</span></span>: <span class="hljs-string"><span class="hljs-string">"sas"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"x509Thumbprint"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"primaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"secondaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"tags"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"SecurityGroup"</span></span>: <span class="hljs-string"><span class="hljs-string">"default"</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"desired"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2020-06-11T13:09:38.4712899Z"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"reported"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2020-06-11T13:09:38.4712899Z"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         }
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"capabilities"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"iotEdge"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>
+     }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>To add the device to the <strong>default</strong> security group, insert the following JSON between the <strong>version</strong> and <strong>properties</strong> fields:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-json hljs"> <span class="hljs-string"><span class="hljs-string">"tags"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"SecurityGroup"</span></span>: <span class="hljs-string"><span class="hljs-string">"default"</span></span>
+ },
+</code></pre>
+
+    <p>The resultant JSON will be similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"sensor-th-0070"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"etag"</span></span>: <span class="hljs-string"><span class="hljs-string">"AAAAAAAAAAE="</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceEtag"</span></span>: <span class="hljs-string"><span class="hljs-string">"Mjg2NzY5NzAw"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"enabled"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"statusUpdateTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"connectionState"</span></span>: <span class="hljs-string"><span class="hljs-string">"Disconnected"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"lastActivityTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"cloudToDeviceMessageCount"</span></span>: <span class="hljs-number"><span class="hljs-number">0</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"authenticationType"</span></span>: <span class="hljs-string"><span class="hljs-string">"sas"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"x509Thumbprint"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"primaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"secondaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"tags"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"SecurityGroup"</span></span>: <span class="hljs-string"><span class="hljs-string">"default"</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"desired"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2020-06-11T13:09:38.4712899Z"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"reported"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2020-06-11T13:09:38.4712899Z"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         }
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"capabilities"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"iotEdge"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>
+     }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>To apply the updated JSON, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Close the <strong>Device Twin</strong> pane and return to the <strong>sensor-th-0070</strong> detail view.</p>
+  </li>
+  <li>
+    <p>To the right of <strong>Primary connection string</strong>, click <strong>Copy</strong>, and then save the value to a text file.</p>
+
+    <p>Be sure to note that it is the connection string for the sensor-th-0070 device. You will need the connection string value for the device app.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-a-cave-device-app">Task 2: Configure a Cave Device App</h4>
+
+<ol>
+  <li>
+    <p>Open <strong>Visual Studio Code</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Open Folder</strong></p>
+  </li>
+  <li>
+    <p>In the Open Folder dialog, navigate to the Lab 18 Starter folder.</p>
+  </li>
+  <li>
+    <p>Click <strong>CaveDevice</strong>, and then click <strong>Select Folder</strong>.</p>
+
+    <p>You should see the following files listed in the EXPLORER pane of Visual Studio Code:</p>
+
+    <ul>
+      <li>Program.cs</li>
+      <li>CaveDevice.csproj</li>
+    </ul>
+  </li>
+  <li>
+    <p>Open the <strong>Program.cs</strong> file.</p>
+
+    <p>A cursory glance will reveal that the <strong>CaveDevice</strong> application is very similar to those used in the preceding labs. This version has an increased delay so that messages are sent every 10 seconds: <code>await Task.Delay(10000);</code></p>
+  </li>
+  <li>
+    <p>On the <strong>Terminal</strong> menu, click <strong>New Terminal</strong>.</p>
+
+    <p>Notice the directory path indicated as part of the command prompt. You do not want to start building this project within the folder structure of a previous lab project.</p>
+  </li>
+  <li>
+    <p>At the terminal command prompt, to verify the application builds, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-bash hljs">dotnet build
+</code></pre>
+
+    <p>The output will be similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-text"> ❯ dotnet build
+ Microsoft (R) Build Engine version 16.5.0+d4cbfca49 for .NET Core
+ Copyright (C) Microsoft Corporation. All rights reserved.
+
+ Restore completed in 39.27 ms for D:\Az220-Code\AllFiles\Labs\15-Remotely monitor and control devices with Azure IoT Hub\Starter\CheeseCaveDevice\CheeseCaveDevice.csproj.
+ CheeseCaveDevice -&gt; D:\Az220-Code\AllFiles\Labs\15-Remotely monitor and control devices with Azure IoT Hub\Starter\CheeseCaveDevice\bin\Debug\netcoreapp3.1\CheeseCaveDevice.dll
+
+ Build succeeded.
+     0 Warning(s)
+     0 Error(s)
+
+ Time Elapsed 00:00:01.16
+</code></pre>
+  </li>
+  <li>
+    <p>In the code editor pane, find the following line of code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> deviceConnectionString = <span class="hljs-string"><span class="hljs-string">"&lt;your device connection string&gt;"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Replace <code>&lt;your device connection string&gt;</code> with the Primary Connection String for the sensor-th-0070 device.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>At the Terminal command prompt, to build and run the application, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-bash hljs"> dotnet run
+</code></pre>
+  </li>
+  <li>
+    <p>Verify that telemetry messages are bing sent to IoT hub successfully.</p>
+
+    <p>The output should be similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-text"> IoT Hub C# Simulated Thermostat Device. CTRL+C to exit.
+
+ 2/28/2020 1:32:21 PM &gt; Sending message: {"temperature":25.7199231282435,"humidity":79.50078555359542}
+ 2/28/2020 1:32:31 PM &gt; Sending message: {"temperature":21.877205091005752,"humidity":61.30029373862794}
+ 2/28/2020 1:32:41 PM &gt; Sending message: {"temperature":21.245898961204055,"humidity":71.36471955634873}
+ 2/28/2020 1:32:51 PM &gt; Sending message: {"temperature":32.61750500072609,"humidity":66.07430422961447}
+ 2/28/2020 1:33:01 PM &gt; Sending message: {"temperature":31.100763578946125,"humidity":79.93955616836416}
+ 2/28/2020 1:33:11 PM &gt; Sending message: {"temperature":25.02041019034591,"humidity":70.50569472392355}
+</code></pre>
+
+    <p>You can leave the app running for the remainder of this lab to generate multiple alerts.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-9-review-azure-defender-for-iot-alerts">Exercise 9: Review Azure Defender for IoT Alerts</h3>
+
+<p>At this point, your console app will have sent enough telemetry to trigger the Custom Alert created earlier.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>:
+The alert was set up to trigger if less than 1 and more than 5 messages where sent from a device to the cloud within a 5 minute time window.</p>
+</blockquote>
+
+<h4 id="task-1-review-the-azure-defender-for-iot-dashboard">Task 1: Review the Azure Defender for IoT Dashboard</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal menu, click <strong>Dashboard</strong> and then open your&nbsp;IoT Hub.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, under <strong>Security</strong>, click <strong>Overview</strong>.</p>
+
+    <p>Take a look at the <strong>Threat detection</strong> section. You should see one or more alerts displayed in the <strong>Device security alerts</strong> chart:</p>
+
+    <p><a href="media/LAB_AK_18-device-security-alert-chart.png" target="_blank"><img src="media/LAB_AK_18-device-security-alert-chart.png" alt="Device security alert chart"></a></p>
+
+    <p>You should also see an entry for the <strong>sensor-th-0070</strong> device in the <strong>Devices with the most alerts</strong> tile:</p>
+
+    <p><a href="media/LAB_AK_18-devices-with-most-alerts-tile.png" target="_blank"><img src="media/LAB_AK_18-devices-with-most-alerts-tile.png" alt="Devices with the most alerts tile"></a></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: It can take up to 30 minutes for alerts to be displayed on the dashboard.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Threat detection</strong>, click the <strong>Devices with the most alerts</strong> tile.</p>
+
+    <p>This will open the same <strong>Alerts</strong> blade as you would see if you were to click <strong>Security Alerts</strong> under <strong>Security</strong> on the left-side menu.</p>
+
+    <p>You will see a list of Security Alerts:</p>
+
+    <p><a href="media/LAB_AK_18-security-alert-list.png" target="_blank"><img src="media/LAB_AK_18-security-alert-list.png" alt="Security Alert List"></a></p>
+
+    <p>The latest alerts will be marked with a <strong>NEW</strong> label.</p>
+  </li>
+  <li>
+    <p>Click the latest alert.</p>
+
+    <p>A detail pane will open. The <strong>General information</strong> provides high-level information concerning the alert. Beneath this, the <strong>Last 10 Affected Devices</strong> should list the <strong>sensor-th-0070</strong> device.</p>
+
+    <p><a href="media/LAB_AK_18-custom-alert-details-pane.png" target="_blank"><img src="media/LAB_AK_18-custom-alert-details-pane.png" alt="Custom Alert Details Pane"></a></p>
+  </li>
+  <li>
+    <p>Return to Visual Studio Code and exit the device app.</p>
+
+    <p>You can close the app by placing input focus on the Terminal window and pressing <strong>CTRL+C</strong>.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.js"></script>
+
+
+
+</body></html>

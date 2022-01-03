@@ -1,0 +1,535 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m01-unit-4-design-and-implement-a-virtual-network-in-azure">M01-Unit 4 Design and implement a Virtual Network in Azure</h1>
+
+<h2 id="exercise-scenario">Exercise scenario</h2>
+
+<p>Now you’re ready to deploy virtual networks in the Azure portal.</p>
+
+<p>Consider the fictional organization Contoso Ltd, which is in the process of migrating infrastructure and applications to Azure. In your role as network engineer, you must plan and implement three virtual networks and subnets to support resources in those virtual networks.</p>
+
+<p>The <strong>CoreServicesVnet</strong> virtual network is deployed in the <strong>East US</strong> region. This virtual network will have the largest number of resources. It will have connectivity to on-premises networks through a VPN connection. This network will have web services, databases, and other systems that are key to the operations of the business. Shared services, such as domain controllers and DNS also will be located here. A large amount of growth is anticipated, so a large address space is necessary for this virtual network.</p>
+
+<p>The <strong>ManufacturingVnet</strong> virtual network is deployed in the <strong>West Europe</strong> region, near the location of your organization’s manufacturing facilities. This virtual network will contain systems for the operations of the manufacturing facilities. The organization is anticipating a large number of internal connected devices for their systems to retrieve data from, such as temperature, and will need an IP address space that it can expand into.</p>
+
+<p>The <strong>ResearchVnet</strong> virtual network is deployed in the <strong>Southeast Asia</strong> region, near the location of the organization’s research and development team. The research and development team uses this virtual network. The team has a small, stable set of resources that is not expected to grow. The team needs a small number of IP addresses for a few virtual machines for their work.</p>
+
+<p><a href="../media/design-implement-vnet-peering.png" target="_blank"><img src="../media/design-implement-vnet-peering.png" alt="Network layout for Contoso. 
+On-premises 10.10.0.0/16
+ResearchVNet Southeast Asia 10.40.40.0/24
+CoreServicesVNet East US 10.20.0.0/16
+ManufacturingVNet West Europe 10.30.0.0/16
+"></a></p>
+
+<p>You will create the following resources:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Virtual Network</strong></th>
+      <th><strong>Region</strong></th>
+      <th><strong>Virtual network address space</strong></th>
+      <th><strong>Subnet</strong></th>
+      <th><strong>Subnet</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CoreServicesVnet</td>
+      <td>East US</td>
+      <td>10.20.0.0/16</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>GatewaySubnet</td>
+      <td>10.20.0.0/27</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>SharedServicesSubnet</td>
+      <td>10.20.10.0/24</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>DatabaseSubnet</td>
+      <td>10.20.20.0/24</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>PublicWebServiceSubnet</td>
+      <td>10.20.30.0/24</td>
+    </tr>
+    <tr>
+      <td>ManufacturingVnet</td>
+      <td>West Europe</td>
+      <td>10.30.0.0/16</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>ManufacturingSystemSubnet</td>
+      <td>10.30.10.0/24</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>SensorSubnet1</td>
+      <td>10.30.20.0/24</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>SensorSubnet2</td>
+      <td>10.30.21.0/24</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>SensorSubnet3</td>
+      <td>10.30.22.0/24</td>
+    </tr>
+    <tr>
+      <td>ResearchVnet</td>
+      <td>Southeast Asia</td>
+      <td>10.40.0.0/16</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>ResearchSystemSubnet</td>
+      <td>10.40.0.0/24</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>These virtual networks and subnets are structured in a way that accommodates existing resources yet allows for projected growth. Let’s create these virtual networks and subnets to lay the foundation for our networking infrastructure.</p>
+
+<p>In this exercise, you will:</p>
+
+<ul>
+  <li>Task 1: Create the Contoso resource group</li>
+  <li>Task 2: Create the CoreServicesVnet virtual network and subnets</li>
+  <li>Task 3: Create the ManufacturingVnet virtual network and subnets</li>
+  <li>Task 4: Create the ResearchVnet virtual network and subnets</li>
+  <li>Task 5: Verify the creation of VNets and Subnets</li>
+</ul>
+
+<h2 id="task-1-create-the-contoso-resource-group">Task 1: Create the Contoso resource group</h2>
+
+<ol>
+  <li>
+    <p>Go to <a href="https://portal.azure.com/">Azure portal</a>.</p>
+  </li>
+  <li>
+    <p>On the home page, under <strong>Azure services</strong>, select <strong>Resource groups</strong>.</p>
+  </li>
+  <li>
+    <p>In Resource groups, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>Use the information in the following table to create the resource group.</p>
+  </li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Tab</strong></th>
+      <th><strong>Option</strong></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Basics</td>
+      <td>Resource group</td>
+      <td>ContosoResourceGroup</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Region</td>
+      <td>(US) East US</td>
+    </tr>
+    <tr>
+      <td>Tags</td>
+      <td>No changes required</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Review + create</td>
+      <td>Review your settings and select <strong>Create</strong></td>
+      <td>&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li>In Resource groups, verify that <strong>ContosoResourceGroup</strong> appears in the list.</li>
+</ol>
+
+<h2 id="task-2-create-the-coreservicesvnet-virtual-network-and-subnets">Task 2: Create the CoreServicesVnet virtual network and subnets</h2>
+
+<ol>
+  <li>On the Azure portal home page, navigate to the Global Search bar and search <strong>Virtual Networks</strong> and select virtual networks under services.  <a href="../media/global-search-bar.PNG" target="_blank"><img src="../media/global-search-bar.PNG" alt="Azure portal home page Global Search bar results for virtual network."></a></li>
+  <li>Select <strong>Create</strong> on the Virtual networks page.  <a href="../media/create-virtual-network.png" target="_blank"><img src="../media/create-virtual-network.png" alt="Create a virtual network wizard."></a></li>
+  <li>Use the information in the following table to create the CoreServicesVnet virtual network.<br>
+‎Remove or overwrite the default IP Address space<a href="../media/default-vnet-ip-address-range-annotated.png" target="_blank"><img src="../media/default-vnet-ip-address-range-annotated.png" alt="ip address configuration for azure virtual network deployment "></a></li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Tab</strong></th>
+      <th><strong>Option</strong></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Basics</td>
+      <td>Resource Group</td>
+      <td>ContosoResourceGroup</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Name</td>
+      <td>CoreServicesVnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Region</td>
+      <td>(US) East US</td>
+    </tr>
+    <tr>
+      <td>IP Addresses</td>
+      <td>IPv4 address space</td>
+      <td>10.20.0.0/16</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li>
+    <p>Use the information in the following table to create the CoreServicesVnet subnets.</p>
+  </li>
+  <li>
+    <p>To begin creating each subnet, select <strong>+ Add subnet</strong>. To finish creating each subnet, select <strong>Add</strong>.</p>
+  </li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Subnet</strong></th>
+      <th><strong>Option</strong></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>GatewaySubnet</td>
+      <td>Subnet name</td>
+      <td>GatewaySubnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet address range</td>
+      <td>10.20.0.0/27</td>
+    </tr>
+    <tr>
+      <td>SharedServicesSubnet</td>
+      <td>Subnet name</td>
+      <td>SharedServicesSubnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet address range</td>
+      <td>10.20.10.0/24</td>
+    </tr>
+    <tr>
+      <td>DatabaseSubnet</td>
+      <td>Subnet name</td>
+      <td>DatabaseSubnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet address range</td>
+      <td>10.20.20.0/24</td>
+    </tr>
+    <tr>
+      <td>PublicWebServiceSubnet</td>
+      <td>Subnet name</td>
+      <td>PublicWebServiceSubnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet address range</td>
+      <td>10.20.30.0/24</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li>
+    <p>To finish creating the CoreServicesVnet and its associated subnets, select <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Verify your configuration passed validation, and then select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>Repeat steps 1 -8 for each VNet based on the tables below</p>
+  </li>
+</ol>
+
+<h2 id="task-3-create-the-manufacturingvnet-virtual-network-and-subnets">Task 3: Create the ManufacturingVnet virtual network and subnets</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Tab</strong></th>
+      <th><strong>Option</strong></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Basics</td>
+      <td>Resource Group</td>
+      <td>ContosoResourceGroup</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Name</td>
+      <td>ManufacturingVnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Region</td>
+      <td>(Europe) West Europe</td>
+    </tr>
+    <tr>
+      <td>IP Addresses</td>
+      <td>IPv4 address space</td>
+      <td>10.30.0.0/16</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Subnet</strong></th>
+      <th><strong>Option</strong></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ManufacturingSystemSubnet</td>
+      <td>Subnet name</td>
+      <td>ManufacturingSystemSubnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet address range</td>
+      <td>10.30.10.0/24</td>
+    </tr>
+    <tr>
+      <td>SensorSubnet1</td>
+      <td>Subnet name</td>
+      <td>SensorSubnet1</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet address range</td>
+      <td>10.30.20.0/24</td>
+    </tr>
+    <tr>
+      <td>SensorSubnet2</td>
+      <td>Subnet name</td>
+      <td>SensorSubnet2</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet address range</td>
+      <td>10.30.21.0/24</td>
+    </tr>
+    <tr>
+      <td>SensorSubnet3</td>
+      <td>Subnet name</td>
+      <td>SensorSubnet3</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet address range</td>
+      <td>10.30.22.0/24</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="task-4-create-the-researchvnet-virtual-network-and-subnets">Task 4: Create the ResearchVnet virtual network and subnets</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Tab</strong></th>
+      <th><strong>Option</strong></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Basics</td>
+      <td>Resource Group</td>
+      <td>ContosoResourceGroup</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Name</td>
+      <td>ResearchVnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Region</td>
+      <td>Southeast Asia</td>
+    </tr>
+    <tr>
+      <td>IP Addresses</td>
+      <td>IPv4 address space</td>
+      <td>10.40.0.0/16</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Subnet</strong></th>
+      <th><strong>Option</strong></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ResearchSystemSubnet</td>
+      <td>Subnet name</td>
+      <td>ResearchSystemSubnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet address range</td>
+      <td>10.40.0.0/24</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="task-5-verify-the-creation-of-vnets-and-subnets">Task 5: Verify the creation of VNets and Subnets</h2>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, select <strong>All resources</strong>.</p>
+  </li>
+  <li>
+    <p>Verify that the CoreServicesVnet, ManufacturingVnet, and ResearchVnet are listed.</p>
+  </li>
+  <li>
+    <p>Note that Azure creates NetworkWatchers for each region that you use.</p>
+  </li>
+  <li>
+    <p>Select <strong>CoreServicesVnet</strong>.</p>
+  </li>
+  <li>
+    <p>In CoreServicesVnet, under <strong>Settings</strong>, select <strong>Subnets</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>In CoreServicesVnet</td>
+          <td>Subnets, verify that the subnets you created are listed, and that the IP address ranges are correct.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a href="../media/verify-subnets-annotated.png" target="_blank"><img src="../media/verify-subnets-annotated.png" alt="List of subnets in CoreServicesVnet."></a></p>
+  </li>
+  <li>Repeat steps 4 -6 for each VNet.</li>
+</ol>
+
+<p>Congratulations! You have successfully created a resource group, three VNets, and their associated subnets.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

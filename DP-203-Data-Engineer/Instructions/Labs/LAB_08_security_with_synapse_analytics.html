@@ -1,0 +1,381 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            DP-203-Data-Engineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D928deb11f009d00944c1feae30c16de739b6478a.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                DP-203-Data-Engineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/DP-203-Data-Engineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#task-1---observing-the-sql-active-directory-admin">Task 1 - Observing the SQL Active Directory admin</a></li><li class="nav-item"><a class="nav-link" href="#task-2---manage-ip-firewall-rules">Task 2 - Manage IP firewall rules</a></li><li class="nav-item"><a class="nav-link" href="#task-1---managing-secrets-with-azure-key-vault">Task 1 - Managing secrets with Azure Key Vault</a></li><li class="nav-item"><a class="nav-link" href="#task-2---use-azure-key-vault-for-secrets-when-creating-linked-services">Task 2 - Use Azure Key Vault for secrets when creating Linked Services</a></li><li class="nav-item"><a class="nav-link" href="#task-3---secure-workspace-pipeline-runs">Task 3 - Secure workspace pipeline runs</a></li><li class="nav-item"><a class="nav-link" href="#task-4---secure-azure-synapse-analytics-dedicated-sql-pools">Task 4 - Secure Azure Synapse Analytics dedicated SQL pools</a></li><li class="nav-item"><a class="nav-link" href="#task-1---column-level-security">Task 1 - Column Level Security</a></li><li class="nav-item"><a class="nav-link" href="#task-2---row-level-security">Task 2 - Row level security</a></li><li class="nav-item"><a class="nav-link" href="#task-3---dynamic-data-masking">Task 3 - Dynamic data masking</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-8---end-to-end-security-with-azure-synapse-analytics">Lab 8 - End-to-end security with Azure Synapse Analytics</h1>
+
+<p>In this lab, you will learn how to secure a Synapse Analytics workspace and its supporting infrastructure. You will observe the SQL Active Directory Admin, manage IP firewall rules, manage secrets with Azure Key Vault and access those secrets through a Key Vault linked service and pipeline activities. You will understand how to implement column-level security, row-level security, and dynamic data masking when using dedicated SQL pools.</p>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ul>
+  <li>Secure Azure Synapse Analytics supporting infrastructure</li>
+  <li>Secure the Azure Synapse Analytics workspace and managed services</li>
+  <li>Secure Azure Synapse Analytics workspace data</li>
+</ul>
+
+<p>This lab will guide you through several  security-related steps that cover an end-to-end security story for Azure Synapse Analytics. Some key take-aways from this lab are:</p>
+
+<ol>
+  <li>
+    <p>Leverage Azure Key Vault to store sensitive connection information, such as access keys and passwords for linked services as well as in pipelines.</p>
+  </li>
+  <li>
+    <p>Introspect the data that is contained within the SQL Pools in the context of potential sensitive/confidential data disclosure. Identify the columns representing sensitive data, then secure them by adding column-level security. Determine at the table level what data should be hidden from specific groups of users then define security predicates to apply row level security (filters) on the table. If desired, you also have the option of applying Dynamic Data Masking to mask sensitive data returned in queries on a column by column basis.</p>
+  </li>
+</ol>
+
+<h2 id="lab-setup-and-pre-requisites">Lab setup and pre-requisites</h2>
+
+<p>Before starting this lab, you must complete at least the setup steps in <strong>Lab 4: <em>Explore, transform, and load data into the Data Warehouse using Apache Spark</em></strong>.</p>
+
+<p>This lab uses the dedicated SQL pool you created in the previous lab. You should have paused the SQL pool at the end of the previous lab, so resume it by following these instructions:</p>
+
+<ol>
+  <li>Open Azure Synapse Studio (<a href="https://web.azuresynapse.net/">https://web.azuresynapse.net/</a>).</li>
+  <li>Select the <strong>Manage</strong> hub.</li>
+  <li>
+    <p>Select <strong>SQL pools</strong> in the left-hand menu. If the <strong>SQLPool01</strong> dedicated SQL pool is paused, hover over its name and select <strong>▷</strong>.</p>
+
+    <p><a href="images/resume-dedicated-sql-pool.png" target="_blank"><img src="images/resume-dedicated-sql-pool.png" alt="The resume button is highlighted on the dedicated SQL pool." title="Resume"></a></p>
+  </li>
+  <li>When prompted, select <strong>Resume</strong>. It will take a minute or two to resume the pool.</li>
+  <li>Continue to the next exercise while the dedicated SQL pool resumes.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Important:</strong> Once started, a dedicated SQL pool consumes credits in your Azure subscription until it is paused. If you take a break from this lab, or decide not to complete it; follow the instructions at the end of the lab to pause your SQL pool!</p>
+</blockquote>
+
+<h2 id="exercise-1---securing-azure-synapse-analytics-supporting-infrastructure">Exercise 1 - Securing Azure Synapse Analytics supporting infrastructure</h2>
+
+<p>Azure Synapse Analytics (ASA) is a powerful solution that handles security for many of the resources that it creates and manages. In order to run ASA, however, some foundational security measures need to be put in place to ensure the infrastructure that it relies upon is secure. In this exercise, we will walk through securing the supporting infrastructure of ASA.</p>
+
+<h3 id="task-1---observing-the-sql-active-directory-admin">Task 1 - Observing the SQL Active Directory admin</h3>
+
+<p>The SQL Active Directory Admin can be a user (the default) or group (best practice so that more than one user can be provided these permissions) security principal. The principal assigned to this will have administrative permissions to the SQL Pools contained in the workspace.</p>
+
+<ol>
+  <li>
+    <p>In the Azure Portal (<a href="https://portal.azure.com">https://portal.azure.com</a>), browse to your lab resource group, and from the list of resources open your Synapse workspace (do not launch Synapse Studio).</p>
+  </li>
+  <li>
+    <p>On the left menu, select <strong>SQL Active Directory admin</strong> and observe who is listed as a SQL Active Directory Admin. Is it a user or group?</p>
+
+    <p><a href="images/lab5_workspacesqladadmin.png" target="_blank"><img src="images/lab5_workspacesqladadmin.png" alt="On the SQL Active Directory Admin screen, SQL Active Directory admin is selected from the left menu, and the Active Directory Admin is highlighted."></a></p>
+  </li>
+</ol>
+
+<h3 id="task-2---manage-ip-firewall-rules">Task 2 - Manage IP firewall rules</h3>
+
+<p>Having robust Internet security is a must for every technology system. One way to mitigate internet threat vectors is by reducing the number of public IP addresses that can access the Azure Synapse Analytics Workspace through the use of IP firewall rules. The Azure Synapse Analytics workspace will then delegate those same rules to all managed public endpoints of the workspace, including those for SQL pools and SQL Serverless endpoints.</p>
+
+<ol>
+  <li>
+    <p>In the Azure Portal,  on the blade for your Synapse workspace, select <strong>Networking</strong>.</p>
+  </li>
+  <li>
+    <p>Notice that an IP Firewall rule of <strong>Allow All</strong> has already been created for you in the lab environment. If you wanted to add your specific IP address you would instead select <strong>+ Add Client IP</strong> from the taskbar menu (you do not need to do this now).</p>
+
+    <p><a href="images/lab5_synapsefirewalladdclientipmenu.png" target="_blank"><img src="images/lab5_synapsefirewalladdclientipmenu.png" alt="On the Synapse Workspace screen, the + Add Client IP button is selected from the toolbar menu."></a></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: When connecting to Synapse from your local network, certain ports need to be open. To support the functions of Synapse Studio, ensure outgoing TCP ports 80, 443, and 1143, and UDP port 53 are open.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="exercise-2---securing-the-azure-synapse-analytics-workspace-and-managed-services">Exercise 2 - Securing the Azure Synapse Analytics workspace and managed services</h2>
+
+<h3 id="task-1---managing-secrets-with-azure-key-vault">Task 1 - Managing secrets with Azure Key Vault</h3>
+
+<p>When dealing with connectivity to external data sources and services, sensitive connection information such as passwords and access keys should be properly handled. It is recommended that this type of information be stored in an Azure Key Vault. Leveraging Azure Key Vault not only protects against secrets being compromised, it also serves as a central source of truth; meaning that if a secret value needs to be updated (such as when cycling access keys on a storage account), it can be changed in one place and all services consuming this key will start pulling the new value immediately. Azure Key Vault encrypts and decrypts information transparently using 256-bit AES encryption, which is FIPS 140-2 compliant.</p>
+
+<ol>
+  <li>
+    <p>In the Azure Portal, open the resource group for this lab, and from the list of resources, select the <strong>Key vault</strong> resource.</p>
+
+    <p><a href="images/resource-group-key-vault.png" target="_blank"><img src="images/resource-group-key-vault.png" alt="Key vault is selected in the resource group." title="Key vault"></a></p>
+  </li>
+  <li>
+    <p>On the left menu, under Settings, select <strong>Access Policies</strong>.</p>
+  </li>
+  <li>
+    <p>Observe that Managed Service Identity (MSI) representing your Synapse workspace (it has a name similar to <strong>asaworkspace<em>xxxxxxx</em></strong>) has already been listed under Application and it has 4 selected Secret Management Operations.</p>
+
+    <p><a href="images/key-vault-access-policies.png" target="_blank"><img src="images/key-vault-access-policies.png" alt="The Synapse workspace account and its assigned secret permissions are highlighted." title="Access policies"></a></p>
+  </li>
+  <li>
+    <p>Select the drop-down that reads <strong>4 selected</strong> under <strong>Secret Management Operations</strong>, observe that <strong>Get</strong> (which allows your workspace to retrieve the values of secrets from Key Vault) and <strong>List</strong> (which allows your workspace to enumerate secrets) are set.</p>
+  </li>
+</ol>
+
+<h3 id="task-2---use-azure-key-vault-for-secrets-when-creating-linked-services">Task 2 - Use Azure Key Vault for secrets when creating Linked Services</h3>
+
+<p>Linked Services are synonymous with connection strings in Azure Synapse Analytics. Azure Synapse Analytics linked services provides the ability to connect to nearly 100 different types of external services ranging from Azure Storage Accounts to Amazon S3 and more. When connecting to external services, having secrets related to connection information is almost guaranteed. The best place to store these secrets is the Azure Key Vault. Azure Synapse Analytics provides the ability to configure all linked service connections with values from Azure Key Vault.</p>
+
+<p>In order to leverage Azure Key Vault in linked services, you must first add your key vault resource as a linked service in Azure Synapse Analytics.</p>
+
+<ol>
+  <li>
+    <p>In Azure Synapse Studio, select the <strong>Manage</strong> hub from the left menu.</p>
+
+    <p><a href="images/manage-hub.png" target="_blank"><img src="images/manage-hub.png" alt="The Manage hub is selected." title="Manage hub"></a></p>
+  </li>
+  <li>
+    <p>Beneath <strong>External Connections</strong>, select <strong>Linked Services</strong>, observe that a Linked Service pointing to your Key Vault has been created in the environment.</p>
+
+    <p><a href="images/key-vault-linked-service.png" target="_blank"><img src="images/key-vault-linked-service.png" alt="The Key Vault linked service is highlighted." title="Key Vault linked service"></a></p>
+  </li>
+</ol>
+
+<p>Since we have the Azure Key Vault set up as a linked service, we can leverage it when defining new linked services. Every New linked service provides the option to retrieve secrets from Azure Key Vault. The form requests the selection of the Azure Key Vault linked service, the secret name, and (optional) specific version of the secret.</p>
+
+<p><a href="images/lab5_newlinkedservicewithakv.png" target="_blank"><img src="images/lab5_newlinkedservicewithakv.png" alt="A New linked service form is displayed with the Azure Key Vault setting highlighted with the fields described in the preceding paragraph."></a></p>
+
+<h3 id="task-3---secure-workspace-pipeline-runs">Task 3 - Secure workspace pipeline runs</h3>
+
+<p>It is recommended to store any secrets that are part of your pipeline in Azure Key Vault. In this task you will retrieve these values using a Web activity, just to show the mechanics. The second part of this task demonstrates using a Web activity in the pipeline to retrieve a secret from the Key Vault.</p>
+
+<ol>
+  <li>
+    <p>Return to the Azure portal.</p>
+  </li>
+  <li>
+    <p>In the blade for your <strong>asakeyvault<em>xxxxxxx</em></strong> Azure Key Vault resource, and select <strong>Secrets</strong> from the left menu. Then, in the top toolbar, select <strong>+ Generate/Import</strong>.</p>
+
+    <p><a href="images/lab5_pipelinekeyvaultsecretmenu.png" target="_blank"><img src="images/lab5_pipelinekeyvaultsecretmenu.png" alt="In Azure Key Vault, Secrets is selected from the left menu, and + Generate/Import is selected from the top toolbar."></a></p>
+  </li>
+  <li>
+    <p>Create a secret, with the name <code>PipelineSecret</code> and assign it a value of <code>IsNotASecret</code>, and select the <strong>Create</strong> button.</p>
+
+    <p><a href="images/lab5_keyvaultcreatesecretforpipeline.png" target="_blank"><img src="images/lab5_keyvaultcreatesecretforpipeline.png" alt="The Create a secret form is displayed populated with the specified values."></a></p>
+  </li>
+  <li>
+    <p>Open the secret that you just created, drill into the current version, and copy the value in the Secret Identifier field. Save this value in a text editor, or retain it in your clipboard for a future step.</p>
+
+    <p><a href="images/lab5_keyvaultsecretidentifier.png" target="_blank"><img src="images/lab5_keyvaultsecretidentifier.png" alt="On the Secret Version form, the Copy icon is selected next to the Secret Identifier text field."></a></p>
+  </li>
+  <li>
+    <p>Switch back to Synapse Studio, then select the <strong>Integrate</strong> hub from the left menu.</p>
+
+    <p><a href="images/integrate-hub.png" target="_blank"><img src="images/integrate-hub.png" alt="Integrate hub." title="Integrate hub"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Integrate</strong> pane, in the <strong>+</strong> menu, select <strong>Pipeline</strong>.</p>
+
+    <p><a href="images/new-pipeline.png" target="_blank"><img src="images/new-pipeline.png" alt="On the Integrate blade the + button is expanded with the Pipeline item selected beneath it."></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Pipeline</strong> tab, in the <strong>Activities</strong> pane search for <strong>Web</strong> and then drag an instance of a <strong>Web</strong> activity to the design area.</p>
+
+    <p><a href="images/lab5_pipelinewebactivitynew.png" target="_blank"><img src="images/lab5_pipelinewebactivitynew.png" alt="In the Activities pane, Web is entered into the search field. Under General, the Web activity is displayed in the search results. An arrow indicates the drag and drop movement of the activity to the design surface of the pipeline. The Web activity is displayed on the design surface."></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>Web1</strong> web activity, and select the <strong>Settings</strong> tab. Fill out the form as follows:</p>
+
+    <ol>
+      <li>
+        <p><strong>URL</strong>: Paste the Key Vault Secret Identifier value you copied in step 4 above, then <strong>append</strong> <code>?api-version=7.1</code> to to the end of this value. For example, it should look something like: <code>https://asakeyvaultNNNNN.vault.azure.net/secrets/PipelineSecret/f808d4fa99d84861872010f6c8d25c68?api-version=7.1</code>.</p>
+      </li>
+      <li>
+        <p><strong>Method</strong>: Select <strong>Get</strong>.</p>
+      </li>
+      <li>
+        <p>Expand the <strong>Advanced</strong> section, and for <strong>Authentication</strong> select <strong>Managed Identity</strong>. We have already established an Access Policy for the Managed Service Identity of our Synapse workspace, this means that the pipeline activity has permissions to access the key vault via an HTTP call.</p>
+      </li>
+      <li>
+        <p><strong>Resource</strong>: Enter <strong><a href="https://vault.azure.net">https://vault.azure.net</a></strong></p>
+
+        <p><a href="images/lab5_pipelineconfigurewebactivity.png" target="_blank"><img src="images/lab5_pipelineconfigurewebactivity.png" alt="The Web Activity Settings tab is selected and the form is populated with the values indicated above."></a></p>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>From the Activities pane, add a <strong>Set variable</strong> activity to the design surface of the pipeline.</p>
+
+    <p><a href="images/pipeline-activities-set-variable.png" target="_blank"><img src="images/pipeline-activities-set-variable.png" alt="An arrow goes from the set variable item under Activities to the pipeline canvas." title="Activities: Set variable"></a></p>
+  </li>
+  <li>
+    <p>On the design surface of the pipeline, select the <strong>Web1</strong> activity and drag a <strong>Success</strong> activity pipeline connection (green box) to the <strong>Set variable1</strong> activity.</p>
+  </li>
+  <li>
+    <p>With the pipeline selected in the designer (e.g., neither of the activities are selected), select the <strong>Variables</strong> tab and add a new <strong>String</strong> parameter named <strong><code>SecretValue</code></strong>.</p>
+
+    <p><a href="images/lab5_newpipelinevariable.png" target="_blank"><img src="images/lab5_newpipelinevariable.png" alt="The design surface of the pipeline is shown with a new pipeline arrow connecting the Web1 and Set variable1 activities. The pipeline is selected, and beneath the design surface, the Variables tab is selected with a variable with the name of SecretValue highlighted."></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>Set variable1</strong> activity and select the <strong>Variables</strong> tab. Fill out the form as follows:</p>
+
+    <ol>
+      <li>
+        <p><strong>Name</strong>: Select <strong>SecretValue</strong> (the variable that we just created).</p>
+      </li>
+      <li>
+        <p><strong>Value</strong>: Enter <code>@activity('Web1').output.value</code></p>
+
+        <p><a href="images/lab5_pipelineconfigsetvaractivity.png" target="_blank"><img src="images/lab5_pipelineconfigsetvaractivity.png" alt="On the pipeline designer, the Set Variable1 activity is selected. Below the designer, the Variables tab is selected with the form set the previously specified values."></a></p>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>Debug the pipeline by selecting <strong>Debug</strong> from the toolbar menu. When it runs observe the inputs and outputs of both activities from the <strong>Output</strong> tab of the pipeline.</p>
+
+    <p><a href="images/lab5_pipelinedebugmenu.png" target="_blank"><img src="images/lab5_pipelinedebugmenu.png" alt="The pipeline toolbar is displayed with the Debug item highlighted."></a></p>
+
+    <p><a href="images/lab5_pipelinesetvariableactivityinputresults.png" target="_blank"><img src="images/lab5_pipelinesetvariableactivityinputresults.png" alt="In the output of the pipeline, the Set variable 1 activity is selected with its input displayed. The input shows the value of NotASecret that was pulled from the key vault being assigned to the SecretValue pipeline variable."></a></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: On the <strong>Web1</strong> activity, on the <strong>General</strong> tab there is a <strong>Secure Output</strong> checkbox that when checked will prevent the secret value from being logged in plain text, for instance in the pipeline run, you would see a masked value <strong>*** instead of the actual value retrieved from the Key vault. Any activity that consumes this value should also have their **Secure Input</strong> checkbox checked.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-4---secure-azure-synapse-analytics-dedicated-sql-pools">Task 4 - Secure Azure Synapse Analytics dedicated SQL pools</h3>
+
+<p>Transparent Data Encryption (TDE) is a feature of SQL Server that provides encryption and decryption of data at rest, this includes: databases, log files, and back ups. When using this feature with Synapse Analytics dedicated SQL pools, it will use a built-in symmetric Database Encryption Key (DEK) that is provided by the pool itself. With TDE, all stored data is encrypted on disk, when the data is requested, TDE will decrypt this data at the page level as it’s read into memory, and vice-versa encrypting in-memory data before it gets written back to disk. As with the name, this happens transparently without affecting any application code. When creating a dedicated SQL pool through Synapse Analytics, Transparent Data Encryption is not enabled. The first part of this task will show you how to enable this feature.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>Azure Portal</strong>, open your resource group, then locate and open the <strong>SqlPool01</strong> dedicated SQL pool resource.</p>
+
+    <p><a href="images/resource-group-sqlpool01.png" target="_blank"><img src="images/resource-group-sqlpool01.png" alt="The SQLPool01 resource is highlighted in the Resource Group." title="Resource Group: SQLPool01"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>SQL pool</strong> resource blade, select <strong>Transparent data encryption</strong> from the left-hand menu. <strong>DO NOT</strong> turn on data encryption.</p>
+
+    <p><a href="images/tde-form.png" target="_blank"><img src="images/tde-form.png" alt="On the SQL pool resource screen, Transparent data encryption is selected from the menu."></a></p>
+
+    <p>By default, this option is turned off. When you enable data encryption on this dedicated SQL pool, the pool is taken offline for a few minutes while TDE is applied.</p>
+  </li>
+</ol>
+
+<h2 id="exercise-3---securing-azure-synapse-analytics-workspace-data">Exercise 3 - Securing Azure Synapse Analytics workspace data</h2>
+
+<h3 id="task-1---column-level-security">Task 1 - Column Level Security</h3>
+
+<p>It is important to identify data columns that hold sensitive information. Types of sensitive could be social security numbers, email addresses, credit card numbers, financial totals, and more. Azure Synapse Analytics allows you define permissions that prevent users or roles select privileges on specific columns.</p>
+
+<ol>
+  <li>In <strong>Azure Synapse Studio</strong>, in the <strong>Develop</strong> hub, expand the <strong>SQL scripts</strong> section, and select <strong>Column Level Security</strong>.</li>
+  <li>In the toolbar, connect to the <strong>SQLPool01</strong> database.</li>
+  <li>In the query window, <strong>run each step individually</strong> by highlighting the statement(s) in the step in the query window, and selecting the <strong>Run</strong> button from the toolbar (or press <strong>F5</strong>).</li>
+  <li>Close the script tab. If prompted select <strong>Discard all changes</strong>.</li>
+</ol>
+
+<h3 id="task-2---row-level-security">Task 2 - Row level security</h3>
+
+<ol>
+  <li>In the <strong>Develop</strong> hub, in the <strong>SQL scripts</strong> section, select <strong>Row Level Security</strong>.</li>
+  <li>In the toolbar, connect to the <strong>SQLPool01</strong> database.</li>
+  <li>In the query window, <strong>run each step individually</strong> by highlighting the statement(s) for the step in the query window, and selecting the <strong>Run</strong> button from the toolbar (or press <strong>F5</strong>).</li>
+  <li>Close the script tab. If prompted select <strong>Discard all changes</strong>.</li>
+</ol>
+
+<h3 id="task-3---dynamic-data-masking">Task 3 - Dynamic data masking</h3>
+
+<ol>
+  <li>In the <strong>Develop</strong> hub, in the <strong>SQL scripts</strong> section, select <strong>Dynamic Data Masking</strong>.</li>
+  <li>In the toolbar, connect to the <strong>SQLPool01</strong> database.</li>
+  <li>In the query window, <strong>run each step individually</strong> by highlighting the statement(s) for the step in the query window, and selecting the <strong>Run</strong> button from the toolbar (or press <strong>F5</strong>).</li>
+  <li>Close the script tab. If prompted select <strong>Discard all changes</strong>.</li>
+</ol>
+
+<h2 id="important-pause-your-sql-pool">Important: Pause your SQL pool</h2>
+
+<p>Complete these steps to free up resources you no longer need.</p>
+
+<ol>
+  <li>In Synapse Studio, select the <strong>Manage</strong> hub.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Select <strong>SQL pools</strong> in the left-hand menu. Hover over the <strong>SQLPool01</strong> dedicated SQL pool and select **</td>
+          <td>&nbsp;</td>
+          <td>**.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a href="images/pause-dedicated-sql-pool.png" target="_blank"><img src="images/pause-dedicated-sql-pool.png" alt="The pause button is highlighted on the dedicated SQL pool." title="Pause"></a></p>
+  </li>
+  <li>When prompted, select <strong>Pause</strong>.</li>
+</ol>
+
+<h2 id="reference">Reference</h2>
+
+<ul>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/security/synapse-workspace-ip-firewall">IP Firewalls</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/security/synapse-workspace-managed-identity">Synapse Workspace Managed Identity</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/security/synapse-workspace-managed-vnet">Synapse Managed VNet</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/security/synapse-workspace-managed-private-endpoints">Synapse Managed Private Endpoints</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/security/how-to-set-up-access-control">Secure your Synapse Workspace</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/security/how-to-connect-to-workspace-with-private-links">Connect to your Synapse Workspace using private links</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/security/how-to-create-managed-private-endpoints">Create a Managed private endpoint to your data source</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/security/how-to-grant-workspace-managed-identity-permissions">Granting Permissions to Workspace Managed Identity</a></li>
+</ul>
+
+<h2 id="other-resources">Other Resources</h2>
+
+<ul>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/sql/access-control">Managing access to workspaces, data and pipelines</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/get-started-analyze-spark">Analyze with Apache Spark</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/get-started-visualize-power-bi">Visualize data with Power BI</a></li>
+  <li><a href="https://docs.microsoft.com/azure/synapse-analytics/sql/develop-storage-files-storage-access-control">Control storage account access for SQL on-demand</a></li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/DP-203-Data-Engineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/DP-203-Data-Engineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D928deb11f009d00944c1feae30c16de739b6478a.js"></script>
+
+
+
+</body></html>

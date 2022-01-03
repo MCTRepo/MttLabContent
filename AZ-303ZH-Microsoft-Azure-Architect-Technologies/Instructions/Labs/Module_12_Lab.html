@@ -1,0 +1,1012 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-303ZH-Microsoft-Azure-Architect-Technologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-303ZH-Microsoft-Azure-Architect-Technologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#练习-0准备实验室环境">练习 0：准备实验室环境</a></li><li class="nav-item"><a class="nav-link" href="#练习-1创建和配置-azure-site-recovery-保管库">练习 1：创建和配置 Azure Site Recovery 保管库</a></li><li class="nav-item"><a class="nav-link" href="#练习-2借助-azure-site-recovery-保管库实现-hyper-v-保护">练习 2：借助 Azure Site Recovery 保管库实现 Hyper-V 保护</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室使用-azure-site-recovery-保护-hyper-v-vm">实验室：使用 Azure Site Recovery 保护 Hyper-V VM</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>尽管 Adatum 公司多年来已对其本地工作负载实现许多高可用性预配，但其灾难恢复功能仍不足以满足其业务所需的恢复点目标 (RPO) 和恢复时间目标 (RTO)。维护现有的辅助本地站点需要大量的工作，并且会产生巨大的成本。故障转移和故障回复过程在大多数情况下是手动的，并且记录不充分。</p>
+
+<p>为了解决这些不足之处，Adatum 企业体系结构团队决定探索 Azure Site Recovery 的功能，利用 Azure 充当辅助站点的托管者。Azure Site Recovery 自动、连续地将物理机和虚拟机上运行的工作负载从主站点复制到辅助站点。Site Recovery 使用基于存储的复制机制，而不会拦截应用程序数据。将 Azure 作为辅助站点，数据以内置方式存储在 Azure 存储中，不仅灵活，而且成本低。故障转移后，使用复制的数据对目标 Azure VM 进行水化处理。由于 Site Recovery 为 VMware VM 提供连续复制，而且 Hyper-V VM 的复制频率低至 30 秒，这使恢复时间目标 (RTO) 和恢复点目标得以最小化。此外，Azure Site Recovery 还可处理故障转移和故障回复过程的业务流程，这些过程在很大程度上可以自动化。还可使用 Azure Site Recovery 执行到 Azure 的迁移，不过推荐的方法依赖于 Azure Migrate。</p>
+
+<p>Adatum Enterprise 体系结构团队希望评估将用于保护本地 Hyper-V 虚拟机的 Azure Site Recovery 用于 Azure VM 的情况。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>
+    <p>配置 Azure Site Recovery</p>
+  </li>
+  <li>
+    <p>执行测试故障转移</p>
+  </li>
+  <li>
+    <p>执行计划的故障转移</p>
+  </li>
+  <li>
+    <p>执行未计划的故障转移</p>
+  </li>
+</ul>
+
+<h2 id="实验室环境">实验室环境</h2>
+
+<p>Windows Server 管理员凭据</p>
+
+<ul>
+  <li>
+    <p>用户名：<strong>Student</strong></p>
+  </li>
+  <li>
+    <p>密码：<strong>Pa55w.rd1234</strong></p>
+  </li>
+</ul>
+
+<p>预计用时：120 分钟</p>
+
+<h2 id="实验室文件">实验室文件</h2>
+
+<ul>
+  <li>\\AZ303\AllFiles\Labs\12\azuredeploy30312suba.json</li>
+</ul>
+
+<h3 id="练习-0准备实验室环境">练习 0：准备实验室环境</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>请使用 Azure 资源管理器快速启动模板部署 Azure VM</p>
+  </li>
+  <li>
+    <p>在 Azure VM 中配置嵌套虚拟化</p>
+  </li>
+</ol>
+
+<h4 id="任务-1请使用-azure-资源管理器快速启动模板部署-azure-vm">任务 1：请使用 Azure 资源管理器快速启动模板部署 Azure VM</h4>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器，导航至 <a href="https://portal.azure.com">“Azure 门户”</a>，然后通过提供要在本实验中使用的订阅中的所有者角色的用户帐户凭据来登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，通过直接选择搜索文本框右侧的工具栏图标打开 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>提示选择 <strong>Bash</strong> 或 <strong>PowerShell</strong> 时，选择 <strong>PowerShell</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 如果这是你第一次打开 <strong>“Cloud Shell”</strong>，会看到 <strong>“未装载任何存储”</strong> 消息，请选择你在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的工具栏中，选择 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中选择 <strong>“上传”</strong>，然后将文件 <strong>\\AZ303\AllFiles\Labs\12\azuredeploy30312suba.json</strong> 上传到 Cloud Shell 主目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，通过运行以下命令创建资源组（用订阅中可用于部署 Azure VM 且最接近实验室计算机位置的 Azure 区域的名称替换 <code>&lt;Azure region&gt;</code> 占位符）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location = '&lt;Azure region&gt;'
+New-AzSubscriptionDeployment `
+  -Location $location `
+  -Name az30312subaDeployment `
+  -TemplateFile $HOME/azuredeploy30312suba.json `
+  -rgLocation $location `
+  -rgName 'az30312a-labRG'
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 若要标识可在其中预配 Azure VM 的 Azure 区域，请参阅<a href="https://azure.microsoft.com/zh-cn/regions/offers/"><strong>https://azure.microsoft.com/zh-cn/regions/offers/</strong></a></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，关闭 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在实验室计算机上，打开另一个浏览器选项卡，导航到 <a href="https://github.com/az140mp/azure-quickstart-templates/tree/master/demos/nested-vms-in-virtual-network">301-nested-vms-in-virtual-network Azure 快速启动模板</a>并选择“<strong>部署到 Azure</strong>”（可以在模板创建的资源列表后的 <code>README.md</code> 文件中找到“<strong>部署到 Azure</strong>”按钮）。这会自动将浏览器重定向到 Azure 门户中“<strong>具有嵌套 VM 的 Hyper-V 主机虚拟机</strong>”边栏选项卡。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-url"> https://github.com/az140mp/azure-quickstart-templates/tree/master/demos/nested-vms-in-virtual-network
+</code></pre>
+  </li>
+  <li>
+    <p>在 Azure 门户中 <strong>“具有嵌套 VM 的 Hyper-V 主机虚拟机”</strong> 边栏选项卡上，指定以下设置（将其他设置保留为其默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30312a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络名称</td>
+          <td><strong>az30312a-hv-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>主机网络界面 1 名</td>
+          <td><strong>az30312a-hv-vm-nic1</strong></td>
+        </tr>
+        <tr>
+          <td>主机网络界面 2 名</td>
+          <td><strong>az30312a-hv-vm-nic2</strong></td>
+        </tr>
+        <tr>
+          <td>主机虚拟机名</td>
+          <td><strong>az30312a-hv-vm</strong></td>
+        </tr>
+        <tr>
+          <td>主机管理员用户名</td>
+          <td><strong>Student</strong></td>
+        </tr>
+        <tr>
+          <td>主机管理员密码</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“具有嵌套 VM 的 Hyper-V 主机虚拟机”</strong> 边栏选项卡上，选择 <strong>“查看 + 创建”</strong>，然后选择 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 等待部署完成。该部署可能需要 10 分钟左右。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2部署-azure-bastion">任务 2：部署 Azure Bastion</h4>
+
+<blockquote>
+  <p><strong>备注</strong>：通过 Azure Bastion，可以连接到你在本练习的上一个任务中部署的没有公共终结点的 Azure VM，同时提供针对操作系统级别凭据的暴力攻击防护。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在显示 Azure 门户的浏览器窗口中，打开另一个选项卡，然后在该浏览器选项卡中导航到 Azure 门户。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，通过选择搜索文本框右侧的“工具栏”图标，打开 <strong>Cloud Shell</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 PowerShell 会话中运行以下命令，将名为 <strong>AzureBastionSubnet</strong> 的子网添加到你在本练习前面部分创建的名为 <strong>az30312a-hv-vnet</strong> 的虚拟网络中：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">$resourceGroupName = 'az30312a-labRG'
+$vnet = Get-AzVirtualNetwork -ResourceGroupName $resourceGroupName -Name 'az30312a-hv-vnet'
+$subnetConfig = Add-AzVirtualNetworkSubnetConfig `
+  -Name 'AzureBastionSubnet' `
+  -AddressPrefix 10.0.7.0/24 `
+  -VirtualNetwork $vnet
+$vnet | Set-AzVirtualNetwork
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中搜索并选择“<strong>Bastion</strong>”，然后在“<strong>Bastion</strong>”边栏选项卡中，选择“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>创建 Bastion</strong>”边栏选项卡的“<strong>基本信息</strong>”选项卡中，指定以下设置并选择“<strong>查看 + 创建</strong>”：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30312a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>az30312a-bastion</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>在本练习前面的任务中向其中部署了资源的同一 Azure 区域</td>
+        </tr>
+        <tr>
+          <td>层级</td>
+          <td><strong>基本</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az30312a-hv-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>AzureBastionSubnet (10.0.7.0/24)</strong></td>
+        </tr>
+        <tr>
+          <td>公共 IP 地址</td>
+          <td><strong>新建</strong></td>
+        </tr>
+        <tr>
+          <td>公共 IP 名称</td>
+          <td><strong>az30312a-hv-vnet-ip</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在“<strong>创建 Bastion</strong>”边栏选项卡的“<strong>查看 + 创建</strong>”选项卡中，选择“<strong>创建</strong>”：</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：等待部署完成后，再继续执行下一个任务。该部署可能需要 5 分钟左右。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-3在-azure-vm-中配置嵌套虚拟化">任务 3：在 Azure VM 中配置嵌套虚拟化</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>虚拟机</strong>”，然后在“<strong>虚拟机</strong>”边栏选项卡上，选择“<strong>az30312a-hv-vm</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>az30312a-hv-vm</strong>”边栏选项卡上，选择“<strong>连接</strong>”，在下拉菜单中，选择“Bastion”，在“<strong>az30312a-hv-vm | 连接</strong>”边栏选项卡的“<strong>Bastion</strong>”选项卡上，选择“<strong>使用 Bastion</strong>”。</p>
+  </li>
+  <li>
+    <p>出现提示时，请提供以下凭据并选择“<strong>连接</strong>”：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>用户名</td>
+          <td><strong>Student</strong></td>
+        </tr>
+        <tr>
+          <td>密码</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在与 <strong>“az30312a-hv-vm”</strong> 的远程桌面会话中，在“服务器管理器”窗口，单击 <strong>“本地服务器”</strong>，单击<strong>IE 增强的安全配置</strong>标签旁边的 <strong>“开启”</strong> 链接，并在 <strong>“IE 增强的安全配置”</strong> 对话框中，都选择 <strong>“关闭”</strong> 选项。</p>
+  </li>
+  <li>
+    <p>在与 <strong>az30312a-hv-vm</strong> 的远程桌面会话中，启动 Internet Explorer，导航至 <a href="https://www.microsoft.com/en-us/edge/business/download">Microsoft Edge</a> 的下载页面，下载 Microsoft Edge 安装程序并执行安装。</p>
+  </li>
+  <li>
+    <p>在与 <strong>az30312a-hv-vm</strong> 的远程桌面会话中，启动 Microsoft Edge，浏览至 <a href="https://www.microsoft.com/zh-cn/evalcenter/evaluate-windows-server-2019">Windows Server Evaluations</a>，并下载 Windows Server 2019 <strong>VHD</strong> 文件到 <strong>“F:\VHDs”</strong> 文件夹（你需要先创建它）。</p>
+  </li>
+  <li>
+    <p>在与 <strong>“az30312a-hv-vm”</strong> 的远程桌面会话中，启动 <strong>“Hyper-V 管理器”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Hyper-V 管理器”</strong> 控制台中，选择 <strong>“az30312a-hv-vm”</strong> 节点，再选择 <strong>“新建”</strong>，然后在级联菜单中选择 <strong>“虚拟机”</strong>。这将启动 <strong>“新建虚拟机向导”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建虚拟机向导”</strong> 的 <strong>“开始之前”</strong> 页面上，选择 <strong>“下一步 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建虚拟机向导”</strong> 的 <strong>“指定名称和位置”</strong> 页面上，指定以下设置并选择 <strong>“下一步 &gt;”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az30312a-vm1</strong></td>
+        </tr>
+        <tr>
+          <td>将虚拟机存储在其他位置</td>
+          <td>已选择</td>
+        </tr>
+        <tr>
+          <td>位置</td>
+          <td><strong>F:\VMs</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>注意</strong>： 务必创建 <strong>F:\VMs</strong> 文件夹。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“新建虚拟机向导”</strong> 的 <strong>“指定代数”</strong> 页面上，确保选择了 <strong>“第一代”</strong> 选项，然后选择 <strong>“下一步 &gt;”</strong>：</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建虚拟机向导”</strong> 的 <strong>“分配内存”</strong> 页面上，将 <strong>“启动内存”</strong> 设置为 <strong>“2048”</strong>，然后选择 <strong>“下一步 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建虚拟机向导”</strong> 的 <strong>“配置网络”</strong> 页面上， 在 <strong>“连接”</strong> 下拉列表中选择 <strong>“NestedSwitch”</strong>，然后选择 <strong>“下一步 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建虚拟机向导”</strong> 的 <strong>“连接虚拟硬盘”</strong> 页面上，选择 <strong>“使用现有的虚拟硬盘”</strong> 选项，将 VHD 文件下载到的位置设置为 <strong>F:\VHDs</strong> 文件夹，然后选择 <strong>“下一步 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建虚拟机向导”</strong> 的 <strong>“摘要”</strong> 页面上， 选择 <strong>“完成”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Hyper-V 管理器”</strong> 控制台中，选择新创建的虚拟机，然后选择 <strong>“启动”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Hyper-V 管理器”</strong> 控制台中，确认虚拟机正在运行，然后选择 <strong>“连接”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>az30312a-vm1</strong> 的“虚拟机连接”窗口中的 <strong>“你好”</strong> 页面上，选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>az30312a-vm1</strong> 的“虚拟机连接”窗口的 <strong>“许可条款”</strong> 页面上，选择 <strong>“接受”</strong>。</p>
+  </li>
+  <li>
+    <p>在到 <strong>“az30312a-vm1”</strong> 的虚拟机连接窗口，在 <strong>“自定义设置”</strong> 页面上，将内置管理员帐户的密码设置为 <strong>“Pa55w.rd1234”</strong>，然后选择 <strong>“完成”</strong>。</p>
+  </li>
+  <li>
+    <p>在到 <strong>“az30312a-vm1”</strong> 的虚拟机连接窗口，使用新设置的密码登录。</p>
+  </li>
+  <li>
+    <p>在到 <strong>“az30312a-vm1”</strong> 的虚拟机连接窗口中，启动 Windows PowerShell，然后在 <strong>“管理员： Windows PowerShell”</strong> 窗口运行以下命令来设置计算机名。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">Rename-Computer -NewName 'az30312a-vm1' -Restart
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="练习-1创建和配置-azure-site-recovery-保管库">练习 1：创建和配置 Azure Site Recovery 保管库</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>创建 Azure Site Recovery 保管库</p>
+  </li>
+  <li>
+    <p>配置 Azure Site Recovery 保管库</p>
+  </li>
+</ol>
+
+<h4 id="任务-1创建-azure-site-recovery-保管库">任务 1：创建 Azure Site Recovery 保管库</h4>
+
+<ol>
+  <li>
+    <p>在与 <strong>az30312a-hv-vm</strong> 的远程桌面会话中，启动 Microsoft Edge，导航至<a href="https://portal.azure.com">“Azure 门户”</a>，然后通过提供你将在本实验室使用的订阅中具有所有者角色的用户帐户凭据来登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“恢复服务保管库”</strong>，然后在 <strong>“恢复服务保管库”</strong> 边栏选项卡上，选择 <strong>“+ 新建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建恢复服务保管库”</strong> 边栏选项卡的 <strong>“基本设置”</strong> 选项卡上 ，指定以下设置（将其他设置保留为默认值）并选择 <strong>“查看 + 创建”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td>新资源组名称 <strong>az30312b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>保管库名称</td>
+          <td><strong>az30312b-rsvault</strong></td>
+        </tr>
+        <tr>
+          <td>位置</td>
+          <td>不同于之前在本实验室中将虚拟机部署到其中的 Azure 区域的名称</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“创建恢复服务保管库”</strong> 边栏选项卡的 <strong>“查看 + 创建”</strong> 选项卡中，选择 <strong>“创建”</strong>：</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 默认情况下，“存储复制”类型的默认配置设置为“异地冗余 (GRS)”，并启用了“软删除”。你将在实验室中更改这些设置以简化取消预配，但应在生产环境中使用它们。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2配置-azure-site-recovery-保管库">任务 2：配置 Azure Site Recovery 保管库</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“恢复服务保管库”</strong>，然后在 <strong>“恢复服务保管库”</strong> 边栏选项卡中，选择 <strong>“az30312b-rsvault”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30312b-rsvault”</strong> 边栏选项卡中，选择 <strong>“属性”</strong>。</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>在 **“az30312b-rsvault</td>
+          <td>属性”** 边栏选项卡中，在 <strong>“备份配置”</strong> 标签下选择 <strong>“更新”</strong> 链接。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“备份配置”</strong> 边栏选项卡中，将 <strong>“存储复制类型”</strong> 设置为 <strong>“本地冗余”</strong>，选择 <strong>“保存”</strong>，然后关闭 <strong>“备份配置”</strong> 边栏选项卡。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 一旦启动保护项，就无法更改存储复制类型。</p>
+    </blockquote>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>在 **“az30312b-rsvault</td>
+          <td>属性”** 边栏选项卡上，在 <strong>“安全设置”</strong> 标签下选择 <strong>“更新”</strong> 链接。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>在 <strong>“安全设置”</strong> 边栏选项卡上，将 <strong>“软删除”</strong> 设置为 <strong>“禁用”</strong>，选择 <strong>“保存”</strong>，然后关闭 <strong>“安全设置”</strong> 边栏选项卡。</li>
+</ol>
+
+<h3 id="练习-2借助-azure-site-recovery-保管库实现-hyper-v-保护">练习 2：借助 Azure Site Recovery 保管库实现 Hyper-V 保护</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>实现目标 Azure 环境</p>
+  </li>
+  <li>
+    <p>实现 Hyper-V 虚拟机的保护</p>
+  </li>
+  <li>
+    <p>对 Hyper-V 虚拟机执行故障转移</p>
+  </li>
+  <li>
+    <p>删除实验室中部署的 Azure 资源</p>
+  </li>
+</ol>
+
+<h4 id="任务-1实现目标-azure-环境">任务 1：实现目标 Azure 环境</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟网络”</strong>，然后在 <strong>“虚拟网络”</strong> 边栏选项卡上，选择 <strong>“+ 新建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“基本设置”</strong> 选项卡上，指定以下设置（将其他设置保留为默认值）并选择 <strong>“下一步: IP 地址</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td>新资源组名称 <strong>az30312c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>az30312c-dr-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>在本实验室的上一个练习中，将恢复服务保管库署到其中的 Azure 区域的名称。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“IP 地址”</strong> 选项卡上的 <strong>“IPv4 地址空间”</strong> 文本框中，键入 <strong>“10.7.0.0/16”</strong>，然后选择 <strong>“+ 添加子网”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加子网”</strong> 边栏选项卡上，指定以下设置（将其他设置保留为默认值）并选择 <strong>“添加”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>子网名</td>
+          <td><strong>subnet0</strong></td>
+        </tr>
+        <tr>
+          <td>子网地址范围</td>
+          <td><strong>10.7.0.0/24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>返回到 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“IP 地址”</strong> 选项卡，选择 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“查看 + 创建”</strong> 选项卡上，选择 <strong>“创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟网络”</strong>，然后在 <strong>“虚拟网络”</strong> 边栏选项卡上，选择 <strong>“+ 新建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“基本设置”</strong> 选项卡上，指定以下设置（将其他设置保留为默认值）并选择“下一步:<strong>IP 地址</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30312c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>az30312c-test-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>在本实验室的上一个练习中，将恢复服务保管库署到其中的 Azure 区域的名称。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“IP 地址”</strong> 选项卡上的 <strong>“IPv4 地址空间”</strong> 文本框中，键入 <strong>“10.7.0.0/16”</strong>，然后选择 <strong>“+ 添加子网”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加子网”</strong> 边栏选项卡上，指定以下设置（将其他设置保留为默认值）并选择 <strong>“添加”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>子网名</td>
+          <td><strong>subnet0</strong></td>
+        </tr>
+        <tr>
+          <td>子网地址范围</td>
+          <td><strong>10.7.0.0/24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>返回到 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“IP 地址”</strong> 选项卡，选择 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“查看 + 创建”</strong> 选项卡上，选择 <strong>“创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“存储帐户”</strong>，然后在 <strong>“存储帐户”</strong> 边栏选项卡上，选择 <strong>“+ 新建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“基本设置”</strong> 选项卡上，指定以下设置（其他设置则保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30312c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>存储帐户名称</td>
+          <td>由字母和数字组成、长度介于 3 到 24 之间的任意全局唯一名称</td>
+        </tr>
+        <tr>
+          <td>位置</td>
+          <td>本任务初期在其中创建虚拟网络的 Azure 区域的名称</td>
+        </tr>
+        <tr>
+          <td>性能</td>
+          <td><strong>标准：推荐用于大多数场景（通用 v2）</strong></td>
+        </tr>
+        <tr>
+          <td>冗余</td>
+          <td><strong>本地冗余存储 (LRS)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“基本设置”</strong> 选项卡中，选择 <strong>“查看 + 创建”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“查看 + 创建”</strong> 选项卡中，选择 <strong>“创建”</strong>。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2实现-hyper-v-虚拟机的保护">任务 2：实现 Hyper-V 虚拟机的保护</h4>
+
+<ol>
+  <li>
+    <p>在与 <strong>az30312a-hv-vm</strong> 的远程桌面会话中，在 Azure 门户中，在 <strong>“az30312b-rsvault”</strong> 边栏选项卡的 <strong>“Site Recovery”</strong> 部分，选择 <strong>“开始使用”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30312b-rsvault | Site Recovery”</strong> 边栏选项卡中，在 <strong>“Hyper-V 计算机到 Azure”</strong> 部分，选择 <strong>“1. 准备基础结构”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“部署计划”</strong> 选项卡上，在 <strong>“部署计划完成了吗？”</strong> 下拉列表中选择 <strong>“是，我已完成”</strong>，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“源设置”</strong> 选项卡上，选择 <strong>“你是否正在使用 System Center VMM 管理 Hyper-V 主机”</strong> 标签旁的 <strong>“否”</strong> 选项。</p>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“源设置”</strong> 选项卡上，选择 <strong>“添加 Hyper-V 站点”</strong> 链接，在 <strong>“创建 Hyper-V 站点”</strong> 边栏选项卡上，在 <strong>“名称”</strong> 文本框中键入 <strong>“az30312b Hyper-V site”</strong>，然后选择 <strong>“确定”</strong>：</p>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“源设置”</strong> 选项卡上，选择 <strong>“添加 Hyper-V 服务器”</strong> 链接。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加服务器”</strong> 边栏选项卡中，选择添加本地 Hyper-V 主机过程中步骤 3 的 <strong>“下载”</strong> 链接，以下载 Microsoft Azure Site Recovery 提供程序。</p>
+  </li>
+  <li>
+    <p>下载完成后，选择 <strong>“打开文件”</strong>，然后选择 <strong>“运行”</strong> 以启动 <strong>AzureSiteRecoveryProvider.exe</strong>。此时将启动 <strong>“Azure Site Recovery 提供程序安装(Hyper-V 服务器)”</strong> 向导。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Microsoft 更新”</strong> 页面上，选择 <strong>“关闭”</strong>，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“提供程序安装”</strong> 页面上，选择 <strong>“安装”</strong>。</p>
+  </li>
+  <li>
+    <p>切换到 Azure 门户，然后在 <strong>“添加服务器”</strong> 边栏选项卡上，选择注册本地 Hyper-V 主机过程中步骤 4 的 <strong>“下载”</strong> 按钮，以下载保管库注册密钥。出现提示时，选择 <strong>“保存”</strong>，将保管库凭据文件保存在 <strong>Downloads</strong> 文件夹中。</p>
+  </li>
+  <li>
+    <p>切换到 <strong>“提供程序安装”</strong> 向导窗口并选择 <strong>“注册”</strong>。这将启动 <strong>Microsoft Azure Site Recovery 注册向导</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>Microsoft Azure Site Recovery 注册向导</strong> 的 <strong>“保管库设置”</strong> 页面上，选择 <strong>“浏览”</strong>，在 <strong>“打开”</strong> 窗口中，导航到 <strong>“Downloads”</strong> 文件夹，选择保管库凭据文件，然后选择 <strong>“打开”</strong>。</p>
+  </li>
+  <li>
+    <p>返回到 <strong>Microsoft Azure Site Recovery 注册向导</strong> 的 <strong>“保管库设置”</strong> 页面，选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>Microsoft Azure Site Recovery 注册向导</strong> 的 <strong>“代理设置”</strong> 页面 上，接受默认设置，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>Microsoft Azure Site Recovery 注册向导</strong> 的 <strong>“注册”</strong> 页面上，选择 <strong>“完成”</strong>。</p>
+  </li>
+  <li>
+    <p>切换回显示 Azure 门户的浏览器窗口并刷新页面。出现提示时，根据浏览器的版本选择 <strong>“离开页面”</strong> 或 <strong>“重新加载”</strong>。</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>返回到 **“az30312b-rsvault</td>
+          <td>Site Recovery”** 边栏选项卡中，在 <strong>“Hyper-V 计算机到 Azure”</strong> 部分，选择 <strong>“1. 准备基础结构”</strong>。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“部署计划”</strong> 选项卡上，在 <strong>“部署计划完成了吗？”</strong> 下拉列表中选择 <strong>“是，我已完成”</strong>，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“源设置”</strong> 选项卡上，选择 <strong>“你是否正在使用 System Center VMM 管理 Hyper-V 主机”</strong> 标签旁的 <strong>“否”</strong> 选项。</p>
+  </li>
+  <li>
+    <p>验证 <strong>“Hyper-V 站点”</strong> 和 <strong>“Hyper-V 服务器”</strong> 是否设置正确，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“目标设置”</strong> 选项卡上，接受默认设置并选择 <strong>“下一步</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“复制策略”</strong> 选项卡上，选择 <strong>“新建策略并关联”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建和关联策略”</strong> 边栏选项卡上，指定以下设置（将其他设置保留为默认值）并选择 <strong>“确定”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az30312b 复制策略</strong></td>
+        </tr>
+        <tr>
+          <td>复制频率</td>
+          <td><strong>30 秒</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>回到 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“复制策略”</strong> 选项卡上，等待站点与策略相关联，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡的 <strong>“查看”</strong> 选项卡上，选择 <strong>“准备”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30312b-rsvault | Site Recovery”</strong> 边栏选项上，在 <strong>“Hyper-V 计算机到 Azure”</strong> 部分中选择 <strong>“2. 启用复制”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“启用复制”</strong> 边栏选项卡的 <strong>“源环境”</strong> 选项卡上，在 <strong>“源位置”</strong> 下拉列表中选择 <strong>“az30312b Hyper-V 站点”</strong>，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“启用复制”</strong> 边栏选项卡的 <strong>“目标环境”</strong> 选项卡上，指定以下设置（将其他设置保留为默认值），然后选择 <strong>“下一步”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>故障转移后的资源组</td>
+          <td><strong>az30312c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>故障转移后部署模型</td>
+          <td><strong>资源管理器</strong></td>
+        </tr>
+        <tr>
+          <td>存储帐户</td>
+          <td>在本练习的第一个任务中创建的存储帐户的名称</td>
+        </tr>
+        <tr>
+          <td>网络</td>
+          <td>立即为选定的计算机配置</td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az30312c-dr-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>subnet0 (10.7.0.0/24)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“启用复制”</strong> 边栏选项卡的 <strong>“虚拟机选择”</strong> 选项卡上，选择 <strong>“az30312a-vm1”</strong> 复选框并选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“启用复制”</strong> 边栏选项卡的 <strong>“复制设置”</strong> 选项卡上，在 <strong>“默认值”</strong> 行和 <strong>“OS 类型”</strong> 列中，从下拉列表中选择 <strong>“Windows”</strong>，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“启用复制”</strong> 边栏选项卡的 <strong>“复制策略”</strong> 选项卡上，接受默认设置并选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>在 <strong>“启用复制”</strong> 边栏选项卡的 <strong>“审阅”</strong> 选项卡上，选择 <strong>“启用复制”</strong>。</li>
+</ol>
+
+<h4 id="任务-3查看-azure-vm-复制设置">任务 3：查看 Azure VM 复制设置</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，回到 <strong>“az30312b-rsvault | Site Recovery”</strong> 边栏选项卡，在垂直菜单中选择 <strong>“复制的项”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30312b-rsvault | 复制的项”</strong> .3边栏选项卡上，确保有一个代表 <strong>az30312a-vm1</strong> 虚拟机的条目，并验证其 <strong>“复制运行状况”</strong> 是否为 <strong>“正常”</strong>，其 <strong>“状态”</strong> 是否为 <strong>“正在启用保护”</strong>、<strong>“正在等待首个恢复点”</strong> 或正在显示当前同步进度百分比。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 你可能需要等待几分钟，直到 <strong>“az30312a-vm1”</strong> 条目出现在 <strong>“az30312b-rsvault | 复制的项”</strong> 边栏选项卡上。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30312b-rsvault | 复制的项”</strong> 边栏选项卡中，选择 <strong>“az30312a-vm1”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30312a-vm”</strong> 复制的项边栏选项卡上，查看 <strong>“健康状况和状态”</strong>、 <strong>“故障转移就绪”</strong>、 <strong>“最新恢复点”</strong> 和 <strong>“基础结构视图”</strong> 部分。请注意<strong>计划的故障转移</strong>、<strong>故障转移</strong>和<strong>测试故障转移</strong>的工具栏图标。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 等到状态变更为 <strong>“受保护”</strong>。该操作可能还需要 15 分钟。你需要刷新浏览器页面以更新状态。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30312a-vm1”</strong> 复制的项边栏选项卡上，选择 <strong>“最新恢复点”</strong>，并查看 <strong>“最新崩溃一致”</strong> 和 <strong>“最新应用一致”</strong> 恢复点。</p>
+  </li>
+</ol>
+
+<h4 id="任务-4对-hyper-v-虚拟机执行故障转移">任务 4：对 Hyper-V 虚拟机执行故障转移</h4>
+
+<ol>
+  <li>
+    <p>在与 <strong>az30312a-hv-vm</strong> 的远程桌面会话中，在显示 Azure 门户的浏览器窗口中的 <strong>“az30312a-vm1”</strong> 复制的项边栏选项卡上，选择 <strong>“测试故障转移”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“测试故障转移”</strong> 边栏选项卡上，指定以下设置（将其他设置保留为默认值）并选择 <strong>“确定”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>选择恢复点</td>
+          <td>默认选项</td>
+        </tr>
+        <tr>
+          <td>Azure 虚拟网络</td>
+          <td><strong>az30312c-test-vnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航回到 <strong>“az30312b-rsvault”</strong> 边栏选项卡，并选择 <strong>“Site Recovery 作业”</strong>。保持等待，直到 <strong>“测试故障转移”</strong> 作业的状态被列为 <strong>“成功”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟机”</strong>，在 <strong>“虚拟机”</strong> 边栏选项卡上，注意代表新预配的虚拟机 <strong>“az30312a-vm1-test”</strong> 的条目。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航回到 <strong>“az30312a-vm1”</strong> 复制的项边栏选项卡，并选择 <strong>“清除测试故障转移”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“测试故障转移清除”</strong> 边栏选项卡上，选择复选框 <strong>“测试完成。 删除测试故障转移虚拟机”</strong>，然后选择 <strong>“确定”</strong>。</p>
+  </li>
+  <li>
+    <p>测试故障转移清除作业完成后，刷新显示 <strong>“az30312a-vm1”</strong> 复制的项边栏选项卡的浏览器页面，注意可以选择执行计划的故障转移和未计划的故障转移。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30312a-vm1”</strong> 复制的项边栏选项卡上，选择 <strong>“计划的故障转移”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“计划的故障转移”</strong> 边栏选项卡上，请注意，故障转移方向设置已设置且不可修改。</p>
+  </li>
+  <li>
+    <p>关闭 <strong>“计划的故障转移”</strong> 边栏选项卡，然后在 <strong>“az30312a-vm1”</strong> 复制的项边栏选项卡上选择 <strong>“故障转移”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“故障转移”</strong> 边栏选项卡上，请注意旨在最大程度地减少潜在数据丢失的可用选项。</p>
+  </li>
+  <li>
+    <p>关闭 <strong>“故障转移”</strong> 边栏选项卡。故障转移操作可能需要 10 到 15 分钟才能完成。在完成之前不要删除资源组和其他资源，否则故障转移操作将中止。可以在 <strong>“Site Recovery 作业”</strong> 边栏选项卡上检查故障转移的状态。</p>
+  </li>
+</ol>
+
+<h4 id="任务-5删除实验室中部署的-azure-资源">任务 5：删除实验室中部署的 Azure 资源</h4>
+
+<ol>
+  <li>
+    <p>在与 <strong>az30312a-hv-vm</strong> 的远程桌面会话中 ，在显示 Azure 门户的浏览器窗口中，在“Cloud Shell”窗格中启动 PowerShell 会话。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以列出你在本练习中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30312*'
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证输出结果是否仅包含你在本实验室中创建的资源组。在本任务中将删除这个组。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以删除在本实验室中创建的资源组</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30312*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

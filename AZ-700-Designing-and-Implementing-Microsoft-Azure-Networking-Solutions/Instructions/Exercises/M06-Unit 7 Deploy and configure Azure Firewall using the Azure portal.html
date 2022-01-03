@@ -1,0 +1,826 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m06-unit-7-deploy-and-configure-azure-firewall-using-the-azure-portal">M06-Unit 7 Deploy and configure Azure Firewall using the Azure portal</h1>
+
+<p>Being part of the Network Security team at Contoso, your next task is to create firewall rules to allow/deny access to certain websites. The following steps walk you through creating a resource group, a virtual network and subnets, and a virtual machine as environment preparation tasks, and then deploying a firewall and firewall policy, configuring default routes and application, network and DNAT rules, and finally testing the firewall.</p>
+
+<p>In this exercise, you will:</p>
+
+<ul>
+  <li>Task 1: Create a resource group</li>
+  <li>Task 2: Create a virtual network and subnets</li>
+  <li>Task 3: Create a virtual machine</li>
+  <li>Task 4: Deploy the firewall and firewall policy</li>
+  <li>Task 5: Create a default route</li>
+  <li>Task 6: Configure an application rule</li>
+  <li>Task 7: Configure a network rule</li>
+  <li>Task 8: Configure a Destination NAT (DNAT) rule</li>
+  <li>Task 9: Change the primary and secondary DNS address for the server’s&nbsp;network interface</li>
+  <li>Task 10: Test the firewall</li>
+  <li>Task 11: Clean up resources</li>
+</ul>
+
+<h2 id="task-1-create-a-resource-group">Task 1: Create a resource group</h2>
+
+<p>In this task, you will create a new resource group.</p>
+
+<ol>
+  <li>
+    <p>Log in to your Azure account.</p>
+  </li>
+  <li>
+    <p>On the Azure portal home page, select <strong>Resource groups</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, in <strong>Resource group</strong>, enter <strong>Test-FW-RG</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Region</strong>, select your region from the list.</p>
+
+    <p><a href="../media/create-resource-group-for-azure-firewall.png" target="_blank"><img src="../media/create-resource-group-for-azure-firewall.png" alt="Create a resource group for Azure firewall"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-2-create-a-virtual-network-and-subnets">Task 2: Create a virtual network and subnets</h2>
+
+<p>In this task, you will create a single virtual network with two subnets.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, in the search box, type <strong>virtual network</strong> and select <strong>Virtual Network</strong> when it appears.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Test-FW-RG</strong> resource group you created previously.</p>
+  </li>
+  <li>
+    <p>In the <strong>Name</strong> box, enter <strong>Test-FW-VN</strong>.</p>
+
+    <p><a href="../media/create-vnet-basics-for-azure-firewall.png" target="_blank"><img src="../media/create-vnet-basics-for-azure-firewall.png" alt="Create a virtual network - Basics tab"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Next: IP Addresses</strong>. Enter IPv4 address space 10.0.0.0/16 if not already there by default.</p>
+  </li>
+  <li>
+    <p>Under <strong>Subnet name</strong>, click the word <strong>default</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Edit subnet</strong> dialog box, change the name to <strong>AzureFirewallSubnet</strong>.</p>
+  </li>
+  <li>
+    <p>Change the <strong>Subnet address range</strong> to <strong>10.0.1.0/26</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Add subnet</strong>, to create another subnet, which will host the workload server that you will create shortly.</p>
+
+    <p><a href="../media/add-workload-subnet.png" target="_blank"><img src="../media/add-workload-subnet.png" alt="Add subnet"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Edit subnet</strong> dialog box, change the name to <strong>Workload-SN</strong>.</p>
+  </li>
+  <li>
+    <p>Change the <strong>Subnet address range</strong> to <strong>10.0.2.0/24</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-3-create-a-virtual-machine">Task 3: Create a virtual machine</h2>
+
+<p>In this task, you will create the workload virtual machine and place it in the Workload-SN subnet created previously.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, in the search box, type <strong>virtual machine</strong> and select <strong>Virtual machine</strong> when it appears.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual machine</strong> page, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, create a new VM using the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>Test-FW-RG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine name</td>
+          <td><strong>Srv-Work</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>Your region</td>
+        </tr>
+        <tr>
+          <td>Availability options</td>
+          <td><strong>No infrastructure redundancy required</strong></td>
+        </tr>
+        <tr>
+          <td>Image</td>
+          <td><strong>Windows Server 2022 Datacenter- Gen1</strong></td>
+        </tr>
+        <tr>
+          <td>Size</td>
+          <td><strong>Standard_D2s_v3</strong> - 2vcpus, 8GiB memory</td>
+        </tr>
+        <tr>
+          <td>Username</td>
+          <td><strong>MyAdmin</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>TestPa$$w0rd!</strong></td>
+        </tr>
+        <tr>
+          <td>Confirm password</td>
+          <td><strong>TestPa$$w0rd!</strong></td>
+        </tr>
+        <tr>
+          <td>Public inbound ports</td>
+          <td>Select <strong>None</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a href="../media/create-vm-for-azure-firewall-test-basics.png" target="_blank"><img src="../media/create-vm-for-azure-firewall-test-basics.png" alt="Create a virtual machine - Basics tab"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Next : Disks</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next : Networking</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure that <strong>Test-FW-VN</strong> is selected for the virtual network and the subnet is <strong>Workload-SN</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Public IP</strong>, select <strong>None</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next : Management</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Monitoring</strong>, set <strong>Boot diagnostics</strong> to <strong>Disable</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>When deployment of the VM completes, click <strong>Go to resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Overview</strong> page of <strong>Srv-Work</strong>, on the right of the page under <strong>Networking</strong>, take a note of the <strong>Private IP address</strong> for this VM (e.g., <strong>10.0.2.4</strong>).</p>
+  </li>
+</ol>
+
+<h2 id="task-4-deploy-the-firewall-and-firewall-policy">Task 4: Deploy the firewall and firewall policy</h2>
+
+<p>In this task, you will deploy the firewall into the virtual network with a firewall policy configured.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, select <strong>Create a resource</strong>, then in the search box, type <strong>firewall</strong> and select <strong>Firewall</strong> when it appears.</p>
+  </li>
+  <li>
+    <p>On the <strong>Firewall</strong> page, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, create a firewall using the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>Test-FW-RG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine name</td>
+          <td><strong>Test-FW01</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>Your region</td>
+        </tr>
+        <tr>
+          <td>Firewall tier</td>
+          <td><strong>Standard</strong></td>
+        </tr>
+        <tr>
+          <td>Firewall management</td>
+          <td><strong>Use a Firewall Policy to manage this firewall</strong></td>
+        </tr>
+        <tr>
+          <td>Firewall policy</td>
+          <td>Select <strong>Add new</strong><br>Name: <strong>fw-test-pol</strong><br>Region: <strong>your region</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a href="../media/create-firewall-policy.png" target="_blank"><img src="../media/create-firewall-policy.png" alt="Create a new firewall policy"></a></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Choose a virtual network</th>
+          <th><strong>Use existing</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>Test-FW-VN</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP address</td>
+          <td>Select <strong>Add new</strong><br>Name: <strong>fw-pip</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a href="../media/assign-public-ip-to-firewall.png" target="_blank"><img src="../media/assign-public-ip-to-firewall.png" alt="Add public IP address to firewall"></a></p>
+  </li>
+  <li>
+    <p>Review all the settings to ensure they match the screenshot below.</p>
+
+    <p><a href="../media/review-all-configurations-for-firewall.png" target="_blank"><img src="../media/review-all-configurations-for-firewall.png" alt="Create a firewall - review settings"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong> and wait for the firewall deployment to complete.</p>
+  </li>
+  <li>
+    <p>When deployment of the firewall is completed, click <strong>Go to resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Overview</strong> page of <strong>Test-FW01</strong>, on the right of the page, take a note of the <strong>Firewall private IP</strong> for this firewall (e.g., <strong>10.0.1.4</strong>).</p>
+  </li>
+  <li>
+    <p>In the menu on the left, under <strong>Settings</strong>, click <strong>Public IP configuration</strong>.</p>
+  </li>
+  <li>
+    <p>Take a note of the address under <strong>IP Address</strong> for the <strong>fw-pip</strong> public IP configuration (e.g., <strong>20.90.136.51</strong>).</p>
+  </li>
+</ol>
+
+<h2 id="task-5-create-a-default-route">Task 5: Create a default route</h2>
+
+<p>In this task, on the Workload-SN subnet, you will configure the outbound default route to go through the firewall.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, select <strong>Create a resource</strong>, then in the search box, type <strong>route</strong> and select <strong>Route table</strong> when it appears.</p>
+  </li>
+  <li>
+    <p>On the <strong>Route table</strong> page, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, create a new route table using the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>Test-FW-RG</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>Your region</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>Firewall-route</strong></td>
+        </tr>
+        <tr>
+          <td>Propagate gateway routes</td>
+          <td><strong>Yes</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+
+    <p><a href="../media/create-route-table.png" target="_blank"><img src="../media/create-route-table.png" alt="Create a route table"></a></p>
+  </li>
+  <li>
+    <p>After deployment completes, select <strong>Go to resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Firewall-route</strong> page, under <strong>Settings</strong>, click <strong>Subnets</strong> and then click <strong>Associate</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Virtual network</strong>, select <strong>Test-FW-VN</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Subnet</strong>, select <strong>Workload-SN</strong>. Make sure that you select only the Workload-SN subnet for this route, otherwise your firewall won’t work correctly.</p>
+  </li>
+  <li>
+    <p>Click <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Settings</strong>, select <strong>Routes</strong> and then click <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Route name</strong>, enter <strong>fw-dg</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Address prefix</strong>, enter <strong>0.0.0.0/0</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Next hop type</strong>, select <strong>Virtual appliance</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Next hop address</strong>, type the private IP address for the firewall that you noted previously (e.g., <strong>10.0.1.4</strong>)</p>
+  </li>
+  <li>
+    <p>Click <strong>OK</strong>.</p>
+
+    <p><a href="../media/add-firewall-route.png" target="_blank"><img src="../media/add-firewall-route.png" alt="Add firewall route"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-6-configure-an-application-rule">Task 6: Configure an application rule</h2>
+
+<p>In this task, you will add an application rule that allows outbound access to www.google.com.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, select <strong>All resources</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of resources, click your firewall policy, <strong>fw-test-pol</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Settings</strong>, click <strong>Application Rules</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Add a rule collection</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a rule collection</strong> page, create a new application rule using the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>App-Coll01</strong></td>
+        </tr>
+        <tr>
+          <td>Rule collection type</td>
+          <td><strong>Application</strong></td>
+        </tr>
+        <tr>
+          <td>Priority</td>
+          <td><strong>200</strong></td>
+        </tr>
+        <tr>
+          <td>Rule collection action</td>
+          <td><strong>Allow</strong></td>
+        </tr>
+        <tr>
+          <td>Rule collection group</td>
+          <td><strong>DefaultApplicationRuleCollectionGroup</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Rules Section</strong></td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>Allow-Google</strong></td>
+        </tr>
+        <tr>
+          <td>Source type</td>
+          <td><strong>IP Address</strong></td>
+        </tr>
+        <tr>
+          <td>Source</td>
+          <td><strong>10.0.2.0/24</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>http,https</strong></td>
+        </tr>
+        <tr>
+          <td>Destination type</td>
+          <td><strong>FQDN</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td><strong>www.google.com</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a href="../media/add-an-application-rule-for-firewall.png" target="_blank"><img src="../media/add-an-application-rule-for-firewall.png" alt="Add an application rule collection"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-7-configure-a-network-rule">Task 7: Configure a network rule</h2>
+
+<p>In this task, you will add a network rule that allows outbound access to two IP addresses at port 53 (DNS).</p>
+
+<ol>
+  <li>
+    <p>On the <strong>fw-test-pol</strong> page, under <strong>Settings</strong>, click <strong>Network Rules</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Add a rule collection</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a rule collection</strong> page, create a new network rule using the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>Net-Coll01</strong></td>
+        </tr>
+        <tr>
+          <td>Rule collection type</td>
+          <td><strong>Network</strong></td>
+        </tr>
+        <tr>
+          <td>Priority</td>
+          <td><strong>200</strong></td>
+        </tr>
+        <tr>
+          <td>Rule collection action</td>
+          <td><strong>Allow</strong></td>
+        </tr>
+        <tr>
+          <td>Rule collection group</td>
+          <td><strong>DefaultNetworkRuleCollectionGroup</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Rules Section</strong></td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>Allow-DNS</strong></td>
+        </tr>
+        <tr>
+          <td>Source type</td>
+          <td><strong>IP Address</strong></td>
+        </tr>
+        <tr>
+          <td>Source</td>
+          <td><strong>10.0.2.0/24</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>UDP</strong></td>
+        </tr>
+        <tr>
+          <td>Destination Ports</td>
+          <td><strong>53</strong></td>
+        </tr>
+        <tr>
+          <td>Destination Type</td>
+          <td><strong>IP Address</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td><strong>209.244.0.3, 209.244.0.4</strong><br>These are public DNS servers operated by Century Link</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>​	<a href="../media/add-a-network-rule-for-firewall.png" target="_blank"><img src="../media/add-a-network-rule-for-firewall.png" alt="Add a network rule collection"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-8-configure-a-destination-nat-dnat-rule">Task 8: Configure a Destination NAT (DNAT) rule</h2>
+
+<p>In this task, you will add a DNAT rule that allows you to connect a remote desktop to the Srv-Work virtual machine through the firewall.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>fw-test-pol</strong> page, under <strong>Settings</strong>, click <strong>DNAT Rules</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Add a rule collection</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a rule collection</strong> page, create a new DNAT rule using the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>rdp</strong></td>
+        </tr>
+        <tr>
+          <td>Rule collection type</td>
+          <td><strong>DNAT</strong></td>
+        </tr>
+        <tr>
+          <td>Priority</td>
+          <td><strong>200</strong></td>
+        </tr>
+        <tr>
+          <td>Rule collection group</td>
+          <td><strong>DefaultDnatRuleCollectionGroup</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Rules Section</strong></td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>rdp-nat</strong></td>
+        </tr>
+        <tr>
+          <td>Source type</td>
+          <td><strong>IP Address</strong></td>
+        </tr>
+        <tr>
+          <td>Source</td>
+          <td>*</td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Destination Ports</td>
+          <td><strong>3389</strong></td>
+        </tr>
+        <tr>
+          <td>Destination Type</td>
+          <td><strong>IP Address</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td>Enter the firewall public IP address from <strong>fw-pip</strong> that you noted earlier.<br><strong>e.g. - 20.90.136.51</strong></td>
+        </tr>
+        <tr>
+          <td>Translated address</td>
+          <td>Enter the private IP address from <strong>Srv-Work</strong> that you noted earlier.<br><strong>e.g. - 10.0.2.4</strong></td>
+        </tr>
+        <tr>
+          <td>Translated port</td>
+          <td><strong>3389</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<p>​		<a href="../media/add-a-dnat-rule.png" target="_blank"><img src="../media/add-a-dnat-rule.png" alt="Add a DNAT rule collection"></a></p>
+
+<ol>
+  <li>Click <strong>Add</strong>.</li>
+</ol>
+
+<h2 id="task-9-change-the-primary-and-secondary-dns-address-for-the-serversnetwork-interface">Task 9: Change the primary and secondary DNS address for the server’s&nbsp;network interface</h2>
+
+<p>For testing purposes in this exercise, in this task, you will configure the Srv-Work server’s primary and secondary DNS addresses. However, this is not a general Azure Firewall requirement.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, select <strong>Resource groups</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of resource groups, click your resource group, <strong>Test-FW-RG</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of resources in this resource group, select the network interface for the <strong>Srv-Work</strong> virtual machine (e.g., <strong>srv-work350</strong>).</p>
+
+    <p><a href="../media/change-dns-servers-srv-work-nic-1.png" target="_blank"><img src="../media/change-dns-servers-srv-work-nic-1.png" alt="Select NIC in resource group"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Settings</strong>, select <strong>DNS servers</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>DNS servers</strong>, select <strong>Custom</strong>.</p>
+  </li>
+  <li>
+    <p>Type <strong>209.244.0.3</strong> in the <strong>Add DNS server</strong> text box, and <strong>209.244.0.4</strong> in the next text box.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+
+    <p><a href="../media/change-dns-servers-srv-work-nic-2.png" target="_blank"><img src="../media/change-dns-servers-srv-work-nic-2.png" alt="Change DNS servers on NIC"></a></p>
+  </li>
+  <li>
+    <p>Restart the <strong>Srv-Work</strong> virtual machine.</p>
+  </li>
+</ol>
+
+<h2 id="task-10-test-the-firewall">Task 10: Test the firewall</h2>
+
+<p>In this final task, you will test the firewall to verify that the rules are configured correctly and working as expected. This configuration will enable you to connect a remote desktop connection to the Srv-Work virtual machine through the firewall, via the firewall’s public IP address.</p>
+
+<ol>
+  <li>
+    <p>Open <strong>Remote Desktop Connection</strong> on your PC.</p>
+  </li>
+  <li>
+    <p>In the <strong>Computer</strong> box, enter the firewall’s public IP address (e.g., <strong>20.90.136.51</strong>) followed by <strong>:3389</strong> (e.g., <strong>20.90.136.51:3389</strong>).</p>
+  </li>
+  <li>
+    <p>In the <strong>Username</strong> box, enter <strong>MyAdmin</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Connect</strong>.</p>
+
+    <p><a href="../media/remote-desktop-connection-1.png" target="_blank"><img src="../media/remote-desktop-connection-1.png" alt="RDP connection to firewall's public IP address"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Enter your credentials</strong> dialog box, log into the <strong>Srv-Work</strong> server virtual machine, by using the password, <strong>TestPa$$w0rd!</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Yes</strong> on the certificate message.</p>
+  </li>
+  <li>
+    <p>Open Internet Explorer and browse to <strong>https://www.google.com</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Security Alert</strong> dialog box, click <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Close</strong> on the Internet Explorer security alerts that may pop-up.</p>
+  </li>
+  <li>
+    <p>You should see the Google home page.</p>
+
+    <p><a href="../media/remote-desktop-connection-2.png" target="_blank"><img src="../media/remote-desktop-connection-2.png" alt="RDP session on Srv-work server - browser on google.com"></a></p>
+  </li>
+  <li>
+    <p>Browse to <strong>https://www.microsoft.com</strong>.</p>
+  </li>
+  <li>
+    <p>You should be blocked by the firewall.</p>
+
+    <p><a href="../media/remote-desktop-connection-3.png" target="_blank"><img src="../media/remote-desktop-connection-3.png" alt="RDP session on Srv-work server - browser blocked on microsoft.com"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-11-clean-up-resources">Task 11: Clean up resources</h2>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Remove-AzResourceGroup -Name 'Test-FW-RG' -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the -AsJob parameter), so while you will be able to run another PowerShell command immediately afterwards within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

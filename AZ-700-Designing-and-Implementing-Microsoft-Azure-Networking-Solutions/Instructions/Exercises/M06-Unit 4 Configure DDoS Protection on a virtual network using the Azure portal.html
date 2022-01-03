@@ -1,0 +1,476 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#create-the-vm">Create the VM</a></li><li class="nav-item"><a class="nav-link" href="#assign-the-public-ip-address">Assign the Public IP address</a></li><li class="nav-item"><a class="nav-link" href="#configure-ddos-alerts">Configure DDoS alerts</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m06-unit-4-configure-ddos-protection-on-a-virtual-network-using-the-azure-portal">M06-Unit 4 Configure DDoS Protection on a virtual network using the Azure portal</h1>
+
+<p>Being responsible for Contoso’s Network Security team, you are going to run a mock DDoS attack on the virtual network. The following steps walk you through creating a virtual network, configuring DDoS Protection, and creating an attack which you can observe and monitor with the help of telemetry and metrics.</p>
+
+<p>In this exercise, you will:</p>
+
+<ul>
+  <li>Task 1: Create a resource group</li>
+  <li>Task 2: Create a DDoS Protection plan</li>
+  <li>Task 3: Enable DDoS Protection on a new virtual network</li>
+  <li>Task 4: Configure DDoS telemetry</li>
+  <li>Task 5: Configure DDoS diagnostic logs</li>
+  <li>Task 6: Configure DDoS alerts</li>
+  <li>Task 7: Submit a DDoS service request to run a DDoS attack</li>
+  <li>Task 8: Clean up resources</li>
+</ul>
+
+<h2 id="task-1-create-a-resource-group">Task 1: Create a resource group</h2>
+
+<ol>
+  <li>
+    <p>Log in to your Azure account.</p>
+  </li>
+  <li>
+    <p>On the Azure portal home page, select <strong>Resource groups</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, in <strong>Resource group</strong>, enter <strong>MyResourceGroup</strong>.</p>
+
+    <p><a href="../media/create-resource-group-ddos-protection-plan.png" target="_blank"><img src="../media/create-resource-group-ddos-protection-plan.png" alt="Create Resource Group"></a></p>
+  </li>
+  <li>
+    <p>In <strong>Region</strong>, select your region from the list.</p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+
+    <p><a href="../media/create-resource-group-end.png" target="_blank"><img src="../media/create-resource-group-end.png" alt="End state when creating a resource group"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-2-create-a-ddos-protection-plan">Task 2: Create a DDoS Protection plan</h2>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, in the search box type <strong>DDoS</strong> and click <strong>DDoS protection plan</strong> when it appears.</p>
+  </li>
+  <li>
+    <p>Click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, in the <strong>Resource group</strong> list, select the resource group you just created.</p>
+  </li>
+  <li>
+    <p>In the <strong>Instance name</strong> box, type <strong>MyDdoSProtectionPlan</strong>, then click <strong>Review + create</strong>.</p>
+
+    <p><a href="../media/create-ddos-protection-plan-new.png" target="_blank"><img src="../media/create-ddos-protection-plan-new.png" alt="Create DDoS protection plan"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-3-enable-ddos-protection-on-a-new-virtual-network">Task 3: Enable DDoS Protection on a new virtual network</h2>
+
+<p>Here you will enable DDoS on a new virtual network rather than on an existing one, so first you need to create the new virtual network, then enable DDoS protection on it using the plan you created previously.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, select <strong>Create a resource</strong>, then in the search box, type <strong>Virtual Network</strong>, then click <strong>Virtual Network</strong> when it appears.</p>
+
+    <p><a href="../media/create-virtual-network-basics-for-ddos-protection-start.png" target="_blank"><img src="../media/create-virtual-network-basics-for-ddos-protection-start.png" alt="Start point for creating a virtual network"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual Network</strong> page, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, select the resource group you created previously.</p>
+  </li>
+  <li>
+    <p>In the <strong>Name</strong> box, type <strong>MyVirtualNetwork</strong>, then click the <strong>Security</strong> tab.</p>
+
+    <p><a href="../media/create-virtual-network-basics-for-ddos-protection.png" target="_blank"><img src="../media/create-virtual-network-basics-for-ddos-protection.png" alt="Create virtual network - Basics tab"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Security</strong> tab, next to <strong>DDoS Protection Standard</strong>, select <strong>Enable</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>DDoS protection plan</strong> drop-down list, select <strong>MyDdosProtectionPlan</strong>.</p>
+
+    <p><a href="../media/create-virtual-network-security-for-ddos-protection.png" target="_blank"><img src="../media/create-virtual-network-security-for-ddos-protection.png" alt="Create virtual network - Security tab"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-4-configure-ddos-telemetry">Task 4: Configure DDoS telemetry</h2>
+
+<p>You create a Public IP address, and then set up telemetry in the next steps.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, select <strong>Create a resource</strong>, then in the search box, type <strong>public ip</strong>, then click <strong>Public IP address</strong> when it appears.</p>
+  </li>
+  <li>
+    <p>On the <strong>Public IP address</strong> page, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create public IP address</strong> page, under <strong>SKU</strong>, select <strong>Basic</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Name</strong> box, type <strong>MyPublicIPAddress</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>IP address assignment</strong>, select <strong>Static</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>DNS name label</strong>, type <strong>mypublicdnsxx</strong> (where xx is your initials to make this unique).</p>
+  </li>
+  <li>
+    <p>Select your resource group from the list.</p>
+
+    <p><a href="../media/create-public-ip-address-for-ddos-telemetry.png" target="_blank"><img src="../media/create-public-ip-address-for-ddos-telemetry.png" alt="Create public IP address"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the Azure home page, click <strong>All resources</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of your resources, click <strong>MyDdosProtectionPlan</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Monitoring</strong>, select <strong>Metrics</strong>.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Scope</strong> box, then select the checkbox next to <strong>MyPublicIPAddress</strong>.</p>
+
+    <p><a href="../media/create-metrics-scope-for-ddos-telemetry.png" target="_blank"><img src="../media/create-metrics-scope-for-ddos-telemetry.png" alt="Create metrics scope for DDoS telemetry"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Apply</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Metrics</strong> box, select <strong>Inbound packets dropped DDoS</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Aggregation</strong> box, select <strong>Max</strong>.</p>
+
+    <p><a href="../media/metrics-created-for-ddos-telemetry.png" target="_blank"><img src="../media/metrics-created-for-ddos-telemetry.png" alt="Metrics created for DDoS telemetry"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-5-configure-ddos-diagnostic-logs">Task 5: Configure DDoS diagnostic logs</h2>
+
+<ol>
+  <li>
+    <p>On the Azure home page, click <strong>All resources</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of your resources, click <strong>MyPublicIPAddress</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Monitoring</strong>, select <strong>Diagnostic settings</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Add diagnostic setting</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Diagnostic setting</strong> page, in the <strong>Diagnostic setting name</strong> box, type <strong>MyDiagnosticSetting</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Category details</strong>, select all 3 <strong>log</strong> checkboxes and the <strong>AllMetrics</strong> checkbox.</p>
+  </li>
+  <li>
+    <p>Under <strong>Destination details</strong>, select the <strong>Send to Log Analytics workspace</strong> checkbox. Here, you could select a pre-existing Log Analytics workspace, but as you haven’t set up a destination for the diagnostic logs yet, you will just enter the settings, but then discard them in the next step in this exercise.</p>
+
+    <p><a href="../media/configure-ddos-diagnostic-settings-new.png" target="_blank"><img src="../media/configure-ddos-diagnostic-settings-new.png" alt="Configure new Diagnostic settings for DDoS"></a></p>
+  </li>
+  <li>
+    <p>Normally you would now click <strong>Save</strong> to save your diagnostic settings. Note that this option is still grayed out as we cannot complete the setting configuration yet.</p>
+  </li>
+  <li>
+    <p>Click <strong>Discard</strong>, then click <strong>Yes</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-6-configure-ddos-alerts">Task 6: Configure DDoS alerts</h2>
+
+<p>In this step you will create a virtual machine, assign a public IP address to it, and then configure DDoS alerts.</p>
+
+<h3 id="create-the-vm">Create the VM</h3>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, select <strong>Create a resource</strong>, then in the search box, type <strong>virtual machine</strong>, then click <strong>Virtual machine</strong> when it appears.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual machine</strong> page, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, create a new VM using the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>MyResourceGroup</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine name</td>
+          <td><strong>MyVirtualMachine</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>Your region</td>
+        </tr>
+        <tr>
+          <td>Availability options</td>
+          <td><strong>No infrastructure  redundancy required</strong></td>
+        </tr>
+        <tr>
+          <td>Image</td>
+          <td><strong>Ubuntu Server 18.04 LTS -  Gen 1</strong> (Select Configure VM Generation link if needed)</td>
+        </tr>
+        <tr>
+          <td>Size</td>
+          <td>Select <strong>See  all sizes</strong>, then choose <strong>B1ls</strong> in the  list and choose <strong>Select</strong>  <strong>(Standard_B1ls - 1 vcpu,  0.5 GiB memory</strong></td>
+        </tr>
+        <tr>
+          <td>Authentication type</td>
+          <td><strong>SSH public key</strong></td>
+        </tr>
+        <tr>
+          <td>Username</td>
+          <td><strong>azureuser</strong></td>
+        </tr>
+        <tr>
+          <td>SSH public key source</td>
+          <td><strong>Generate new key pair</strong></td>
+        </tr>
+        <tr>
+          <td>Key pair name</td>
+          <td><strong>myvirtualmachine-ssh-key</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+
+    <p><a href="../media/create-virtual-machine-to-test-ddos.png" target="_blank"><img src="../media/create-virtual-machine-to-test-ddos.png" alt="Create virtual machine page"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Generate new key pair</strong> dialog box, click <strong>Download private key and create resource</strong>.</p>
+  </li>
+  <li>
+    <p>Save the private key.</p>
+  </li>
+  <li>
+    <p>When deployment is complete, click <strong>Go to resource</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="assign-the-public-ip-address">Assign the Public IP address</h3>
+
+<ol>
+  <li>
+    <p>On the <strong>Overview</strong> page of the new virtual machine, under <strong>Settings</strong>, click <strong>Networking</strong>.</p>
+  </li>
+  <li>
+    <p>Next to <strong>Network Interface</strong>, click <strong>myvirtualmachine</strong> (e.g., myvirtualmachine892).</p>
+  </li>
+  <li>
+    <p>Under <strong>Settings</strong>, click <strong>IP configurations</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>ipconfig1</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Public IP address</strong> list, select <strong>MyPublicIPAddress</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Save</strong>.</p>
+
+    <p><a href="../media/change-public-ip-config-for-ddos-vm-new.png" target="_blank"><img src="../media/change-public-ip-config-for-ddos-vm-new.png" alt="Change public IP address for DDoS VM"></a></p>
+  </li>
+</ol>
+
+<h3 id="configure-ddos-alerts">Configure DDoS alerts</h3>
+
+<ol>
+  <li>
+    <p>On the Azure home page, click <strong>All resources</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of your resources, click <strong>MyDdosProtectionPlan</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Monitoring</strong>, select <strong>Alerts</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>New alert rule</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create alert rule</strong> page, under <strong>Scope</strong>, click <strong>Edit resource</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Select a resource</strong> pane, in the <strong>Filter by resource type</strong> box, scroll down the list and select <strong>Public IP addresses</strong>.</p>
+
+    <p><a href="../media/new-alert-rule-change-scope-to-public-ip-address-1.png" target="_blank"><img src="../media/new-alert-rule-change-scope-to-public-ip-address-1.png" alt="New alert rule change scope to public IP address"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Resource</strong> list, select <strong>MyPublicIPAddress</strong>, then click <strong>Done</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create alert rule</strong> page, under <strong>Condition</strong>, click <strong>Add condition</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Under DDoS attack or not</strong>.</p>
+
+    <p><a href="../media/add-condition-to-alert-rule-1.png" target="_blank"><img src="../media/add-condition-to-alert-rule-1.png" alt="Add condition to alert rule - select a signal"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Operator</strong> box select <strong>Greater than or equal to</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Threshold value</strong>, enter <strong>1</strong> (means under attack).</p>
+  </li>
+  <li>
+    <p>Click <strong>Done</strong>.</p>
+
+    <p><a href="../media/add-condition-to-alert-rule-2.png" target="_blank"><img src="../media/add-condition-to-alert-rule-2.png" alt="Add condition to alert rule - configure signal logic"></a></p>
+  </li>
+  <li>
+    <p>Back on the <strong>Create alert rule</strong> page, scroll down to the <strong>Alert rule details</strong> section and in <strong>Alert rule name</strong>, enter <strong>MyDdosAlert</strong>.</p>
+
+    <p><a href="../media/new-alert-rule-end.png" target="_blank"><img src="../media/new-alert-rule-end.png" alt="End point of create new alert rule"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Create alert rule</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-7-submit-a-ddos-service-request-to-run-a-ddos-attack">Task 7: Submit a DDoS service request to run a DDoS attack</h2>
+
+<ol>
+  <li>
+    <p>Create an account with <a href="https://breakingpoint.cloud/">BreakingPoint Cloud</a></p>
+  </li>
+  <li>
+    <p>Set up your DDoS test as per the settings in the screenshot below (you may need to select the 100k pps test size with the trial account), but specifying the IP address of your own <strong>MyPublicIPAddress</strong> resource in the <strong>Target IP Address</strong> box (e.g., <strong>51.140.137.219</strong>)
+<a href="https://user-images.githubusercontent.com/46939028/138599420-58bef33a-2597-4fa2-919f-bf1614037bc3.JPG" target="_blank"><img src="https://user-images.githubusercontent.com/46939028/138599420-58bef33a-2597-4fa2-919f-bf1614037bc3.JPG" alt="DDOSAttack"></a></p>
+
+    <p><a href="../media/ddos-test-setup.png" target="_blank"><img src="../media/ddos-test-setup.png" alt="DDoS Test Setup"></a></p>
+  </li>
+  <li>
+    <p>On the Azure portal home page, click <strong>All resources</strong>.</p>
+  </li>
+  <li>
+    <p>In the resources list, click your <strong>MyPublicIPAddress</strong> resource, then under <strong>Monitoring</strong>, click <strong>Metrics</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Metric</strong> box, select <strong>Under DDoS attack or not</strong> from the list.</p>
+  </li>
+  <li>
+    <p>And here you can see DDoS attack as it happened. Note it may take the full 10 minutes before you see the results.</p>
+
+    <p><a href="../media/metrics-showing-resource-under-attack.png" target="_blank"><img src="../media/metrics-showing-resource-under-attack.png" alt="Metrics showing resource under DDoS attack"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-8-clean-up-resources">Task 8: Clean up resources</h2>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Remove-AzResourceGroup -Name 'MyResourceGroup' -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the -AsJob parameter), so while you will be able to run another PowerShell command immediately afterwards within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

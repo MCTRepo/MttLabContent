@@ -1,0 +1,896 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ500-AzureSecurityTechnologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ500-AzureSecurityTechnologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#total-lab-time-estimate-60-minutes">Total Lab Time estimate: 60 minutes</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-deploy-the-base-infrastructure-from-an-arm-template">Exercise 1: Deploy the base infrastructure from an ARM template</a></li><li class="nav-item"><a class="nav-link active" href="#exercise-2-configure-the-key-vault-resource-with-a-key-and-a-secret">Exercise 2: Configure the Key Vault resource with a key and a secret</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-configure-an-azure-sql-database-and-a-data-driven-application">Exercise 3: Configure an Azure SQL database and a data-driven application</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-demonstrate-the-use-of-azure-key-vault-in-encrypting-the-azure-sql-database">Exercise 4: Demonstrate the use of Azure Key Vault in encrypting the Azure SQL database</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-10-key-vault-implementing-secure-data-by-setting-up-always-encrypted">Lab 10: Key Vault (Implementing Secure Data by setting up Always Encrypted)</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>You have been asked to create a proof of concept application that makes use of the Azure SQL Database support for Always Encrypted functionality. All of the secrets and keys used in this scenario should be stored in Key Vault. The application should be registered in Azure Active Directory (Azure AD) in order to enhance its security posture. To accomplish these objectives, the proof of concept should include:</p>
+
+<ul>
+  <li>Creating an Azure Key Vault and storing keys and secrets in the vault.</li>
+  <li>Create a SQL Database and encrypting content of columns in database tables by using Always Encrypted.</li>
+</ul>
+
+<blockquote>
+  <p><strong>Note</strong>: For all the resources in this lab, we are using the <strong>East US</strong> region. Verify with your instructor this is the region to use for class.</p>
+</blockquote>
+
+<p>To keep the focus on the security aspects of Azure, related to building this proof of concept, you will start from an automated ARM template deployment, setting up a Virtual Machine with Visual Studio 2019 and SQL Server Management Studio 2018.</p>
+
+<h2 id="lab-objectives">Lab objectives</h2>
+
+<p>In this lab, you will complete the following exercises:</p>
+
+<ul>
+  <li>Exercise 1: Deploy the base infrastructure from an ARM template</li>
+  <li>Exercise 2: Configure the Key Vault resource with a key and a secret</li>
+  <li>Exercise 3: Configure an Azure SQL database and a data-driven application</li>
+  <li>Exercise 4: Demonstrate the use of Azure Key Vault in encrypting the Azure SQL database</li>
+</ul>
+
+<h2 id="lab-files">Lab files:</h2>
+
+<ul>
+  <li>
+    <p><strong>\Allfiles\Labs\10\az-500-10_azuredeploy.json</strong></p>
+  </li>
+  <li>
+    <p><strong>\Allfiles\Labs\10\program.cs</strong></p>
+  </li>
+</ul>
+
+<h3 id="total-lab-time-estimate-60-minutes">Total Lab Time estimate: 60 minutes</h3>
+
+<h3 id="exercise-1-deploy-the-base-infrastructure-from-an-arm-template">Exercise 1: Deploy the base infrastructure from an ARM template</h3>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: Deploy an Azure VM and an Azure SQL database</li>
+</ul>
+
+<h4 id="task-1-deploy-an-azure-vm-and-an-azure-sql-database">Task 1: Deploy an Azure VM and an Azure SQL database</h4>
+
+<p>In this task, you will deploy an Azure VM, which will automatically install Visual Studio 2019 and SQL Server Management Studio 2018 as part of the deployment.</p>
+
+<ol>
+  <li>
+    <p>Sign-in to the Azure portal <strong><code>https://portal.azure.com/</code></strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Sign in to the Azure portal using an account that has the Owner or Contributor role in the Azure subscription you are using for this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Deploy a custom template</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Custom deployment</strong> blade, click the <strong>Build your own template in the editor</strong> option.</p>
+  </li>
+  <li>
+    <p>On the <strong>Edit template</strong> blade, click <strong>Load file</strong>, locate the <strong>\Allfiles\Labs\10\az-500-10_azuredeploy.json</strong> file and click <strong>Open</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Edit template</strong> blade, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Custom deployment</strong> blade, under <strong>Deployment Scope</strong> ensure that the following settings are configured (leave any others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you will be using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>click <strong>Create new</strong> and type the name <strong>AZ500LAB10</strong></td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td><strong>(US) East US</strong></td>
+        </tr>
+        <tr>
+          <td>Admin Username</td>
+          <td><strong>Student</strong></td>
+        </tr>
+        <tr>
+          <td>Admin Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: While you can change the administrative credentials used for logging on to the Virtual Machine, you don’t have to.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: To identify Azure regions where you can provision Azure VMs, refer to <a href="https://azure.microsoft.com/en-us/regions/offers/"><strong>https://azure.microsoft.com/en-us/regions/offers/</strong></a></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click the <strong>Review and Create</strong> button, and confirm the deployment by clicking the <strong>Create</strong> button.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This initiates the deployment of the Azure VM and Azure SQL Database required for this lab.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Do not wait for the ARM template deployment to be completed, but instead continue to the next exercise. The deployment might take between <strong>20-25 minutes</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-2-configure-the-key-vault-resource-with-a-key-and-a-secret">Exercise 2: Configure the Key Vault resource with a key and a secret</h3>
+
+<blockquote>
+  <p><strong>Note</strong>: For all the resources in this lab, we are using the <strong>East (US)</strong> region. Verify with your instructor this is region to use for you class.</p>
+</blockquote>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: Create and configure a Key Vault</li>
+  <li>Task 2: Add a key to the Key Vault</li>
+  <li>Task 3: Add a secret to the Key Vault</li>
+</ul>
+
+<h4 id="task-1-create-and-configure-a-key-vault">Task 1: Create and configure a Key Vault</h4>
+
+<p>In this task, you will create an Azure Key Vault resource. You will also configure the Azure Key Vault permissions.</p>
+
+<ol>
+  <li>
+    <p>Open the Cloud Shell by clicking the first icon (next to the search bar) at the top right of the Azure portal. If prompted, select <strong>PowerShell</strong> and <strong>Create storage</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>PowerShell</strong> is selected in the drop-down menu in the upper-left corner of the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to create an Azure Key Vault in the resource group <strong>AZ500LAB10</strong>. (If you chose another name for this lab’s Resource Group out of Task 1, use that name for this task as well). The Key Vault name must be unique. Remember the name you have chosen. You will need it throughout this lab.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell"> $kvName = 'az500kv' + $(Get-Random)
+
+ $location = (Get-AzResourceGroup -ResourceGroupName 'AZ500LAB10').Location
+
+ New-AzKeyVault -VaultName $kvName -ResourceGroupName 'AZ500LAB10' -Location $location
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The output of the last command will display the vault name and the vault URI. The vault URI is in the format <code>https://&lt;vault_name&gt;.vault.azure.net/</code></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Resource groups</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, in the list of resource group, click the <strong>AZ500LAB10</strong> (or other name you chose earlier for the resource group) entry.</p>
+  </li>
+  <li>
+    <p>On the Resource Group blade, click the entry representing the newly created Key Vault.</p>
+  </li>
+  <li>
+    <p>On the Key Vault blade, in the <strong>Settings</strong> section, click <strong>Access Policies</strong> and then click <strong>+ Add Access Policy</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add access policy</strong> blade, specify the following settings (leave all others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Configure from template (optional)</td>
+          <td><strong>Key, Secret, &amp; Certificate Management</strong></td>
+        </tr>
+        <tr>
+          <td>Key permissions</td>
+          <td>click <strong>Select all</strong> resulting in <strong>16 selected</strong> permissions (Make sure the permissions for <strong>Rotation Policy Operations</strong> are <strong>unchecked</strong>)</td>
+        </tr>
+        <tr>
+          <td>Secret permissions</td>
+          <td>click <strong>Select all</strong> resulting in total of <strong>8 selected</strong> permissions</td>
+        </tr>
+        <tr>
+          <td>Certification permissions</td>
+          <td>click <strong>Select all</strong> resulting in total of <strong>16 selected</strong> permissions</td>
+        </tr>
+        <tr>
+          <td>Select principal</td>
+          <td>click <strong>None selected</strong>, on the <strong>Principal</strong> blade, select your user account, and click <strong>Select</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Back on the <strong>Add access policy</strong> blade, click <strong>Add</strong> to add the access policy and, back on the access policies blade of the Key Vault, click <strong>Save</strong> to your changes.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-add-a-key-to-key-vault">Task 2: Add a key to Key Vault</h4>
+
+<p>In this task, you will add a key to the Key Vault and view information about the key.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open a PowerShell session in the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>PowerShell</strong> is selected in the upper-left drop-down menu of the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to add a software-protected key to the Key Vault:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell"> $kv = Get-AzKeyVault -ResourceGroupName 'AZ500LAB10'
+
+ $key = Add-AZKeyVaultKey -VaultName $kv.VaultName -Name 'MyLabKey' -Destination 'Software'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The name of the key is <strong>MyLabKey</strong></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to verify the key was created:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell"> Get-AZKeyVaultKey -VaultName $kv.VaultName
+</code></pre>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to display the key identifier:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell"> $key.key.kid
+</code></pre>
+  </li>
+  <li>
+    <p>Minimize the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>Back in the Azure portal, on the Key Vault blade, in the <strong>Settings</strong> section, click <strong>Keys</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of keys, click the <strong>MyLabKey</strong> entry and then, on the <strong>MyLabKey</strong> blade, click the entry representing the current version of the key.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Examine the information about the key you created.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can reference any key by using the key identifier. To get the most current version, reference <code>https://&lt;key_vault_name&gt;.vault.azure.net/keys/MyLabKey</code> or get the specific version with: <code>https://&lt;key_vault_name&gt;.vault.azure.net/keys/MyLabKey/&lt;key_version&gt;</code></p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-add-a-secret-to-key-vault">Task 3: Add a Secret to Key Vault</h4>
+
+<ol>
+  <li>
+    <p>Switch back to the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to create a variable with a secure string value:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell"> $secretvalue = ConvertTo-SecureString 'Pa55w.rd1234' -AsPlainText -Force
+</code></pre>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to add the secret to the vault:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">$secret = Set-AZKeyVaultSecret -VaultName $kv.VaultName -Name 'SQLPassword' -SecretValue $secretvalue
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The name of the secret is SQLPassword.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to verify the secret was created.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Get-AZKeyVaultSecret -VaultName $kv.VaultName
+</code></pre>
+  </li>
+  <li>
+    <p>Minimize the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the Key Vault blade, in the <strong>Settings</strong> section, click <strong>Secrets</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of secrets, click the <strong>SQLPassword</strong> entry and then, on the <strong>SQLPassword</strong> blade, click the entry representing the current version of the secret.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Examine the information about the secret you created.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: To get the most current version of a secret, reference <code>https://&lt;key_vault_name&gt;.vault.azure.net/secrets/&lt;secret_name&gt;</code> or get a specific version, reference <code>https://&lt;key_vault_name&gt;.vault.azure.net/secrets/&lt;secret_name&gt;/&lt;secret_version&gt;</code></p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-3-configure-an-azure-sql-database-and-a-data-driven-application">Exercise 3: Configure an Azure SQL database and a data-driven application</h3>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: Enable a client application to access the Azure SQL Database service.</li>
+  <li>Task 2: Create a policy allowing the application access to the Key Vault.</li>
+  <li>Task 3: Retrieve SQL Azure database ADO.NET Connection String</li>
+  <li>Task 4: Log on to the Azure VM running Visual Studio 2019 and SQL Management Studio 2018</li>
+  <li>Task 5: Create a table in the SQL Database and select data columns for encryption</li>
+</ul>
+
+<h4 id="task-1-enable-a-client-application-to-access-the-azure-sql-database-service">Task 1: Enable a client application to access the Azure SQL Database service.</h4>
+
+<p>In this task, you will enable a client application to access the Azure SQL Database service. This will be done by setting up the required authentication and acquiring the Application ID and Secret that you will need to authenticate your application. T</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>App Registrations</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>App Registrations</strong> blade, click <strong>+ New registration</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Register an application</strong> blade, specify the following settings (leave all others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>sqlApp</strong></td>
+        </tr>
+        <tr>
+          <td>Redirect URI (optional)</td>
+          <td><strong>Web</strong> and <strong>https://sqlapp</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Register an application</strong> blade, click <strong>Register</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Once the registration is completed, the browser will automatically redirect you to <strong>sqlApp</strong> blade.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>sqlApp</strong> blade, identify the value of <strong>Application (client) ID</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record this value. You will need it in the next task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>sqlApp</strong> blade, in the <strong>Manage</strong> section, click <strong>Certificates &amp; secrets</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **sqlApp</td>
+          <td>Certificates &amp; secrets** blade / <strong>Client Secrets</strong> section, click <strong>+ New client secret</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the <strong>Add a client secret</strong> pane, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Description</td>
+          <td><strong>Key1</strong></td>
+        </tr>
+        <tr>
+          <td>Expires</td>
+          <td><strong>12 months</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong> to update the application credentials.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **sqlApp</td>
+          <td>Certificates &amp; secrets** blade, identify the value of <strong>Key1</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record this value. You will need it in the next task.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure to copy the value <em>before</em> you navigate away from the blade. Once you do, it is no longer possible to retrieve its clear text value.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-create-a-policy-allowing-the-application-access-to-the-key-vault">Task 2: Create a policy allowing the application access to the Key Vault.</h4>
+
+<p>In this task, you will grant the newly registered app permissions to access secrets stored in the Key Vault.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open a PowerShell session in the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>PowerShell</strong> is selected in the upper-left drop-down menu of the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to create a variable storing the <strong>Application (client) ID</strong> you recorded in the previous task (replace the <code>&lt;Azure_AD_Application_ID&gt;</code> placeholder with the value of the <strong>Application (client) ID</strong>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell"> $applicationId = '&lt;Azure_AD_Application_ID&gt;'
+</code></pre>
+  </li>
+  <li>In the PowerShell session within the Cloud Shell pane, run the following to create a variable storing the Key Vault name.
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs shell"><span class="hljs-meta"> $</span><span class="bash">kvName = (Get-AzKeyVault -ResourceGroupName <span class="hljs-string">'AZ500LAB10'</span>).VaultName</span>
+<span class="hljs-meta">
+ $</span><span class="bash">kvName</span>
+</code></pre>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to grant permissions on the Key Vault to the application you registered in the previous task:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell"> Set-AZKeyVaultAccessPolicy -VaultName $kvName -ResourceGroupName AZ500LAB10 -ServicePrincipalName $applicationId -PermissionsToKeys get,wrapKey,unwrapKey,sign,verify,list
+</code></pre>
+  </li>
+  <li>Close the Cloud Shell pane.</li>
+</ol>
+
+<h4 id="task-3-retrieve-sql-azure-database-adonet-connection-string">Task 3: Retrieve SQL Azure database ADO.NET Connection String</h4>
+
+<p>The ARM-template deployment in Exercise 1 provisioned an Azure SQL Server instance and an Azure SQL database named <strong>medical</strong> . You will update the empty database resource with a new table structure and select data columns for encryption</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>SQL databases</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>In the list of SQL databases, click the **medical(<randomsqlservername>)** entry.</randomsqlservername></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the database cannot be found, this likely means the deployment you initiated in Exercise 1 has not completed yet. You can validate this by browsing to the Azure Resource Group “AZ500LAB10” (or the name you chose), and selecting <strong>Deployments</strong> from the Settings pane.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the SQL database blade, in the <strong>Settings</strong> section, click <strong>Connection strings</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The interface includes connection strings for ADO.NET, JDBC, ODBC, PHP, and Go.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Record the <strong>ADO.NET Connection String</strong>. You will need it later.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: When you use the connection string, make sure to replace the <code>{your_password}</code> placeholder with <strong>Pa55w.rd1234</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-log-on-to-the-azure-vm-running-visual-studio-2019-and-sql-management-studio-2018">Task 4: Log on to the Azure VM running Visual Studio 2019 and SQL Management Studio 2018</h4>
+
+<p>In this task, you log on to the Azure VM, which deployment you initiated in Exercise 1. This Azure VM hosts Visual Studio 2019 and SQL Server Management Studio 2018.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Before you proceed with this task, ensure that the deployment you initiated in the first exercise has completed successfully. You can validate this by navigating to the blade of the Azure resource group “Az500Lab10” (or other name you chose) and selecting <strong>Deployments</strong> from the Settings pane.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>virtual machines</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>In the list of Virtual Machines shown, select the <strong>az500-10-vm1</strong> entry. On the <strong>az500-10-vm1</strong> blade, on the <strong>Essentials</strong> pane, take note of the <strong>Public IP address</strong>. You will use this later.</p>
+  </li>
+</ol>
+
+<h4 id="task-5-create-a-table-in-the-sql-database-and-select-data-columns-for-encryption">Task 5: Create a table in the SQL Database and select data columns for encryption</h4>
+
+<p>In this task, you will connect to the SQL Database with SQL Server Management Studio and create a table. You will then encrypt two data columns using an autogenerated key from the Azure Key Vault.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate to the blade of the <strong>medical</strong> SQL database, in the <strong>Essentials</strong> section, identify the <strong>Server name</strong> (copy to clipboard), and then, in the toolbar, click <strong>Set server firewall</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the server name. You will need the server name later in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Firewall settings</strong> blade, scroll down to <strong>Rule Name</strong>, and specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Rule Name</td>
+          <td><strong>Allow Mgmt VM</strong></td>
+        </tr>
+        <tr>
+          <td>Start IP</td>
+          <td>the Public IP Address of the az500-10-vm1</td>
+        </tr>
+        <tr>
+          <td>End IP</td>
+          <td>the Public IP Address of the az500-10-vm1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Save</strong> and <strong>OK</strong> to save the change and close the confirmation pane.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This modifies the server firewall settings, allowing connections to the medical database from the Azure VM’s public IP address you deployed in this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>az500-10-vm1</strong> blade, click <strong>Overview</strong>, next click <strong>Connect</strong> and, in the drop down menu, click <strong>RDP</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Download RDP File</strong> and use it to connect to the <strong>az500-10-vm1</strong> Azure VM via Remote Desktop. When prompted to authenticate, provide the following credntials:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>User name</td>
+          <td><strong>Student</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the Remote Desktop session and <strong>Server Manager</strong> to load. Close Server Manager.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: The remaining steps in this lab are performed within the Remote Desktop session to the <strong>az500-10-vm1</strong> Azure VM.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Start</strong>, in the <strong>Start</strong> menu, expand the <strong>Microsoft SQL Server Tools 18</strong> folder, and click the <strong>Micosoft SQL Server Management Studio</strong> menu item.</p>
+  </li>
+  <li>
+    <p>In the <strong>Connect to Server</strong> dialog box, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Server Type</td>
+          <td><strong>Database Engine</strong></td>
+        </tr>
+        <tr>
+          <td>Server Name</td>
+          <td>the server name you identified earlier in this task</td>
+        </tr>
+        <tr>
+          <td>Authentication</td>
+          <td><strong>SQL Server Authentication</strong></td>
+        </tr>
+        <tr>
+          <td>Login</td>
+          <td><strong>Student</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the <strong>Connect to Server</strong> dialog box, click <strong>Connect</strong>.</p>
+  </li>
+  <li>
+    <p>Within the <strong>SQL Server Management Studio</strong> console, in the <strong>Object Explorer</strong> pane, expand the <strong>Databases</strong> folder.</p>
+  </li>
+  <li>
+    <p>In the <strong>Object Explorer</strong> pane, right-click the <strong>medical</strong> database and click <strong>New Query</strong>.</p>
+  </li>
+  <li>
+    <p>Paste the following code into the query window and click <strong>Execute</strong>. This will create a <strong>Patients</strong> table.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> [dbo].[Patients](
+    [PatientId] [<span class="hljs-built_in">int</span>] <span class="hljs-keyword">IDENTITY</span>(<span class="hljs-number">1</span>,<span class="hljs-number">1</span>),
+    [SSN] [<span class="hljs-built_in">char</span>](<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+    [FirstName] [<span class="hljs-keyword">nvarchar</span>](<span class="hljs-number">50</span>) <span class="hljs-literal">NULL</span>,
+    [LastName] [<span class="hljs-keyword">nvarchar</span>](<span class="hljs-number">50</span>) <span class="hljs-literal">NULL</span>,
+    [MiddleName] [<span class="hljs-keyword">nvarchar</span>](<span class="hljs-number">50</span>) <span class="hljs-literal">NULL</span>,
+    [StreetAddress] [<span class="hljs-keyword">nvarchar</span>](<span class="hljs-number">50</span>) <span class="hljs-literal">NULL</span>,
+    [City] [<span class="hljs-keyword">nvarchar</span>](<span class="hljs-number">50</span>) <span class="hljs-literal">NULL</span>,
+    [ZipCode] [<span class="hljs-built_in">char</span>](<span class="hljs-number">5</span>) <span class="hljs-literal">NULL</span>,
+    [State] [<span class="hljs-built_in">char</span>](<span class="hljs-number">2</span>) <span class="hljs-literal">NULL</span>,
+    [BirthDate] [<span class="hljs-built_in">date</span>] <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> 
+ PRIMARY <span class="hljs-keyword">KEY</span> CLUSTERED ([PatientId] <span class="hljs-keyword">ASC</span>) <span class="hljs-keyword">ON</span> [PRIMARY] );
+</code></pre>
+  </li>
+  <li>
+    <p>After the table is created successfully, in the <strong>Object Explorer</strong> pane, expand the <strong>medical</strong> database node, the <strong>tables</strong> node, right-click the <strong>dbo.Patients</strong> node, and click <strong>Encrypt Columns</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will initiate the <strong>Always Encrypted</strong> wizard.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Introduction</strong> page, click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Column Selection</strong> page, select the <strong>SSN</strong> and <strong>Birthdate</strong> columns, set the <strong>Encryption Type</strong> of the <strong>SSN</strong> column to <strong>Deterministic</strong> and of the <strong>Birthdate</strong> column to <strong>Randomized</strong>, and click <strong>Next</strong>.</p>
+  </li>
+</ol>
+
+<p><strong>Note</strong> While performing the encryption if any error thrown like <strong>Exception has been thrown by the target of an innvocation</strong> related to <strong>Rotary(Microsoft.SQLServer.Management.ServiceManagement)</strong> then make sure the <strong>Key Permission’s</strong> values of <strong>Rotation Policy Operations</strong> are <strong>unchecked</strong>, if not in the Azure portal navigate to the <strong>Key Vault</strong>&nbsp;» <strong>Access Policies</strong>&nbsp;» <strong>Key Permissions</strong>&nbsp;» Uncheck all the values under the <strong>Rotation Policy Operations</strong> .</p>
+
+<ol>
+  <li>
+    <p>On the <strong>Master Key Configuration</strong> page, select <strong>Azure Key Vault</strong>, click <strong>Sign in</strong>, when prompted, authenticate by using the same user account you used to provision the Azure Key Vault instance earlier in this lab, ensure that that Key Vault appears in the <strong>Select an Azure Key Vault</strong> drop down list, and click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Run Settings</strong> page, click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Summary</strong> page, click <strong>Finish</strong> to proceed with the encryption. When prompted, sign in again by using the same user account you used to provision the Azure Key Vault instance earlier in this lab.</p>
+  </li>
+  <li>
+    <p>Once the encryption process is complete, on the <strong>Results</strong> page, click <strong>Close</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>SQL Server Management Studio</strong> console, in the <strong>Object Explorer</strong> pane, under the <strong>medical</strong> node, expand the <strong>Security</strong> and <strong>Always Encrypted Keys</strong> subnodes.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>Always Encrypted Keys</strong> subnode contains the <strong>Column Master Keys</strong> and <strong>Column Encryption Keys</strong> subfolders.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-4-demonstrate-the-use-of-azure-key-vault-in-encrypting-the-azure-sql-database">Exercise 4: Demonstrate the use of Azure Key Vault in encrypting the Azure SQL database</h3>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: Run a data-driven application to demonstrate the use of Azure Key Vault in encrypting the Azure SQL database</li>
+</ul>
+
+<h4 id="task-1-run-a-data-driven-application-to-demonstrate-the-use-of-azure-key-vault-in-encrypting-the-azure-sql-database">Task 1: Run a data-driven application to demonstrate the use of Azure Key Vault in encrypting the Azure SQL database</h4>
+
+<p>You will create a Console application using Visual Studio to load data into the encrypted columns and then access that data securely using a connection string that accesses the key in the Key Vault.</p>
+
+<ol>
+  <li>
+    <p>From the RDP session to the <strong>az500-10-vm1</strong>, launch <strong>Visual Studio 2019</strong> from the <strong>Start menu</strong>.</p>
+  </li>
+  <li>
+    <p>Switch to the window displaying Visual Studio 2019 welcome message, click the <strong>Sign in</strong> button and, when prompted, provide the credntials you used to authenticate to the Azure subscription you are using in this lab.</p>
+  </li>
+  <li>
+    <p>On the <strong>Get started</strong> page, click <strong>Create a new project</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of project templates, search for <strong>Console App (.NET Framework)</strong>, in the list of results, click <strong>Console App (.NET Framework)</strong> for <strong>C#</strong>, and click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Configure your new project</strong> page, specify the following settings (leave other settings with their default values), then click <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Project name</td>
+          <td><strong>OpsEncrypt</strong></td>
+        </tr>
+        <tr>
+          <td>Solution name</td>
+          <td><strong>OpsEncrypt</strong></td>
+        </tr>
+        <tr>
+          <td>Framework</td>
+          <td><strong>.NET Framework 4.7.2.</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the Visual Studio console, click the <strong>Tools</strong> menu, in the drop down menu, click <strong>NuGet Package Manager</strong>, and, in the cascading menu, click <strong>Package Manager Console</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Package Manager Console</strong> pane, run the following to install the first required <strong>NuGet</strong> package:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-powershell"> Install-Package Microsoft.SqlServer.Management.AlwaysEncrypted.AzureKeyVaultProvider
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Package Manager Console</strong> pane, run the following to install the second required <strong>NuGet</strong> package:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-powershell"> Install-Package Microsoft.IdentityModel.Clients.ActiveDirectory
+</code></pre>
+  </li>
+  <li>
+    <p>Navigate to <strong>\Allfiles\Labs\10\program.cs</strong>, open it in Notepad, and copy its content into Clipboard.</p>
+  </li>
+  <li>
+    <p>Switch to the Visual Studio console, in the <strong>Solution Explorer</strong> window, click <strong>Program.cs</strong> and replace its content with the code you copied into Clipboard.</p>
+  </li>
+  <li>
+    <p>In the Visual Studio window, in the <strong>Program.cs</strong> pane, in line 15, replace the <code>&lt;connection string noted earlier&gt;</code> placeholder with the Azure SQL database <strong>ADO.NET</strong> connection string you recorded earlier in the lab. In the connection string, replace the <code>{your_password}</code> placehodler, with <code>Pa55w.rd1234</code>.</p>
+  </li>
+  <li>
+    <p>In the Visual Studio window, in the <strong>Program.cs</strong> pane, in line 16, replace the <code>&lt;client id noted earlier&gt;</code> placeholder with the value of <strong>Application (client) ID</strong> of the registered app you recorded earlier in the lab.</p>
+  </li>
+  <li>
+    <p>In the Visual Studio window, in the <strong>Program.cs</strong> pane, in line 17, replace the <code>&lt;key value noted earlier&gt;</code> placeholder with the the value of <strong>Key1</strong> of the registered app you recorded earlier in the lab.</p>
+  </li>
+  <li>
+    <p>In the Visual Studio console, click the <strong>Start</strong> button to initiate the build of the console application and start it.</p>
+  </li>
+  <li>
+    <p>The application will start a Command Prompt window. When prompted for password, type <strong>Pa55w.rd1234</strong> to connect to Azure SQL Database.</p>
+  </li>
+  <li>
+    <p>Leave the console app running and switch to the <strong>SQL Management Studio</strong> console.</p>
+  </li>
+  <li>
+    <p>In the <strong>Object Explorer</strong> pane, right-click the <strong>medical database</strong> and, in the right-click menu, click <strong>New Query</strong>.</p>
+  </li>
+  <li>
+    <p>From the query window, run the following query to verify that the data that loaded into the database from the console app is encrypted.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> FirstName, LastName, SSN, BirthDate <span class="hljs-keyword">FROM</span> Patients;
+</code></pre>
+  </li>
+  <li>
+    <p>Switch back to the console application where you are prompted to enter a valid SSN. This will query the encrypted column for the data. At the Command Prompt, type the following and press the Enter key:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-cmd">999-99-0003
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the data returned by the query is not encrypted.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To terminate the console app, press the Enter key</p>
+  </li>
+</ol>
+
+<p><strong>Clean up resources</strong></p>
+
+<blockquote>
+  <p>Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not incur unexpected costs.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the Cloud Shell by clicking the first icon in the top right of the Azure portal.</p>
+  </li>
+  <li>
+    <p>In the upper-left drop-down menu of the Cloud Shell pane, select <strong>PowerShell</strong> and, when prompted, click <strong>Confirm</strong>.</p>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to remove the resource groups you created in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-powershell"> Remove-AzResourceGroup -Name "AZ500LAB10" -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ500-AzureSecurityTechnologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

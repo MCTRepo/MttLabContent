@@ -1,0 +1,261 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            SC-200T00A-Microsoft-Security-Operations-Analyst
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="/SC-200T00A-Microsoft-Security-Operations-Analyst/assets/css/style.css?v=20cbc7b52187d61fca294ac2c00146c2c7c6d337">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                SC-200T00A-Microsoft-Security-Operations-Analyst
+            </a>
+            <a href="https://github.com/MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#task-1-create-a-scheduled-query">Task 1: Create a Scheduled Query.</a></li><li class="nav-item"><a class="nav-link" href="#task-2-test-our-new-rule">Task 2: Test our new rule.</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="module-7---lab-1---exercise-3---create-a-scheduled-query">Module 7 - Lab 1 - Exercise 3 - Create a Scheduled Query</h1>
+
+<h3 id="task-1-create-a-scheduled-query">Task 1: Create a Scheduled Query.</h3>
+
+<p>In this task, you will create a scheduled query and connect it to the Teams channel you created in the previous exercise.</p>
+
+<ol>
+  <li>
+    <p>Log in to WIN1 virtual machine as Admin with the password: <strong>Pa55w.rd</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Sign in</strong> dialog box, copy and paste in the <strong>Tenant Email</strong> account provided by your lab hosting provider and then select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Enter password</strong> dialog box, copy and paste in the <strong>Tenant Password</strong> provided by your lab hosting provider and then select <strong>Sign in</strong>.</p>
+  </li>
+  <li>
+    <p>In the Search bar of the Azure portal, type <em>Sentinel</em>, then select <strong>Microsoft Sentinel</strong>.</p>
+  </li>
+  <li>
+    <p>Select your Microsoft Sentinel Workspace.</p>
+  </li>
+  <li>
+    <p>Select <strong>Analytics</strong> from the Configuration area.</p>
+  </li>
+  <li>
+    <p>Select the <strong>+ Create</strong> button and select <strong>Scheduled query rule</strong>.</p>
+  </li>
+  <li>
+    <p>In the Analytics rule wizard, on the General tab, enter the Name <em>Azure AD Role Assignment Audit Trail</em>.</p>
+  </li>
+  <li>
+    <p>For Tactics, select <strong>Persistence</strong>.</p>
+  </li>
+  <li>
+    <p>For Severity, select <strong>Low</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Next : Set rule logic &gt;</strong> button:</p>
+  </li>
+  <li>
+    <p>For the rule query, paste in the following KQL statement:</p>
+
+    <blockquote>
+      <p><strong>Warning:</strong> When using the Paste function to the virtual machine extra (pipe) characters could be added. Make sure you use Notepad first to paste the following query.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-KQL">AuditLogs 
+| where isnotempty(InitiatedBy.user.userPrincipalName) and Result == 'success' and OperationName contains "member to role" and AADOperationType startswith "Assign"
+| extend InitiatedByUPN = tostring(InitiatedBy.user.userPrincipalName)
+| extend InitiatedFromIP = iff(tostring(AdditionalDetails.[7].value) == '', tostring(AdditionalDetails.[6].value), tostring(AdditionalDetails.[7].value))
+| extend TargetUser = tostring(TargetResources.[2].displayName)
+| extend TargetRoleName = tostring(TargetResources.[0].displayName)
+| project TimeGenerated, InitiatedByUPN, InitiatedFromIP, TargetUser, TargetRoleName, AADOperationType, OperationName
+</code></pre>
+
+<blockquote>
+  <p><strong>Note:</strong> If you select the link to “View query results”, you should not receive any results nor any errors. If you receive an error, please review that the query appears just like the previous KQL statement.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>Back in the “Analytics rule wizard - Create new scheduled rule” blade in the <em>Alert enrichment (Preview)</em> area, select <em>Entity mapping</em> and select the following values:</p>
+
+    <ul>
+      <li>For the <em>Entity type</em> drop-down list select <strong>Account</strong>.</li>
+      <li>For the <em>Identifier</em> drop-down list select <strong>FullName</strong>.</li>
+      <li>For the <em>Value</em> drop-down list select <strong>InitiatedByUPN</strong>.</li>
+    </ul>
+
+    <p>Then select <strong>Add new entity</strong> and select the following values:</p>
+
+    <ul>
+      <li>For the <em>Entity type</em> drop-down list select <strong>IP</strong>.</li>
+      <li>For the <em>Identifier</em> drop-down list select <strong>Address</strong>.</li>
+      <li>For the <em>Value</em> drop-down list select <strong>InitiatedFromIP</strong>.</li>
+    </ul>
+  </li>
+  <li>
+    <p>In the <em>Query scheduling</em> set the following:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Run Query every</td>
+          <td>5 minutes</td>
+        </tr>
+        <tr>
+          <td>Look data from the last</td>
+          <td>1 Day</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note:</strong> We are purposely generating many incidents for the same data.  This enables the Lab to use these alerts.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>For the <em>Alert threshold</em> area, leave the options unchanged.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> Best practices are to manage thresholds in the alert rule KQL query statement.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>For the <em>Event grouping</em> area, leave the <strong>Group all events into a single alert</strong> as the selected option.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Next: Incident settings &gt;</strong> button.</p>
+  </li>
+  <li>
+    <p>On the <em>Incident settings (Preview)</em> tab, review the default options.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Next: Automated response &gt;</strong> button.</p>
+  </li>
+  <li>
+    <p>On the Automated response tab in the <em>Alert automation</em> area, select the playbook <em>PostMessageTeams-OnAlert</em> you had created in the previous exercise.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Next: Review &gt;</strong> button.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="task-2-test-our-new-rule">Task 2: Test our new rule.</h3>
+
+<p>In this task, you will test your new scheduled query rule.</p>
+
+<ol>
+  <li>
+    <p>In the Search bar of the Azure portal, type <em>Azure Active Directory</em>. Then select <strong>Azure Active Directory</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Users</strong> in the Manage area so the “Users - All users (Preview)” page is displayed.</p>
+  </li>
+  <li>
+    <p>Select user <strong>Christie Cline</strong> in the list so the “Christie Cline - Profile” page is displayed.</p>
+  </li>
+  <li>
+    <p>Select <strong>Assigned roles</strong> in the Manage area so the “Christie Cline - Assigned roles” page is displayed.</p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add assignments</strong> from the command bar.</p>
+  </li>
+  <li>
+    <p>In the <em>Add assignments</em> page, <em>Membership</em> tab, under <em>Select role</em>, select <strong>User Administrator</strong>. and select <strong>Next &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>Review the default <em>Assignment type</em> in the *Settings tab and select <strong>Assign</strong>. If the assignment fails to complete, try again.</p>
+  </li>
+  <li>
+    <p>Close the “Christie Cline - Assigned roles” and “Users - All users (Preview)” pages by selecting the ‘x’ in the top-right twice.</p>
+  </li>
+  <li>
+    <p>In the “Contoso - Overview” page, under <em>Monitoring</em>, select <strong>Audit logs</strong>.</p>
+  </li>
+  <li>
+    <p>Verify that the “Azure Active Directory” data connector was setup correctly in Sentinel by selecting <strong>Export data settings</strong>.</p>
+  </li>
+  <li>
+    <p>Review that there is a <em>Diagnostic settings</em> entry for the <em>Log Analytics workspace</em> you created earlier for Sentinel.</p>
+  </li>
+  <li>
+    <p>Close the page by selecting the ‘x’ in the top-right.</p>
+  </li>
+  <li>
+    <p>Select <strong>Refresh</strong> until you see the entries for the <em>Category: RoleManagement</em> that indicates the change in roles you made earlier.</p>
+  </li>
+  <li>
+    <p>In the Search bar of the Azure portal, type <em>Sentinel</em>, then select <strong>Microsoft Sentinel</strong>.</p>
+  </li>
+  <li>
+    <p>Select your Microsoft Sentinel Workspace.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Incidents</strong> menu option.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> The alert triggered may take 5+ minutes to process. You may continue with the next exercise and return to this point later. For automatic updating of the Incidents page, select the <strong>Auto-refresh incidents</strong> toggle.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>You should see the newly created Incident. Select the Incident and review the information in the right blade.</p>
+  </li>
+  <li>
+    <p>Open Microsoft Teams by opening a browser tab and going to https://teams.microsoft.com. Go to the <em>SOC</em> Team and see the message post about the incident.</p>
+  </li>
+</ol>
+
+<h2 id="proceed-to-exercise-4">Proceed to Exercise 4</h2>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst" target="_blank" class="ml-2">
+                    MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D20cbc7b52187d61fca294ac2c00146c2c7c6d337.js"></script>
+
+
+
+</body></html>

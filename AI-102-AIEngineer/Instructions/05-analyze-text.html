@@ -1,0 +1,428 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="analyze-text">Analyze Text</h1>
+
+<p>The <strong>Language</strong> service is a cognitive service that supports analysis of text, including language detection, sentiment analysis, key phrase extraction, and entity recognition.</p>
+
+<p>For example, suppose a travel agency wants to process hotel reviews that have been submitted to the company’s web site. By using the Language service, they can determine the language each review is written in, the sentiment (positive, neutral, or negative) of the reviews, key phrases that might indicate the main topics discussed in the review, and named entities, such as places, landmarks, or people mentioned in the reviews.</p>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have not already cloned <strong>AI-102-AIEngineer</strong> code repository to the environment where you’re working on this lab, follow these steps to do so. Otherwise, open the cloned folder in Visual Studio Code.</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="provision-a-cognitive-services-resource">Provision a Cognitive Services resource</h2>
+
+<p>If you don’t already have one in your subscription, you’ll need to provision a <strong>Cognitive Services</strong> resource.</p>
+
+<ol>
+  <li>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>Select the <strong>＋Create a resource</strong> button, search for <em>cognitive services</em>, and create a <strong>Cognitive Services</strong> resource with the following settings:
+    <ul>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Region</strong>: <em>Choose any available region</em></li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Pricing tier</strong>: Standard S0</li>
+    </ul>
+  </li>
+  <li>Select the required checkboxes and create the resource.</li>
+  <li>Wait for deployment to complete, and then view the deployment details.</li>
+  <li>When the resource has been deployed, go to it and view its <strong>Keys and Endpoint</strong> page. You will need the endpoint and one of the keys from this page in the next procedure.</li>
+</ol>
+
+<h2 id="prepare-to-use-the-language-sdk-for-text-analytics">Prepare to use the Language SDK for text analytics</h2>
+
+<p>In this exercise, you’ll complete a partially implemented client application that uses the Language service text analytics SDK to analyze hotel reviews.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: You can choose to use the SDK for either <strong>C#</strong> or <strong>Python</strong>. In the steps below, perform the actions appropriate for your preferred language.</p>
+</blockquote>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>Explorer</strong> pane, browse to the <strong>05-analyze-text</strong> folder and expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>
+    <p>Right-click the <strong>text-analysis</strong> folder and open an integrated terminal. Then install the Text Analytics SDK package by running the appropriate command for your language preference:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.AI</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.TextAnalytics</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 5<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-ai-textanalytics==<span class="hljs-number"><span class="hljs-number">5</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+  </li>
+  <li>View the contents of the <strong>text-analysis</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+
+    <p>Open the configuration file and update the configuration values it contains to reflect the <strong>endpoint</strong> and an authentication <strong>key</strong> for your cognitive services resource. Save your changes.</p>
+  </li>
+  <li>
+    <p>Note that the <strong>text-analysis</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: text-analysis.py</li>
+    </ul>
+
+    <p>Open the code file and at the top, under the existing namespace references, find the comment <strong>Import namespaces</strong>. Then, under this comment, add the following language-specific code to import the namespaces you will need to use the Text Analytics SDK:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.AI.TextAnalytics;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.core.credentials <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> AzureKeyCredential
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.ai.textanalytics <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> TextAnalyticsClient
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> function, note that code to load the cognitive services endpoint and key from the configuration file has already been provided. Then find the comment <strong>Create client using endpoint and key</strong>, and add the following code to create a client for the Text Analysis API:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Create client using endpoint and key</span></span>
+ AzureKeyCredential credentials = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> AzureKeyCredential(cogSvcKey);
+ Uri endpoint = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Uri(cogSvcEndpoint);
+ TextAnalyticsClient CogClient = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> TextAnalyticsClient(endpoint, credentials);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Create client using endpoint and key</span></span>
+ credential = AzureKeyCredential(cog_key)
+ cog_client = TextAnalyticsClient(endpoint=cog_endpoint, credential=credential)
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>text-analysis</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">text-analysis</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>Observe the output as the code should run without error, displaying the contents of each review text file in the <strong>reviews</strong> folder. The application successfully creates a client for the Text Analytics API but doesn’t make use of it. We’ll fix that in the next procedure.</li>
+</ol>
+
+<h2 id="detect-language">Detect language</h2>
+
+<p>Now that you have created a client for the Text Analytics API, let’s use it to detect the language in which each review is written.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>Main</strong> function for your program, find the comment <strong>Get language</strong>. Then, under this comment, add the code necessary to detect the language in each review document:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-C hljs"> <span class="hljs-comment"><span class="hljs-comment">// Get language</span></span>
+ DetectedLanguage detectedLanguage = CogClient.DetectLanguage(text);
+ Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"\nLanguage: {detectedLanguage.Name}"</span></span>);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Get language</span></span>
+ detectedLanguage = cog_client.detect_language(documents=[text])[<span class="hljs-number"><span class="hljs-number">0</span></span>]
+ print(<span class="hljs-string"><span class="hljs-string">'\nLanguage: {}'</span></span>.format(detectedLanguage.primary_language.name))
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: <em>In this example, each review is analyzed individually, resulting in a separate call to the service for each file. An alternative approach is to create a             collection of documents and pass them to the service in a single call. In both approaches, the response from the service consists of a collection of documents; which is why     in the Python code above, the index of the first (and only) document in the response ([0]) is specified.</em></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>text-analysis</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">text-analysis</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the output, noting that this time the language for each review is identified.</p>
+  </li>
+</ol>
+
+<h2 id="evaluate-sentiment">Evaluate sentiment</h2>
+
+<p><em>Sentiment analysis</em> is a commonly used technique to classify text as <em>positive</em> or <em>negative</em> (or possible <em>neutral</em> or <em>mixed</em>). It’s commonly used to analyze social media posts, product reviews, and other items where the sentiment of the text may provide useful insights.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>Main</strong> function for your program, find the comment <strong>Get sentiment</strong>. Then, under this comment, add the code necessary to detect the sentiment of each review document:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-C hljs"> <span class="hljs-comment"><span class="hljs-comment">// Get sentiment</span></span>
+ DocumentSentiment sentimentAnalysis = CogClient.AnalyzeSentiment(text);
+ Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"\nSentiment: {sentimentAnalysis.Sentiment}"</span></span>);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Get sentiment</span></span>
+ sentimentAnalysis = cog_client.analyze_sentiment(documents=[text])[<span class="hljs-number"><span class="hljs-number">0</span></span>]
+ print(<span class="hljs-string"><span class="hljs-string">"\nSentiment: {}"</span></span>.format(sentimentAnalysis.sentiment))
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>text-analysis</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">text-analysis</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the output, noting that the sentiment of the reviews is detected.</p>
+  </li>
+</ol>
+
+<h2 id="identify-key-phrases">Identify key phrases</h2>
+
+<p>It can be useful to identify key phrases in a body of text to help determine the main topics that it discusses.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>Main</strong> function for your program, find the comment <strong>Get key phrases</strong>. Then, under this comment, add the code necessary to detect the key phrases in each review document:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-C hljs"> <span class="hljs-comment"><span class="hljs-comment">// Get key phrases</span></span>
+ KeyPhraseCollection phrases = CogClient.ExtractKeyPhrases(text);
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (phrases.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+ {
+     Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"\nKey Phrases:"</span></span>);
+     foreach(<span class="hljs-built_in"><span class="hljs-built_in">string</span></span> phrase in phrases)
+     {
+         Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"\t{phrase}"</span></span>);
+     }
+ }
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Get key phrases</span></span>
+ phrases = cog_client.extract_key_phrases(documents=[text])[<span class="hljs-number"><span class="hljs-number">0</span></span>].key_phrases
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(phrases) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+     print(<span class="hljs-string"><span class="hljs-string">"\nKey Phrases:"</span></span>)
+     <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> phrase <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> phrases:
+         print(<span class="hljs-string"><span class="hljs-string">'\t{}'</span></span>.format(phrase))
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>text-analysis</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">text-analysis</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the output, noting that each document contains key phrases that give some insights into what the review is about.</p>
+  </li>
+</ol>
+
+<h2 id="extract-entities">Extract entities</h2>
+
+<p>Often, documents or other bodies of text mention people, places, time periods, or other entities. The text Analytics API can detect multiple categories (and subcategories) of entity in your text.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>Main</strong> function for your program, find the comment <strong>Get entities</strong>. Then, under this comment, add the code necessary to identify entities that are mentioned in each review:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-C hljs"> <span class="hljs-comment"><span class="hljs-comment">// Get entities</span></span>
+ CategorizedEntityCollection entities = CogClient.RecognizeEntities(text);
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (entities.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+ {
+     Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"\nEntities:"</span></span>);
+     foreach(CategorizedEntity entity in entities)
+     {
+         Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"\t{entity.Text} ({entity.Category})"</span></span>);
+     }
+ }
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Get entities</span></span>
+ entities = cog_client.recognize_entities(documents=[text])[<span class="hljs-number"><span class="hljs-number">0</span></span>].entities
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(entities) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+     print(<span class="hljs-string"><span class="hljs-string">"\nEntities"</span></span>)
+     <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> entity <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> entities:
+         print(<span class="hljs-string"><span class="hljs-string">'\t{} ({})'</span></span>.format(entity.text, entity.category))
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>text-analysis</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">text-analysis</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the output, noting the entities that have been detected in the text.</p>
+  </li>
+</ol>
+
+<h2 id="extract-linked-entities">Extract linked entities</h2>
+
+<p>In addition to categorized entities, the Text Analytics API can detect entities for which there are known links to data sources, such as Wikipedia.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>Main</strong> function for your program, find the comment <strong>Get linked entities</strong>. Then, under this comment, add the code necessary to identify linked entities that are mentioned in each review:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-C hljs"> <span class="hljs-comment"><span class="hljs-comment">// Get linked entities</span></span>
+ LinkedEntityCollection linkedEntities = CogClient.RecognizeLinkedEntities(text);
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (linkedEntities.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+ {
+     Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"\nLinks:"</span></span>);
+     foreach(LinkedEntity linkedEntity in linkedEntities)
+     {
+         Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"\t{linkedEntity.Name} ({linkedEntity.Url})"</span></span>);
+     }
+ }
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Get linked entities</span></span>
+ entities = cog_client.recognize_linked_entities(documents=[text])[<span class="hljs-number"><span class="hljs-number">0</span></span>].entities
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(entities) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+     print(<span class="hljs-string"><span class="hljs-string">"\nLinks"</span></span>)
+     <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> linked_entity <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> entities:
+         print(<span class="hljs-string"><span class="hljs-string">'\t{} ({})'</span></span>.format(linked_entity.name, linked_entity.url))
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>text-analysis</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">text-analysis</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the output, noting the linked entities that are identified.</p>
+  </li>
+</ol>
+
+<h2 id="more-information">More information</h2>
+
+<p>For more information about using the <strong>Language</strong> service, see the <a href="https://docs.microsoft.com/azure/cognitive-services/language-service/">Text Analytics documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

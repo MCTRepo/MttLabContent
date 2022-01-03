@@ -1,0 +1,480 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#准备工作">准备工作</a></li><li class="nav-item"><a class="nav-link" href="#练习-1配置实验室先决条件">练习 1：配置实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习-2使用-azure-devops-将-docker-容器部署到-azure-应用服务-web-应用">练习 2：使用 Azure DevOps 将 Docker 容器部署到 Azure 应用服务 Web 应用</a></li><li class="nav-item"><a class="nav-link" href="#练习-3删除-azure-实验室资源">练习 3：删除 Azure 实验室资源</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-15-将-docker-容器部署到-azure-应用服务-web-应用">实验室 15： 将 Docker 容器部署到 Azure 应用服务 Web 应用</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室概述">实验室概述</h2>
+
+<p>在本实验室中，你将学习如何使用 Azure DevOps CI/CD 管道生成自定义 Docker 映像，将其推送到 Azure 容器注册表，并将其作为容器部署到 Azure 应用服务。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>使用 Microsoft 托管的 Linux 代理生成自定义 Docker 映像</li>
+  <li>向 Azure 容器注册表推送映像</li>
+  <li>使用 Azure DevOps 将 Docker 映像作为容器部署到 Azure 应用服务</li>
+</ul>
+
+<h2 id="实验室持续时间">实验室持续时间</h2>
+
+<ul>
+  <li>预计用时：<strong>60 分钟</strong></li>
+</ul>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="准备工作">准备工作</h3>
+
+<h4 id="登录到实验室虚拟机">登录到实验室虚拟机</h4>
+
+<p>请确保已使用以下凭据登录到 Windows 10 虚拟机：</p>
+
+<ul>
+  <li>用户名：<strong>Student</strong></li>
+  <li>密码：<strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="查看本实验室所需的应用程序">查看本实验室所需的应用程序</h4>
+
+<p>确定你将在本实验室中使用的应用程序：</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="准备-azure-订阅">准备 Azure 订阅</h4>
+
+<ul>
+  <li>标识现有的 Azure 订阅或创建一个新的 Azure 订阅。</li>
+  <li>验证你是否拥有 Microsoft 帐户或具有 Azure 订阅中参与者或所有者角色的 Azure AD 帐户。有关详细信息，请参阅<a href="https://docs.microsoft.com/zh-cn/azure/role-based-access-control/role-assignments-list-portal">使用 Azure 门户列出 Azure 角色分配</a>和<a href="https://docs.microsoft.com/zh-cn/azure/active-directory/roles/manage-roles-portal#view-my-roles">在 Azure Active Directory 中查看和分配管理员角色</a>。</li>
+</ul>
+
+<h4 id="设置-azure-devops-组织">设置 Azure DevOps 组织</h4>
+
+<p>如果还没有可用于本实验室的 Azure DevOps 组织，请按照<a href="https://docs.microsoft.com/zh-cn/azure/devops/organizations/accounts/create-organization?view=azure-devops">创建组织或项目集合</a>中的说明创建一个。</p>
+
+<h3 id="练习-1配置实验室先决条件">练习 1：配置实验室先决条件</h3>
+
+<p>在本练习中，你将设置实验室先决条件，包括基于 Azure DevOps 演示生成器模板的团队项目和 Azure 资源（包括 Azure 应用服务 Web 应用、Azure 容器注册表实例和 Azure SQL 数据库）。</p>
+
+<h4 id="任务-1配置团队项目">任务 1：配置团队项目</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 演示生成器基于 Docker 模板生成一个新项目。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 基于 Docker 模板的项目将生成容器化的 ASP.NET Core 应用并将其部署到 Azure 应用服务</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器并导航到 <a href="https://azuredevopsdemogenerator.azurewebsites.net">Azure DevOps 演示生成器</a>。此实用工具将对以下过程进行自动化：在你的帐户中创建预填充了实验室所需内容（工作项、存储库等）的 Azure DevOps 项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 有关该站点的详细信息，请参阅 <a href="https://docs.microsoft.com/zh-cn/azure/devops/demo-gen">https://docs.microsoft.com/zh-cn/azure/devops/demo-gen</a>。</p>
+    </blockquote>
+  </li>
+  <li>单击 <strong>“登录”</strong>，并使用与你的 Azure DevOps 订阅相关联的 Microsoft 帐户登录。</li>
+  <li>如果需要，在 <strong>“Azure DevOps 演示生成器”</strong> 页面上，单击 <strong>“接受”</strong> 以接受访问 Azure DevOps 订阅的权限请求。</li>
+  <li>在 <strong>“创建新项目”</strong> 页面上的 <strong>“新建项目名称”</strong> 文本框中，键入 <strong>“将 Docker 容器部署到 Azure 应用服务 Web 应用”</strong>，在 <strong>“选择组织”</strong> 下拉列表中选择你的 Azure DevOps 组织，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>在模板列表中，在工具栏中，单击 <strong>“DevOps 实验室”</strong>，选择 <strong>“DevOps 实验室”</strong> 标头，单击 <strong>Docker</strong> 模板，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>
+    <p>返回 <strong>“创建新项目”</strong> 页面，如果提示安装缺失的扩展，请选中 <strong>“Docker 集成”</strong> 标签下方的复选框，并单击 <strong>“创建项目”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待此过程完成。该过程大约需要 2 分钟。如果该过程失败，请导航到你的 DevOps 组织，删除项目并重试。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“新建项目”</strong> 页面上，单击 <strong>“导航到项目”</strong>。</li>
+</ol>
+
+<h4 id="任务-2创建-azure-资源">任务 2：创建 Azure 资源</h4>
+
+<p>在此任务中，你将使用 Azure Cloud Shell 创建本实验室中所需的 Azure 资源：</p>
+
+<ul>
+  <li>Azure 容器注册表</li>
+  <li>用于容器的 Azure Web 应用</li>
+  <li>Azure SQL 数据库</li>
+</ul>
+
+<ol>
+  <li>从实验室计算机启动 Web 浏览器，导航到 <a href="https://portal.azure.com"><strong>Azure 门户</strong></a>，并使用用户帐户登录，该帐户在本实验室中将使用的 Azure 订阅中具有所有者角色，并在与此订阅关联的 Azure AD 租户中具有全局管理员角色。</li>
+  <li>在显示 Azure 门户的 Web 浏览器的工具栏中，单击搜索文本框右侧的 <strong>“Cloud Shell”</strong> 图标。</li>
+  <li>
+    <p>如果提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong>，请选择 <strong>“Bash”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果这是第一次启动 <strong>Cloud Shell</strong>，并显示消息 <strong>“未装载任何存储”</strong>，请选择你将在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 <strong>Bash</strong> 会话中，运行以下命令，创建代表你将用于在本实验室中部署资源的 Azure 区域的变量、包含这些资源的资源组以及这些资源的名称，包括 Azure 容器注册表实例、Azure 应用服务计划名称、Azure Web 应用名称、Azure SQL 数据库逻辑服务器名称和 Azure SQL 数据库名称：</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令以创建资源组，该资源组将托管你在本实验室中部署的 Azure 资源（将 <code>&lt;Azure_region&gt;</code> 占位符替换为 Azure 区域的名称，例如“eastus”，表示你计划在其中部署这些资源）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs">LOCATION=<span class="hljs-string"><span class="hljs-string">'&lt;Azure_region&gt;'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可以通过运行 <code>az account list-locations -o table</code> 来标识 Azure 区域名称。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行以下命令，创建代表 Azure 资源名称的变量，包括 Azure 容器注册表实例、Azure 应用服务计划名称、Azure Web 应用名称、Azure SQL 数据库逻辑服务器名称和 Azure SQL 数据库名称：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs">RG_NAME=<span class="hljs-string"><span class="hljs-string">'az400m1501a-RG'</span></span>
+ACR_NAME=az400m151acr<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+APP_SVC_PLAN=<span class="hljs-string"><span class="hljs-string">'az400m1501a-app-svc-plan'</span></span>
+WEB_APP_NAME=az400m151web<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+SQLDB_SRV_NAME=az400m15sqlsrv<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+SQLDB_NAME=<span class="hljs-string"><span class="hljs-string">'az400m15sqldb'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可以通过运行 <code>az account list-locations -o table</code> 来标识 Azure 区域名称。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行以下命令，创建本实验室所需的所有 Azure 资源：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs">az group create --name <span class="hljs-variable"><span class="hljs-variable">$RG_NAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+az acr create --name <span class="hljs-variable"><span class="hljs-variable">$ACR_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_NAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --sku Standard --admin-enabled <span class="hljs-literal"><span class="hljs-literal">true</span></span>
+az appservice plan create --name <span class="hljs-string"><span class="hljs-string">'az400m1501a-app-svc-plan'</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_NAME</span></span> --is-linux
+az webapp create --name <span class="hljs-variable"><span class="hljs-variable">$WEB_APP_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_NAME</span></span> --plan <span class="hljs-variable"><span class="hljs-variable">$APP_SVC_PLAN</span></span> --deployment-container-image-name elnably/dockerimagetest
+IMAGE_NAME=myhealth.web
+az webapp config container <span class="hljs-built_in"><span class="hljs-built_in">set</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$WEB_APP_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_NAME</span></span> --docker-custom-image-name <span class="hljs-variable"><span class="hljs-variable">$IMAGE_NAME</span></span> --docker-registry-server-url <span class="hljs-variable"><span class="hljs-variable">$ACR_NAME</span></span>.azurecr.io/<span class="hljs-variable"><span class="hljs-variable">$IMAGE_NAME</span></span>:latest --docker-registry-server-url https://<span class="hljs-variable"><span class="hljs-variable">$ACR_NAME</span></span>.azurecr.io
+az sql server create --name <span class="hljs-variable"><span class="hljs-variable">$SQLDB_SRV_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_NAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --admin-user sqladmin --admin-password Pa55w.rd1234
+az sql db create --name <span class="hljs-variable"><span class="hljs-variable">$SQLDB_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_NAME</span></span> --server <span class="hljs-variable"><span class="hljs-variable">$SQLDB_SRV_NAME</span></span> --service-objective S0 --no-wait 
+az sql server firewall-rule create --name AllowAllAzure --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_NAME</span></span> --server <span class="hljs-variable"><span class="hljs-variable">$SQLDB_SRV_NAME</span></span> --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：请等待预配过程完成。该过程大约需要 5 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行以下命令，配置新创建的 Azure Web 应用的连接字符串（分别用 Azure SQL 数据库逻辑服务器及其数据库实例的名称值替换 $SQLDB_SRV_NAME 和 $SQLDB_NAME 占位符）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs">CONNECTION_STRING=<span class="hljs-string"><span class="hljs-string">"Data Source=tcp:</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$SQLDB_SRV_NAME</span></span></span><span class="hljs-string">.database.windows.net,1433;Initial Catalog=</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$SQLDB_NAME</span></span></span><span class="hljs-string">;User Id=sqladmin;Password=Pa55w.rd1234;"</span></span>
+az webapp config connection-string <span class="hljs-built_in"><span class="hljs-built_in">set</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$WEB_APP_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_NAME</span></span> --connection-string-type SQLAzure --settings defaultConnection=<span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$CONNECTION_STRING</span></span></span><span class="hljs-string">"</span></span>
+</code></pre>
+  </li>
+  <li>在显示 Azure 门户的 Web 浏览器中，关闭“Cloud Shell”窗格，导航到 <strong>“资源组”</strong> 边栏选项卡，然后在 <strong>“资源组”</strong> 边栏选项卡上，选择 <strong>“az400m1501a-RG”</strong> 条目。</li>
+  <li>
+    <p>在 <strong>“az400m1501a-RG”</strong> 资源组边栏选项卡上，查看其资源列表。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 记录逻辑 Azure SQL 数据库服务器的名称。你将在本实验室的后面需要它。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“az400m1501a-RG”</strong> 资源组边栏选项卡上的资源列表中，单击代表容器注册表实例的条目。</li>
+  <li>在容器注册表边栏选项卡上的左侧垂直菜单中，在 <strong>“设置”</strong> 部分中，单击 <strong>“访问密钥”</strong>。</li>
+  <li>
+    <p>在容器注册表实例的 <strong>“访问密钥”</strong> 边栏选项卡上，标识<strong>注册表名称</strong>、<strong>登录服务器</strong>、<strong>管理员用户</strong>和<strong>密码</strong>条目的值。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：请记录“<strong>注册表名称</strong>”、“<strong>登录服务器</strong>”和“<strong>密码</strong>”的值（注册表名称和管理员用户名应匹配）。稍后将在本实验室用到它们。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-2使用-azure-devops-将-docker-容器部署到-azure-应用服务-web-应用">练习 2：使用 Azure DevOps 将 Docker 容器部署到 Azure 应用服务 Web 应用</h3>
+
+<p>在此练习中，你将使用 Azure DevOps 将 Docker 容器部署到 Azure 应用服务 Web 应用。</p>
+
+<h4 id="任务-1配置持续集成ci-和持续交付-cd">任务 1：配置持续集成(CI) 和持续交付 (CD)</h4>
+
+<p>在此任务中，你将使用上一个练习中生成的 Azure DevOps 项目，以实现 CI/CD 管道，该管道可生成 Docker 容器并将其部署到 Azure 应用服务 Web 应用。</p>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，切换到显示 Azure DevOps 门户的 Web 浏览器窗口，其中“<strong>将 Docker 容器部署到 Azure 应用服务 Web 应用</strong>”项目处于打开状态，在 Azure DevOps 门户最左侧的垂直菜单栏中，单击“<strong>Repos</strong>”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：需要首先修改对 Docker 映像的引用。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>Docker</strong> 存储库窗格的文件列表中，选择 <strong>docker-compose.ci.build.yml</strong>。</li>
+  <li>在 <strong>docker-compose.ci.build.yml</strong> 窗格中，单击“<strong>编辑</strong>，将引用目标 Docker 映像的第 <strong>5</strong> 行替换为 <code>image: az400mp/aspnetcore-build:1.0-2.0</code>，选择“<strong>提交</strong>”，系统提示确认时再次单击“<strong>提交</strong>”。</li>
+  <li>在 <strong>Docker</strong> 存储库窗格的文件列表中，导航到 <strong>MyHealth.Web</strong> 文件夹，然后选择“<strong>Dockerfile</strong>”。</li>
+  <li>在 <strong>Dockerfile</strong> 窗格中，单击“<strong>编辑</strong>”，将引用基础 Docker 映像的第 <strong>1</strong> 行替换为 <code>FROM az400mp/aspnetcore1.0:1.0.4</code>，选择“<strong>提交</strong>”，系统提示确认时再次单击“<strong>提交</strong>”。</li>
+  <li>
+    <p>在显示 Azure DevOps 门户的 Web 浏览器窗口中，“<strong>将 Docker 容器部署到 Azure 应用服务 Web 应用</strong>”项目处于打开状态，在 Azure DevOps 门户最左侧的垂直菜单栏中，单击“<strong>管道</strong>”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：现在，你需要修改生成管道。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“管道”</strong> 窗格上，单击代表 <strong>MHCDocker.build</strong> 管道的条目，然后在 <strong>“MHCDocker.build”</strong> 窗格上单击 <strong>“编辑”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 生成管道包含以下任务</p>
+    </blockquote>
+
+    <table>
+      <thead>
+        <tr>
+          <th>任务</th>
+          <th>用法</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>运行服务</strong></td>
+          <td>通过还原所需的包来准备生成环境</td>
+        </tr>
+        <tr>
+          <td><strong>生成服务</strong></td>
+          <td>生成 <strong>myhealth.web</strong> 映像</td>
+        </tr>
+        <tr>
+          <td><strong>推送服务</strong></td>
+          <td>将标记有 <strong>$(Build.BuildId)</strong> 的 <strong>myhealth.web</strong> 映像推送到容器注册表</td>
+        </tr>
+        <tr>
+          <td><strong>发布工件</strong></td>
+          <td>允许通过 Azure DevOps 工件共享 dacpac 进行数据库部署</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>在 <strong>MHCDocker.build</strong> 管道窗格上，确保选中“<strong>管道</strong>”条目，并在“<strong>代理规范</strong>”下拉列表中，选择“<strong>ubuntu-18.04</strong>”。</li>
+  <li>
+    <p>在 <strong>“MHCDocker.build”</strong> 管道窗格上的管道任务列表中，单击 <strong>“运行服务”</strong> 任务，在右侧的 <strong>“Docker Compose”</strong> 窗格中的 <strong>“Azure订阅”</strong> 下拉列表中，选择代表你正在次实验室中使用的 Azure 订阅的条目，然后单击 <strong>“授权”</strong> 以创建相应的服务连接。出现提示时，使用在 Azure 订阅中具有所有者角色并且在与 Azure 订阅关联的 Azure AD 租户中具有全局管理员角色的帐户登录。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此步骤会创建一个 Azure 服务连接，它使用服务主体身份验证 (SPA) 定义并保护与目标 Azure 订阅的连接。</p>
+    </blockquote>
+  </li>
+  <li>在管道的任务列表中，选择 <strong>“运行服务”</strong> 任务后，然后在右侧的 <strong>“Docker Compose”</strong> 窗格的 <strong>“Azure 容器注册表”</strong> 下拉列表中，选择代表你在本实验室前面创建的 ACR 实例的条目（<strong>请根据需要刷新列表</strong>，或键入登录服务器的名称）。</li>
+  <li>重复前面的两个步骤，在 <strong>“生成服务”</strong> 和 <strong>“推送服务”</strong> 任务中配置 <strong>Azure 订阅</strong> 和 <strong>Azure 容器注册表</strong> 设置，但此时不是选择你的 Azure 订阅，而是选择新创建的服务连接。</li>
+  <li>
+    <p>在同一 <strong>“MHCDocker.build”</strong> 管道窗格上，在窗格顶部，单击 <strong>“保存并排队”</strong> 按钮旁边的朝下脱字号，单击 <strong>“保存”</strong> 以保存更改，并在再次提示时单击 <strong>“保存”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 接下来，你将修改发布管道。</p>
+    </blockquote>
+  </li>
+  <li>在显示 Azure DevOps 门户的 Web 浏览器窗口中，在 Azure DevOps 门户最左侧垂直菜单栏的 <strong>“管道”</strong> 部分，单击 <strong>“发布”</strong>。</li>
+  <li>在 <strong>“管道/发布”</strong> 窗格上，确保选择 <strong>MHCDocker.release</strong> 条目，然后单击 <strong>“编辑”</strong>。</li>
+  <li>
+    <p>在 <strong>“所有管道/MHCDocker.release”</strong> 窗格上，在表示部署的 <strong>“开发”</strong> 阶段的矩形中，单击 <strong>“2 项作业，2 项任务”</strong> 链接。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 发布管道包含以下任务</p>
+    </blockquote>
+
+    <table>
+      <thead>
+        <tr>
+          <th>任务</th>
+          <th>用法</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>执行 Azure SQL：DacpacTask</strong></td>
+          <td>将 dacpac 工件（包括目标架构和数据）部署到 Azure SQL 数据库</td>
+        </tr>
+        <tr>
+          <td><strong>Azure 应用服务部署</strong></td>
+          <td>从指定容器注册表中拉取在生成阶段生成的 docker 映像，并将该映像部署到 Azure 应用服务 Web 应用</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>在管道的任务列表中，单击 <strong>“执行 Azure SQL: DacpacTask 任务”</strong>，在右侧的 <strong>“Azure SQL 数据库部署”</strong> 窗格上的 <strong>“Azure 订阅”</strong> 下拉列表中，选择代表你在此任务前面部分创建的 Azure 服务连接的条目。</li>
+  <li>
+    <p>在管道的任务列表中，单击 <strong>“Azure 应用服务部署”</strong> 任务，在右侧的 <strong>“Azure 应用服务部署”</strong> 窗格上的 <strong>“Azure 订阅”</strong> 下拉列表中，选择代表你在此任务中前面部分创建的 Azure 服务连接的条目。然后在 <strong>“应用服务名称”</strong> 下拉列表中，选择代表你在本实验室前面部分部署的 Azure 应用服务 Web 应用的条目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 接下来，你将需要配置部署所需的代理池信息。</p>
+    </blockquote>
+  </li>
+  <li>在右侧的 <strong>“代理作业”</strong> 窗格上选择 <strong>“DB 部署”</strong> 作业，在 <strong>“代理池”</strong> 下拉列表中选择 <strong>“Azure Pipelines”</strong>，然后在 <strong>“代理规范”</strong> 下拉列表中，选择 <strong>“vs2017-win2016”</strong>。</li>
+  <li>在右侧的“<strong>代理作业</strong>”窗格上选择“<strong>Web 应用部署</strong>”作业，在“<strong>代理池</strong>”下拉列表中选择“<strong>Azure Pipelines</strong>”，然后在“<strong>代理规范</strong>”下拉列表中，选择“<strong>ubuntu-18.04</strong>”。</li>
+  <li>在窗格顶部，单击 <strong>“变量”</strong> 标头。</li>
+  <li>
+    <p>在管道变量列表中，设置以下变量的值：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>变量</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ACR</td>
+          <td>你在本实验室的上一个练习中记录的 Azure 容器注册表登录名，包括 <strong>azurecr.io</strong> 后缀</td>
+        </tr>
+        <tr>
+          <td>DatabaseName</td>
+          <td><strong>az400m15sqldb</strong></td>
+        </tr>
+        <tr>
+          <td>密码</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+        <tr>
+          <td>SQLadmin</td>
+          <td><strong>sqladmin</strong></td>
+        </tr>
+        <tr>
+          <td>SQLserver</td>
+          <td>你在本实验室的上一个练习中记录的 Azure SQL 数据库逻辑服务器名称，包括 <strong>database.windows.net</strong> 后缀</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>在窗格右上角，单击“<strong>保存</strong>”按钮以保存更改，然后在再次出现提示时，单击“<strong>确定</strong>”。</li>
+</ol>
+
+<h4 id="任务-2使用代码提交触发生成管道和发布管道">任务 2：使用代码提交触发生成管道和发布管道</h4>
+
+<p>在此练习中，你将使用代码提交触发生成管道和发布管道。</p>
+
+<ol>
+  <li>
+    <p>在显示 Azure DevOps 门户的 Web 浏览器窗口中，在 Azure DevOps 门户最左侧的垂直菜单栏中，单击 <strong>“Repos”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这将自动显示 <strong>“文件”</strong> 窗格。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“文件”</strong> 窗格上，导航到 <strong>“src/MyHealth.Web/Views/Home”</strong> 文件夹，然后单击代表 <strong>Index.cshtml</strong> 文件的条目，然后单击 <strong>“编辑”</strong> 将其打开进行编辑。</li>
+  <li>
+    <p>在 <strong>“Index.cshtml”</strong> 窗格的第 <strong>28</strong> 行，将 <strong>“JOIN US”</strong> 更改为 <strong>“CONTACT US”</strong>，然后在窗格的右上角单击 <strong>“提交”</strong>，并在提示确认时再次单击 <strong>“提交”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此操作将启动源代码的自动生成。</p>
+    </blockquote>
+  </li>
+  <li>在显示 Azure DevOps 门户的 Web 浏览器窗口中，在 Azure DevOps 门户最左侧的垂直菜单栏中，单击 <strong>“管道”</strong>。</li>
+  <li>在 <strong>“管道”</strong> 窗格上，单击代表由提交触发的管道运行的条目。</li>
+  <li>在 <strong>“MHCDocker.build”</strong> 窗格上，单击代表管道运行的条目。</li>
+  <li>
+    <p>在管道运行的 <strong>“摘要”</strong> 选项卡上，在 <strong>“作业”</strong> 部分中，单击 <strong>“Docker”</strong> 条目，然后在生成的窗格中监视各个任务的进度，直到作业成功完成。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该生成将生成 Docker 映像并将其推送到 Azure 容器注册表。生成完成后，你将能够查看其摘要。</p>
+    </blockquote>
+  </li>
+  <li>在显示 Azure DevOps 门户的 Web 浏览器窗口中，在 Azure DevOps 门户最左侧垂直菜单栏的“管道”部分，单击 <strong>“发布”</strong>。</li>
+  <li>在 <strong>“发布”</strong> 窗格上，单击代表由成功生成触发的最新发布的条目。</li>
+  <li>在 <strong>“MHCDocker.release”&gt;“Release-1”</strong> 窗格上，选择代表 <strong>“开发”</strong> 阶段的矩形。</li>
+  <li>
+    <p>在 <strong>“MHCDocker.release” &gt; “Release-1” &gt; “开发”</strong> 窗格上，监视发布任务的进度，直到其成功完成。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该发布将由生成过程生成的 docker 映像部署到应用服务 Web 应用。发布完成后，可以查看其摘要和日志。</p>
+    </blockquote>
+  </li>
+  <li>发布管道完成后，切换到显示 <a href="https://portal.azure.com">Azure 门户</a>的 Web 浏览器窗口，并导航到你在本实验室前面部分配置的 Azure 应用服务 Web 应用的边栏选项卡。</li>
+  <li>
+    <p>在应用服务 Web 应用上，单击代表目标 Web 应用的 <strong>URL</strong> 链接条目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这将自动打开一个新的 Web 浏览器标签页，其中显示目标网站。</p>
+    </blockquote>
+  </li>
+  <li>验证目标 Web 应用是否显示 HealthClinic.biz 网站，包括你为触发 CI/CD 管道而应用的更改。</li>
+</ol>
+
+<h3 id="练习-3删除-azure-实验室资源">练习 3：删除 Azure 实验室资源</h3>
+
+<p>在本练习中，你将删除在本实验室中预配的 Azure 资源，避免产生意外费用。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 请记得删除不再使用的所有新创建的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<h4 id="任务-1删除-azure-实验室资源">任务 1：删除 Azure 实验室资源</h4>
+
+<p>在此任务中，你将使用 Azure Cloud Shell 删除在本实验室中预配的 Azure 资源，避免产生不必要的费用。</p>
+
+<ol>
+  <li>在 Azure 门户中，在 <strong>Cloud Shell</strong> 窗格中打开 <strong>Bash</strong> Shell 会话。</li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m1501')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m1501')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该命令以异步方式执行（由 –nowait 参数决定），因此，虽然你随后可在同一 Bash 会话中立即运行另一个 Azure CLI 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="回顾">回顾</h2>
+
+<p>在本实验室中，你使用了 Azure DevOps CI/CD 管道生成自定义 Docker 映像，将其推送到 Azure 容器注册表，并使用 Azure DevOps 将其作为容器部署到 Azure 应用服务。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

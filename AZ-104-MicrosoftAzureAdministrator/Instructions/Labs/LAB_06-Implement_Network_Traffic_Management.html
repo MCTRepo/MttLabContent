@@ -1,0 +1,1490 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D907526b117000ffdbc71b1bcc102e524d83415a3.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#exercise-1">Exercise 1</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-06---implement-traffic-management">Lab 06 - Implement Traffic Management</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>You were tasked with testing managing network traffic targeting Azure virtual machines in the hub and spoke network topology, which Contoso considers implementing in its Azure environment (instead of creating the mesh topology, which you tested in the previous lab). This testing needs to include implementing connectivity between spokes by relying on user defined routes that force traffic to flow via the hub, as well as traffic distribution across virtual machines by using layer 4 and layer 7 load balancers. For this purpose, you intend to use Azure Load Balancer (layer 4) and Azure Application Gateway (layer 7).</p>
+
+<blockquote>
+  <p><strong>Note</strong>: This lab, by default, requires total of 8 vCPUs available in the Standard_Dsv3 series in the region you choose for deployment, since it involves deployment of four Azure VMs of Standard_D2s_v3 SKU. If your students are using trial accounts, with the limit of 4 vCPUs, you can use a VM size that requires only one vCPU (such as Standard_B1s).</p>
+</blockquote>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>In this lab, you will:</p>
+
+<ul>
+  <li>Task 1: Provision the lab environment</li>
+  <li>Task 2: Configure the hub and spoke network topology</li>
+  <li>Task 3: Test transitivity of virtual network peering</li>
+  <li>Task 4: Configure routing in the hub and spoke topology</li>
+  <li>Task 5: Implement Azure Load Balancer</li>
+  <li>Task 6: Implement Azure Application Gateway</li>
+</ul>
+
+<h2 id="estimated-timing-60-minutes">Estimated timing: 60 minutes</h2>
+
+<h2 id="architecture-diagram">Architecture diagram</h2>
+
+<p><a href="../media/lab06.png" target="_blank"><img src="../media/lab06.png" alt="image"></a></p>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="exercise-1">Exercise 1</h3>
+
+<h4 id="task-1-provision-the-lab-environment">Task 1: Provision the lab environment</h4>
+
+<p>In this task, you will deploy four virtual machines into the same Azure region. The first two will reside in a hub virtual network, while each of the remaining two will reside in a separate spoke virtual network.</p>
+
+<ol>
+  <li>
+    <p>Sign in to the <a href="https://portal.azure.com">Azure portal</a>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open the <strong>Azure Cloud Shell</strong> by clicking on the icon in the top right of the Azure Portal.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and click <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, click the <strong>Upload/Download files</strong> icon, in the drop-down menu, click <strong>Upload</strong> and upload the files <strong>\Allfiles\Labs\06\az104-06-vms-loop-template.json</strong> and <strong>\Allfiles\Labs\06\az104-06-vms-loop-parameters.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create the first resource group that will be hosting the lab environment (replace the ‘[Azure_region]’ placeholder with the name of an Azure region where you intend to deploy Azure virtual machines)(you can use the “(Get-AzLocation).Location” cmdlet to get the region list):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell"> $location = '[Azure_region]'
+</code></pre>
+    <p>Now the resource group name:</p>
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell"> $rgName = 'az104-06-rg1'
+</code></pre>
+    <p>And finally create the resource group in your desired location:</p>
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell"> New-AzResourceGroup -Name $rgName -Location $location
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create the three virtual networks and four Azure VMs into them by using the template and parameter files you uploaded:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-06-vms-loop-template.json `
+   -TemplateParameterFile $HOME/az104-06-vms-loop-parameters.json
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before proceeding to the next step. This should take about 5 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to install the Network Watcher extension on the Azure VMs deployed in the previous step:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">$rgName = 'az104-06-rg1'
+$location = (Get-AzResourceGroup -ResourceGroupName $rgName).location
+$vmNames = (Get-AzVM -ResourceGroupName $rgName).Name
+
+foreach ($vmName in $vmNames) {
+  Set-AzVMExtension `
+  -ResourceGroupName $rgName `
+  -Location $location `
+  -VMName $vmName `
+  -Name 'networkWatcherAgent' `
+  -Publisher 'Microsoft.Azure.NetworkWatcher' `
+  -Type 'NetworkWatcherAgentWindows' `
+  -TypeHandlerVersion '1.4'
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before proceeding to the next step. This should take about 5 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-the-hub-and-spoke-network-topology">Task 2: Configure the hub and spoke network topology</h4>
+
+<p>In this task, you will configure local peering between the virtual networks you deployed in the previous tasks in order to create a hub and spoke network topology.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual networks</strong>.</p>
+  </li>
+  <li>
+    <p>Review the virtual networks you created in the previous task.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The template you used for deployment of the three virtual networks ensures that the IP address ranges of the three virtual networks do not overlap.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the list of virtual networks, select <strong>az104-06-vnet2</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-vnet2</strong> blade, select <strong>Properties</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-vnet2 | Properties</strong> blade, record the value of the <strong>Resource ID</strong> property.</p>
+  </li>
+  <li>
+    <p>Navigate back to the list of virtual networks and select <strong>az104-06-vnet3</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-vnet3</strong> blade, select <strong>Properties</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-vnet3 | Properties</strong> blade, record the value of the <strong>Resource ID</strong> property.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will need the values of the ResourceID property for both virtual networks later in this task.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is a workaround that addresses the issue with the Azure portal occasionally not displaying the newly provisioned virtual network when creating virtual network peerings.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the list of virtual networks, click <strong>az104-06-vnet01</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-vnet01</strong> virtual network blade, in the <strong>Settings</strong> section, click <strong>Peerings</strong> and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a peering with the following settings (leave others with their default values) and click <strong>Add</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>This virtual network: Peering link name</td>
+          <td><strong>az104-06-vnet01_to_az104-06-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic forwarded from remote virtual network</td>
+          <td><strong>Block traffic that originates from outside this virtual network</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Remote virtual network: Peering link name</td>
+          <td><strong>az104-06-vnet2_to_az104-06-vnet01</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network deployment model</td>
+          <td><strong>Resource manager</strong></td>
+        </tr>
+        <tr>
+          <td>I know my resource ID</td>
+          <td>enabled</td>
+        </tr>
+        <tr>
+          <td>Resource ID</td>
+          <td>the value of resourceID parameter of <strong>az104-06-vnet2</strong> you recorded earlier in this task</td>
+        </tr>
+        <tr>
+          <td>Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic forwarded from remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None (default)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the operation to complete.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: This step establishes two local peerings - one from az104-06-vnet01 to az104-06-vnet2 and the other from az104-06-vnet2 to az104-06-vnet01.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: <strong>Allow forwarded traffic</strong> needs to be enabled in order to facilitate routing between spoke virtual networks, which you will implement later in this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-vnet01</strong> virtual network blade, in the <strong>Settings</strong> section, click <strong>Peerings</strong> and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a peering with the following settings (leave others with their default values) and click <strong>Add</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>This virtual network: Peering link name</td>
+          <td><strong>az104-06-vnet01_to_az104-06-vnet3</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic forwarded from remote virtual network</td>
+          <td><strong>Block traffic that originates from outside this virtual network</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Remote virtual network: Peering link name</td>
+          <td><strong>az104-06-vnet3_to_az104-06-vnet01</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network deployment model</td>
+          <td><strong>Resource manager</strong></td>
+        </tr>
+        <tr>
+          <td>I know my resource ID</td>
+          <td>enabled</td>
+        </tr>
+        <tr>
+          <td>Resource ID</td>
+          <td>the value of resourceID parameter of <strong>az104-06-vnet3</strong> you recorded earlier in this task</td>
+        </tr>
+        <tr>
+          <td>Traffic to remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Traffic forwarded from remote virtual network</td>
+          <td><strong>Allow (default)</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network gateway</td>
+          <td><strong>None (default)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: This step establishes two local peerings - one from az104-06-vnet01 to az104-06-vnet3 and the other from az104-06-vnet3 to az104-06-vnet01. This completes setting up the hub and spoke topology (with two spoke virtual networks).</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: <strong>Allow forwarded traffic</strong> needs to be enabled in order to facilitate routing between spoke virtual networks, which you will implement later in this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-test-transitivity-of-virtual-network-peering">Task 3: Test transitivity of virtual network peering</h4>
+
+<p>In this task, you will test transitivity of virtual network peering by using Network Watcher.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Network Watcher</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher</strong> blade, expand the listing of Azure regions and verify that the service is enabled in the Azure into which you deployed resources in the first task of this lab.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher</strong> blade, navigate to the <strong>Connection troubleshoot</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher - Connection troubleshoot</strong> blade, initiate a check with the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Source type</td>
+          <td><strong>Virtual machine</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az104-06-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td><strong>Specify manually</strong></td>
+        </tr>
+        <tr>
+          <td>URI, FQDN or IPv4</td>
+          <td><strong>10.62.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Destination Port</td>
+          <td><strong>3389</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: <strong>10.62.0.4</strong> represents the private IP address of <strong>az104-06-vm2</strong></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Check</strong> and wait until results of the connectivity check are returned. Verify that the status is <strong>Reachable</strong>. Review the network path and note that the connection was direct, with no intermediate hops in between the VMs.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is expected, since the hub virtual network is peered directly with the first spoke virtual network.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher - Connection troubleshoot</strong> blade, initiate a check with the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Source type</td>
+          <td><strong>Virtual machine</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az104-06-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td><strong>Specify manually</strong></td>
+        </tr>
+        <tr>
+          <td>URI, FQDN or IPv4</td>
+          <td><strong>10.63.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Destination Port</td>
+          <td><strong>3389</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: <strong>10.63.0.4</strong> represents the private IP address of <strong>az104-06-vm3</strong></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Check</strong> and wait until results of the connectivity check are returned. Verify that the status is <strong>Reachable</strong>. Review the network path and note that the connection was direct, with no intermediate hops in between the VMs.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is expected, since the hub virtual network is peered directly with the second spoke virtual network.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher - Connection troubleshoot</strong> blade, initiate a check with the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Source type</td>
+          <td><strong>Virtual machine</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az104-06-vm2</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td><strong>Specify manually</strong></td>
+        </tr>
+        <tr>
+          <td>URI, FQDN or IPv4</td>
+          <td><strong>10.63.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Destination Port</td>
+          <td><strong>3389</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Check</strong> and wait until results of the connectivity check are returned. Note that the status is <strong>Unreachable</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is expected, since the two spoke virtual networks are not peered with each other (virtual network peering is not transitive).</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-configure-routing-in-the-hub-and-spoke-topology">Task 4: Configure routing in the hub and spoke topology</h4>
+
+<p>In this task, you will configure and test routing between the two spoke virtual networks by enabling IP forwarding on the network interface of the <strong>az104-06-vm0</strong> virtual machine, enabling routing within its operating system, and configuring user-defined routes on the spoke virtual network.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search and select <strong>Virtual machines</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual machines</strong> blade, in the list of virtual machines, click <strong>az104-06-vm0</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-vm0</strong> virtual machine blade, in the <strong>Settings</strong> section, click <strong>Networking</strong>.</p>
+  </li>
+  <li>
+    <p>Click the <strong>az104-06-nic0</strong> link next to the <strong>Network interface</strong> label, and then, on the <strong>az104-06-nic0</strong> network interface blade, in the <strong>Settings</strong> section, click <strong>IP configurations</strong>.</p>
+  </li>
+  <li>
+    <p>Set <strong>IP forwarding</strong> to <strong>Enabled</strong> and save the change.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This setting is required in order for <strong>az104-06-vm0</strong> to function as a router, which will route traffic between two spoke virtual networks.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Now you need to configure operating system of the <strong>az104-06-vm0</strong> virtual machine to support routing.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>az104-06-vm0</strong> Azure virtual machine blade and click <strong>Overview</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-vm0</strong> blade, in the <strong>Operations</strong> section, click <strong>Run command</strong>, and, in the list of commands, click <strong>RunPowerShellScript</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Run Command Script</strong> blade, type the following and click <strong>Run</strong> to install the Remote Access Windows Server role.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Install-WindowsFeature RemoteAccess -IncludeManagementTools
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the confirmation that the command completed successfully.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Run Command Script</strong> blade, type the following and click <strong>Run</strong> to install the Routing role service.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Install-WindowsFeature -Name Routing -IncludeManagementTools -IncludeAllSubFeature
+
+Install-WindowsFeature -Name "RSAT-RemoteAccess-Powershell"
+
+Install-RemoteAccess -VpnType RoutingOnly
+
+Get-NetAdapter | Set-NetIPInterface -Forwarding Enabled
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the confirmation that the command completed successfully.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Now you need to create and configure user defined routes on the spoke virtual networks.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, search and select <strong>Route tables</strong> and, on the <strong>Route tables</strong> blade, click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>Create a route table with the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>the name of the Azure region in which you created the virtual networks</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>az104-06-rt23</strong></td>
+        </tr>
+        <tr>
+          <td>Propagate gateway routes</td>
+          <td><strong>No</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Review and Create</strong>. Let validation occur, and click <strong>Create</strong> to submit your deployment.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the route table to be created. This should take about 3 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Go to resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-rt23</strong> route table blade, in the <strong>Settings</strong> section, click <strong>Routes</strong>, and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a new route with the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Route name</td>
+          <td><strong>az104-06-route-vnet2-to-vnet3</strong></td>
+        </tr>
+        <tr>
+          <td>Address prefix</td>
+          <td><strong>10.63.0.0/20</strong></td>
+        </tr>
+        <tr>
+          <td>Next hop type</td>
+          <td><strong>Virtual appliance</strong></td>
+        </tr>
+        <tr>
+          <td>Next hop address</td>
+          <td><strong>10.60.0.4</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>OK</strong></p>
+  </li>
+  <li>
+    <p>Back on the <strong>az104-06-rt23</strong> route table blade, in the <strong>Settings</strong> section, click <strong>Subnets</strong>, and then click <strong>+ Associate</strong>.</p>
+  </li>
+  <li>
+    <p>Associate the route table <strong>az104-06-rt23</strong> with the following subnet:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az104-06-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>subnet0</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>OK</strong></p>
+  </li>
+  <li>
+    <p>Navigate back to <strong>Route tables</strong> blade and click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>Create a route table with the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the name of the Azure region in which you created the virtual networks</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>az104-06-rt32</strong></td>
+        </tr>
+        <tr>
+          <td>Propagate gateway routes</td>
+          <td><strong>No</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click Review and Create. Let validation occur, and hit Create to submit your deployment.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the route table to be created. This should take about 3 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Go to resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-rt32</strong> route table blade, in the <strong>Settings</strong> section, click <strong>Routes</strong>, and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a new route with the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Route name</td>
+          <td><strong>az104-06-route-vnet3-to-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>Address prefix</td>
+          <td><strong>10.62.0.0/20</strong></td>
+        </tr>
+        <tr>
+          <td>Next hop type</td>
+          <td><strong>Virtual appliance</strong></td>
+        </tr>
+        <tr>
+          <td>Next hop address</td>
+          <td><strong>10.60.0.4</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>OK</strong></p>
+  </li>
+  <li>
+    <p>Back on the <strong>az104-06-rt32</strong> route table blade, in the <strong>Settings</strong> section, click <strong>Subnets</strong>, and then click <strong>+ Associate</strong>.</p>
+  </li>
+  <li>
+    <p>Associate the route table <strong>az104-06-rt32</strong> with the following subnet:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az104-06-vnet3</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>subnet0</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>OK</strong></p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>Network Watcher - Connection troubleshoot</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher - Connection troubleshoot</strong> blade, initiate a check with the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Source type</td>
+          <td><strong>Virtual machine</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az104-06-vm2</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td><strong>Specify manually</strong></td>
+        </tr>
+        <tr>
+          <td>URI, FQDN or IPv4</td>
+          <td><strong>10.63.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Destination Port</td>
+          <td><strong>3389</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Check</strong> and wait until results of the connectivity check are returned. Verify that the status is <strong>Reachable</strong>. Review the network path and note that the traffic was routed via <strong>10.60.0.4</strong>, assigned to the <strong>az104-06-nic0</strong> network adapter. If status is <strong>Unreachable</strong>, you should restart az104-06-vm0.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is expected, since the traffic between spoke virtual networks is now routed via the virtual machine located in the hub virtual network, which functions as a router.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can use <strong>Network Watcher</strong> to view topology of the network.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-5-implement-azure-load-balancer">Task 5: Implement Azure Load Balancer</h4>
+
+<p>In this task, you will implement an Azure Load Balancer in front of the two Azure virtual machines in the hub virtual network</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search and select <strong>Load balancers</strong> and, on the <strong>Load balancers</strong> blade, click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>Create a load balancer with the following settings (leave others with their default values) then click <strong>Next : Frontend IP configuration</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>az104-06-lb4</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>name of the Azure region into which you deployed all other resources in this lab</td>
+        </tr>
+        <tr>
+          <td>SKU</td>
+          <td><strong>Standard</strong></td>
+        </tr>
+        <tr>
+          <td>Type</td>
+          <td><strong>Public</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Frontend IP configuration</strong> tab, click <strong>Add a frontend IP configuration</strong> and use the following setting before clicking <strong>Add</strong>.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td>any unique name</td>
+        </tr>
+        <tr>
+          <td>Public IP address</td>
+          <td><strong>Create new</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP address name</td>
+          <td><strong>az104-06-pip4</strong></td>
+        </tr>
+        <tr>
+          <td>Availability zone</td>
+          <td><strong>No Zone</strong></td>
+        </tr>
+        <tr>
+          <td>Add a public IPv6 address</td>
+          <td><strong>No</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Review and Create</strong>. Let validation occur, and hit <strong>Create</strong> to submit your deployment.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the Azure load balancer to be provisioned. This should take about 2 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the deployment blade, click <strong>Go to resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-lb4</strong> load balancer blade, in the <strong>Settings</strong> section, click <strong>Backend pools</strong>, and click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a backend pool with the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>az104-06-lb4-be1</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az104-06-vnet01</strong></td>
+        </tr>
+        <tr>
+          <td>IP version</td>
+          <td><strong>IPv4</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az104-06-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine IP address</td>
+          <td><strong>ipconfig1 (10.60.0.4)</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az104-06-vm1</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine IP address</td>
+          <td><strong>ipconfig1 (10.60.1.4)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong></p>
+  </li>
+  <li>
+    <p>Wait for the backend pool to be created, in the <strong>Settings</strong> section, click <strong>Health probes</strong>, and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a health probe with the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>az104-06-lb4-hp1</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Port</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>Interval</td>
+          <td><strong>5</strong></td>
+        </tr>
+        <tr>
+          <td>Unhealthy threshold</td>
+          <td><strong>2</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong></p>
+  </li>
+  <li>
+    <p>Wait for the health probe to be created, in the <strong>Settings</strong> section, click <strong>Load balancing rules</strong>, and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Add a load balancing rule with the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>az104-06-lb4-lbrule1</strong></td>
+        </tr>
+        <tr>
+          <td>IP Version</td>
+          <td><strong>IPv4</strong></td>
+        </tr>
+        <tr>
+          <td>Frontend IP Address</td>
+          <td><strong>select the LoadBalancerFrontEnd from the drop down</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Port</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>Backend port</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>Backend pool</td>
+          <td><strong>az104-06-lb4-be1</strong></td>
+        </tr>
+        <tr>
+          <td>Health probe</td>
+          <td><strong>az104-06-lb4-hp1</strong></td>
+        </tr>
+        <tr>
+          <td>Session persistence</td>
+          <td><strong>None</strong></td>
+        </tr>
+        <tr>
+          <td>Idle timeout (minutes)</td>
+          <td><strong>4</strong></td>
+        </tr>
+        <tr>
+          <td>TCP reset</td>
+          <td><strong>Disabled</strong></td>
+        </tr>
+        <tr>
+          <td>Floating IP (direct server return)</td>
+          <td><strong>Disabled</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong></p>
+  </li>
+  <li>
+    <p>Wait for the load balancing rule to be created, in the <strong>Settings</strong> section, click <strong>Frontend IP configuration</strong>, and note the value of the <strong>Public IP address</strong>.</p>
+  </li>
+  <li>
+    <p>Start another browser window and navigate to the IP address you identified in the previous step.</p>
+  </li>
+  <li>
+    <p>Verify that the browser window displays the message <strong>Hello World from az104-06-vm0</strong> or <strong>Hello World from az104-06-vm1</strong>.</p>
+  </li>
+  <li>
+    <p>Open another browser window but this time by using InPrivate mode and verify whether the target vm changes (as indicated by the message).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to refresh the browser window or open it again by using InPrivate mode.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-6-implement-azure-application-gateway">Task 6: Implement Azure Application Gateway</h4>
+
+<p>In this task, you will implement an Azure Application Gateway in front of the two Azure virtual machines in the spoke virtual networks.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search and select <strong>Virtual networks</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual networks</strong> blade, in the list of virtual networks, click <strong>az104-06-vnet01</strong>.</p>
+  </li>
+  <li>
+    <p>On the  <strong>az104-06-vnet01</strong> virtual network blade, in the <strong>Settings</strong> section, click <strong>Subnets</strong>, and then click <strong>+ Subnet</strong>.</p>
+  </li>
+  <li>
+    <p>Add a subnet with the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>subnet-appgw</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet address range</td>
+          <td><strong>10.60.3.224/27</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Save</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This subnet will be used by the Azure Application Gateway instances, which you will deploy later in this task. The Application Gateway requires a dedicated subnet of /27 or larger size.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, search and select <strong>Application Gateways</strong> and, on the <strong>Application Gateways</strong> blade, click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create an application gateway</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Application gateway name</td>
+          <td><strong>az104-06-appgw5</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>name of the Azure region into which you deployed all other resources in this lab</td>
+        </tr>
+        <tr>
+          <td>Tier</td>
+          <td><strong>Standard V2</strong></td>
+        </tr>
+        <tr>
+          <td>Enable autoscaling</td>
+          <td><strong>No</strong></td>
+        </tr>
+        <tr>
+          <td>HTTP2</td>
+          <td><strong>Disabled</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az104-06-vnet01</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>subnet-appgw</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next: Frontends &gt;</strong> and, on the <strong>Frontends</strong> tab of the <strong>Create an application gateway</strong> blade, click <strong>Add new</strong>, and specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Frontend IP address type</td>
+          <td><strong>Public</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP address</td>
+          <td>the name of a new public ip address <strong>az104-06-pip5</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next: Backends &gt;</strong>, on the <strong>Backends</strong> tab of the <strong>Create an application gateway</strong> blade, click <strong>Add a backend pool</strong>, and, on the <strong>Add a backend pool</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>az104-06-appgw5-be1</strong></td>
+        </tr>
+        <tr>
+          <td>Add backend pool without targets</td>
+          <td><strong>No</strong></td>
+        </tr>
+        <tr>
+          <td>Target type</td>
+          <td><strong>IP address or FQDN</strong></td>
+        </tr>
+        <tr>
+          <td>Target</td>
+          <td><strong>10.62.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>Target type</td>
+          <td><strong>IP address or FQDN</strong></td>
+        </tr>
+        <tr>
+          <td>Target</td>
+          <td><strong>10.63.0.4</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: The targets represent the private IP addresses of virtual machines in the spoke virtual networks <strong>az104-06-vm2</strong> and <strong>az104-06-vm3</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong>, click <strong>Next: Configuration &gt;</strong> and, on the <strong>Configuration</strong> tab of the <strong>Create an application gateway</strong> blade, click <strong>+ Add a routing rule</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a routing rule</strong> blade, on the <strong>Listener</strong> tab, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Rule name</td>
+          <td><strong>az104-06-appgw5-rl1</strong></td>
+        </tr>
+        <tr>
+          <td>Listener name</td>
+          <td><strong>az104-06-appgw5-rl1l1</strong></td>
+        </tr>
+        <tr>
+          <td>Frontend IP</td>
+          <td><strong>Public</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>HTTP</strong></td>
+        </tr>
+        <tr>
+          <td>Port</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>Listener type</td>
+          <td><strong>Basic</strong></td>
+        </tr>
+        <tr>
+          <td>Error page url</td>
+          <td><strong>No</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Switch to the <strong>Backend targets</strong> tab of the <strong>Add a routing rule</strong> blade and specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Target type</td>
+          <td><strong>Backend pool</strong></td>
+        </tr>
+        <tr>
+          <td>Backend target</td>
+          <td><strong>az104-06-appgw5-be1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Add new</strong> under to the <strong>HTTP settings</strong> text box, and, on the <strong>Add an HTTP setting</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>HTTP settings Name</td>
+          <td><strong>az104-06-appgw5-http1</strong></td>
+        </tr>
+        <tr>
+          <td>Backend protocol</td>
+          <td><strong>HTTP</strong></td>
+        </tr>
+        <tr>
+          <td>Backend port</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>Cookie-based affinity</td>
+          <td><strong>Disable</strong></td>
+        </tr>
+        <tr>
+          <td>Connection draining</td>
+          <td><strong>Disable</strong></td>
+        </tr>
+        <tr>
+          <td>Request time-out (seconds)</td>
+          <td><strong>20</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong> on the <strong>Add an HTTP setting</strong> blade, and back on the <strong>Add a routing rule</strong> blade, click <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next: Tags &gt;</strong>, followed by <strong>Next: Review + create &gt;</strong> and then click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the Application Gateway instance to be created. This might take about 8 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, search and select <strong>Application Gateways</strong> and, on the <strong>Application Gateways</strong> blade, click <strong>az104-06-appgw5</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-06-appgw5</strong> Application Gateway blade, note the value of the <strong>Frontend public IP address</strong>.</p>
+  </li>
+  <li>
+    <p>Start another browser window and navigate to the IP address you identified in the previous step.</p>
+  </li>
+  <li>
+    <p>Verify that the browser window displays the message <strong>Hello World from az104-06-vm2</strong> or <strong>Hello World from az104-06-vm3</strong>.</p>
+  </li>
+  <li>
+    <p>Open another browser window but this time by using InPrivate mode and verify whether the target vm changes (based on the message displayed on the web page).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to refresh the browser window or open it again by using InPrivate mode.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Targeting virtual machines on multiple virtual networks is not a common configuration, but it is meant to illustrate the point that Application Gateway is capable of targeting virtual machines on multiple virtual networks (as well as endpoints in other Azure regions or even outside of Azure), unlike Azure Load Balancer, which load balances across virtual machines in the same virtual network.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="clean-up-resources">Clean up resources</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>List all resource groups created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-06*'
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-06*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the -AsJob parameter), so while you will be able to run another PowerShell command immediately afterwards within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this lab, you have:</p>
+
+<ul>
+  <li>Provisioned the lab environment</li>
+  <li>Configured the hub and spoke network topology</li>
+  <li>Tested transitivity of virtual network peering</li>
+  <li>Task 4: Configure routing in the hub and spoke topology</li>
+  <li>Task 5: Implement Azure Load Balancer</li>
+  <li>Task 6: Implement Azure Application Gateway</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D907526b117000ffdbc71b1bcc102e524d83415a3.js"></script>
+
+
+
+</body></html>

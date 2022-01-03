@@ -1,0 +1,1072 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-download-device-ca-certificate">Exercise 2: Download Device CA Certificate</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-configure-iot-edge-device-time-to-live-and-message-storage">Exercise 3: Configure IoT Edge Device Time-to-Live and Message Storage</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-connect-child-iot-device-to-iot-edge-gateway">Exercise 4: Connect Child IoT Device to IoT Edge Gateway</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="run-an-iot-edge-device-in-restricted-network-and-offline">Run an IoT Edge device in restricted network and offline</h1>
+
+<h2 id="lab-scenario">Lab Scenario</h2>
+
+<p>The conveyor belt monitoring system that you’ve implemented at Contoso’s cheese packaging and shipping facilities is paying off. The system is now sending telemetry data to Azure IoT Hub that helps operations to manage the vibration levels of the belts, and the new IoT Edge devices helping to manage inventory by tracking the number of cheese package that pass through the system.</p>
+
+<p>Your manager wants the system to be resilient to network outages, which do still occur occasionally in some areas of the cheese processing facilities. In addition, the IT department has requested that you optimize the system to bulk upload any non-critical telemetry data at specific times in the day to help load balance network usage.</p>
+
+<p>You propose configuring IoT Edge to support an offline scenario in case the network drops, and you will look into storing telemetry from sensors locally (on device) and configuring the Edge devices for regular syncs at given times.</p>
+
+<p>The following resources will be created:</p>
+
+<p><a href="media/LAB_AK_14-architecture.png" target="_blank"><img src="media/LAB_AK_14-architecture.png" alt="Lab 14 Architecture"></a></p>
+
+<h2 id="in-this-lab">In this Lab</h2>
+
+<p>In this lab, you will complete the following activities:</p>
+
+<ul>
+  <li>
+    <p>Verify that the lab prerequisites are met (that you have the required Azure resources)</p>
+
+    <ul>
+      <li>The script will create an IoT Hub if needed.</li>
+      <li>The script will create a new device identity needed for this lab.</li>
+    </ul>
+  </li>
+  <li>Deploy Azure IoT Edge Enabled Linux VM</li>
+  <li>Setup an IoT Edge Parent device with a Child IoT device</li>
+  <li>Configure the IoT Edge device as Gateway</li>
+  <li>Open the IoT Edge Gateway device inbound ports using Azure CLI</li>
+  <li>Configure the IoT Edge Gateway device Time-to-Live and Message Store</li>
+  <li>Connect the Child IoT device to the IoT Edge Gateway</li>
+  <li>Test the device connectivity and offline support</li>
+</ul>
+
+<h2 id="lab-instructions">Lab Instructions</h2>
+
+<h3 id="exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</h3>
+
+<p>This lab assumes the following Azure resources are available:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Resource Type</th>
+      <th style="text-align: left">Resource Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Resource Group</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Hub</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Edge Device</td>
+      <td style="text-align: left">vm-az220-training-gw0002-{your-id}</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Device</td>
+      <td style="text-align: left">sensor-th-0084</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To ensure these resources are available, complete the following tasks.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Deploy to Azure</strong>:</p>
+
+    <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoftLearning%2FAZ-220-Microsoft-Azure-IoT-Developer%2Fbicep%2FAllfiles%2FARM%2Flab14.json">Deploy To Azure</a></p>
+  </li>
+  <li>
+    <p>If prompted, login to the <strong>Azure Portal</strong>.</p>
+
+    <p>The <strong>Custom deployment</strong> page will be displayed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Project details</strong>, in the <strong>Subscription</strong> dropdown, ensure that the Azure subscription that you intend to use for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, select <strong>rg-az220</strong>.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If <strong>rg-az220</strong> is not listed:</p>
+
+      <ol>
+        <li>Under the <strong>Resource group</strong> dropdown, click <strong>Create new</strong>.</li>
+        <li>Under <strong>Name</strong>, enter <strong>rg-az220</strong>.</li>
+        <li>Click <strong>OK</strong>.</li>
+      </ol>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, in the <strong>Region</strong> dropdown, select the region closest to you.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If the <strong>rg-az220</strong> group already exists, the <strong>Region</strong> field is set to the region used by the resource group and is read-only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Your ID</strong> field, enter the unique ID you created in Exercise 1.</p>
+  </li>
+  <li>
+    <p>In the <strong>Course ID</strong> field, enter <strong>az220</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Vm Resource Group</strong> field, enter <strong>rg-az220vm</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Admin Username</strong>, enter the account name you wish to use.</p>
+  </li>
+  <li>
+    <p>In the <strong>Authentication Type</strong> field, select <strong>password</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Admin Password Or Key</strong> field, enter the password you wish to use for the admin account.</p>
+  </li>
+  <li>
+    <p>To validate the template, click <strong>Review and create</strong>.</p>
+  </li>
+  <li>
+    <p>If validation passes, click <strong>Create</strong>.</p>
+
+    <p>The deployment will start.</p>
+  </li>
+  <li>
+    <p>Once the deployment has completed, in the left navigation area, to review any output values from the template,  click <strong>Outputs</strong>.</p>
+
+    <p>Make a note of the outputs for use later:</p>
+    <ul>
+      <li>connectionString</li>
+      <li>deviceConnectionString</li>
+      <li>gatewayConnectionString</li>
+      <li>devicePrimaryKey</li>
+      <li>publicFQDN</li>
+      <li>publicSSH</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The resources have now been created.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: In addition to provisioning the VM and IoT Edge, the ARM template also configured the firewall rules for inbound traffic and created the child device.</p>
+</blockquote>
+
+<h3 id="exercise-2-download-device-ca-certificate">Exercise 2: Download Device CA Certificate</h3>
+
+<p>In this exercise, you will explore the <strong>vm-az220-training-gw0002-{your-id}</strong> Virtual Machine that you just created and download the generated test certificates to the cloud shell.</p>
+
+<h4 id="task-1-connect-to-the-vm">Task 1: Connect to the VM</h4>
+
+<ol>
+  <li>
+    <p>Verify that the IoT Edge virtual machine has been deployed successfully.</p>
+
+    <p>You can check the Notification pane in the Azure portal.</p>
+  </li>
+  <li>
+    <p>Verify that your <strong>rg-az220vm</strong> resource group has been pinned to your Azure dashboard.</p>
+
+    <p>To pin your resource group to the dashboard, navigate to your Azure dashboard, and then complete the following:</p>
+
+    <ul>
+      <li>On the Azure portal menu, click <strong>Resource groups</strong>.</li>
+      <li>On the <strong>Resource groups</strong> blade, under <strong>Name</strong>, locate the <strong>rg-az220vm</strong> resource group.</li>
+      <li>On the <strong>rg-az220vm</strong> row, on the right side of the blade, click <strong>…</strong> and then click <strong>Pin to dashboard</strong>.</li>
+    </ul>
+
+    <p>You may want to edit your dashboard to make the RG tiles and listed resources more accessible.</p>
+  </li>
+  <li>
+    <p>On the Azure portal toolbar, click <strong>Cloud Shell</strong></p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, paste the <strong>ssh</strong> command that you noted in the earlier task, similar to <strong>ssh vmadmin@vm-az220-training-gw0002-dm080321.centralus.cloudapp.azure.com</strong>, and then press <strong>Enter</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted with <strong>Are you sure you want to continue connecting?</strong>, type <strong>yes</strong> and then press <strong>Enter</strong>.</p>
+
+    <p>This prompt is a security confirmation since the certificate used to secure the connection to the VM is self-signed. The answer to this prompt will be remembered for subsequent connections, and is only prompted on the first connection.</p>
+  </li>
+  <li>
+    <p>When prompted to enter the password, enter the administrator password that you created when the Edge Gateway VM was provisioned.</p>
+  </li>
+  <li>
+    <p>Once connected, the terminal will change to show the name of the Linux VM, similar to the following. This tells you which VM you are connected to.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs"> username@vm-az220-training-gw0002-{your-id}:~$
+</code></pre>
+  </li>
+  <li>
+    <p>To determine the Virtual Machines public IP address, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs"> nslookup vm-az220-training-gw0001-{your-id}.centralus.cloudapp.azure.com
+</code></pre>
+
+    <p>The output will be similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs"> Server:         127.0.0.53
+ Address:        127.0.0.53<span class="hljs-comment"><span class="hljs-comment">#53</span></span>
+
+ Non-authoritative answer:
+ Name:   vm-az220-training-gw0001-{your-id}}.centralus.cloudapp.azure.com
+ Address: 168.61.181.131
+</code></pre>
+
+    <p>The public IP of the VM is the final <strong>Address</strong> value - in this case <strong>168.61.181.131</strong>.</p>
+
+    <blockquote>
+      <p><strong>Important</strong>: Make a note of this IP address - you will need it later. The IP Address will usually change every time the VM is restarted.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-explore-the-iot-edge-configuration">Task 2: Explore the IoT Edge configuration</h4>
+
+<p>During the initial launch of the VM, a script was executed that configured IoT Edge. This script performed the following operations:</p>
+
+<ul>
+  <li>Installed <strong>aziot-identity-service</strong> package</li>
+  <li>Installed <strong>aziot-edge</strong> package</li>
+  <li>Downloaded an initial version of <strong>config.toml</strong> (the config file for IoT Edge) to <strong>/etc/aziot/config.toml</strong></li>
+  <li>Added the device connection string supplied when the ARM template was executed to <strong>/etc/aziot/config.toml</strong></li>
+  <li>Cloned the <a href="https://github.com/Azure/iotedge.git">Iot Edge git repository</a> to <strong>/etc/gw-ssl/iotedge</strong></li>
+  <li>Created a directory <strong>/tmp/lab12</strong> and copied the IoT Edge gateway SSL test tools from <strong>/etc/gw-ssl/iotedge</strong></li>
+  <li>Generated the test SSL certs in <strong>/tmp/lab12</strong> and copied them to <strong>/etc/aziot</strong></li>
+  <li>Added the certs to the <strong>/etc/aziot/config.toml</strong></li>
+  <li>Applied the updated <strong>/etc/aziot/config.toml</strong> to the IoT Edge runtime</li>
+</ul>
+
+<ol>
+  <li>
+    <p>To determine the version of IoT Edge that was installed, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> iotedge --version
+</code></pre>
+
+    <p>The version installed at the time of writing is <code>iotedge 1.2.3</code></p>
+  </li>
+  <li>
+    <p>To view the IoT Edge configuration, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs"> cat /etc/aziot/config.toml
+</code></pre>
+
+    <p>The output will be similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-s"> [provisioning]
+ source = "manual"
+ connection_string = "HostName=iot-az220-training-dm080221.azure-devices.net;DeviceId=sensor-th-0067;SharedAccessKey=2Zv4wruDViwldezt0iNMtO1mA340tM8fnmxgoQ3k0II="
+
+ [agent]
+ name = "edgeAgent"
+ type = "docker"
+
+ [agent.config]
+ image = "mcr.microsoft.com/azureiotedge-agent:1.2"
+
+ [connect]
+ workload_uri = "unix:///var/run/iotedge/workload.sock"
+ management_uri = "unix:///var/run/iotedge/mgmt.sock"
+
+ [listen]
+ workload_uri = "fd://aziot-edged.workload.socket"
+ management_uri = "fd://aziot-edged.mgmt.socket"
+
+ [moby_runtime]
+ uri = "unix:///var/run/docker.sock"
+ network = "azure-iot-edge"
+
+ trust_bundle_cert = 'file:///etc/aziot/azure-iot-test-only.root.ca.cert.pem'
+
+ [edge_ca]
+ cert = 'file:///etc/aziot/iot-edge-device-ca-MyEdgeDeviceCA-full-chain.cert.pem'
+ pk = 'file:///etc/aziot/iot-edge-device-ca-MyEdgeDeviceCA.key.pem'
+</code></pre>
+
+    <p>During the setup, the <strong>connection_string</strong>, <strong>trust_bundle_cert</strong>, <strong>cert</strong> and <strong>pk</strong> values were updated.</p>
+  </li>
+  <li>
+    <p>To ensure the IoT Edge daemon is running, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-bash hljs"> sudo iotedge system status
+</code></pre>
+
+    <p>This command will display output similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-bash hljs"> System services:
+     aziot-edged             Running
+     aziot-identityd         Running
+     aziot-keyd              Running
+     aziot-certd             Running
+     aziot-tpmd              Ready
+
+ Use <span class="hljs-string"><span class="hljs-string">'iotedge system logs'</span></span> to check <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> non-fatal errors.
+ Use <span class="hljs-string"><span class="hljs-string">'iotedge check'</span></span> to diagnose connectivity and configuration issues.
+</code></pre>
+  </li>
+  <li>
+    <p>To verify the IoT Edge runtime has connected, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-bash hljs"> sudo iotedge check
+</code></pre>
+
+    <p>This runs a number of checks and displays the results. For this lab, ignore the <strong>Configuration checks</strong> warnings/errors. The <strong>Connectivity checks</strong> should succeed and be similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-bash hljs"> Connectivity checks (aziot-identity-service)
+ --------------------------------------------
+ √ host can connect to and perform TLS handshake with iothub AMQP port - OK
+ √ host can connect to and perform TLS handshake with iothub HTTPS / WebSockets port - OK
+ √ host can connect to and perform TLS handshake with iothub MQTT port - OK
+
+ Configuration checks
+ --------------------
+ ** entries removed <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> legibility **
+
+ Connectivity checks
+ -------------------
+ √ container on the default network can connect to IoT Hub AMQP port - OK
+ √ container on the default network can connect to IoT Hub HTTPS / WebSockets port - OK
+ √ container on the default network can connect to IoT Hub MQTT port - OK
+ √ container on the IoT Edge module network can connect to IoT Hub AMQP port - OK
+ √ container on the IoT Edge module network can connect to IoT Hub HTTPS / WebSockets port - OK
+ √ container on the IoT Edge module network can connect to IoT Hub MQTT port - OK
+</code></pre>
+
+    <p>If the connection fails, double-check the connection string value in <strong>config.toml</strong>.</p>
+  </li>
+  <li>
+    <p>To exit the VM shell, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-bash hljs"> <span class="hljs-built_in"><span class="hljs-built_in">exit</span></span>
+</code></pre>
+
+    <p>The connection to the VM should close and the cloud shell prompt should be displayed.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-download-ssl-certs">Task 3: Download SSL certs</h4>
+
+<p>Next, you need to “download” the <strong>MyEdgeDeviceCA</strong> certificate from the <strong>vm-az220-training-gw0002-{your-id}</strong> virtual machine so that it can be used to encrypt communications between a leaf device and the IoT Edge gateway.</p>
+
+<ol>
+  <li>
+    <p>At the Cloud Shell command prompt, to download the <strong>/tmp/lab12</strong> directory from the <strong>vm-az220-training-gw0002-{your-id}</strong> virtual machine to the <strong>Cloud Shell</strong> storage, enter the following commands:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-bash hljs"> mkdir lab12
+ scp -r -p &lt;username&gt;@&lt;FQDN&gt;:/tmp/lab12 .
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Replace the **<username>** placeholder with the username of the admin user for the VM, and replace the **<fqdn>** placeholder with the fully qualified domain name for the VM. Refer to the command that you used to open the SSH session if needed.
+`scp -r -p vmadmin@vm-az220-training-edge0001-dm080321.centralus.cloudapp.azure.com:/tmp/lab12 .`</fqdn></username></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Enter the Admin password for the VM when prompted.</p>
+
+    <p>Once the command has executed, it will have downloaded a copy of the <strong>/tmp/lab12</strong> directory with the certificate and key files over SSH to the Cloud Shell storage.</p>
+  </li>
+  <li>
+    <p>To verify that the files have been downloaded, enter the following commands:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-bash hljs"> <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> lab12
+ ls
+</code></pre>
+
+    <p>You should see the following files listed:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-bash hljs"> certGen.sh  csr        index.txt.attr      index.txt.old  openssl_root_ca.cnf  serial
+ certs       index.txt  index.txt.attr.old  newcerts       private              serial.old
+</code></pre>
+
+    <p>Once the files are copied to Cloud Shell storage from the <strong>vm-az220-training-gw0002-{your-id}</strong> virtual machine, you will be able to easily download any of the IoT Edge Device certificate and key files to your local machine as necessary. Files can be downloaded from the Cloud Shell using the <code>download &lt;filename&gt;</code> command. You will do this later in the lab.</p>
+  </li>
+  <li>
+    <p>To download the root cert for use later in this lab, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-bashd"> download ~/lab12/
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="exercise-3-configure-iot-edge-device-time-to-live-and-message-storage">Exercise 3: Configure IoT Edge Device Time-to-Live and Message Storage</h3>
+
+<p>Configuring your IoT Edge Devices for extended offline scenarios includes specifying the supported period of time that you may be offline, often referred to as Time-to-Live, and specifying your local storage settings.</p>
+
+<p>The default value for Time-to-Live (TTL) is <code>7200</code> (7200 seconds, which is 2 hours). This is plenty of time for quick interruptions, but there are cases when two hours may not be long enough, when a device or solution needs to function in Offline mode for an extended period of time. For the solution to operate without telemetry data loss when extended periods in a disconnected state can occur, you can configure the TTL property of the IoT Edge Hub module to a value up to 1,209,600 seconds (a 2 week TTL period).</p>
+
+<p>The IoT Edge Hub module (<code>$edgeHub</code>) is used to coordinate communications between the the Azure IoT Hub service and the IoT Edge Hub running on the gateway device. Within the Desired Properties for the Module Twin, the <code>storeAndForwardConfiguration.timeToLiveSecs</code> property specifies the time in seconds that IoT Edge Hub keeps messages when in a state disconnected from routing endpoints, such as the Azure IoT Hub service. The <code>timeToLiveSecs</code> property for the Edge Hub can be specified in the Deployment Manifest on a specific device as part of a single-device or at-scale deployment.</p>
+
+<p>The IoT Edge Device will automatically store messages when in a disconnected / offline state. The storage location can be configured using a <code>HostConfig</code> object.</p>
+
+<p>In this exercise, you will use the Azure Portal user interface for Azure IoT Hub to modify the <code>timeToLiveSecs</code> property for the Edge Hub (<code>$edgeHub</code>) module on the single IoT Edge Gateway device. You will also configure the storage location on the IoT Edge Device where the messages are to be stored.</p>
+
+<h4 id="task-1-configure-the-edgehub-module-twin">Task 1: Configure the $edgeHub Module Twin</h4>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On your <strong>rg-az220</strong> resource group tile, click <strong>iot-az220-training-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>On left-side menu of your IoT hub blade, under <strong>Automatic Device Management</strong>, click <strong>IoT Edge</strong>.</p>
+
+    <p>This pane allows you to manage the IoT Edge devices connected to the IoT Hub.</p>
+  </li>
+  <li>
+    <p>Under <strong>Device ID</strong>, click <strong>vm-az220-training-gw0002-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Modules</strong>, click <strong>$edgeHub</strong>.</p>
+
+    <p>The Module Identity Details blade of the <strong>Edge Hub</strong> module provides access to the Module Identity Twin and other resources for your IoT Edge Device.</p>
+  </li>
+  <li>
+    <p>On the <strong>Module Identity Details</strong> blade, click <strong>Module Identity Twin</strong>.</p>
+
+    <p>This blade contains the module identity twin for <code>vm-az220-training-gw0002-{your-id}/$edgeHub</code> displayed as JSON in an editor pane.</p>
+  </li>
+  <li>
+    <p>Take a moment to review the contents of the $edgeHub module identity twin.</p>
+
+    <p>Notice that since this is a new device the desired properties are essentially empty.</p>
+  </li>
+  <li>
+    <p>Close the <strong>Module Identity Twin</strong> blade.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>vm-az220-training-gw0002-{your-id}</strong> blade.</p>
+  </li>
+  <li>
+    <p>At the top of the blade, click <strong>Set Modules</strong>.</p>
+
+    <p>The <strong>Set modules on device</strong> blade enables you to create and configure the IoT Edge Modules deployed to this IoT Edge Device.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set modules</strong> blade, under <strong>Iot Edge Modules</strong>, click <strong>Runtime Settings</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Runtime Settings</strong> pane, select the <strong>Edge Hub</strong> tab.</p>
+  </li>
+  <li>
+    <p>Locate the <strong>Store and forward configuration - time to live (seconds)</strong> field.</p>
+  </li>
+  <li>
+    <p>In the <strong>Store and forward configuration - time to live (seconds)</strong> textbox, enter <strong>1209600</strong></p>
+
+    <p>This specifies a message Time-to-Live value of 2 weeks for the IoT Edge Device, which is the maximum time.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  There are several things to consider when configuring the <strong>Message Time-to-Live</strong> (TTL) for the Edge Hub (<code>$edgeHub</code>) module. When the IoT Edge Device is disconnected, the messages are stored on the local device. You need to calculate how much data will be stored during the TTL period, and make sure there is enough storage on the device for that much data. The amount of storage and TTL configured will need to meet the solutions requirements if you want to avoid the loss of important data.</p>
+
+      <p>If the device does not have enough storage, then you need to configure a shorter TTL. Once the age of a message reaches the TTL time limit, it will be deleted if it has not yet been sent to Azure IoT Hub.</p>
+    </blockquote>
+
+    <p>The IoT Edge Device will automatically store messages when in a disconnected / offline state. The storage location can be configured using a <code>HostConfig</code> object.</p>
+  </li>
+  <li>
+    <p>Locate the <strong>Environment Variables</strong> area.</p>
+
+    <p>You need to add a new environment variable in order to complete the configuration of the message storage location.</p>
+  </li>
+  <li>
+    <p>Under <strong>Environment Variables</strong>, in the <strong>Name</strong> textbox, enter <strong>storageFolder</strong></p>
+  </li>
+  <li>
+    <p>Under <strong>Environment Variables</strong>, in the <strong>Value</strong> textbox, enter <strong>/iotedge/storage/</strong></p>
+  </li>
+  <li>
+    <p>Locate the <strong>Container Create Options</strong> field.</p>
+
+    <p>Notice that this field contains a <code>HostConfig</code> JSON object that can be configured. You will create a <code>HostConfig</code> property and an Environment Variable to configure the storage location for your Edge device.</p>
+  </li>
+  <li>
+    <p>In the <code>HostConfig</code> object, below the closing bracket of <code>PortBindings</code> property, add the following <code>Binds</code> property:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-json hljs"> <span class="hljs-string"><span class="hljs-string">"Binds"</span></span>: [
+     <span class="hljs-string"><span class="hljs-string">"/etc/aziot/storage/:/iotedge/storage/"</span></span>
+ ]
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Be sure to separate the <code>PortBindings</code> property from the <code>Binds</code> property with a comma.</p>
+    </blockquote>
+
+    <p>The resulting JSON in the <strong>Create Options</strong> textbox should look similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"HostConfig"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"PortBindings"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"443/tcp"</span></span>: [
+             {
+                 <span class="hljs-attr"><span class="hljs-attr">"HostPort"</span></span>: <span class="hljs-string"><span class="hljs-string">"443"</span></span>
+             }
+             ],
+             <span class="hljs-attr"><span class="hljs-attr">"5671/tcp"</span></span>: [
+             {
+                 <span class="hljs-attr"><span class="hljs-attr">"HostPort"</span></span>: <span class="hljs-string"><span class="hljs-string">"5671"</span></span>
+             }
+             ],
+             <span class="hljs-attr"><span class="hljs-attr">"8883/tcp"</span></span>: [
+             {
+                 <span class="hljs-attr"><span class="hljs-attr">"HostPort"</span></span>: <span class="hljs-string"><span class="hljs-string">"8883"</span></span>
+             }
+             ]
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"Binds"</span></span>: [
+             <span class="hljs-string"><span class="hljs-string">"/etc/aziot/storage/:/iotedge/storage/"</span></span>
+         ]
+     }
+ }
+</code></pre>
+
+    <p>This <code>Binds</code> value configures the <code>/iotedge/storage/</code> directory in the Docker container for the Edge Hub Module to be mapped to the <code>/etc/aziot/storage/</code> host system directory on the physical IoT Edge Device.</p>
+
+    <p>The value is in the format of <code>&lt;HostStoragePath&gt;:&lt;ModuleStoragePath&gt;</code>. The <code>&lt;HostStoragePath&gt;</code> value is the host directory location on the IoT Edge Device. The <code>&lt;ModuleStoragePath&gt;</code> is the module storage path made available within the container. Both of these values must specify an absolute path.</p>
+  </li>
+  <li>
+    <p>At the bottom of the <strong>Runtime Settings</strong> pane, click <strong>Apply</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set modules on device</strong> blade, click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Take a minute to review the contents of the deployment manifest.</p>
+
+    <p>Find your updates within the deployment manifest. You will need to look under both <code>$edgeAgent</code> and <code>$edgeHub</code> to find them.</p>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Create</strong>.</p>
+
+    <p>Once the change is saved, the <strong>IoT Edge Device</strong> will be notified of the change to the Module configuration and the new settings will be reconfigured on the device accordingly.</p>
+
+    <p>Once the changes have been passed to the Azure IoT Edge device, it will restart the <strong>edgeHub</strong> module with the new configuration.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In the <strong>Modules</strong> list, the <strong>$edgeHub</strong> module’s <strong>Runtime Status</strong> will display an error.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To review the error message, click <strong>Error</strong>.</p>
+
+    <p>The <strong>Troubleshoot</strong> page will display the error log. It will include an exception similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-log"> Unhandled exception. System.AggregateException: One or more errors occurred. (Access to the path '/iotedge/storage/edgeHub' is denied.)
+</code></pre>
+
+    <p>The next task will resolve this error.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-update-directory-permissions">Task 2: Update Directory Permissions</h4>
+
+<p>Before continuing, it is essential for you to ensure that the user profile for the IoT Edge Hub module has the required read, write, and execute permissions to the <strong>/etc/aziot/storage/</strong> directory.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal toolbar, click <strong>Cloud Shell</strong></p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, paste the <strong>ssh</strong> command that you noted in the earlier task, similar to <strong>ssh vmadmin@vm-az220-training-gw0002-dm080321.centralus.cloudapp.azure.com</strong>, and then press <strong>Enter</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted with <strong>Are you sure you want to continue connecting?</strong>, type <strong>yes</strong> and then press <strong>Enter</strong>.</p>
+
+    <p>This prompt is a security confirmation since the certificate used to secure the connection to the VM is self-signed. The answer to this prompt will be remembered for subsequent connections, and is only prompted on the first connection.</p>
+  </li>
+  <li>
+    <p>When prompted to enter the password, enter the administrator password that you created when the Edge Gateway VM was provisioned.</p>
+  </li>
+  <li>
+    <p>Once connected, the terminal will change to show the name of the Linux VM, similar to the following. This tells you which VM you are connected to.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-bash hljs"> username@vm-az220-training-gw0002-{your-id}:~$
+</code></pre>
+  </li>
+  <li>
+    <p>To view the running IoT Edge modules, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-bash hljs"> iotedge list
+</code></pre>
+  </li>
+  <li>
+    <p>Take a moment to review the output of the <code>iotedge list</code> command:</p>
+
+    <p>You should see that the <em>edgeHub</em> has failed to start:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-text"> NAME             STATUS           DESCRIPTION                 CONFIG
+ edgeAgent        running          Up 4 seconds                mcr.microsoft.com/azureiotedge-agent:1.1
+ edgeHub          failed           Failed (139) 0 seconds ago  mcr.microsoft.com/azureiotedge-hub:1.1
+</code></pre>
+
+    <p>This is due to the fact that the <em>edgeHub</em> process does not have permission to write to the <strong>/etc/aziot/storage/</strong> directory.</p>
+  </li>
+  <li>
+    <p>To confirm the issue with the directory permission, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-bash hljs"> iotedge logs edgeHub
+</code></pre>
+
+    <p>The terminal will output the current log - if you scroll through the log you will see the relevant entry that looks similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-text"> Unhandled Exception: System.AggregateException: One or more errors occurred. (Access to the path '/iotedge/storage/edgeHub' is denied.) ---&gt; System.UnauthorizedAccessException: Access to the path '/iotedge/storage/edgeHub' is denied. ---&gt; System.IO.IOException: Permission denied
+</code></pre>
+  </li>
+  <li>
+    <p>To update the directory permissions, enter the following commands:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-sh hljs bash"> sudo chown $( whoami ):iotedge /etc/aziot/storage/
+ sudo chmod 775 /etc/aziot/storage/
+</code></pre>
+
+    <p>The first command sets the owner of the directory to the current user and the owning user group to <strong>iotedge</strong>. The second command enables full access to both the current user and members of the <strong>iotedge</strong> group. This will ensure that the <em>edgeHub</em> module is able to create directories and files within the <strong>/etc/iotedge/storage/</strong> directory.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If you see an error stating <strong>chown: cannot access ‘/etc/iotedge/storage/’: No such file or directory</strong>, create the directory using the following command and then re-run the commands above:</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-sh hljs bash"> sudo mkdir /etc/iotedge/storage
+</code></pre>
+  </li>
+  <li>
+    <p>To restart the <em>edgeHub</em> module, and then verify that it is started, enter the following commands:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-bash hljs"> iotedge restart edgeHub
+ iotedge list
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The module name for the restart is case-sensitive - <strong>edgeHub</strong></p>
+    </blockquote>
+
+    <p>You should see that the <em>edgeHub</em> module is now running:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-text"> NAME             STATUS           DESCRIPTION      CONFIG
+ edgeAgent        running          Up 13 minutes    mcr.microsoft.com/azureiotedge-agent:1.1
+ edgeHub          running          Up 6 seconds     mcr.microsoft.com/azureiotedge-hub:1.1
+</code></pre>
+  </li>
+</ol>
+
+<p>You are now ready to connect an IoT device (the child/leaf) to this IoT Edge Gateway device.</p>
+
+<h3 id="exercise-4-connect-child-iot-device-to-iot-edge-gateway">Exercise 4: Connect Child IoT Device to IoT Edge Gateway</h3>
+
+<p>The process to authenticate regular IoT devices to IoT Hub with symmetric keys also applies to downstream (or child / leaf) devices. The only difference is that you need to add a pointer to the Gateway Device to route the connection or, in offline scenarios, to handle the authentication on behalf of IoT Hub.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: You will be using the connection string value for <strong>sensor-th-0084</strong> that you saved earlier in the lab. If you need a new copy of the connection string, it can be accessed from your Azure IoT Hub in the Azure portal. Open the <strong>IoT devices</strong> pane of your IoT Hub, click <strong>sensor-th-0084</strong>, copy the <strong>Primary Connection String</strong>, and then save it to a text file.</p>
+</blockquote>
+
+<h4 id="task-1-create-hosts-file-entry">Task 1: Create hosts file entry</h4>
+
+<p>In earlier versions of this lab, the FQDN would be used as the value from the <strong>GatewayHostName</strong> in the device connectionstring, however the test x509 certificate generated by the current versions of the test scripts no longer supports this. Instead, only the hostname is used and an entry must be created in the local machine’s <strong>hosts</strong> file to resolve the hostname to an IP Address. Complete the following steps to add the required entry to the hosts file.</p>
+
+<ol>
+  <li>
+    <p>Open Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Open File</strong>.</p>
+  </li>
+  <li>
+    <p>Navigate to the following folder <strong>c:\Windows\System32\Drivers\etc\</strong> file, and open the <strong>hosts</strong> file.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: the <strong>hosts</strong> file has no extension.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Add the following line to the <strong>hosts</strong> file, followed by an empty line:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="language-text"> {VM Public IP Address} vm-az220-training-gw0002-{your-id}
+ {blank line}
+</code></pre>
+
+    <p>For example,</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-text"> 168.61.181.131 vm-az220-training-gw0002-dm090821
+
+</code></pre>
+  </li>
+  <li>
+    <p>Save the file - when prompted that the save failed, click <strong>Retry as Admin…</strong> and in the <strong>User Account Control</strong> dialog, click <strong>Yes</strong>.</p>
+  </li>
+</ol>
+
+<p>The local machine can now resolve the VM name to the appropriate IP Address.</p>
+
+<h4 id="task-1-configure-device-app">Task 1: Configure device app</h4>
+
+<p>In this task, you will configure the downstream IoT device (child or leaf device) to connect to IoT Hub using Symmetric Keys. The devices will be configured to connect to IoT Hub and the parent IoT Edge Device using a Connection String that contains the Symmetric Key (in addition to the Gateway Hostname for the Parent IoT Edge Device).</p>
+
+<ol>
+  <li>
+    <p>Open the Windows <strong>File Explorer</strong> app, and then navigate to your <strong>Downloads</strong> folder.</p>
+
+    <p>Your Downloads folder should contain the X.509 certificate file that was downloaded when you configured the IoT Edge Gateway. You need to copy this certificate file to the root directory of your IoT device app.</p>
+  </li>
+  <li>
+    <p>In the <strong>Downloads</strong> folder, right-click <strong>azure-iot-test-only.root.ca.cert.pem</strong>, and then click <strong>Copy</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you already had an azure-iot-test-only.root.ca.cert.pem file in your Downloads folder, the file that you need may be named azure-iot-test-only.root.ca.cert (1).pem. You will need to rename it to azure-iot-test-only.root.ca.cert.pem once you’ve added it to the destination folder.</p>
+    </blockquote>
+
+    <p>This file is the X.509 certificate file that you downloaded and will be adding to the lab 14 /Starter/ChildIoTDevice directory (where the source code for the Child IoT Device is located).</p>
+  </li>
+  <li>
+    <p>Navigate to the lab 14 Starter folder, and then paste the copied file into the <strong>ChildIoTDevice</strong> folder.</p>
+  </li>
+  <li>
+    <p>Ensure that the copied certificate file is named <strong>azure-iot-test-only.root.ca.cert.pem</strong></p>
+
+    <p>If you already had an azure-iot-test-only.root.ca.cert.pem file in your Downloads folder, the file may have been named azure-iot-test-only.root.ca.cert (1).pem.</p>
+  </li>
+  <li>
+    <p>Open a new instance of Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Open Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Open Folder</strong> dialog, navigate to the lab 14 <strong>Starter</strong> folder, click <strong>ChildIoTDevice</strong>, and then click <strong>Select Folder</strong>.</p>
+
+    <p>You should now see the project files listed in the EXPLORER pane.</p>
+  </li>
+  <li>
+    <p>In the Visual Studio Code <strong>EXPLORER</strong> pane, click <strong>Program.cs</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Program.cs</strong> file, locate the declaration for the <strong>connectionString</strong> variable.</p>
+  </li>
+  <li>
+    <p>Replace the placeholder value with the Primary Connection String for the <strong>sensor-th-0084</strong> IoT Device.</p>
+  </li>
+  <li>
+    <p>Append the assigned <strong>connectionString</strong> value with a <strong>GatewayHostName</strong> property, and then set the value of GatewayHostName to be the full DNS name for your IoT Edge gateway device.</p>
+
+    <p>The full DNS name of your Edge gateway device is the Device ID, <strong>vm-az220-training-gw0002-{your-id}</strong>, appended with your specified region and the Azure commercial cloud domain name, for example: <strong>.westus2.cloudapp.azure.com</strong>.</p>
+
+    <p>The completed connection string values should match the following format:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-text"> HostName=&lt;IoT-Hub-Name&gt;.azure-devices.net;DeviceId=sensor-th-0072;SharedAccessKey=&lt;Primary-Key-for-IoT-Device&gt;;GatewayHostName=&lt;DNS-Name-for-IoT-Edge-Device&gt;
+</code></pre>
+
+    <p>Be sure to replace the placeholders shown above with the appropriate values:</p>
+
+    <ul>
+      <li><strong>&lt;IoT-Hub-Name&gt;</strong>: The Name of the Azure IoT Hub.</li>
+      <li><strong>&lt;Primary-Key-for-IoT-Device&gt;</strong>: The Primary Key for the <strong>sensor-th-0084</strong> IoT device in Azure IoT Hub.</li>
+      <li><strong>&lt;DNS-Name-for-IoT-Edge-Device&gt;</strong>: The Hostname name of the <strong>vm-az220-training-gw0002-{your-id}</strong> Edge device.</li>
+    </ul>
+
+    <p>The <strong>connectionString</strong> variable assignment code should look similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> connectionString = <span class="hljs-string"><span class="hljs-string">"HostName=iot-az220-training-1119.azure-devices.net;DeviceId=sensor-th-0084;SharedAccessKey=ygNT/WqWs2d8AbVD9NAlxcoSS2rr628fI7YLPzmBdgE=;GatewayHostName=vm-az220-training-gw0002-{your-id}"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>View</strong> menu, click <strong>Terminal</strong>.</p>
+
+    <p>Ensure that the <strong>Terminal</strong> command prompt lists the <code>/Starter/ChildIoTDevice</code> directory.</p>
+  </li>
+  <li>
+    <p>To build and run the <strong>ChildIoTDevice</strong> simulated device, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-cmd/sh"> dotnet run
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: When the app installs the <strong>X.509 certificate</strong> on the local machine (so it can use it to authenticate with the IoT Edge Gateway), you may see a popup window that asks if you would like to install the certificate. Click <strong>Yes</strong> to allow the app to install the certificate.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Notice the output displayed in the Terminal.</p>
+
+    <p>Once the simulated device is running, the console output will display the events being sent to the Azure IoT Edge Gateway.</p>
+
+    <p>The terminal output will look similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="language-cmd/sh"> IoT Hub C# Simulated Cave Device. Ctrl-C to exit.
+
+ User configured CA certificate path: azure-iot-test-only.root.ca.cert.pem
+ Attempting to install CA certificate: azure-iot-test-only.root.ca.cert.pem
+ Successfully added certificate: azure-iot-test-only.root.ca.cert.pem
+ 11/27/2019 4:18:26 AM &gt; Sending message: {"temperature":21.768769073192388,"humidity":79.89793652663843}
+ 11/27/2019 4:18:27 AM &gt; Sending message: {"temperature":28.317862208149332,"humidity":73.60970909409677}
+ 11/27/2019 4:18:28 AM &gt; Sending message: {"temperature":25.552859350830715,"humidity":72.7897707153064}
+ 11/27/2019 4:18:29 AM &gt; Sending message: {"temperature":32.81164186439088,"humidity":72.6606041624493}
+</code></pre>
+  </li>
+  <li>
+    <p>Leave the simulated device running while you move on to the next Exercise.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-test-device-connectivity-and-offline-support">Task 2: Test Device Connectivity and Offline Support</h4>
+
+<p>In this task, you will monitor events from the <strong>sensor-th-0084</strong> that are being sent to Azure IoT Hub through the <strong>vm-az220-training-gw0002-{your-id}</strong> IoT Edge Transparent Gateway. You will then interrupt connectivity between the <strong>vm-az220-training-gw0002-{your-id}</strong> and Azure IoT Hub to see that telemetry is still sent from the child IoT Device to the IoT Edge Gateway. After this, you will resume connectivity with Azure IoT Hub and monitor that the IoT Edge Gateway resumes sending telemetry to Azure IoT Hub.</p>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On the Azure portal toolbar, click <strong>Cloud Shell</strong>.</p>
+
+    <p>Ensure that the Environment dropdown is set to <strong>Bash</strong>.</p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to start monitoring the Events being received by the Azure IoT Hub, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="language-cmd/sh"> az iot hub monitor-events --hub-name iot-az220-training-{your-id}
+</code></pre>
+
+    <p>Be sure to replace the <code>{your-id}</code> placeholder with your unique suffix for our Azure IoT Hub instance.</p>
+  </li>
+  <li>
+    <p>Notice that telemetry from the <strong>sensor-th-0084</strong> that is getting sent to Azure IoT Hub.</p>
+
+    <p>Keep in mind that the <strong>sensor-th-0084</strong> simulated device application is configured to send telemetry to the <strong>vm-az220-training-gw0002-{your-id}</strong> IoT Edge Transparent Gateway virtual machine, which is then sending the telemetry on to Azure IoT Hub.</p>
+
+    <p>The Cloud Shell should begin displaying event messages similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="language-text"> Starting event monitor, use ctrl-c to stop...
+ {
+     "event": {
+         "origin": "sensor-th-0072",
+         "module": "",
+         "interface": "",
+         "component": "",
+         "payload": "{\"temperature\":29.995470051651573,\"humidity\":70.47896838303608}"
+     }
+ }
+ {
+     "event": {
+         "origin": "sensor-th-0072",
+         "module": "",
+         "interface": "",
+         "component": "",
+         "payload": "{\"temperature\":28.459910635584922,\"humidity\":60.49697355390386}"
+     }
+ }
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Next, you will need to test the <strong>Offline</strong> capabilities. To do this, you need to make the <strong>vm-az220-training-gw0002-{your-id}</strong> device go offline. Since this is a Virtual Machine running in Azure, this can be simulated by adding an <strong>Outbound rule</strong> to the <strong>Network security group</strong> for the VM.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task3-add-rule-to-block-traffic">Task3: Add rule to block traffic</h4>
+
+<ol>
+  <li>
+    <p>Within the <strong>Azure portal</strong>, navigate to your Dashboard, and then locate the <strong>rg-az220vm</strong> resource group tile.</p>
+  </li>
+  <li>
+    <p>In the list of resources, to open the <strong>Network Security Group</strong> for the <strong>vm-az220-training-gw0002-{your-id}</strong> virtual machine, click <strong>nsg-vm-az220-training-gw0002-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network security group</strong> blade, on the left side navigation pane under <strong>Settings</strong>, click <strong>Outbound security rules</strong>.</p>
+  </li>
+  <li>
+    <p>At the top of the blade, click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add outbound security rule</strong> pane, set the following field values:</p>
+
+    <ul>
+      <li>Destination port ranges: <strong>*</strong></li>
+      <li>Action: <strong>Deny</strong></li>
+      <li>Priority: 100</li>
+      <li>Name: <strong>DenyAll</strong></li>
+    </ul>
+
+    <p>A <strong>Destination port range</strong> of “<strong>*</strong>” will apply the rule to all ports.</p>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>Go back to the <strong>Cloud Shell</strong> in the Azure portal.</p>
+  </li>
+  <li>
+    <p>If the <code>az iot hub monitor-events</code> command is still running, end it by pressing <strong>Ctrl + C</strong>.</p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to connect to the <strong>vm-az220-training-gw0002-{your-id}</strong> VM using <code>ssh</code>, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="language-sh hljs bash"> ssh &lt;username&gt;@&lt;ipaddress&gt;
+</code></pre>
+
+    <p>Be sure to replace the placeholders with the required values for the <code>ssh</code> command:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align: left">Placeholder</th>
+          <th style="text-align: left">Value to replace</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="text-align: left"><code>&lt;username&gt;</code></td>
+          <td style="text-align: left">The admin <strong>Username</strong> for the <strong>IoTEdgeGateaway</strong> virtual machine. This should be <strong>vmadmin</strong>.</td>
+        </tr>
+        <tr>
+          <td style="text-align: left"><code>&lt;ipaddress&gt;</code></td>
+          <td style="text-align: left">The <strong>Public IP Address</strong> for the <strong>vm-az220-training-gw0002-{your-id}</strong> virtual machine.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>When prompted, enter the admin <strong>Password</strong> for the <strong>vm-az220-training-gw0002-{your-id}</strong>.</p>
+
+    <p>The command prompt will be update once you are connected to the <strong>vm-az220-training-gw0002-{your-id}</strong> VM via <code>ssh</code>.</p>
+  </li>
+  <li>
+    <p>To reset the IoT Edge Runtime, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock36" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock36" class="mt-0"><code class="language-sh hljs bash"> sudo iotedge system restart
+</code></pre>
+
+    <p>This will force the IoT Edge Runtime to disconnect from the Azure IoT Hub service, and then attempt to reconnect.</p>
+  </li>
+  <li>
+    <p>To verify that the <em>edgeHub</em> module has restarted correctly, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock37" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock37" class="mt-0"><code class="language-bash hljs"> iotedge list
+</code></pre>
+
+    <p>If the <em>edgeHub</em> module failed to restart successfully, retry by entering the following commands:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock38" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock38" class="mt-0"><code class="language-bash hljs"> iotedge restart edgeHub
+ iotedge list
+</code></pre>
+  </li>
+  <li>
+    <p>To end the <code>ssh</code> session with the <strong>vm-az220-training-gw0002-{your-id}</strong>, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock39" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock39" class="mt-0"><code class="language-cmd/sh"> exit
+</code></pre>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to start monitoring the Events being received by the Azure IoT Hub, enter the following command</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock40" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock40" class="mt-0"><code class="language-cmd/sh"> az iot hub monitor-events --hub-name iot-az220-training-{your-id}
+</code></pre>
+
+    <p>Be sure to replace the <code>{your-id}</code> placeholder with your unique suffix for our Azure IoT Hub instance.</p>
+  </li>
+  <li>
+    <p>Notice there are no longer any events being received by the <strong>Azure IoT Hub</strong>.</p>
+  </li>
+  <li>
+    <p>Switch to the Visual Studio Code window.</p>
+  </li>
+  <li>
+    <p>Open the <strong>Terminal</strong> where the <strong>sensor-th-0084</strong> simulated device application is running, and notice that it’s still sending device telemetry to the <strong>vm-az220-training-gw0002-{your-id}</strong>.</p>
+
+    <p>At this point the <strong>vm-az220-training-gw0002-{your-id}</strong> is disconnected from the Azure IoT Hub. It will continue to authenticate connections by the <strong>sensor-th-0084</strong>, and receive device telemetry from child device(s). During this time, the IoT Edge Gateway will be storing the event telemetry from the child devices on the IoT Edge Gateway device storage as configured.</p>
+  </li>
+  <li>
+    <p>Switch to you <strong>Azure portal</strong> window.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Network security group</strong> blade for the <strong>vm-az220-training-gw0002-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>On the left side navigation menu, under <strong>Settings</strong>, click <strong>Outbound security rules</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Outbound security rules</strong> pane, click <strong>DenyAll</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>DenyAll</strong> pane, to remove this deny rule from the NSG, click <strong>Delete</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Delete security rule</strong> prompt, click <strong>Yes</strong>.</p>
+
+    <p>Once the <strong>vm-az220-training-gw0002-{your-id}</strong> IoT Edge Transparent Gateway is able to resume connectivity with Azure IoT Hub, it will sync the event telemetry from all connected child devices. This includes the saved telemetry that couldn’t be sent while disconnected, and all telemetry still being sent to the gateway.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  The IoT Edge Gateway device may take a couple minutes to reconnect to Azure IoT Hub and resume sending telemetry. After waiting, you will see events showing up in the <code>az iot hub monitor-events</code> command output again.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<p>In this lab we have demonstrated that an Azure IoT Edge Gateway can utilize local storage to retain messages that can’t be sent due to an interruption in the connection to the IoT Hub. Once connection is reestablished, we saw that messages are then sent.</p>
+
+<blockquote>
+  <p><strong>Note</strong>:  Once you have finished with the lab, ensure you exit the device simulation application by pressing <strong>CTRL+C</strong> in the terminal.</p>
+</blockquote>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.js"></script>
+
+
+
+</body></html>

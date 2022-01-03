@@ -1,0 +1,1033 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="detect-analyze-and-recognize-faces">Detect, Analyze, and Recognize Faces</h1>
+
+<p>The ability to detect, analyze, and recognize human faces is a core AI capability. In this exercise, you’ll explore two Azure Cognitive Services that you can use to work with faces in images: the <strong>Computer Vision</strong> service, and the <strong>Face</strong> service.</p>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have not already done so, you must clone the code repository for this course:</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="provision-a-cognitive-services-resource">Provision a Cognitive Services resource</h2>
+
+<p>If you don’t already have one in your subscription, you’ll need to provision a <strong>Cognitive Services</strong> resource.</p>
+
+<ol>
+  <li>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>Select the <strong>＋Create a resource</strong> button, search for <em>cognitive services</em>, and create a <strong>Cognitive Services</strong> resource with the following settings:
+    <ul>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Region</strong>: <em>Choose any available region</em></li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Pricing tier</strong>: Standard S0</li>
+    </ul>
+  </li>
+  <li>Select the required checkboxes and create the resource.</li>
+  <li>Wait for deployment to complete, and then view the deployment details.</li>
+  <li>When the resource has been deployed, go to it and view its <strong>Keys and Endpoint</strong> page. You will need the endpoint and one of the keys from this page in the next procedure.</li>
+</ol>
+
+<h2 id="prepare-to-use-the-computer-vision-sdk">Prepare to use the Computer Vision SDK</h2>
+
+<p>In this exercise, you’ll complete a partially implemented client application that uses the Computer Vision SDK to analyze faces in an image.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: You can choose to use the SDK for either <strong>C#</strong> or <strong>Python</strong>. In the steps below, perform the actions appropriate for your preferred language.</p>
+</blockquote>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>Explorer</strong> pane, browse to the <strong>19-face</strong> folder and expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>
+    <p>Right-click the <strong>computer-vision</strong> folder and open an integrated terminal. Then install the Computer Vision SDK package by running the appropriate command for your language preference:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.ComputerVision</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 6<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-computervision==<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">7</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+  </li>
+  <li>View the contents of the <strong>computer-vision</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+  </li>
+  <li>
+    <p>Open the configuration file and update the configuration values it contains to reflect the <strong>endpoint</strong> and an authentication <strong>key</strong> for your cognitive services resource. Save your changes.</p>
+  </li>
+  <li>
+    <p>Note that the <strong>computer-vision</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: detect-faces.py</li>
+    </ul>
+  </li>
+  <li>
+    <p>Open the code file and at the top, under the existing namespace references, find the comment <strong>Import namespaces</strong>. Then, under this comment, add the following language-specific code to import the namespaces you will need to use the Computer Vision SDK:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.computervision <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> ComputerVisionClient
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.computervision.models <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> VisualFeatureTypes
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> msrest.authentication <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> CognitiveServicesCredentials
+</code></pre>
+  </li>
+</ol>
+
+<h2 id="view-the-image-you-will-analyze">View the image you will analyze</h2>
+
+<p>In this exercise, you will use the Computer Vision service to analyze an image of people.</p>
+
+<ol>
+  <li>In Visual Studio Code, expand the <strong>computer-vision</strong> folder and the <strong>images</strong> folder it contains.</li>
+  <li>Select the <strong>people.jpg</strong> image to view it.</li>
+</ol>
+
+<h2 id="detect-faces-in-an-image">Detect faces in an image</h2>
+
+<p>Now you’re ready to use the SDK to call the Computer Vision service and detect faces in an image.</p>
+
+<ol>
+  <li>
+    <p>In the code file for your client application (<strong>Program.cs</strong> or <strong>detect-faces.py</strong>), in the <strong>Main</strong> function, note that the code to load the configuration settings has been provided. Then find the comment <strong>Authenticate Computer Vision client</strong>. Then, under this comment, add the following language-specific code to create and authenticate a Computer Vision client object:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Authenticate Computer Vision client</span></span>
+ ApiKeyServiceClientCredentials credentials = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ApiKeyServiceClientCredentials(cogSvcKey);
+ cvClient = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ComputerVisionClient(credentials)
+ {
+     Endpoint = cogSvcEndpoint
+ };
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Authenticate Computer Vision client</span></span>
+ credential = CognitiveServicesCredentials(cog_key) 
+ cv_client = ComputerVisionClient(cog_endpoint, credential)
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> function, under the code you just added, note that the code specifies the path to an image file and then passes the image path to a function named <strong>AnalyzeFaces</strong>. This function is not yet fully implemented.</p>
+  </li>
+  <li>
+    <p>In the <strong>AnalyzeFaces</strong> function, under the comment <strong>Specify features to be retrieved (faces)</strong>, add the following code:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Specify features to be retrieved (faces)</span></span>
+ List&lt;VisualFeatureTypes?&gt; features = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;VisualFeatureTypes?&gt;()
+ {
+     VisualFeatureTypes.Faces
+ };
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Specify features to be retrieved (faces)</span></span>
+ features = [VisualFeatureTypes.faces]
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>AnalyzeFaces</strong> function, under the comment <strong>Get image analysis</strong>, add the following code:</p>
+  </li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get image analysis</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{    
+    var analysis = await cvClient.AnalyzeImageInStreamAsync(imageData, features);
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get faces</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (analysis.Faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"{analysis.Faces.Count} faces detected."</span></span>);
+
+        <span class="hljs-comment"><span class="hljs-comment">// Prepare image for drawing</span></span>
+        Image image = Image.FromFile(imageFile);
+        Graphics graphics = Graphics.FromImage(image);
+        Pen pen = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        Font font = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Font(<span class="hljs-string"><span class="hljs-string">"Arial"</span></span>, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        SolidBrush brush = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SolidBrush(Color.LightGreen);
+
+        <span class="hljs-comment"><span class="hljs-comment">// Draw and annotate each face</span></span>
+        foreach (var face in analysis.Faces)
+        {
+            var r = face.FaceRectangle;
+            Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r.Left, r.Top, r.Width, r.Height);
+            graphics.DrawRectangle(pen, rect);
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> annotation = $<span class="hljs-string"><span class="hljs-string">"Person aged approximately {face.Age}"</span></span>;
+            graphics.DrawString(annotation,font,brush,r.Left, r.Top);
+        }
+
+        <span class="hljs-comment"><span class="hljs-comment">// Save annotated image</span></span>
+        String output_file = <span class="hljs-string"><span class="hljs-string">"detected_faces.jpg"</span></span>;
+        image.Save(output_file);
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">" Results saved in "</span></span> + output_file);   
+    }
+}        
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get image analysis</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    analysis = cv_client.analyze_image_in_stream(image_data , features)
+
+    <span class="hljs-comment"><span class="hljs-comment"># Get faces</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> analysis.faces:
+        print(len(analysis.faces), <span class="hljs-string"><span class="hljs-string">'faces detected.'</span></span>)
+
+        <span class="hljs-comment"><span class="hljs-comment"># Prepare image for drawing</span></span>
+        fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+        plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+        image = Image.open(image_file)
+        draw = ImageDraw.Draw(image)
+        color = <span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>
+
+        <span class="hljs-comment"><span class="hljs-comment"># Draw and annotate each face</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> analysis.faces:
+            r = face.face_rectangle
+            bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+            draw = ImageDraw.Draw(image)
+            draw.rectangle(bounding_box, outline=color, width=<span class="hljs-number"><span class="hljs-number">5</span></span>)
+            annotation = <span class="hljs-string"><span class="hljs-string">'Person aged approximately {}'</span></span>.format(face.age)
+            plt.annotate(annotation,(r.left, r.top), backgroundcolor=color)
+
+        <span class="hljs-comment"><span class="hljs-comment"># Save annotated image</span></span>
+        plt.imshow(image)
+        outputfile = <span class="hljs-string"><span class="hljs-string">'detected_faces.jpg'</span></span>
+        fig.savefig(outputfile)
+
+        print(<span class="hljs-string"><span class="hljs-string">'Results saved in'</span></span>, outputfile)
+</code></pre>
+
+<ol>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>computer-vision</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">detect-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>Observe the output, which should indicate the number of faces detected.</li>
+  <li>View the <strong>detected_faces.jpg</strong> file that is generated in the same folder as your code file to see the annotated faces. In this case, your code has used the attributes of the face to estimate the age of each person in the image, and the bounding box coordinates to draw a rectangle around each face.</li>
+</ol>
+
+<h2 id="prepare-to-use-the-face-sdk">Prepare to use the Face SDK</h2>
+
+<p>While the <strong>Computer Vision</strong> service offers basic face detection (along with many other image analysis capabilities), the <strong>Face</strong> service provides more comprehensive functionality for facial analysis and recognition.</p>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>Explorer</strong> pane, browse to the <strong>19-face</strong> folder and expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>
+    <p>Right-click the <strong>face-api</strong> folder and open an integrated terminal. Then install the Face SDK package by running the appropriate command for your language preference:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Face</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 2<span class="hljs-selector-class"><span class="hljs-selector-class">.6</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0-preview</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.1</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-face==<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">4</span></span>.<span class="hljs-number"><span class="hljs-number">1</span></span>
+</code></pre>
+  </li>
+  <li>View the contents of the <strong>face-api</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+  </li>
+  <li>
+    <p>Open the configuration file and update the configuration values it contains to reflect the <strong>endpoint</strong> and an authentication <strong>key</strong> for your cognitive services resource. Save your changes.</p>
+  </li>
+  <li>
+    <p>Note that the <strong>face-api</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: analyze-faces.py</li>
+    </ul>
+  </li>
+  <li>
+    <p>Open the code file and at the top, under the existing namespace references, find the comment <strong>Import namespaces</strong>. Then, under this comment, add the following language-specific code to import the namespaces you will need to use the Computer Vision SDK:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.Face;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.Face.Models;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.face <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> FaceClient
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.face.models <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> FaceAttributeType
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> msrest.authentication <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> CognitiveServicesCredentials
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> function, note that the code to load the configuration settings has been provided. Then find the comment <strong>Authenticate Face client</strong>. Then, under this comment, add the following language-specific code to create and authenticate a <strong>FaceClient</strong> object:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Authenticate Face client</span></span>
+ ApiKeyServiceClientCredentials credentials = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ApiKeyServiceClientCredentials(cogSvcKey);
+ faceClient = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> FaceClient(credentials)
+ {
+     Endpoint = cogSvcEndpoint
+ };
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Authenticate Face client</span></span>
+ credentials = CognitiveServicesCredentials(cog_key)
+ face_client = FaceClient(cog_endpoint, credentials)
+</code></pre>
+  </li>
+  <li>In the <strong>Main</strong> function, under the code you just added, note that the code displays a menu that enables you to call functions in your code to explore the capabilities of the Face service. You will implement these functions in the remainder of this exercise.</li>
+</ol>
+
+<h2 id="detect-and-analyze-faces">Detect and analyze faces</h2>
+
+<p>One of the most fundamental capabilities of the Face service is to detect faces in an image, and determine their attributes, such as age, emotional expressions, hair color, the presence of spectacles, and so on.</p>
+
+<ol>
+  <li>In the code file for your application, in the <strong>Main</strong> function, examine the code that runs if the user selects menu option <strong>1</strong>. This code calls the <strong>DetectFaces</strong> function, passing the path to an image file.</li>
+  <li>
+    <p>Find the <strong>DetectFaces</strong> function in the code file, and under the comment <strong>Specify facial features to be retrieved</strong>, add the following code:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Specify facial features to be retrieved</span></span>
+ List&lt;FaceAttributeType?&gt; features = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;FaceAttributeType?&gt;
+ {
+     FaceAttributeType.Age,
+     FaceAttributeType.Emotion,
+     FaceAttributeType.Glasses
+ };
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Specify facial features to be retrieved</span></span>
+ features = [FaceAttributeType.age,
+             FaceAttributeType.emotion,
+             FaceAttributeType.glasses]
+</code></pre>
+  </li>
+  <li>In the <strong>DetectFaces</strong> function, under the code you just added, find the comment <strong>Get faces</strong> and add the following code:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get faces</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{    
+    var detected_faces = await faceClient.Face.DetectWithStreamAsync(imageData, returnFaceAttributes: features);
+
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (detected_faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"{detected_faces.Count} faces detected."</span></span>);
+
+        <span class="hljs-comment"><span class="hljs-comment">// Prepare image for drawing</span></span>
+        Image image = Image.FromFile(imageFile);
+        Graphics graphics = Graphics.FromImage(image);
+        Pen pen = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        Font font = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Font(<span class="hljs-string"><span class="hljs-string">"Arial"</span></span>, <span class="hljs-number"><span class="hljs-number">4</span></span>);
+        SolidBrush brush = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SolidBrush(Color.Black);
+
+        <span class="hljs-comment"><span class="hljs-comment">// Draw and annotate each face</span></span>
+        foreach (var face in detected_faces)
+        {
+            <span class="hljs-comment"><span class="hljs-comment">// Get face properties</span></span>
+            Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"\nFace ID: {face.FaceId}"</span></span>);
+            Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" - Age: {face.FaceAttributes.Age}"</span></span>);
+            Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" - Emotions:"</span></span>);
+            foreach (var emotion in face.FaceAttributes.Emotion.ToRankedList())
+            {
+                Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"   - {emotion}"</span></span>);
+            }
+
+            Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" - Glasses: {face.FaceAttributes.Glasses}"</span></span>);
+
+            <span class="hljs-comment"><span class="hljs-comment">// Draw and annotate face</span></span>
+            var r = face.FaceRectangle;
+            Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r.Left, r.Top, r.Width, r.Height);
+            graphics.DrawRectangle(pen, rect);
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> annotation = $<span class="hljs-string"><span class="hljs-string">"Face ID: {face.FaceId}"</span></span>;
+            graphics.DrawString(annotation,font,brush,r.Left, r.Top);
+        }
+
+        <span class="hljs-comment"><span class="hljs-comment">// Save annotated image</span></span>
+        String output_file = <span class="hljs-string"><span class="hljs-string">"detected_faces.jpg"</span></span>;
+        image.Save(output_file);
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">" Results saved in "</span></span> + output_file);   
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get faces</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    detected_faces = face_client.face.detect_with_stream(image=image_data,
+                                                            return_face_attributes=features)
+
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(detected_faces) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+        print(len(detected_faces), <span class="hljs-string"><span class="hljs-string">'faces detected.'</span></span>)
+
+        <span class="hljs-comment"><span class="hljs-comment"># Prepare image for drawing</span></span>
+        fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+        plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+        image = Image.open(image_file)
+        draw = ImageDraw.Draw(image)
+        color = <span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>
+
+        <span class="hljs-comment"><span class="hljs-comment"># Draw and annotate each face</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_faces:
+
+            <span class="hljs-comment"><span class="hljs-comment"># Get face properties</span></span>
+            print(<span class="hljs-string"><span class="hljs-string">'\nFace ID: {}'</span></span>.format(face.face_id))
+            detected_attributes = face.face_attributes.as_dict()
+            age = <span class="hljs-string"><span class="hljs-string">'age unknown'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> <span class="hljs-string"><span class="hljs-string">'age'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">not</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_attributes.keys() <span class="hljs-keyword"><span class="hljs-keyword">else</span></span> int(detected_attributes[<span class="hljs-string"><span class="hljs-string">'age'</span></span>])
+            print(<span class="hljs-string"><span class="hljs-string">' - Age: {}'</span></span>.format(age))
+
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> <span class="hljs-string"><span class="hljs-string">'emotion'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_attributes:
+                print(<span class="hljs-string"><span class="hljs-string">' - Emotions:'</span></span>)
+                <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> emotion_name <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_attributes[<span class="hljs-string"><span class="hljs-string">'emotion'</span></span>]:
+                    print(<span class="hljs-string"><span class="hljs-string">'   - {}: {}'</span></span>.format(emotion_name, detected_attributes[<span class="hljs-string"><span class="hljs-string">'emotion'</span></span>][emotion_name]))
+            
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> <span class="hljs-string"><span class="hljs-string">'glasses'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_attributes:
+                print(<span class="hljs-string"><span class="hljs-string">' - Glasses:{}'</span></span>.format(detected_attributes[<span class="hljs-string"><span class="hljs-string">'glasses'</span></span>]))
+
+            <span class="hljs-comment"><span class="hljs-comment"># Draw and annotate face</span></span>
+            r = face.face_rectangle
+            bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+            draw = ImageDraw.Draw(image)
+            draw.rectangle(bounding_box, outline=color, width=<span class="hljs-number"><span class="hljs-number">5</span></span>)
+            annotation = <span class="hljs-string"><span class="hljs-string">'Face ID: {}'</span></span>.format(face.face_id)
+            plt.annotate(annotation,(r.left, r.top), backgroundcolor=color)
+
+        <span class="hljs-comment"><span class="hljs-comment"># Save annotated image</span></span>
+        plt.imshow(image)
+        outputfile = <span class="hljs-string"><span class="hljs-string">'detected_faces.jpg'</span></span>
+        fig.savefig(outputfile)
+
+        print(<span class="hljs-string"><span class="hljs-string">'\nResults saved in'</span></span>, outputfile)
+</code></pre>
+
+<ol>
+  <li>Examine the code you added to the <strong>DetectFaces</strong> function. It analyzes an image file and detects any faces it contains, including attributes for age, emotions, and the presence of spectacles. The details of each face are displayed, including a unique face identifier that is assigned to each face; and the location of the faces is indicated on the image using a bounding box.</li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>face-api</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><em>The C# output may display warnings about asynchronous functions now using the <strong>await</strong> operator. You can ignore these.</em></p>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, enter <strong>1</strong> and observe the output, which should include the ID and attributes of each face detected.</li>
+  <li>View the <strong>detected_faces.jpg</strong> file that is generated in the same folder as your code file to see the annotated faces.</li>
+</ol>
+
+<h2 id="compare-faces">Compare faces</h2>
+
+<p>A common task is to compare faces, and find faces that are similar. In this scenario, you do not need to <em>identify</em> the person in the images, just determine whether multiple images show the <em>same</em> person (or at least someone who looks similar).</p>
+
+<ol>
+  <li>In the code file for your application, in the <strong>Main</strong> function, examine the code that runs if the user selects menu option <strong>2</strong>. This code calls the <strong>CompareFaces</strong> function, passing the path to two image files (<strong>person1.jpg</strong> and <strong>people.jpg</strong>).</li>
+  <li>Find the <strong>CompareFaces</strong> function in the code file, and under the existing code that prints a message to the console, add the following code:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Determine if the face in image 1 is also in image 2</span></span>
+DetectedFace image_i_face;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var image1Data = File.OpenRead(image1))
+{    
+    <span class="hljs-comment"><span class="hljs-comment">// Get the first face in image 1</span></span>
+    var image1_faces = await faceClient.Face.DetectWithStreamAsync(image1Data);
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (image1_faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+    {
+        image_i_face = image1_faces[<span class="hljs-number"><span class="hljs-number">0</span></span>];
+        Image img1 = Image.FromFile(image1);
+        Graphics graphics = Graphics.FromImage(img1);
+        Pen pen = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        var r = image_i_face.FaceRectangle;
+        Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r.Left, r.Top, r.Width, r.Height);
+        graphics.DrawRectangle(pen, rect);
+        String output_file = <span class="hljs-string"><span class="hljs-string">"face_to_match.jpg"</span></span>;
+        img1.Save(output_file);
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">" Results saved in "</span></span> + output_file); 
+
+        <span class="hljs-comment"><span class="hljs-comment">//Get all the faces in image 2</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var image2Data = File.OpenRead(image2))
+        {    
+            var image2Faces = await faceClient.Face.DetectWithStreamAsync(image2Data);
+
+            <span class="hljs-comment"><span class="hljs-comment">// Get faces</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (image2Faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+            {
+
+                var image2FaceIds = image2Faces.Select(f =&gt; f.FaceId).ToList&lt;Guid?&gt;();
+                var similarFaces = await faceClient.Face.FindSimilarAsync((Guid)image_i_face.FaceId,faceIds:image2FaceIds);
+                var similarFaceIds = similarFaces.Select(f =&gt; f.FaceId).ToList&lt;Guid?&gt;();
+
+                <span class="hljs-comment"><span class="hljs-comment">// Prepare image for drawing</span></span>
+                Image img2 = Image.FromFile(image2);
+                Graphics graphics2 = Graphics.FromImage(img2);
+                Pen pen2 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+                Font font2 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Font(<span class="hljs-string"><span class="hljs-string">"Arial"</span></span>, <span class="hljs-number"><span class="hljs-number">4</span></span>);
+                SolidBrush brush2 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SolidBrush(Color.Black);
+
+                <span class="hljs-comment"><span class="hljs-comment">// Draw and annotate each face</span></span>
+                foreach (var face in image2Faces)
+                {
+                    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (similarFaceIds.Contains(face.FaceId))
+                    {
+                        <span class="hljs-comment"><span class="hljs-comment">// Draw and annotate face</span></span>
+                        var r2 = face.FaceRectangle;
+                        Rectangle rect2 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r2.Left, r2.Top, r2.Width, r2.Height);
+                        graphics2.DrawRectangle(pen2, rect2);
+                        <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> annotation = <span class="hljs-string"><span class="hljs-string">"Match!"</span></span>;
+                        graphics2.DrawString(annotation,font2,brush2,r2.Left, r2.Top);
+                    }
+                }
+
+                <span class="hljs-comment"><span class="hljs-comment">// Save annotated image</span></span>
+                String output_file2 = <span class="hljs-string"><span class="hljs-string">"matched_faces.jpg"</span></span>;
+                img2.Save(output_file2);
+                Console.WriteLine(<span class="hljs-string"><span class="hljs-string">" Results saved in "</span></span> + output_file2);   
+            }
+        }
+
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Determine if the face in image 1 is also in image 2</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_1, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    <span class="hljs-comment"><span class="hljs-comment"># Get the first face in image 1</span></span>
+    image_1_faces = face_client.face.detect_with_stream(image=image_data)
+    image_1_face = image_1_faces[<span class="hljs-number"><span class="hljs-number">0</span></span>]
+
+    <span class="hljs-comment"><span class="hljs-comment"># Highlight the face in the image</span></span>
+    fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+    plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+    image = Image.open(image_1)
+    draw = ImageDraw.Draw(image)
+    color = <span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>
+    r = image_1_face.face_rectangle
+    bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle(bounding_box, outline=color, width=<span class="hljs-number"><span class="hljs-number">5</span></span>)
+    plt.imshow(image)
+    outputfile = <span class="hljs-string"><span class="hljs-string">'face_to_match.jpg'</span></span>
+    fig.savefig(outputfile)
+
+<span class="hljs-comment"><span class="hljs-comment"># Get all the faces in image 2</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_2, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    image_2_faces = face_client.face.detect_with_stream(image=image_data)
+    image_2_face_ids = list(map(<span class="hljs-keyword"><span class="hljs-keyword">lambda</span></span> face: face.face_id, image_2_faces))
+
+    <span class="hljs-comment"><span class="hljs-comment"># Find faces in image 2 that are similar to the one in image 1</span></span>
+    similar_faces = face_client.face.find_similar(face_id=image_1_face.face_id, face_ids=image_2_face_ids)
+    similar_face_ids = list(map(<span class="hljs-keyword"><span class="hljs-keyword">lambda</span></span> face: face.face_id, similar_faces))
+
+    <span class="hljs-comment"><span class="hljs-comment"># Prepare image for drawing</span></span>
+    fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+    plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+    image = Image.open(image_2)
+    draw = ImageDraw.Draw(image)
+
+    <span class="hljs-comment"><span class="hljs-comment"># Draw and annotate matching faces</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> image_2_faces:
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> face.face_id <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> similar_face_ids:
+            r = face.face_rectangle
+            bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+            draw = ImageDraw.Draw(image)
+            draw.rectangle(bounding_box, outline=<span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>, width=<span class="hljs-number"><span class="hljs-number">10</span></span>)
+            plt.annotate(<span class="hljs-string"><span class="hljs-string">'Match!'</span></span>,(r.left, r.top + r.height + <span class="hljs-number"><span class="hljs-number">15</span></span>), backgroundcolor=<span class="hljs-string"><span class="hljs-string">'white'</span></span>)
+
+    <span class="hljs-comment"><span class="hljs-comment"># Save annotated image</span></span>
+    plt.imshow(image)
+    outputfile = <span class="hljs-string"><span class="hljs-string">'matched_faces.jpg'</span></span>
+    fig.savefig(outputfile)
+</code></pre>
+
+<ol>
+  <li>Examine the code you added to the <strong>CompareFaces</strong> function. It finds the first face in image 1 and annotates it in a new image file named <strong>face_to_match.jpg</strong>. Then it finds all of the faces in image 2, and uses their face IDs to find the ones that are similar to image 1. The similar ones are annotated and saved in a new image named <strong>matched_faces.jpg</strong>.</li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>face-api</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><em>The C# output may display warnings about asynchronous functions now using the <strong>await</strong> operator. You can ignore these.</em></p>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, enter <strong>2</strong> and observe the output. Then view the <strong>face_to_match.jpg</strong> and  <strong>matched_faces.jpg</strong> files that are generated in the same folder as your code file to see the matched faces.</li>
+  <li>Edit the code in the <strong>Main</strong> function for menu option <strong>2</strong> to compare <strong>person2.jpg</strong> to <strong>people.jpg</strong> and then re-run the program and view the results.</li>
+</ol>
+
+<h2 id="train-a-facial-recognition-model">Train a facial recognition model</h2>
+
+<p>There may be scenarios where you need to maintain a model of specific people whose faces can be recognized by an AI application. For example, to facilitate a biometric security system that uses facial recognition to verify the identity of employees in a secure building.</p>
+
+<ol>
+  <li>In the code file for your application, in the <strong>Main</strong> function, examine the code that runs if the user selects menu option <strong>3</strong>. This code calls the <strong>TrainModel</strong> function, passing the name and ID for a new <strong>PersonGroup</strong> that will be registered in your cognitive services resource, and a list of employee names.</li>
+  <li>In the <strong>face-api/images</strong> folder, observe that there are folders with the same names as the employees. Each folder contains mutliple images of the named employee.</li>
+  <li>Find the <strong>TrainModel</strong> function in the code file, and under the existing code that prints a message to the console, add the following code:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Delete group if it already exists</span></span>
+var groups = await faceClient.PersonGroup.ListAsync();
+foreach(var group in groups)
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (group.PersonGroupId == groupId)
+    {
+        await faceClient.PersonGroup.DeleteAsync(groupId);
+    }
+}
+
+<span class="hljs-comment"><span class="hljs-comment">// Create the group</span></span>
+await faceClient.PersonGroup.CreateAsync(groupId, groupName);
+Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Group created!"</span></span>);
+
+<span class="hljs-comment"><span class="hljs-comment">// Add each person to the group</span></span>
+Console.Write(<span class="hljs-string"><span class="hljs-string">"Adding people to the group..."</span></span>);
+foreach(var personName in imageFolders)
+{
+    <span class="hljs-comment"><span class="hljs-comment">// Add the person</span></span>
+    var person = await faceClient.PersonGroupPerson.CreateAsync(groupId, personName);
+
+    <span class="hljs-comment"><span class="hljs-comment">// Add multiple photo's of the person</span></span>
+    <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>[] images = Directory.GetFiles(<span class="hljs-string"><span class="hljs-string">"images/"</span></span> + personName);
+    foreach(var image in images)
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(image))
+        { 
+            await faceClient.PersonGroupPerson.AddFaceFromStreamAsync(groupId, person.PersonId, imageData);
+        }
+    }
+
+}
+
+    <span class="hljs-comment"><span class="hljs-comment">// Train the model</span></span>
+Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Training model..."</span></span>);
+await faceClient.PersonGroup.TrainAsync(groupId);
+
+<span class="hljs-comment"><span class="hljs-comment">// Get the list of people in the group</span></span>
+Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Facial recognition model trained with the following people:"</span></span>);
+var people = await faceClient.PersonGroupPerson.ListAsync(groupId);
+foreach(var person in people)
+{
+    Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"-{person.Name}"</span></span>);
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Delete group if it already exists</span></span>
+groups = face_client.person_group.list()
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> group <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> groups:
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> group.person_group_id == group_id:
+        face_client.person_group.delete(group_id)
+
+<span class="hljs-comment"><span class="hljs-comment"># Create the group</span></span>
+face_client.person_group.create(group_id, group_name)
+<span class="hljs-keyword"><span class="hljs-keyword">print</span></span> (<span class="hljs-string"><span class="hljs-string">'Group created!'</span></span>)
+
+<span class="hljs-comment"><span class="hljs-comment"># Add each person to the group</span></span>
+print(<span class="hljs-string"><span class="hljs-string">'Adding people to the group...'</span></span>)
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> person_name <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> image_folders:
+    <span class="hljs-comment"><span class="hljs-comment"># Add the person</span></span>
+    person = face_client.person_group_person.create(group_id, person_name)
+
+    <span class="hljs-comment"><span class="hljs-comment"># Add multiple photo's of the person</span></span>
+    folder = os.path.join(<span class="hljs-string"><span class="hljs-string">'images'</span></span>, person_name)
+    person_pics = os.listdir(folder)
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> pic <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> person_pics:
+        img_path = os.path.join(folder, pic)
+        img_stream = open(img_path, <span class="hljs-string"><span class="hljs-string">"rb"</span></span>)
+        face_client.person_group_person.add_face_from_stream(group_id, person.person_id, img_stream)
+
+<span class="hljs-comment"><span class="hljs-comment"># Train the model</span></span>
+print(<span class="hljs-string"><span class="hljs-string">'Training model...'</span></span>)
+face_client.person_group.train(group_id)
+
+<span class="hljs-comment"><span class="hljs-comment"># Get the list of people in the group</span></span>
+print(<span class="hljs-string"><span class="hljs-string">'Facial recognition model trained with the following people:'</span></span>)
+people = face_client.person_group_person.list(group_id)
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> person <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> people:
+    print(<span class="hljs-string"><span class="hljs-string">'-'</span></span>, person.name)
+</code></pre>
+
+<ol>
+  <li>Examine the code you added to the <strong>TrainModel</strong> function. It performs the following tasks:
+    <ul>
+      <li>Gets a list of <strong>PersonGroup</strong>s registered in the service, and deletes the specified one if it exists.</li>
+      <li>Creates a group with the specified ID and name.</li>
+      <li>Adds a person to the group for each name specified, and adds the multiple images of each person.</li>
+      <li>Trains a facial recognition model based on the named people in the group and their face images.</li>
+      <li>Retrieves a list of the named people in the group and displays them.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>face-api</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><em>The C# output may display warnings about asynchronous functions now using the <strong>await</strong> operator. You can ignore these.</em></p>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, enter <strong>3</strong> and observe the output, noting that the <strong>PersonGroup</strong> created includes two people.</li>
+</ol>
+
+<h2 id="recognize-faces">Recognize faces</h2>
+
+<p>Now that you have defined a <strong>PeopleGroup</strong> and trained a facial recognition model, you can use it to recognize named individuals in an image.</p>
+
+<ol>
+  <li>In the code file for your application, in the <strong>Main</strong> function, examine the code that runs if the user selects menu option <strong>4</strong>. This code calls the <strong>RecognizeFaces</strong> function, passing the path to an image file (<strong>people.jpg</strong>) and the ID of the <strong>PeopleGroup</strong> to be used for face identification.</li>
+  <li>Find the <strong>RecognizeFaces</strong> function in the code file, and under the existing code that prints a message to the console, add the following code:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Detect faces in the image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{    
+    var detectedFaces = await faceClient.Face.DetectWithStreamAsync(imageData);
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get faces</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (detectedFaces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+    {
+        
+        <span class="hljs-comment"><span class="hljs-comment">// Get a list of face IDs</span></span>
+        var faceIds = detectedFaces.Select(f =&gt; f.FaceId).ToList&lt;Guid?&gt;();
+
+        <span class="hljs-comment"><span class="hljs-comment">// Identify the faces in the people group</span></span>
+        var recognizedFaces = await faceClient.Face.IdentifyAsync(faceIds, groupId);
+
+        <span class="hljs-comment"><span class="hljs-comment">// Get names for recognized faces</span></span>
+        var faceNames = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Dictionary&lt;Guid?, <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>&gt;();
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (recognizedFaces.Count&gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+        {
+            foreach(var face in recognizedFaces)
+            {
+                var person = await faceClient.PersonGroupPerson.GetAsync(groupId, face.Candidates[<span class="hljs-number"><span class="hljs-number">0</span></span>].PersonId);
+                Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"-{person.Name}"</span></span>);
+                faceNames.Add(face.FaceId, person.Name);
+
+            }
+        }
+
+        
+        <span class="hljs-comment"><span class="hljs-comment">// Annotate faces in image</span></span>
+        Image image = Image.FromFile(imageFile);
+        Graphics graphics = Graphics.FromImage(image);
+        Pen penYes = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        Pen penNo = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.Magenta, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        Font font = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Font(<span class="hljs-string"><span class="hljs-string">"Arial"</span></span>, <span class="hljs-number"><span class="hljs-number">4</span></span>);
+        SolidBrush brush = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SolidBrush(Color.Cyan);
+        foreach (var face in detectedFaces)
+        {
+            var r = face.FaceRectangle;
+            Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r.Left, r.Top, r.Width, r.Height);
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (faceNames.ContainsKey(face.FaceId))
+            {
+                <span class="hljs-comment"><span class="hljs-comment">// If the face is recognized, annotate in green with the name</span></span>
+                graphics.DrawRectangle(penYes, rect);
+                <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> personName = faceNames[face.FaceId];
+                graphics.DrawString(personName,font,brush,r.Left, r.Top);
+            }
+            <span class="hljs-keyword"><span class="hljs-keyword">else</span></span>
+            {
+                <span class="hljs-comment"><span class="hljs-comment">// Otherwise, just annotate the unrecognized face in magenta</span></span>
+                graphics.DrawRectangle(penNo, rect);
+            }
+        }
+
+        <span class="hljs-comment"><span class="hljs-comment">// Save annotated image</span></span>
+        String output_file = <span class="hljs-string"><span class="hljs-string">"recognized_faces.jpg"</span></span>;
+        image.Save(output_file);
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Results saved in "</span></span> + output_file);   
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Detect faces in the image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+
+    <span class="hljs-comment"><span class="hljs-comment"># Get faces</span></span>
+    detected_faces = face_client.face.detect_with_stream(image=image_data)
+
+    <span class="hljs-comment"><span class="hljs-comment"># Get a list of face IDs</span></span>
+    face_ids = list(map(<span class="hljs-keyword"><span class="hljs-keyword">lambda</span></span> face: face.face_id, detected_faces))
+
+    <span class="hljs-comment"><span class="hljs-comment"># Identify the faces in the people group</span></span>
+    recognized_faces = face_client.face.identify(face_ids, group_id)
+
+    <span class="hljs-comment"><span class="hljs-comment"># Get names for recognized faces</span></span>
+    face_names = {}
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(recognized_faces) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+        print(len(recognized_faces), <span class="hljs-string"><span class="hljs-string">'faces recognized.'</span></span>)
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> recognized_faces:
+            person_name = face_client.person_group_person.get(group_id, face.candidates[<span class="hljs-number"><span class="hljs-number">0</span></span>].person_id).name
+            print(<span class="hljs-string"><span class="hljs-string">'-'</span></span>, person_name)
+            face_names[face.face_id] = person_name
+
+    <span class="hljs-comment"><span class="hljs-comment"># Annotate faces in image</span></span>
+    fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+    plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+    image = Image.open(image_file)
+    draw = ImageDraw.Draw(image)
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_faces:
+        r = face.face_rectangle
+        bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+        draw = ImageDraw.Draw(image)
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> face.face_id <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> face_names:
+            <span class="hljs-comment"><span class="hljs-comment"># If the face is recognized, annotate in green with the name</span></span>
+            draw.rectangle(bounding_box, outline=<span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>, width=<span class="hljs-number"><span class="hljs-number">3</span></span>)
+            plt.annotate(face_names[face.face_id],
+                        (r.left, r.top + r.height + <span class="hljs-number"><span class="hljs-number">15</span></span>), backgroundcolor=<span class="hljs-string"><span class="hljs-string">'white'</span></span>)
+        <span class="hljs-keyword"><span class="hljs-keyword">else</span></span>:
+            <span class="hljs-comment"><span class="hljs-comment"># Otherwise, just annotate the unrecognized face in magenta</span></span>
+            draw.rectangle(bounding_box, outline=<span class="hljs-string"><span class="hljs-string">'magenta'</span></span>, width=<span class="hljs-number"><span class="hljs-number">3</span></span>)
+
+    <span class="hljs-comment"><span class="hljs-comment"># Save annotated image</span></span>
+    plt.imshow(image)
+    outputfile = <span class="hljs-string"><span class="hljs-string">'recognized_faces.jpg'</span></span>
+    fig.savefig(outputfile)
+
+    print(<span class="hljs-string"><span class="hljs-string">'\nResults saved in'</span></span>, outputfile)
+</code></pre>
+
+<ol>
+  <li>Examine the code you added to the <strong>RecognizeFaces</strong> function. It finds the faces in the image and creates a list of their IDs. Then it uses the people group to try to identify the faces in the list of face IDs. The recognized faces are annotated wuth the name of the identified person, and the results are saved in <strong>recognized_faces.jpg</strong>.</li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>face-api</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><em>The C# output may display warnings about asynchronous functions now using the <strong>await</strong> operator. You can ignore these.</em></p>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, enter <strong>4</strong> and observe the output. Then view the <strong>recognized_faces.jpg</strong> file that is generated in the same folder as your code file to see the identified people.</li>
+  <li>Edit the code in the <strong>Main</strong> function for menu option <strong>4</strong> to to recognize faces in <strong>people2.jpg</strong> and then re-run the program and view the results. The same people should be recognized.</li>
+</ol>
+
+<h2 id="verify-a-face">Verify a face</h2>
+
+<p>Facial recognition is often used for identity verification. With the Face service, you can verify a face in an image by comparing it to another face, or from a person registered in a <strong>PersonGroup</strong>.</p>
+
+<ol>
+  <li>In the code file for your application, in the <strong>Main</strong> function, examine the code that runs if the user selects menu option <strong>5</strong>. This code calls the <strong>VerifyFace</strong> function, passing the path to an image file (<strong>person1.jpg</strong>), a name, and the ID of the <strong>PeopleGroup</strong> to be used for face identification.</li>
+  <li>Find the <strong>VerifyFace</strong> function in the code file, and under the comment <strong>Get the ID of the person from the people group</strong> (above the code that prints the result) add the following code:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock36" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock36" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get the ID of the person from the people group</span></span>
+var people = await faceClient.PersonGroupPerson.ListAsync(groupId);
+foreach(var person in people)
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (person.Name == personName)
+    {
+        Guid personId = person.PersonId;
+
+        <span class="hljs-comment"><span class="hljs-comment">// Get the first face in the image</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(personImage))
+        {    
+            var faces = await faceClient.Face.DetectWithStreamAsync(imageData);
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+            {
+                Guid faceId = (Guid)faces[<span class="hljs-number"><span class="hljs-number">0</span></span>].FaceId;
+
+                <span class="hljs-comment"><span class="hljs-comment">//We have a face and an ID. Do they match?</span></span>
+                var verification = await faceClient.Face.VerifyFaceToPersonAsync(faceId, personId, groupId);
+                <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (verification.IsIdentical)
+                {
+                    result = <span class="hljs-string"><span class="hljs-string">"Verified"</span></span>;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock37" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock37" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get the ID of the person from the people group</span></span>
+people = face_client.person_group_person.list(group_id)
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> person <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> people:
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> person.name == person_name:
+        person_id = person.person_id
+
+        <span class="hljs-comment"><span class="hljs-comment"># Get the first face in the image</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(person_image, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+            faces = face_client.face.detect_with_stream(image=image_data)
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(faces) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+                face_id = faces[<span class="hljs-number"><span class="hljs-number">0</span></span>].face_id
+
+                <span class="hljs-comment"><span class="hljs-comment"># We have a face and an ID. Do they match?</span></span>
+                verification = face_client.face.verify_face_to_person(face_id, person_id, group_id)
+                <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> verification.is_identical:
+                    result = <span class="hljs-string"><span class="hljs-string">'Verified'</span></span>
+</code></pre>
+
+<ol>
+  <li>Examine the code you added to the <strong>VerifyFace</strong> function. It looks up the ID of the person in the group with the specified name. If the person exists, the code gets the face ID of the first face in the image. Finally, if there is a face in the image, the code verifies it against the ID of the specified person.</li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>face-api</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock38" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock38" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock39" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock39" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, enter <strong>5</strong> and observe the result.</li>
+  <li>Edit the code in the <strong>Main</strong> function for menu option <strong>5</strong> to to experiment with different combinations of names and the images <strong>person1.jpg</strong> and <strong>person2.jpg</strong>.</li>
+</ol>
+
+<h2 id="more-information">More information</h2>
+
+<p>For more information about using the <strong>Computer Vision</strong> service for face detection, see the <a href="https://docs.microsoft.com/azure/cognitive-services/computer-vision/concept-detecting-faces">Computer Vision documentation</a>.</p>
+
+<p>To learn more about the <strong>Face</strong> service, see the <a href="https://docs.microsoft.com/azure/cognitive-services/face/">Face documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

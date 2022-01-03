@@ -1,0 +1,511 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            DP-203-Data-Engineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D928deb11f009d00944c1feae30c16de739b6478a.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                DP-203-Data-Engineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/DP-203-Data-Engineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#azure-stream-analytics">Azure Stream Analytics</a></li><li class="nav-item"><a class="nav-link" href="#azure-event-hubs">Azure Event Hubs</a></li><li class="nav-item"><a class="nav-link active" href="#task-1-configure-event-hubs">Task 1: Configure Event Hubs</a></li><li class="nav-item"><a class="nav-link" href="#task-2-configure-synapse-analytics">Task 2: Configure Synapse Analytics</a></li><li class="nav-item"><a class="nav-link" href="#task-3-configure-stream-analytics">Task 3: Configure Stream Analytics</a></li><li class="nav-item"><a class="nav-link" href="#task-1-run-data-generator">Task 1: Run data generator</a></li><li class="nav-item"><a class="nav-link" href="#task-2-view-aggregate-data-in-synapse-analytics">Task 2: View aggregate data in Synapse Analytics</a></li><li class="nav-item"><a class="nav-link" href="#task-1-stop-the-data-generator">Task 1: Stop the data generator</a></li><li class="nav-item"><a class="nav-link" href="#task-2-stop-the-stream-analytics-job">Task 2: Stop the Stream Analytics job</a></li><li class="nav-item"><a class="nav-link" href="#task-3-pause-the-dedicated-sql-pool">Task 3: Pause the dedicated SQL pool</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-10---real-time-stream-processing-with-stream-analytics">Lab 10 - Real-time stream processing with Stream Analytics</h1>
+
+<p>In this lab, you will learn how to process streaming data with Azure Stream Analytics. You will ingest vehicle telemetry data into Event Hubs, then process that data in real time, using various windowing functions in Azure Stream Analytics. They will output the data to Azure Synapse Analytics. Finally, you will learn how to scale the Stream Analytics job to increase throughput.</p>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ul>
+  <li>Use Stream Analytics to process real-time data from Event Hubs</li>
+  <li>Use Stream Analytics windowing functions to build aggregates and output to Synapse Analytics</li>
+  <li>Scale the Azure Stream Analytics job to increase throughput through partitioning</li>
+  <li>Repartition the stream input to optimize parallelization</li>
+</ul>
+
+<h2 id="technology-overview">Technology overview</h2>
+
+<h3 id="azure-stream-analytics">Azure Stream Analytics</h3>
+
+<p>As more and more data is generated from a variety of connected devices and sensors, transforming this data into actionable insights and predictions in near real-time is now an operational necessity. <a href="https://docs.microsoft.com/azure/stream-analytics/stream-analytics-introduction">Azure Stream Analytics</a> seamlessly integrates with your real-time application architecture to enable powerful, real-time analytics on your data no matter what the volume.</p>
+
+<p>Azure Stream Analytics enables you to develop massively parallel Complex Event Processing (CEP) pipelines with simplicity. It allows you to author powerful, real-time analytics solutions using very simple, declarative <a href="https://docs.microsoft.com/stream-analytics-query/stream-analytics-query-language-reference">SQL like language</a> with embedded support for temporal logic. Extensive array of <a href="https://docs.microsoft.com/azure/stream-analytics/stream-analytics-define-outputs">out-of-the-box connectors</a>, advanced debugging and job monitoring capabilities help keep costs down by significantly lowering the developer skills required. Additionally, Azure Stream Analytics is highly extensible through support for custom code with <a href="https://docs.microsoft.com/azure/stream-analytics/stream-analytics-javascript-user-defined-functions">JavaScript User Defined functions</a> further extending the streaming logic written in SQL.</p>
+
+<p>Getting started in seconds is easy with Azure Stream Analytics as there is no infrastructure to worry about, and no servers, virtual machines, or clusters to manage. You can instantly <a href="https://docs.microsoft.com/azure/stream-analytics/stream-analytics-streaming-unit-consumption">scale-out the processing power</a> from one to hundreds of streaming units for any job. You only pay for the processing used per job.</p>
+
+<p><a href="https://docs.microsoft.com/stream-analytics-query/event-delivery-guarantees-azure-stream-analytics">Guaranteed event delivery</a> and an enterprise grade SLA, provide the three 9’s of availability, making sure that Azure Stream Analytics is suitable for mission critical workloads. Automated checkpoints enable fault tolerant operation with fast restarts with no data loss.</p>
+
+<h3 id="azure-event-hubs">Azure Event Hubs</h3>
+
+<p><a href="https://docs.microsoft.com/azure/event-hubs/event-hubs-about">Azure Event Hubs</a> is a big data pipeline that can ingest millions of events per second. It facilitates the capture, retention, and replay of telemetry and event stream data, using standard protocols such as HTTPS, AMQP, AMQP over websockets, and Kafka. The data can come from many concurrent sources and up to 20 consumer groups can allow applications to read entire event hub independently at their own pace.</p>
+
+<h2 id="scenario-overview">Scenario overview</h2>
+
+<p>Contoso Auto is collecting vehicle telemetry and wants to use Event Hubs to rapidly ingest and store the data in its raw form, then do some processing in near real-time. In the end, they want to create a dashboard that automatically updates with new data as it flows in after being processed. What they would like to see on the dashboard are various visualizations of detected anomalies, like engines overheating, abnormal oil pressure, and aggressive driving, using components such as a map to show anomalies related to cities, as well as various charts and graphs depicting this information in a clear way.</p>
+
+<p>In this experience, you will use Azure Event Hubs to ingest streaming vehicle telemetry data as the entry point to a near real-time analytics pipeline built on Event Hubs, Azure Stream Analytics, and Azure Synapse Analytics. Azure Stream Analytics extracts the vehicle sensor data from Event Hubs, performs aggregations over windows of time, then sends the aggregated data to Azure Synapse Analytics for data analysis. A vehicle telemetry data generator will be used to send vehicle telemetry data to Event Hubs.</p>
+
+<h2 id="lab-setup-and-pre-requisites">Lab setup and pre-requisites</h2>
+
+<p>Before starting this lab, you must complete at least the setup steps in <strong>Lab 4: <em>Explore, transform, and load data into the Data Warehouse using Apache Spark</em></strong>.</p>
+
+<p>This lab uses the dedicated SQL pool you created in the previous lab. You should have paused the SQL pool at the end of the previous lab, so resume it by following these instructions:</p>
+
+<ol>
+  <li>Open Azure Synapse Studio (<a href="https://web.azuresynapse.net/">https://web.azuresynapse.net/</a>).</li>
+  <li>Select the <strong>Manage</strong> hub.</li>
+  <li>
+    <p>Select <strong>SQL pools</strong> in the left-hand menu. If the <strong>SQLPool01</strong> dedicated SQL pool is paused, hover over its name and select <strong>▷</strong>.</p>
+
+    <p><a href="images/resume-dedicated-sql-pool.png" target="_blank"><img src="images/resume-dedicated-sql-pool.png" alt="The resume button is highlighted on the dedicated SQL pool." title="Resume"></a></p>
+  </li>
+  <li>When prompted, select <strong>Resume</strong>. It will take a minute or two to resume the pool.</li>
+  <li>Continue to the next exercise while the dedicated SQL pool resumes.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Important:</strong> Once started, a dedicated SQL pool consumes credits in your Azure subscription until it is paused. If you take a break from this lab, or decide not to complete it; follow the instructions at the end of the lab to pause your SQL pool!</p>
+</blockquote>
+
+<h2 id="exercise-1---configure-services">Exercise 1 - Configure services</h2>
+
+<p>Azure Event Hubs is a Big Data streaming platform and event ingestion service, capable of receiving and processing millions of events per second. We are using it to temporarily store vehicle telemetry data that is processed and ready to be sent to the real-time dashboard. As data flows into Event Hubs, Azure Stream Analytics will query the data, applying aggregates and tagging anomalies, then send it to Azure Synapse Analytics.</p>
+
+<h3 id="task-1-configure-event-hubs">Task 1: Configure Event Hubs</h3>
+
+<p>In this task, you will create and configure a new event hub within the provided Event Hubs namespace. This will be used to capture vehicle telemetry after it has been processed and enriched by the Azure function you will create later on.</p>
+
+<ol>
+  <li>
+    <p>Browse to the <a href="https://portal.azure.com">Azure portal</a>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Resource groups</strong> in the left-hand menu. Then select the <strong>data-engineering-synapse-<em>xxxxxxx</em></strong> resource group.</p>
+  </li>
+  <li>
+    <p>Select the <strong>eventhub<em>xxxxxxx</em></strong> Event Hubs Namespace.</p>
+
+    <p><a href="images/rg-event-hubs.png" target="_blank"><img src="images/rg-event-hubs.png" alt="The Event Hubs Namespace is selected in the resource group." title="resource group"></a></p>
+  </li>
+  <li>
+    <p>In the Event Hubs Namespace blade, select <strong>Event Hubs</strong> in the left-hand menu.</p>
+
+    <p><a href="images/event-hubs-link.png" target="_blank"><img src="images/event-hubs-link.png" alt="The Event Hubs link is selected in the left-hand menu." title="Event Hubs link"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>telemetry</strong> event hub.</p>
+
+    <p><a href="images/event-hubs-select.png" target="_blank"><img src="images/event-hubs-select.png" alt="The newly created telemetry event hub is selected." title="Event hubs"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Shared access policies</strong> in the left-hand menu.</p>
+
+    <p><a href="images/event-hubs-shared-access-policies-link.png" target="_blank"><img src="images/event-hubs-shared-access-policies-link.png" alt="The Shared access policies link is selected in the left-hand menu." title="Shared access policies link"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add</strong> in the top toolbar to create a new shared access policy.</p>
+
+    <p><a href="images/event-hubs-shared-access-policies-add-link.png" target="_blank"><img src="images/event-hubs-shared-access-policies-add-link.png" alt="The Add button is highlighted." title="Add"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Add SAS Policy</strong> blade, configure the following:</p>
+
+    <ul>
+      <li><strong>Name:</strong> <code>Read</code></li>
+      <li><strong>Managed:</strong> Unchecked</li>
+      <li><strong>Send:</strong> Unchecked</li>
+      <li>
+        <p><strong>Listen:</strong> Checked</p>
+
+        <p><a href="images/event-hubs-add-sas-policy-read.png" target="_blank"><img src="images/event-hubs-add-sas-policy-read.png" alt="The Add SAS Policy form is filled out with the previously mentioned settings entered into the appropriate fields." title="Add SAS Policy"></a></p>
+
+        <blockquote>
+          <p>It is a best practice to create separate policies for reading, writing, and managing events. This follows the principle of least privilege to prevent services and applications from performing unauthorized operations.</p>
+        </blockquote>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> on the bottom of the form when you are finished entering the values.</p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add</strong> in the top toolbar to create a second new shared access policy.</p>
+
+    <p><a href="images/event-hubs-shared-access-policies-add-link.png" target="_blank"><img src="images/event-hubs-shared-access-policies-add-link.png" alt="The Add button is highlighted." title="Add"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Add SAS Policy</strong> blade, configure the following:</p>
+
+    <ul>
+      <li><strong>Name:</strong> <code>Write</code></li>
+      <li><strong>Managed:</strong> Unchecked</li>
+      <li><strong>Send:</strong> Checked</li>
+      <li>
+        <p><strong>Listen:</strong> Unchecked</p>
+
+        <p><a href="images/event-hubs-add-sas-policy-write.png" target="_blank"><img src="images/event-hubs-add-sas-policy-write.png" alt="The Add SAS Policy form is filled out with the previously mentioned settings entered into the appropriate fields." title="Add SAS Policy"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> on the bottom of the form when you are finished entering the values.</p>
+  </li>
+  <li>
+    <p>Select your <strong>Write</strong> policy from the list. Copy the <strong>Connection string - primary key</strong> value by selecting the Copy button to the right of the field. Save this value in Notepad or similar text editor for later.</p>
+
+    <p><a href="images/event-hubs-write-policy-key.png" target="_blank"><img src="images/event-hubs-write-policy-key.png" alt="The Write policy is selected and its blade displayed. The Copy button next to the Connection string - primary key field is highlighted." title="SAS Policy: Write"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-2-configure-synapse-analytics">Task 2: Configure Synapse Analytics</h3>
+
+<p>Azure Synapse is an end-to-end analytics platform which combines SQL data warehousing, big data analytics, and data integration into a single integrated environment. It empowers users to gain quick access and insights across all of their data, enabling a whole new level of performance and scale that is simply unmatched in the industry.</p>
+
+<p>In this task, you will create a table in a Synapse dedicated SQL pool to store aggregate vehicle data provided by a Stream Analytics job that processes vehicle telemetry ingested by Event Hubs.</p>
+
+<ol>
+  <li>
+    <p>In the Azure Synapse Studio, select the <strong>Data</strong> hub.</p>
+
+    <p><a href="images/data-hub.png" target="_blank"><img src="images/data-hub.png" alt="The Data hub is highlighted." title="Data hub"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>Workspace</strong> tab, expand the <strong>SQL database group</strong> and right-click <strong>SQLPool01</strong>. Then select <strong>New SQL script</strong>, and select <strong>Empty script</strong>.</p>
+
+    <p><a href="images/synapse-new-script.png" target="_blank"><img src="images/synapse-new-script.png" alt="The New SQL script option is highlighted in the SQLPool01 context menu." title="New SQL script"></a></p>
+  </li>
+  <li>
+    <p>Make sure the script is connected to <strong>SQLPool01</strong>, then replace the script with the following and select <strong>Run</strong> to create a new table:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">TABLE</span></span> dbo.VehicleAverages
+ ( 
+     [AverageEngineTemperature] [<span class="hljs-built_in"><span class="hljs-built_in">float</span></span>] <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span>  <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [AverageSpeed] [<span class="hljs-built_in"><span class="hljs-built_in">float</span></span>] <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span>  <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [<span class="hljs-keyword"><span class="hljs-keyword">Snapshot</span></span>] [datetime] <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span>  <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>
+ )
+ <span class="hljs-keyword"><span class="hljs-keyword">WITH</span></span>
+ (
+     DISTRIBUTION = ROUND_ROBIN,
+     CLUSTERED COLUMNSTORE <span class="hljs-keyword"><span class="hljs-keyword">INDEX</span></span>
+ )
+ <span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+</code></pre>
+
+    <p><a href="images/synapse-new-table-script.png" target="_blank"><img src="images/synapse-new-table-script.png" alt="The script is displayed." title="New table script"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-3-configure-stream-analytics">Task 3: Configure Stream Analytics</h3>
+
+<p>Azure Stream Analytics is an event-processing engine that allows you to examine high volumes of data streaming from devices. Incoming data can be from devices, sensors, web sites, social media feeds, applications, and more. It also supports extracting information from data streams, identifying patterns, and relationships. You can then use these patterns to trigger other actions downstream, such as create alerts, feed information to a reporting tool, or store it for later use.</p>
+
+<p>In this task, you will configure Stream Analytics to use the event hub you created as a source, query and analyze that data.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>data-engineering-synapse-<em>xxxxxxx</em></strong> resource group, select the <strong>as<em>xxxxxxx</em></strong> Stream Analytics job.</p>
+
+    <p><a href="images/rg-stream-analytics.png" target="_blank"><img src="images/rg-stream-analytics.png" alt="The Stream Analytics job is selected in the resource group." title="resource group"></a></p>
+  </li>
+  <li>
+    <p>Within the Stream Analytics job, select <strong>Storage account settings</strong> in the left-hand menu, then select <strong>Add storage account</strong>. Since we will use Synapse Analytics as one of the outputs, we need to first configure the job storage account.</p>
+
+    <p><a href="images/asa-storage-account.png" target="_blank"><img src="images/asa-storage-account.png" alt="The storage account settings link and add storage account button are highlighted." title="Storage account settings"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Storage account settings</strong> form, configure the following:</p>
+
+    <ul>
+      <li><strong>Select storage account from your subscriptions:</strong> Selected.</li>
+      <li><strong>Subscription:</strong> Make sure the subscription you are using for this lab is selected.</li>
+      <li><strong>Storage account:</strong> Select the storage account named <strong>asadatalake<em>xxxxxxx</em></strong>.</li>
+      <li>
+        <p><strong>Authentication mode:</strong> Select “Connection string”.</p>
+
+        <p><a href="images/asa-storage-account-form.png" target="_blank"><img src="images/asa-storage-account-form.png" alt="The form is configured as described." title="Storage account settings"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>, then <strong>Yes</strong> when prompted to save the storage account settings.</p>
+  </li>
+  <li>
+    <p>Within the Stream Analytics job, select <strong>Inputs</strong> within the left-hand menu.</p>
+
+    <p><a href="images/inputs-link.png" target="_blank"><img src="images/inputs-link.png" alt="The Inputs link is selected in the left-hand menu." title="Inputs link"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add stream input</strong> in the top toolbar, then select <strong>Event Hub</strong> to create a new Event Hub input.</p>
+
+    <p><a href="images/stream-analytics-add-input-link.png" target="_blank"><img src="images/stream-analytics-add-input-link.png" alt="The Add stream input button and Event Hub menu item are highlighted." title="Add stream input - Event Hub"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>New Input</strong> blade, configure the following:</p>
+
+    <ul>
+      <li><strong>Name:</strong> <code>eventhub</code></li>
+      <li><strong>Select Event Hub from your subscriptions:</strong> Selected</li>
+      <li><strong>Subscription:</strong> Make sure the subscription you are using for this lab is selected.</li>
+      <li><strong>Event Hub namespace:</strong> Select the <strong>eventhub<em>xxxxxxx</em></strong> Event Hub namespace.</li>
+      <li><strong>Event Hub name:</strong> Select <strong>Use existing</strong>, then select <strong>telemetry</strong>, which you created earlier.</li>
+      <li><strong>Event Hub consumer group:</strong> Select <strong>Use existing</strong>, then select <strong>$Default</strong>.</li>
+      <li><strong>Authentication mode:</strong> Select <strong>Connection string</strong>.</li>
+      <li><strong>Event Hub policy name:</strong> Select <strong>Use existing</strong>, then select <strong>Read</strong>.</li>
+      <li>
+        <p>Leave all other values at their defaults.</p>
+
+        <p><a href="images/stream-analytics-new-input.png" target="_blank"><img src="images/stream-analytics-new-input.png" alt="The New Input form is filled out with the previously mentioned settings entered into the appropriate fields." title="New Input"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong> on the bottom of the form when you are finished entering the values.</p>
+  </li>
+  <li>
+    <p>Within the Stream Analytics job blade, select <strong>Outputs</strong> within the left-hand menu.</p>
+
+    <p><a href="images/outputs-link.png" target="_blank"><img src="images/outputs-link.png" alt="The Outputs link is selected in the left-hand menu." title="Outputs link"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add</strong> in the top toolbar, then select <strong>Azure Synapse Analytics</strong> to create a new Synapse Analytics output.</p>
+
+    <p><a href="images/stream-analytics-add-output-synapse-link.png" target="_blank"><img src="images/stream-analytics-add-output-synapse-link.png" alt="The Azure Synapse Analytics menu item is highlighted." title="Add output - Azure Synapse Analytics"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>New Output</strong> blade, configure the following:</p>
+
+    <ul>
+      <li><strong>Output alias:</strong> <code>synapse</code></li>
+      <li><strong>Select Azure Synapse Analytics from your subscriptions:</strong> Selected.</li>
+      <li><strong>Subscription:</strong> Select the subscription you are using for this lab.</li>
+      <li><strong>Database:</strong> Select <strong>SQLPool01</strong>. Make sure your correct Synapse workspace name appears under <strong>Server name</strong>.</li>
+      <li><strong>Authentication mode:</strong> Select <strong>Connection string</strong>.</li>
+      <li><strong>Username:</strong>: <code>asa.sql.admin</code></li>
+      <li><strong>Password:</strong> Enter the SQL admin password value you entered when deploying the lab environment, or which was provided to you as part of your hosted lab environment. If you are unsure about your SQL admin username, navigate to the Synapse workspace in the Azure resource group. The SQL admin username is shown in the Overview pane.</li>
+      <li><strong>Server name</strong>: asaworkspace<em>xxxxxxx</em></li>
+      <li>
+        <p><strong>Table:</strong> <code>dbo.VehicleAverages</code></p>
+
+        <p><a href="images/synapse-new-output.png" target="_blank"><img src="images/synapse-new-output.png" alt="The New Output form is filled out with the previously mentioned settings entered into the appropriate fields." title="New Output"></a></p>
+
+        <blockquote>
+          <p><strong>Note:</strong> If you are unsure about your SQL admin username, navigate to the Synapse workspace in the Azure resource group. The SQL admin username is shown in the Overview pane.</p>
+        </blockquote>
+
+        <p><a href="images/sql-admin-name.png" target="_blank"><img src="images/sql-admin-name.png" alt="The SQL admin account name is displayed." title="SQL admin name"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong> on the bottom of the form when you are finished entering the values.</p>
+  </li>
+  <li>
+    <p>Within the Stream Analytics job blade, select <strong>Query</strong> within the left-hand menu.</p>
+
+    <p><a href="images/query-link.png" target="_blank"><img src="images/query-link.png" alt="The Query link is selected in the left-hand menu." title="Query link"></a></p>
+  </li>
+  <li>
+    <p>Enter the following query:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-sql hljs">WITH
+VehicleAverages AS (
+    <span class="hljs-keyword"><span class="hljs-keyword">select</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">AVG</span></span>(engineTemperature) averageEngineTemperature,
+        <span class="hljs-keyword"><span class="hljs-keyword">AVG</span></span>(speed) averageSpeed,
+        System.TimeStamp() <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> <span class="hljs-keyword"><span class="hljs-keyword">snapshot</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span>
+        eventhub <span class="hljs-keyword"><span class="hljs-keyword">TIMESTAMP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">timestamp</span></span>]
+    <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span>
+        TumblingWindow(<span class="hljs-keyword"><span class="hljs-keyword">Duration</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">minute</span></span>, <span class="hljs-number"><span class="hljs-number">2</span></span>))
+)
+<span class="hljs-comment"><span class="hljs-comment">-- INSERT INTO SYNAPSE ANALYTICS</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span>
+    *
+<span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span>
+    synapse
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span>
+    VehicleAverages
+</code></pre>
+
+    <p><a href="images/stream-analytics-query.png" target="_blank"><img src="images/stream-analytics-query.png" alt="The query above has been inserted into the Query window." title="Query window"></a></p>
+
+    <p>The query averages the engine temperature and speed over a two second duration. The query aggregates the average engine temperature and speed of all vehicles over the past two minutes, using <strong>TumblingWindow(Duration(minute, 2))</strong>, and outputs these fields to the <strong>synapse</strong> output.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save query</strong> in the top toolbar when you are finished updating the query.</p>
+  </li>
+  <li>
+    <p>Within the Stream Analytics job blade, select <strong>Overview</strong> within the left-hand menu. On top of the Overview blade, select <strong>Start</strong>.</p>
+
+    <p><a href="images/stream-analytics-overview-start-button.png" target="_blank"><img src="images/stream-analytics-overview-start-button.png" alt="The Start button is highlighted on top of the Overview blade." title="Overview"></a></p>
+  </li>
+  <li>
+    <p>In the Start job blade that appears, select <strong>Now</strong> for the job output start time, then select <strong>Start</strong>. This will start the Stream Analytics job so it will be ready to start processing and sending your events to Azure Synapse Analytics.</p>
+
+    <p><a href="images/stream-analytics-start-job.png" target="_blank"><img src="images/stream-analytics-start-job.png" alt="The Now and Start buttons are highlighted within the Start job blade." title="Start job"></a></p>
+  </li>
+</ol>
+
+<h2 id="exercise-2---generate-and-aggregate-data">Exercise 2 - Generate and aggregate data</h2>
+
+<h3 id="task-1-run-data-generator">Task 1: Run data generator</h3>
+
+<p>The data generator console application creates and sends simulated vehicle sensor telemetry for an array of vehicles (denoted by VIN (vehicle identification number)) directly to Event Hubs. For this to happen, you first need to configure it with the Event Hub connection string.</p>
+
+<p>In this task, you will configure and run the data generator. The data generator saves simulated vehicle telemetry data to Event Hubs, prompting your Stream Analytics job to aggregate and analyze the enriched data and send it to Synapse Analytics.</p>
+
+<ol>
+  <li>On your lab VM, use Windows Explorer to view the <strong>c:\dp-203\data-engineering-ilt-deployment\Allfiles</strong> folder.</li>
+  <li>Extract the <strong>TransactionGenerator.zip</strong> archive to a subfolder named <strong>TransactionGenerator</strong>.</li>
+  <li>
+    <p>In the extracted <strong>TransactionGenerator</strong> folder, open the <strong>appsettings.json</strong> file. Paste your <strong>telemetry</strong> Event Hub connection string value next to <strong>EVENT_HUB_CONNECTION_STRING</strong>. Make sure you have quotes (“”) around the value, as shown. <strong>Save</strong> the file.</p>
+
+    <p><a href="images/appsettings.png" target="_blank"><img src="images/appsettings.png" alt="The Event Hub connection string is highlighted within the appsettings.json file." title="appsettings.json"></a></p>
+
+    <blockquote>
+      <p><strong>Note:</strong> Make sure that the connection string ends with <em>EntityPath=telemetry</em> (eg. <em>Endpoint=sb://YOUR_EVENTHUB_NAMESPACE.servicebus.windows.net/;SharedAccessKeyName=Write;SharedAccessKey=REDACTED/S/U=;EntityPath=telemetry</em>). If not, then you did not copy the connection string from the <strong>Write</strong> policy of your event hub.</p>
+    </blockquote>
+
+    <p>SECONDS_TO_LEAD is the amount of time to wait before sending vehicle telemetry data. Default value is 0.</p>
+
+    <p>SECONDS_TO_RUN is the maximum amount of time to allow the generator to run before stopping transmission of data. The default value is 1800. Data will also stop transmitting when you enter Ctrl+C while the generator is running, or if you close the window.</p>
+  </li>
+  <li>
+    <p>In the extracted <strong>TransactionGenerator</strong> folder, run <strong>TransactionGenerator.exe</strong>.</p>
+  </li>
+  <li>
+    <p>If a <strong>Windows protected your PC</strong> dialog is displayed, select <strong>More info</strong>, then <strong>Run anyway</strong>.</p>
+
+    <p><a href="images/microsoft-defender-moreinfo.png" target="_blank"><img src="images/microsoft-defender-moreinfo.png" alt="More info is highlighted." title="Windows protected your PC"></a></p>
+
+    <p><a href="images/microsoft-defender-runanyway.png" target="_blank"><img src="images/microsoft-defender-runanyway.png" alt="The Run anyway button is highlighted." title="Run anyway"></a></p>
+  </li>
+  <li>
+    <p>A new console window will open, and you should see it start to send data after a few seconds. Once you see that it is sending data to Event Hubs, <em>minimize</em> the window and keep it running in the background. Allow this to run for a mimimum of three minutes before moving onto the next step.</p>
+
+    <p><a href="images/transaction-generator.png" target="_blank"><img src="images/transaction-generator.png" alt="Screenshot of the console window." title="Console window"></a></p>
+
+    <p>After every 500 records are requested to be sent, you will see output statistics.</p>
+  </li>
+</ol>
+
+<h3 id="task-2-view-aggregate-data-in-synapse-analytics">Task 2: View aggregate data in Synapse Analytics</h3>
+
+<p>As you recall, when you created the query in Stream Analytics, you aggregated the engine temperature and vehicle speed data over two-minute intervals and saved the data to Synapse Analytics. This capability demonstrates the Stream Analytics query’s ability to write data to multiple outputs at varying intervals. Writing to a Synapse Analytics dedicated SQL pool enables us to retain the historic and current aggregate data as part of the data warehouse without requiring an ETL/ELT process.</p>
+
+<p>In this task, you will view the anomaly data within Synapse Analytics.</p>
+
+<ol>
+  <li>
+    <p>In Synapse Studio, select <strong>Data</strong> in the left-hand menu to navigate to the Data hub.</p>
+
+    <p><a href="images/data-hub.png" target="_blank"><img src="images/data-hub.png" alt="The Data hub is highlighted." title="Data hub"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>Workspace</strong> tab, expand the <strong>SQLPool01</strong> database, expand <strong>Tables</strong>, then right-click on the <strong>dbo.VehicleAverages</strong> table (f you do not see the table listed, refresh the tables list). Select <strong>New SQL script</strong>, then <strong>Select TOP 100 rows</strong>.</p>
+
+    <p><a href="images/select-top-100-rows.png" target="_blank"><img src="images/select-top-100-rows.png" alt="The Select TOP 100 rows menu item is selected." title="Select TOP 100 rows"></a></p>
+  </li>
+  <li>
+    <p>Run the query and view the results. Observe the aggregate data stored in <strong>AverageEngineTemperature</strong> and <strong>AverageSpeed</strong>. The <strong>Snapshot</strong> value changes in two-minute intervals between these records.</p>
+
+    <p><a href="images/synapse-vehicleaverage-table.png" target="_blank"><img src="images/synapse-vehicleaverage-table.png" alt="The VehicleAverages table output is displayed." title="VehicleAverages results"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>Chart</strong> view in the Results output, then set the chart type to <strong>Area</strong>. This visualization shows the average engine temperature correlated with the average speed over time. Feel free to experiment with the chart settings. The longer the data generator runs the more data points are generated. The following visualization is for an example of a  session that ran over 10 mins, and may not represent what you see on the screen.</p>
+  </li>
+</ol>
+
+<p><a href="images/synapse-vehicleaverage-chart.png" target="_blank"><img src="images/synapse-vehicleaverage-chart.png" alt="The chart view is displayed." title="VehicleAverages chart"></a></p>
+
+<h2 id="important-cleanup">Important: Cleanup</h2>
+
+<p>Complete these steps to stop the data generator and free up resources you no longer need.</p>
+
+<h3 id="task-1-stop-the-data-generator">Task 1: Stop the data generator</h3>
+
+<ol>
+  <li>Go back to the console/terminal window in which your data generator is running. Close the window to stop the generator.</li>
+</ol>
+
+<h3 id="task-2-stop-the-stream-analytics-job">Task 2: Stop the Stream Analytics job</h3>
+
+<ol>
+  <li>
+    <p>Navigate to the Stream Analytics job in the Azure portal.</p>
+  </li>
+  <li>
+    <p>In the Overview pane, select <strong>Stop</strong>, then select <strong>Yes</strong> when prompted.</p>
+
+    <p><a href="images/asa-stop.png" target="_blank"><img src="images/asa-stop.png" alt="The stop button is highlighted." title="Stop"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-3-pause-the-dedicated-sql-pool">Task 3: Pause the dedicated SQL pool</h3>
+
+<p>Complete these steps to free up resources you no longer need.</p>
+
+<ol>
+  <li>In Synapse Studio, select the <strong>Manage</strong> hub.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Select <strong>SQL pools</strong> in the left-hand menu. Hover over the <strong>SQLPool01</strong> dedicated SQL pool and select **</td>
+          <td>&nbsp;</td>
+          <td>**.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a href="images/pause-dedicated-sql-pool.png" target="_blank"><img src="images/pause-dedicated-sql-pool.png" alt="The pause button is highlighted on the dedicated SQL pool." title="Pause"></a></p>
+  </li>
+  <li>When prompted, select <strong>Pause</strong>.</li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/DP-203-Data-Engineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/DP-203-Data-Engineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D928deb11f009d00944c1feae30c16de739b6478a.js"></script>
+
+
+
+</body></html>

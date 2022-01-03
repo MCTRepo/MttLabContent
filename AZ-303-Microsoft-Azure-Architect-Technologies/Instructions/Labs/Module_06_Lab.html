@@ -1,0 +1,941 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-303-Microsoft-Azure-Architect-Technologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D479f9cfd893a2bea83ac41ba638fc5e7bd9113e0.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-303-Microsoft-Azure-Architect-Technologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-0-prepare-the-lab-environment">Exercise 0: Prepare the lab environment</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-configure-azure-storage-account-authorization-by-using-shared-access-signature">Exercise 1: Configure Azure Storage account authorization by using shared access signature.</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-configure-azure-storage-blob-service-authorization-by-using-azure-active-directory">Exercise 2: Configure Azure Storage blob service authorization by using Azure Active Directory</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-implement-azure-files">Exercise 3: Implement Azure Files.</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-implementing-and-configuring-azure-storage-file-and-blob-services">Lab: Implementing and Configuring Azure Storage File and Blob Services</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>Adatum Corporation hosts large amounts of unstructured and semi-structured data in its on-premises storage. Its maintenance becomes increasingly complex and costly. Some of the data is preserved for extensive amount of time to address data retention requirements. The Adatum Enterprise Architecture team is looking for inexpensive alternatives that would support tiered storage, while, at the same time allow for secure access that minimizes the possibility of data exfiltration. While the team is aware of practically unlimited capacity offered by Azure Storage, it is concerned about the usage of account keys, which grant unlimited access to the entire content of the corresponding storage accounts. While keys can be rotated in an orderly manner, such operation needs to be carried out with proper planning. In addition, access keys constitute exclusively an authorization mechanism, which limits the ability to properly audit their usage.</p>
+
+<p>To address these shortcomings, the Architecture team decided to explore the use of shared access signatures. A shared access signature (SAS) provides secure delegated access to resources in a storage account while minimizing the possibility of unintended data exposure. SAS offers granular control over data access, including the ability to limit access to an individual storage object, such as a blob, restricting such access to a custom time window, as well as filtering network access to a designated IP address range. In addition, the Architecture team wants to evaluate the level of integration between Azure Storage and Azure Active Directory, hoping to address its audit requirements. The Architecture team also decided to determine suitability of Azure Files as an alternative to some of its on-premises file shares.</p>
+
+<p>To accomplish these objectives, Adatum Corporation will test a range of authentication and authorization mechanisms for Azure Storage resources, including:</p>
+
+<ul>
+  <li>
+    <p>Using shared access signatures on the account, container, and object-level</p>
+  </li>
+  <li>
+    <p>Configuring access level for blobs</p>
+  </li>
+  <li>
+    <p>Implementing Azure Active Directory based authorization</p>
+  </li>
+  <li>
+    <p>Using storage account access keys</p>
+  </li>
+</ul>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ul>
+  <li>
+    <p>Implement authorization of Azure Storage blobs by leveraging shared access signatures</p>
+  </li>
+  <li>
+    <p>Implement authorization of Azure Storage blobs by leveraging Azure Active Directory</p>
+  </li>
+  <li>
+    <p>Implement authorization of Azure Storage file shares by leveraging access keys</p>
+  </li>
+</ul>
+
+<h2 id="lab-environment">Lab Environment</h2>
+
+<p>Windows Server admin credentials</p>
+
+<ul>
+  <li>
+    <p>User Name: <strong>Student</strong></p>
+  </li>
+  <li>
+    <p>Password: <strong>Pa55w.rd1234</strong></p>
+  </li>
+</ul>
+
+<p>Estimated Time: 90 minutes</p>
+
+<h2 id="lab-files">Lab Files</h2>
+
+<ul>
+  <li>
+    <p>\\AZ303\AllFiles\Labs\06\azuredeploy30306suba.json</p>
+  </li>
+  <li>
+    <p>\\AZ303\AllFiles\Labs\06\azuredeploy30306rga.json</p>
+  </li>
+  <li>
+    <p>\\AZ303\AllFiles\Labs\06\azuredeploy30306rga.parameters.json</p>
+  </li>
+</ul>
+
+<h3 id="exercise-0-prepare-the-lab-environment">Exercise 0: Prepare the lab environment</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Deploy an Azure VM by using an Azure Resource Manager template</p>
+  </li>
+  <li>
+    <p>Deploy Azure Bastion</p>
+  </li>
+</ol>
+
+<h4 id="task-1-deploy-an-azure-vm-by-using-an-azure-resource-manager-template">Task 1: Deploy an Azure VM by using an Azure Resource Manager template</h4>
+
+<ol>
+  <li>
+    <p>From your lab computer, start a web browser, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in by providing credentials of a user account with the Owner role in the subscription you will be using in this lab.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, select the <strong>Upload/Download files</strong> icon, in the drop-down menu select <strong>Upload</strong>, and upload the file <strong>\\AZ303\AllFiles\Labs\06\azuredeploy30306suba.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a resource groups (replace the <code>&lt;Azure region&gt;</code> placeholder with the name of the Azure region that is available for deployment of Azure VMs in your subscription and which is closest to the location of your lab computer):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location = '&lt;Azure region&gt;'
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">New-AzSubscriptionDeployment `
+  -Location $location `
+  -Name az30306subaDeployment `
+  -TemplateFile $HOME/azuredeploy30306suba.json `
+  -rgLocation $location `
+  -rgName 'az30306a-labRG'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: To identify Azure regions where you can provision Azure VMs, refer to <a href="https://azure.microsoft.com/en-us/regions/offers/"><strong>https://azure.microsoft.com/en-us/regions/offers/</strong></a></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager template <strong>\\AZ303\AllFiles\Labs\06\azuredeploy30306rga.json</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager parameter file <strong>\\AZ303\AllFilesLabs\06\azuredeploy30306rga.parameters.json</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to deploy a Azure VM running Windows Server 2019 that you will be using in this lab (replace the <code>&lt;vm_Size&gt;</code> placeholder with the size of the Azure VM you intend to use for this deployment, such as <code>Standard_D2s_v3</code>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+  -Name az30306rgaDeployment `
+  -ResourceGroupName 'az30306a-labRG' `
+  -TemplateFile $HOME/azuredeploy30306rga.json `
+  -TemplateParameterFile $HOME/azuredeploy30306rga.parameters.json `
+  -vmSize &lt;vm_Size&gt; `
+  -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Do not wait for the deployment to complete but instead proceed to the next exercise. The deployment should take less than 5 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-deploy-azure-bastion">Task 2: Deploy Azure Bastion</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Azure Bastion allows for connection to the Azure VMs without public endpoints which you deployed in the previous task of this exercise, while providing protection against brute force exploits that target operating system level credentials.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the browser window displaying the Azure portal, open another tab and, in the browser tab, navigate to the Azure portal.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>From the PowerShell session in the Cloud Shell pane, run the following to add a subnet named <strong>AzureBastionSubnet</strong> to the virtual network named <strong>az30306a-vnet</strong> you created earlier in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">$resourceGroupName = 'az30306a-labRG'
+$vnet = Get-AzVirtualNetwork -ResourceGroupName $resourceGroupName -Name 'az30306a-vnet'
+$subnetConfig = Add-AzVirtualNetworkSubnetConfig `
+  -Name 'AzureBastionSubnet' `
+  -AddressPrefix 10.2.3.0/24 `
+  -VirtualNetwork $vnet
+$vnet | Set-AzVirtualNetwork
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Bastions</strong> and, from the <strong>Bastions</strong> blade, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basic</strong> tab of the <strong>Create a Bastion</strong> blade, specify the following settings and select <strong>Review + create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30306a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>az30306a-bastion</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the same Azure region to which you deployed the resources in the previous tasks of this exercise</td>
+        </tr>
+        <tr>
+          <td>Tier</td>
+          <td><strong>Basic</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az30306a-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>AzureBastionSubnet (10.2.3.0/24)</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP address</td>
+          <td><strong>Create new</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP name</td>
+          <td><strong>az30306a-vnet-ip</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab of the <strong>Create a Bastion</strong> blade, select <strong>Create</strong>:</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before you proceed to the next task. The deployment might take about 5 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-1-configure-azure-storage-account-authorization-by-using-shared-access-signature">Exercise 1: Configure Azure Storage account authorization by using shared access signature.</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Create an Azure Storage account</p>
+  </li>
+  <li>
+    <p>Install Storage Explorer</p>
+  </li>
+  <li>
+    <p>Generate an account-level shared access signature</p>
+  </li>
+  <li>
+    <p>Create a blob container by using Azure Storage Explorer</p>
+  </li>
+  <li>
+    <p>Upload a file to a blob container by using AzCopy</p>
+  </li>
+  <li>
+    <p>Access a blob by using a blob-level shared access signature</p>
+  </li>
+</ol>
+
+<h4 id="task-1-create-an-azure-storage-account">Task 1: Create an Azure Storage account</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Storage accounts</strong> and, on the <strong>Storage accounts</strong> blade, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create a storage account</strong> blade, specify the following settings (leave others with their default values) and select <strong>Next: Advanced &gt;</strong>.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of the new resource group <strong>az30306a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Storage account name</td>
+          <td>any globally unique name between 3 and 24 in length consisting of letters and digits</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>the name of an Azure region where you can create an Azure Storage account</td>
+        </tr>
+        <tr>
+          <td>Performance</td>
+          <td><strong>Standard: Recommended for most scenarios (general-purpose v2 account)</strong></td>
+        </tr>
+        <tr>
+          <td>Redundancy</td>
+          <td><strong>Locally redundant storage (LRS)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Advanced</strong> tab of the <strong>Create a storage account</strong> blade, review the available options, accept the defaults and Select <strong>Next: Networking &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Networking</strong> tab of the <strong>Create a storage account</strong> blade, review the available options, accept the default option <strong>Public endpoint (all networks)</strong> and select <strong>Next: Data protection &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Data protection</strong> tab of the <strong>Create storage account</strong> blade, review the available options, accept the defaults, and select <strong>Next: Tags &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Review + Create</strong>, wait for the validation process to complete and select <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the Storage account to be created. This should take about 2 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-install-storage-explorer">Task 2: Install Storage Explorer</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Ensure that the deployment of the Azure VM you initiated at the beginning of this lab has completed before you proceed.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual machines</strong>, and, on the <strong>Virtual machines</strong> blade, in the list of virtual machines, select <strong>az30306a-vm0</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30306a-vm0</strong> blade, select <strong>Connect</strong>, in the drop-down menu, select <strong>Bastion</strong>, on the <strong>Bastion</strong> tab of the <strong>az30306a-vm0 | Connect</strong> blade, select <strong>Use Bastion</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted, provde the following credentials and select <strong>Connect</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>User Name</td>
+          <td><strong>Student</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in the Server Manager window, select <strong>Local Server</strong>, select the <strong>On</strong> link next to the <strong>IE Enhanced Security Configuration</strong> label, and, in the <strong>IE Enhanced Security Configuration</strong> dialog box, select both <strong>Off</strong> options.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, start Internet Explorer, navigate to the download page of <a href="https://www.microsoft.com/en-us/edge/business/download">Microsoft Edge</a>, download Microsoft Edge installer and perform the installation.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in Microsoft Edge, navigate to the download page of <a href="https://azure.microsoft.com/en-us/features/storage-explorer/">Azure Storage Explorer</a></p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, download and install Azure Storage Explorer with the default settings.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-generate-an-account-level-shared-access-signature">Task 3: Generate an account-level shared access signature</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, start Microsoft Edge, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign-in by providing credentials of the user account with the Owner role in the subscription you are using in this lab.</p>
+  </li>
+  <li>
+    <p>Navigate to the blade of the newly created storage account, select <strong>Access keys</strong> and review the settings of the target blade.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Each storage account has two keys which you can independently regenerate. Knowledge of the storage account name and either of the two keys provides full access to the entire storage account.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the storage account blade, select <strong>Shared access signature</strong> and review the settings of the target blade.</p>
+  </li>
+  <li>
+    <p>On the resulting blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Allowed services</td>
+          <td><strong>Blob</strong></td>
+        </tr>
+        <tr>
+          <td>Allowed resource types</td>
+          <td><strong>Service</strong> and <strong>Container</strong></td>
+        </tr>
+        <tr>
+          <td>Allowed permissions</td>
+          <td><strong>Read</strong>, <strong>List</strong> and <strong>Create</strong></td>
+        </tr>
+        <tr>
+          <td>Blob versioning permissions</td>
+          <td>disabled</td>
+        </tr>
+        <tr>
+          <td>Start</td>
+          <td>24 hours before the current time in your current time zone</td>
+        </tr>
+        <tr>
+          <td>End</td>
+          <td>24 hours after the current time in your current time zone</td>
+        </tr>
+        <tr>
+          <td>Allowed protocols</td>
+          <td><strong>HTTPS only</strong></td>
+        </tr>
+        <tr>
+          <td>Signing key</td>
+          <td><strong>key1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Generate SAS and connection string</strong>.</p>
+  </li>
+  <li>
+    <p>Copy the value of <strong>Blob service SAS URL</strong> into Clipboard.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-create-a-blob-container-by-using-azure-storage-explorer">Task 4: Create a blob container by using Azure Storage Explorer</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, start Azure Storage Explorer.</p>
+  </li>
+  <li>
+    <p>In the Azure Storage Explorer window, on the <strong>Select Resource</strong> tab of the <strong>Connect to Azure Storage</strong> window, select <strong>Storage account or service</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure Storage Explorer window, on the <strong>Select Connection Method</strong> tab of the <strong>Connect to Azure Storage</strong> window, select <strong>Shared access signature URL (SAS)</strong> and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure Storage Explorer window, on the <strong>Enter Connection Info</strong> tab of the <strong>Connect to Azure Storage</strong> window, in the <strong>Display name</strong> text box, type <strong>az30306a-blobs</strong>, in the <strong>Service URL</strong> text box, paste the value you copied into Clipboard, and select <strong>Next</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If Ctrl-V paste doesn’t seem to work within the RDP session, try copying the Service URL into a Notepad on the SEA-Dev VM and then copying the value back into the RDP session.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure Storage Explorer window, on the <strong>Summary</strong> tab of the <strong>Connect to Azure Storage</strong> window, select <strong>Connect</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure Storage Explorer window, in the <strong>EXPLORER</strong> pane, navigate to the <strong>az30306a-blobs</strong> entry, expand it and note that you have access to <strong>Blob Container</strong> endpoint only.</p>
+  </li>
+  <li>
+    <p>Right select the <strong>Blob Containers</strong> entry (nested in the <strong>az30306a-blobs</strong> entry), in the right-click menu, select <strong>Create Blob Container</strong>, and use the empty text box to set the container name to <strong>container1</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>container1</strong> to open a new tab in the main window pane of the Storage Explorer window, on the <strong>container1</strong> tab, select <strong>Upload</strong>, and in the drop-down list, select <strong>Upload Files</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Upload Files</strong> window, select the ellipsis button next to the <strong>Selected files</strong> label, in the <strong>Choose files to upload</strong> window, select <strong>C:\Windows\system.ini</strong>, and select <strong>Open</strong>.</p>
+  </li>
+  <li>
+    <p>Back in the <strong>Upload Files</strong> window,  select <strong>Upload</strong> and note the error message displayed in the <strong>Activities</strong> list.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is expected, since the shared access signature does not provide object-level permissions.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave the Azure Storage Explorer window open.</p>
+  </li>
+</ol>
+
+<h4 id="task-5-upload-a-file-to-a-blob-container-by-using-azcopy">Task 5: Upload a file to a blob container by using AzCopy</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in the browser window, on the <strong>Shared access signature</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Allowed services</td>
+          <td><strong>Blob</strong></td>
+        </tr>
+        <tr>
+          <td>Allowed resource types</td>
+          <td><strong>Object</strong></td>
+        </tr>
+        <tr>
+          <td>Allowed permissions</td>
+          <td><strong>Read</strong>, <strong>Create</strong></td>
+        </tr>
+        <tr>
+          <td>Blob versioning permissions</td>
+          <td>disabled</td>
+        </tr>
+        <tr>
+          <td>Start</td>
+          <td>24 hours before the current time in your current time zone</td>
+        </tr>
+        <tr>
+          <td>End</td>
+          <td>24 hours after the current time in your current time zone</td>
+        </tr>
+        <tr>
+          <td>Allowed protocols</td>
+          <td><strong>HTTPS only</strong></td>
+        </tr>
+        <tr>
+          <td>Signing key</td>
+          <td><strong>key1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Generate SAS and connection string</strong>.</p>
+  </li>
+  <li>
+    <p>Copy the value of <strong>SAS token</strong> into Clipboard.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a file and add a line of text into it:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">New-Item -Path './az30306ablob.html'
+
+Set-Content './az30306ablob.html' '&lt;h3&gt;Hello from az30306ablob via SAS&lt;/h3&gt;'
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to upload the newly created file as a blob into container1 of the Azure Storage account you created earlier in this exercise (replace the <code>&lt;sas_token&gt;</code> placeholder with the value of the shared access signature you copied to Clipboard earlier in this task):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">$storageAccountName = (Get-AzStorageAccount -ResourceGroupName 'az30306a-labRG')[0].StorageAccountName
+
+azcopy cp './az30306ablob.html' "https://$storageAccountName.blob.core.windows.net/container1/az30306ablob.html&lt;sas_token&gt;"
+</code></pre>
+  </li>
+  <li>
+    <p>Review the output generated by azcopy and verify that the job completed successfully.</p>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in the browser window, on the storage account blade, in the <strong>Data storage</strong> section, select <strong>Containers</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of containers, select <strong>container1</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>container1</strong> blade, verify that <strong>az30306ablob.html</strong> appears in the list of blobs.</p>
+  </li>
+</ol>
+
+<h4 id="task-6-access-a-blob-by-using-a-blob-level-shared-access-signature">Task 6: Access a blob by using a blob-level shared access signature</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in the browser window, on the <strong>container1</strong> blade, select <strong>Change access level</strong>, verify that is set to <strong>Private (no anonymous access)</strong>, and select <strong>Cancel</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you want to allow anonymous access, you can set the public access level to <strong>Blob (anonymous read access for blobs only)</strong> or <strong>Container (anonymous read access for containers and blobs)</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>container1</strong> blade, select <strong>az30306ablob.html</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30306ablob.html</strong> blade, select <strong>Generate SAS</strong>, review the available options without modifying them, and then select <strong>Generate SAS token and URL</strong>.</p>
+  </li>
+  <li>
+    <p>Copy the value of the <strong>Blob SAS URL</strong> into Clipboard.</p>
+  </li>
+  <li>
+    <p>Open a new tab in the browser window and navigate to the URL you copied into Clipboard in the previous step.</p>
+  </li>
+  <li>
+    <p>Verify that the message <strong>Hello from az30306ablob via SAS</strong> appears in the browser window.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-2-configure-azure-storage-blob-service-authorization-by-using-azure-active-directory">Exercise 2: Configure Azure Storage blob service authorization by using Azure Active Directory</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Create an Azure AD user</p>
+  </li>
+  <li>
+    <p>Enable Azure Active Directory authorization for Azure Storage blob service</p>
+  </li>
+  <li>
+    <p>Upload a file to a blob container by using AzCopy</p>
+  </li>
+</ol>
+
+<h4 id="task-1-create-an-azure-ad-user">Task 1: Create an Azure AD user</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in the browser window, open <strong>PowerShell</strong> session within a <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to explicitly authenticate to your Azure AD tenant:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Connect-AzureAD
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to identify the Azure AD DNS domain name:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">$domainName = ((Get-AzureAdTenantDetail).VerifiedDomains)[0].Name
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a new Azure AD user:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">$passwordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
+$passwordProfile.Password = 'Pa55w.rd1234'
+$passwordProfile.ForceChangePasswordNextLogin = $false
+New-AzureADUser -AccountEnabled $true -DisplayName 'az30306auser1' -PasswordProfile $passwordProfile -MailNickName 'az30306auser1' -UserPrincipalName "az30306auser1@$domainName"
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to identify the user principal name of the newly created Azure AD user:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">(Get-AzureADUser -Filter "MailNickName eq 'az30306auser1'").UserPrincipalName
+</code></pre>
+  </li>
+  <li>
+    <p>Note the user principal name. You will need it later in this exercise.</p>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-enable-azure-active-directory-authorization-for-azure-storage-blob-service">Task 2: Enable Azure Active Directory authorization for Azure Storage blob service</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in the browser window displaying the Azure portal, navigate back to the <strong>container1</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>container1</strong> blade, select <strong>Switch to Azure AD User Account</strong>.</p>
+  </li>
+  <li>
+    <p>Note the error message indicating that you no longer have permissions to list data in the blob container. This is expected.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Despite having the <strong>Owner</strong> role in the subscription, you also need to be assigned either built-in or a custom role that provides access to the blob content of the storage account, such as <strong>Storage Blob Data Owner</strong>, <strong>Storage Blob Data Contributor</strong>, or <strong>Storage Blob Data Reader</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the blade of the storage account hosting <strong>container1</strong>, select <strong>Access control (IAM)</strong>, select <strong>+ Add</strong>, and, in the drop-down list, select <strong>Add role assignment</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Write down the name of the storage account. You will need it in the next task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Add role assignment</strong> blade, in the <strong>Role</strong> drop-down list, select <strong>Storage Blob Data Owner</strong>, ensure that the <strong>Assign access to</strong> drop-down list entry is set to <strong>User, group, or service principal</strong>, select both your user account and the user account you created in the previous task from the list displayed below the <strong>Select</strong> text box, and select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>container1</strong> blade and verify that you can see the content of the container.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-upload-a-file-to-a-blob-container-by-using-azcopy">Task 3: Upload a file to a blob container by using AzCopy</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, start Windows PowerShell.</p>
+  </li>
+  <li>
+    <p>From the Windows PowerShell prompt, run the following to download the <strong>azcopy.zip</strong> archive, extract its content, and switch to the location containing <strong>azcopy.exe</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-powershell">$url = 'https://aka.ms/downloadazcopy-v10-windows'
+$zipFile = '.\azcopy.zip'
+
+Invoke-WebRequest -Uri $Url -OutFile $zipFile
+
+Expand-Archive -Path $zipFile -DestinationPath '.\'
+
+Set-Location -Path 'azcopy*'
+</code></pre>
+  </li>
+  <li>
+    <p>From the Windows PowerShell prompt, run the following to authenticate AzCopy by using the Azure AD user account you created in the first task of this exercise.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-powershell">.\azcopy.exe login
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: You cannot use for this purpose a Microsoft account, which is the reason that Azure AD user account had to be created first.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Follow instructions provided in the message generated by the command you run in the previous step to authenticate as the <strong>az30306auser1</strong> user account. When prompted for credentials, provide the user principal name of the account you noted in the first task of this exercise and its password <strong>Pa55w.rd1234</strong>.</p>
+  </li>
+  <li>
+    <p>Once you successfully authenticated, from the Windows PowerShell prompt, run the following to create a file you will upload to <strong>container1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-powershell">New-Item -Path './az30306bblob.html'
+
+Set-Content './az30306bblob.html' '&lt;h3&gt;Hello from az30306bblob via Azure AD&lt;/h3&gt;'
+</code></pre>
+  </li>
+  <li>
+    <p>From the the Windows PowerShell prompt, run the following to upload the newly created file as a blob into <strong>container1</strong> of the Azure Storage account you created in the previous exercise (replace the <code>&lt;storage_account_name&gt;</code> placeholder with the value of the storage account you noted in the previous task):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-powershell">.\azcopy cp './az30306bblob.html' 'https://&lt;storage_account_name&gt;.blob.core.windows.net/container1/az30306bblob.html'
+</code></pre>
+  </li>
+  <li>
+    <p>Review the output generated by azcopy and verify that the job completed successfully.</p>
+  </li>
+  <li>
+    <p>From the Windows PowerShell prompt and run the following to verify that you do not have access to the uploaded blob outside of the security context provided by the AzCopy utility (replace the <code>&lt;storage_account_name&gt;</code> placeholder with the value of the storage account you noted in the previous task):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-powershell">Invoke-WebRequest -Uri 'https://&lt;storage_account_name&gt;.blob.core.windows.net/container1/az30306bblob.html'
+</code></pre>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in the browser window, navigate back to <strong>container1</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>container1</strong> blade, verify that <strong>az30306bblob.html</strong> appears in the list of blobs.</p>
+  </li>
+  <li>
+    <p>On the <strong>container1</strong> blade, select <strong>Change access level</strong>, set the public access level to <strong>Blob (anonymous read access for blobs only)</strong> and select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Switch back to the Windows PowerShell prompt and re-run the following command to verify that now you can access the uploaded blob anonymously (replace the <code>&lt;storage_account_name&gt;</code> placeholder with the value of the storage account you noted in the previous task):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-powershell">Invoke-WebRequest -Uri 'https://&lt;storage_account_name&gt;.blob.core.windows.net/container1/az30306bblob.html'
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="exercise-3-implement-azure-files">Exercise 3: Implement Azure Files.</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Create an Azure Storage file share</p>
+  </li>
+  <li>
+    <p>Map a drive to an Azure Storage file share from Windows</p>
+  </li>
+  <li>
+    <p>Remove Azure resources deployed in the lab</p>
+  </li>
+</ol>
+
+<h4 id="task-1-create-an-azure-storage-file-share">Task 1: Create an Azure Storage file share</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in the browser window displaying the Azure portal, navigate back to the blade of the storage account you created in the first exercise of this lab and, in the <strong>Data storage</strong> section, select <strong>File shares</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>+ File share</strong> and create a file share with the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>az30306a-share</strong></td>
+        </tr>
+        <tr>
+          <td>Quota</td>
+          <td><strong>1024</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="task-2-map-a-drive-to-an-azure-storage-file-share-from-windows">Task 2: Map a drive to an Azure Storage file share from Windows</h4>
+
+<ol>
+  <li>
+    <p>Select the newly created file share and select <strong>Connect</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Connect</strong> blade, ensure that the <strong>Windows</strong> tab is selected, and select <strong>Copy to clipboard</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Azure Storage file share mapping uses the storage account name and one of two storage account keys as the equivalents of user name and password, respectively in order to gain access to the target share.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, open a PowerShell session and at the PowerShell prompt, paste and execute the script you copied.</p>
+  </li>
+  <li>
+    <p>Verify that the script completed successfully.</p>
+  </li>
+  <li>
+    <p>Start File Explorer, navigate to <strong>Z:</strong> drive and verify that the mapping was successful.</p>
+  </li>
+  <li>
+    <p>In File Explorer, create a folder named <strong>Folder1</strong> and a text file inside the folder named <strong>File1.txt</strong>.</p>
+  </li>
+  <li>
+    <p>Switch back to the browser window displaying the Azure portal, on the <strong>az30306a-share</strong> blade, select <strong>Refresh</strong>, and verify that <strong>Folder1</strong> appears in the list of folders.</p>
+  </li>
+  <li>
+    <p>Select <strong>Folder1</strong> and verify that <strong>File1.txt</strong> appears in the list of files.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-remove-azure-resources-deployed-in-the-lab">Task 3: Remove Azure resources deployed in the lab</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30306a-vm0</strong>, in the browser window displaying the Azure portal, start a PowerShell session within the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to list the resource group you created in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30306*'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the output contains only the resource group you created in this lab. This group will be deleted in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to delete the resource group you created in this lab</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30306*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>Users</strong> blade of the Azure Active Directory tenant associated with your Azure subscription.</p>
+  </li>
+  <li>
+    <p>In the list of user accounts, select the entry representing the <strong>az30306auser1</strong> user account, select the ellipsis icon in the toolbar, select <strong>Delete user</strong> and select <strong>Yes</strong> when prompted to confirm.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D479f9cfd893a2bea83ac41ba638fc5e7bd9113e0.js"></script>
+
+
+
+</body></html>

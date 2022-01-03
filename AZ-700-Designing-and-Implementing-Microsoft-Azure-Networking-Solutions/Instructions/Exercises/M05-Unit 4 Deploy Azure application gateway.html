@@ -1,0 +1,521 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#create-virtual-machines">Create virtual machines</a></li><li class="nav-item"><a class="nav-link" href="#install-iis-for-testing">Install IIS for testing</a></li><li class="nav-item"><a class="nav-link" href="#use-iis-to-test-the-application-gateway">Use IIS to test the application gateway:</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m05-unit-4-deploy-azure-application-gateway">M05-Unit 4 Deploy Azure Application Gateway</h1>
+
+<p>In this exercise, you use the Azure portal to create an application gateway. Then you test it to make sure it works correctly.</p>
+
+<p>The application gateway directs application web traffic to specific resources in a backend pool. You assign listeners to ports, create rules, and add resources to a backend pool. For the sake of simplicity, this article uses a simple setup with a public front-end IP, a basic listener to host a single site on the application gateway, a basic request routing rule, and two virtual machines in the backend pool.</p>
+
+<p>For Azure to communicate between the resources that you create, it needs a virtual network. You can either create a new virtual network or use an existing one. In this example, you’ll create a new virtual network while you create the application gateway. Application Gateway instances are created in separate subnets. You create two subnets in this example: one for the application gateway, and another for the backend servers.</p>
+
+<p>In this exercise, you will:</p>
+
+<ul>
+  <li>Task 1: Create an application gateway</li>
+  <li>Task 2: Add backend targets</li>
+  <li>Task 3: Add backend servers to backend pool</li>
+  <li>Task 4: Test the application gateway</li>
+</ul>
+
+<h2 id="task-1-create-an-application-gateway">Task 1: Create an application gateway</h2>
+
+<ol>
+  <li>
+    <p>Sign in to the <a href="https://portal.azure.com/">Azure portal</a> with your Azure account.</p>
+  </li>
+  <li>
+    <p>On any Azure Portal page, in <strong>Search resources, services and docs (G+/)</strong>, enter application gateway, and then select <strong>Application gateways</strong> from the results.
+ <a href="../media/search-application-gateway.png" target="_blank"><img src="../media/search-application-gateway.png" alt="Azure Portal search for application gateway"></a></p>
+  </li>
+  <li>
+    <p>On the Application gateways page, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the Create application gateway <strong>Basics</strong> tab, enter, or select the following information:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription.</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>Select Create new ContosoResourceGroup</td>
+        </tr>
+        <tr>
+          <td>Application Gateway</td>
+          <td>ContosoAppGateway</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>Select <strong>East US</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual Network</td>
+          <td>Select <strong>Create new</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In Create virtual network, enter, or select the following information:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td>ContosoVNet</td>
+        </tr>
+        <tr>
+          <td><strong>ADDRESS SPACE</strong></td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Address range</td>
+          <td>10.0.0.0/16</td>
+        </tr>
+        <tr>
+          <td><strong>SUBNETS</strong></td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Subnet name</td>
+          <td>Change <strong>default</strong> to <strong>AGSubnet</strong></td>
+        </tr>
+        <tr>
+          <td>Address range</td>
+          <td>10.0.0.0/24</td>
+        </tr>
+        <tr>
+          <td>Subnet name</td>
+          <td>BackendSubnet</td>
+        </tr>
+        <tr>
+          <td>Address range</td>
+          <td>10.0.1.0/24</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>OK</strong> to return to the Create application gateway Basics tab.</p>
+  </li>
+  <li>
+    <p>Accept the default values for the other settings and then select <strong>Next: Frontends</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Frontends</strong> tab, verify <strong>Frontend IP address type</strong> is set to <strong>Public</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Add new</strong> for the <strong>Public IP address</strong> and enter AGPublicIPAddress for the public IP address name, and then select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Next: Backends</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Backends</strong> tab, select <strong>Add a backend pool</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Add a backend pool</strong> window that opens, enter the following values to create an empty backend pool:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td>BackendPool</td>
+        </tr>
+        <tr>
+          <td>Add backend pool without targets</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the <strong>Add a backend pool</strong> window, select <strong>Add</strong> to save the backend pool configuration and return to the <strong>Backends</strong> tab.</p>
+  </li>
+  <li>
+    <p>On the <strong>Backends</strong> tab, select <strong>Next: Configuration</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Configuration</strong> tab, you’ll connect the frontend and backend pool you created using a routing rule.</p>
+  </li>
+  <li>
+    <p>In the <strong>Routing rules</strong> column, select <strong>Add a routing rule</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Rule name</strong> box, enter <strong>RoutingRule</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Listener</strong> tab, enter or select the following information:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Listener name</td>
+          <td>Listener</td>
+        </tr>
+        <tr>
+          <td>Frontend IP</td>
+          <td>Select <strong>Public</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Accept the default values for the other settings on the <strong>Listener</strong> tab.</p>
+
+    <p><a href="../media/routing-rule-listener-tab.png/" target="_blank"><img src="../media/routing-rule-listener-tab.png/" alt="Azure Portal add an Application Gateway routing rule"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>Backend targets</strong> tab to configure the rest of the routing rule.</p>
+  </li>
+  <li>
+    <p>On the <strong>Backend targets</strong> tab, enter or select the following information:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Target type</td>
+          <td>Backend pool</td>
+        </tr>
+        <tr>
+          <td>HTTP Settings</td>
+          <td><strong>Create new</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In <strong>Add a HTTP setting</strong>, enter or select the following information:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>HTTP settings name</td>
+          <td>HTTPSetting</td>
+        </tr>
+        <tr>
+          <td>Backend port</td>
+          <td>80</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Accept the default values for the other settings in the <strong>Add an HTTP setting</strong> window, then select <strong>Add</strong> to return to <strong>Add a routing rule</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Add</strong> to save the routing rule and return to the <strong>Configuration</strong> tab.</p>
+  </li>
+  <li>
+    <p>Select <strong>Next: Tags</strong> and then <strong>Next: Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Review the settings on the <strong>Review + create</strong> tab</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> to create the virtual network, the public IP address, and the application gateway.</p>
+  </li>
+</ol>
+
+<p>It may take several minutes for Azure to create the application gateway. Wait until the deployment finishes successfully before moving on to the next section.</p>
+
+<h2 id="task-2-add-backend-targets">Task 2: Add backend targets</h2>
+
+<p>In this example, you’ll use virtual machines as the target backend. You’ll create two virtual machines as backend servers for the application gateway.</p>
+
+<p>To do this, you’ll:</p>
+
+<ul>
+  <li>
+    <p>Create two new VMs, BackendVM1 and BackendVM2, to be used as backend servers.</p>
+  </li>
+  <li>
+    <p>Install IIS on the virtual machines to verify that the application gateway was created successfully.</p>
+  </li>
+  <li>
+    <p>Add the backend servers to the backend pool.</p>
+  </li>
+</ul>
+
+<h3 id="create-virtual-machines">Create virtual machines</h3>
+
+<ol>
+  <li>
+    <p>On any Azure Portal page, in <strong>Search resources, services and docs (G+/)</strong>, enter virtual machine, and then select <strong>Virtual machines</strong> from the results.</p>
+  </li>
+  <li>
+    <p>On the Virtual machines page, select <strong>+ Create</strong> &gt; <strong>+ Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Create a virtual machine</strong>, enter, or select the following information (If the setting is not listed, use the default value):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Basics</strong> tab</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription.</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>Select ContosoResourceGroup</td>
+        </tr>
+        <tr>
+          <td>Virtual machine name</td>
+          <td>BackendVM1</td>
+        </tr>
+        <tr>
+          <td>Image</td>
+          <td>Select <strong>Windows Server 2022 Datacenter- Gen1</strong></td>
+        </tr>
+        <tr>
+          <td>Username</td>
+          <td>TestUser</td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td>TestPa$$w0rd</td>
+        </tr>
+        <tr>
+          <td>Public inbound ports</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td><strong>Networking</strong></td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td>ContosoVnet</td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td>BackendSubnet (10.0.1.0/24)</td>
+        </tr>
+        <tr>
+          <td><strong>Management</strong></td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Boot diagnostics</td>
+          <td>Disable</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Accept the other defaults and then select <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, review the settings, correct any validation errors, and then select <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<p>Wait for the virtual machine creation to complete before continuing.</p>
+
+<h3 id="install-iis-for-testing">Install IIS for testing</h3>
+
+<p>In this example, you install IIS on the virtual machines to verify Azure created the application gateway successfully.</p>
+
+<ol>
+  <li>
+    <p>Open Azure PowerShell.</p>
+  </li>
+  <li>
+    <p>Select <strong>Cloud Shell</strong> from the top navigation bar of the Azure portal and then select <strong>PowerShell</strong> from the drop-down list.</p>
+
+    <p><a href="../media/application-gateway-extension.png" target="_blank"><img src="../media/application-gateway-extension.png" alt="Azure Portal and Azure PowerShell Install IIS on backends"></a></p>
+  </li>
+  <li>
+    <p>Run the following command to install IIS on the virtual machine. Change the Location parameter if necessary:</p>
+  </li>
+</ol>
+
+<p>```Azure PowerShell
+Set-AzVMExtension `</p>
+
+<p>-ResourceGroupName ContosoResourceGroup `</p>
+
+<p>-ExtensionName IIS `</p>
+
+<p>-VMName BackendVM1 `</p>
+
+<p>-Publisher Microsoft.Compute `</p>
+
+<p>-ExtensionType CustomScriptExtension `</p>
+
+<p>-TypeHandlerVersion 1.4 `</p>
+
+<p>-SettingString ‘{“commandToExecute”:”powershell Add-WindowsFeature Web-Server; powershell Add-Content -Path "C:\inetpub\wwwroot\Default.htm" -Value $($env:computername)”}’ `</p>
+
+<p>-Location EastUS
+```</p>
+
+<ol>
+  <li>Create a second virtual machine and install IIS by using the Create virtual machines and Install IIS for testing steps that you previously completed. Use BackendVM2 for the virtual machine name and for the <strong>VMName</strong> setting of the <strong>Set-AzVMExtension</strong> cmdlet.</li>
+</ol>
+
+<h2 id="task-3-add-backend-servers-to-backend-pool">Task 3: Add backend servers to backend pool</h2>
+
+<ol>
+  <li>
+    <p>On the Azure portal menu, select <strong>All resources</strong> or search for and select All resources. Then select <strong>ContosoAppGateway</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Settings</strong>, select <strong>Backend pools</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>BackendPool</strong>.</p>
+  </li>
+  <li>
+    <p>On the Edit backend pool page, under <strong>Backend targets</strong>, in <strong>Target type</strong>, select <strong>Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Target</strong>, select <strong>BackendVM1.</strong></p>
+  </li>
+  <li>
+    <p>In <strong>Target type</strong>, select <strong>Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Target</strong>, select <strong>BackendVM2.</strong></p>
+
+    <p><a href="../media/edit-backend-pool.png" target="_blank"><img src="../media/edit-backend-pool.png" alt="Azure Portal add target backends to backend pool"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<p>Wait for the deployment to complete before proceeding to the next step.</p>
+
+<h2 id="task-4-test-the-application-gateway">Task 4: Test the application gateway</h2>
+
+<p>Although IIS isn’t required to create the application gateway, you installed it in this exercise to verify if Azure successfully created the application gateway.</p>
+
+<h3 id="use-iis-to-test-the-application-gateway">Use IIS to test the application gateway:</h3>
+
+<ol>
+  <li>
+    <p>Find the public IP address for the application gateway on its <strong>Overview</strong> page.</p>
+
+    <p><a href="../media/app-gw-public-ip.png" target="_blank"><img src="../media/app-gw-public-ip.png" alt="Azure Portal look up Frontend Public IP address "></a></p>
+  </li>
+  <li>
+    <p>Copy the public IP address, and then paste it into the address bar of your browser to browse that IP address.</p>
+  </li>
+  <li>
+    <p>Check the response. A valid response verifies that the application gateway was successfully created and can successfully connect with the backend.</p>
+
+    <p><a href="../media/browse-to-backend.png" target="_blank"><img src="../media/browse-to-backend.png" alt="Broswer - display BackendVM1 or BackendVM2 depending which backend server reponds to request."></a></p>
+  </li>
+  <li>
+    <p>Refresh the browser multiple times and you should see connections to both BackendVM1 and BackendVM2.</p>
+  </li>
+</ol>
+
+<p>Congratulations! You have configured and tested an Azure Application Gateway.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

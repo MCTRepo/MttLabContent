@@ -1,0 +1,488 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#add-a-machine-learned-entity">Add a machine learned entity</a></li><li class="nav-item"><a class="nav-link" href="#add-a-list-entity">Add a list entity</a></li><li class="nav-item"><a class="nav-link" href="#add-a-regex-entity">Add a Regex entity</a></li><li class="nav-item"><a class="nav-link" href="#retrain-the-app">Retrain the app</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="create-a-language-understanding-app">Create a Language Understanding App</h1>
+
+<p>The Language Understanding service enables you to define an app that encapsulates a language model that applications can use to interpret natural language input from users,  predict the users <em>intent</em> (what they want to achieve), and identify any <em>entities</em> to which the intent should be applied.</p>
+
+<p>For example, a language understanding app for a clock application might be expected to process input such as:</p>
+
+<p><em>What is the time in London?</em></p>
+
+<p>This kind of input is an example of an <em>utterance</em> (something a user might say or type), for which the desired <em>intent</em> is to get the time in a specific location (an <em>entity</em>); in this case, London.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: The task of the language understanding app is to predict the user’s intent, and identify any entities to which the intent applies. It is <u>not</u> its job to actually perform the actions required to satisfy the intent. For example, the clock application can use a language app to discern that the user wants to know the time in London; but the client application itself must then implement the logic to determine the correct time and present it to the user.</p>
+</blockquote>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have not already cloned <strong>AI-102-AIEngineer</strong> code repository to the environment where you’re working on this lab, follow these steps to do so. Otherwise, open the cloned folder in Visual Studio Code.</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="create-language-understanding-resources">Create Language Understanding resources</h2>
+
+<p>To use the Language Understanding service, you need two kinds of resource:</p>
+
+<ul>
+  <li>An <em>authoring</em> resource: used to define, train, and test the language understanding app. This must be a <strong>Language Understanding - Authoring</strong> resource in your Azure subscription.</li>
+  <li>
+    <p>A <em>prediction</em> resource: used to publish your language understanding app and handle requests from client applications that use it. This can be either a <strong>Language Understanding</strong> or <strong>Cognitive Services</strong> resource in your Azure subscription.</p>
+
+    <blockquote>
+      <p><strong>Important</strong>: Authoring resources must be created in one of three <em>regions</em> (Europe, Australia, or US). Language Understanding apps created in European or Australian authoring resources can only be deployed to prediction resources in Europe or Australia respectively; models created in US authoring resources can be deployed to prediction resources in any Azure location other than Europe and Australia. See the <a href="https://docs.microsoft.com/azure/cognitive-services/luis/luis-reference-regions">authoring and publishing regions documentation</a> for details about matching authoring and prediction locations.</p>
+    </blockquote>
+  </li>
+</ul>
+
+<p>If you don’t already have Language Understanding authoring and prediction resources:</p>
+
+<ol>
+  <li>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>
+    <p>Select the <strong>＋Create a resource</strong> button, search for <em>language understanding</em>, and create a <strong>Language Understanding</strong> resource with the following settings.</p>
+
+    <p><em>Ensure you select <strong>Language Understanding</strong>, <u>not</u> Language Understanding (Azure Cognitive Services)</em></p>
+
+    <ul>
+      <li><strong>Create option</strong>: Both</li>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Authoring location</strong>: <em>Select your preferred location</em></li>
+      <li><strong>Authoring pricing tier</strong>: F0</li>
+      <li><strong>Prediction location</strong>: <em>The same as your authoring location</em></li>
+      <li><strong>Prediction pricing tier</strong>: F0</li>
+    </ul>
+  </li>
+  <li>Wait for the resources to be created, and note that two Language Understanding resources are provisioned; one for authoring, and another for prediction. You can view both of these by navigating to the resource group where you created them. If you select <strong>Go to resource</strong>, it will open the <em>authoring</em> resource.</li>
+</ol>
+
+<h2 id="create-a-language-understanding-app-1">Create a Language Understanding app</h2>
+
+<p>Now that you have created an authoring resource, you can use it to create a Language Understanding app.</p>
+
+<ol>
+  <li>In a new browser tab, open the Language Understanding portal at <code>https://www.luis.ai</code>.</li>
+  <li>
+    <p>Sign in using the Microsoft account associated with your Azure subscription. If this is the first time you have signed into the Language Understanding portal, you may need to grant the app some permissions to access your account details. Then complete the <em>Welcome</em> steps by selecting your Azure subscription and the authoring resource you just created.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If your account is associated with multiple subscriptions in different directories, you may need to switch to the directory containing the subscription where you provisioned your Language Understanding resources.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Conversation Apps</strong> page, ensure your subscription and Language Understanding authoring resource are selected. Then create a new app for conversation with the following settings:
+    <ul>
+      <li><strong>Name</strong>: Clock</li>
+      <li><strong>Culture</strong>: English (<em>if this option is not available, leave it blank</em>)</li>
+      <li><strong>Description</strong>: Natural language clock</li>
+      <li><strong>Prediction resource</strong>: <em>Your Language Understanding prediction resource</em></li>
+    </ul>
+
+    <p>If your <strong>Clock</strong> app isn’t opened automatically, open it.</p>
+
+    <p>If a panel with tips for creating an effective Language Understanding app is displayed, close it.</p>
+  </li>
+</ol>
+
+<h2 id="create-intents">Create intents</h2>
+
+<p>The first thing we’ll do in the new app is to define some intents.</p>
+
+<ol>
+  <li>On the <strong>Intents</strong> page, select <strong>＋ Create</strong> to create a new intent named <strong>GetTime</strong>.</li>
+  <li>
+    <p>In the <strong>GetTime</strong> intent, add the following utterances as example user input:</p>
+
+    <p><em>what is the time?</em></p>
+
+    <p><em>what time is it?</em></p>
+  </li>
+  <li>
+    <p>After you’ve added these utterances, go back to the <strong>Intents</strong> page and add another new intent named <strong>GetDay</strong> with the following utterances:</p>
+
+    <p><em>what is the day today?</em></p>
+
+    <p><em>what day is it?</em></p>
+  </li>
+  <li>
+    <p>After you’ve added these utterances, go back to the <strong>Intents</strong> page and add another new intent named <strong>GetDate</strong> with the following utterances:</p>
+
+    <p><em>what is the date today?</em></p>
+
+    <p><em>what date is it?</em></p>
+  </li>
+  <li>After you’ve added these utterances, go back to the <strong>Intents</strong> page and select the <strong>None</strong> intent. This is provided as a fallback for input that doesn’t map to any of the intents you have defined in your language model.</li>
+  <li>
+    <p>Add the following utterances to the <strong>None</strong> intent:</p>
+
+    <p><em>hello</em></p>
+
+    <p><em>goodbye</em></p>
+  </li>
+</ol>
+
+<h2 id="train-and-test-the-app">Train and test the app</h2>
+
+<p>Now that you’ve added some intents, let’s train the app and see if it can correctly predict them from user input.</p>
+
+<ol>
+  <li>At the top right of the portal, select <strong>Train</strong> to train the app.</li>
+  <li>
+    <p>When the app is trained, select <strong>Test</strong> to display the Test panel, and then enter the following test utterance:</p>
+
+    <p><em>what’s the time now?</em></p>
+
+    <p>Review the result that is returned, noting that it includes the predicted intent (which should be <strong>GetTime</strong>) and a confidence score that indicates the probability the model calculated for the predicted intent.</p>
+  </li>
+  <li>
+    <p>Try the following test utterance:</p>
+
+    <p><em>tell me the time</em></p>
+
+    <p>Again, review the predicted intent and confidence score.</p>
+  </li>
+  <li>
+    <p>Try the following test utterance:</p>
+
+    <p><em>what’s today?</em></p>
+
+    <p>Hopefully the model predicts the <strong>GetDay</strong> intent.</p>
+  </li>
+  <li>
+    <p>Finally, try this test utterance:</p>
+
+    <p><em>hi</em></p>
+
+    <p>This should return the <strong>None</strong> intent.</p>
+  </li>
+  <li>Close the Test panel.</li>
+</ol>
+
+<h2 id="add-entities">Add entities</h2>
+
+<p>So far you’ve defined some simple utterances that map to intents. Most real applications include more complex utterances from which specific data entities must be extracted to get more context for the intent.</p>
+
+<h3 id="add-a-machine-learned-entity">Add a <em>machine learned</em> entity</h3>
+
+<p>The most common kind of entity is a <em>machine learned</em> entity, in which the app learns to identify entity values based on examples.</p>
+
+<ol>
+  <li>On the <strong>Entities</strong> page, select <strong>＋ Create</strong> to create a new entity.</li>
+  <li>In the <strong>Create an entity</strong> dialog box, create a <strong>Machine learned</strong> entity named <strong>Location</strong>.</li>
+  <li>After the <strong>Location</strong> entity has been created, return to the <strong>Intents</strong> page and select the <strong>GetTime</strong> intent.</li>
+  <li>
+    <p>Enter the following new example utterance:</p>
+
+    <p><em>what time is it in London?</em></p>
+  </li>
+  <li>When the utterance has been added, select the word <strong><em>london</em></strong>, and in the drop-down list that appears, select <strong>Location</strong> to indicate that “london” is an example of a location.</li>
+  <li>
+    <p>Add another example utterance:</p>
+
+    <p><em>what is the current time in New York?</em></p>
+  </li>
+  <li>When the utterance has been added, select the words <strong><em>new york</em></strong>, and map them to the <strong>Location</strong> entity.</li>
+</ol>
+
+<h3 id="add-a-list-entity">Add a <em>list</em> entity</h3>
+
+<p>In some cases, valid values for an entity can be restricted to a list of specific terms and synonyms; which can help the app identify instances of the entity in utterances.</p>
+
+<ol>
+  <li>On the <strong>Entities</strong> page, select <strong>＋ Create</strong> to create a new entity.</li>
+  <li>In the <strong>Create an entity</strong> dialog box, create a <strong>List</strong> entity named <strong>Weekday</strong>.</li>
+  <li>
+    <p>Add the following <strong>Normalized values</strong> and <strong>synonyms</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Normalized values</th>
+          <th>synonyms</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>sunday</td>
+          <td>sun</td>
+        </tr>
+        <tr>
+          <td>monday</td>
+          <td>mon</td>
+        </tr>
+        <tr>
+          <td>tuesday</td>
+          <td>tue</td>
+        </tr>
+        <tr>
+          <td>wednesday</td>
+          <td>wed</td>
+        </tr>
+        <tr>
+          <td>thursday</td>
+          <td>thu</td>
+        </tr>
+        <tr>
+          <td>friday</td>
+          <td>fri</td>
+        </tr>
+        <tr>
+          <td>saturday</td>
+          <td>sat</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>After the <strong>Weekday</strong> entity has been created, return to the <strong>Intents</strong> page and select the <strong>GetDate</strong> intent.</li>
+  <li>
+    <p>Enter the following new example utterance:</p>
+
+    <p><em>what date was it on Saturday?</em></p>
+  </li>
+  <li>When the utterance has been added, verify that <strong>saturday</strong> has been automatically mapped to the <strong>Weekday</strong> entity. If not, select the word <strong><em>saturday</em></strong>, and in the drop-down list that appears, select <strong>Weekday</strong>.</li>
+  <li>
+    <p>Add another example utterance:</p>
+
+    <p><em>what date will it be on Friday?</em></p>
+  </li>
+  <li>When the utterance has been added, ensure <strong>friday</strong> is mapped to the <strong>Weekday</strong> entity.</li>
+</ol>
+
+<h3 id="add-a-regex-entity">Add a <em>Regex</em> entity</h3>
+
+<p>Sometimes, entities have a specific format, such as a serial number, form code, or date. You can define a regular expression (<em>regex</em>) that describes an expected format to help your app identify matching entity values.</p>
+
+<ol>
+  <li>On the <strong>Entities</strong> page, select <strong>＋ Create</strong> to create a new entity.</li>
+  <li>
+    <p>In the <strong>Create an entity</strong> dialog box, create a <strong>Regex</strong> entity named <strong>Date</strong> with the following regex:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs coffeescript"> [<span class="hljs-number"><span class="hljs-number">0</span></span><span class="hljs-number"><span class="hljs-number">-9</span></span>]{<span class="hljs-number"><span class="hljs-number">2</span></span>}<span class="hljs-regexp"><span class="hljs-regexp">/[0-9]{2}/</span></span>[<span class="hljs-number"><span class="hljs-number">0</span></span><span class="hljs-number"><span class="hljs-number">-9</span></span>]{<span class="hljs-number"><span class="hljs-number">4</span></span>}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is a simple regex that checks for two digits followed by a “/”, another two digits, another “/”, and four digits - for example <em>01/11/2020</em>. It allows for invalid dates, such as <em>56/00/9999</em>; but it’s important to remember that the entity regex is used to identify data entry that is <em>intended</em> as a date - not to validate date values.</p>
+    </blockquote>
+  </li>
+  <li>After the <strong>Date</strong> entity has been created, return to the <strong>Intents</strong> page and select the <strong>GetDay</strong> intent.</li>
+  <li>
+    <p>Enter the following new example utterance:</p>
+
+    <p><em>what day was 01/01/1901?</em></p>
+  </li>
+  <li>When the utterance has been added, verify that <strong>01/01/1901</strong> has been automatically mapped to the <strong>Date</strong> entity. If not, select <strong><em>01/01/1901</em></strong>, and in the drop-down list that appears, select <strong>Date</strong>.</li>
+  <li>
+    <p>Add another example utterance:</p>
+
+    <p><em>what day will it be on 12/12/2099?</em></p>
+  </li>
+  <li>When the utterance has been added, ensure <strong>12/12/2099</strong> is mapped to the <strong>Date</strong> entity.</li>
+</ol>
+
+<h3 id="retrain-the-app">Retrain the app</h3>
+
+<p>Now that you’ve modified ths language model, you need to retrain and retest the app.</p>
+
+<ol>
+  <li>At the top right of the portal, select <strong>Train</strong> to retrain the app.</li>
+  <li>
+    <p>When the app is trained, select <strong>Test</strong> to display the Test panel, and then enter the following test utterance:</p>
+
+    <p><em>what’s the time in Edinburgh?</em></p>
+  </li>
+  <li>Review the result that is returned, which should hopefully predict the <strong>GetTime</strong> intent. Then select <strong>Inspect</strong> and in the additional inspection panel that is displayed, examine the <strong>ML entities</strong> section. The model should have predicted that “edinburgh” is an instance of a <strong>Location</strong> entity.</li>
+  <li>
+    <p>Try testing the following utterances:</p>
+
+    <p><em>what date is it on Friday?</em></p>
+
+    <p><em>what’s the date on Thu?</em></p>
+
+    <p><em>what was the day on 01/01/2020?</em></p>
+  </li>
+  <li>When you have finished testing, close the inspection panel, but leave the test panel open.</li>
+</ol>
+
+<h2 id="perform-batch-testing">Perform batch testing</h2>
+
+<p>You can use the test pane to test individual utterances interactively, but for more complex language models it is generally more efficient to perform <em>batch testing</em>.</p>
+
+<ol>
+  <li>In Visual Studio Code, open the <strong>batch-test.json</strong> file in the <strong>09-luis-app</strong> folder. This file consists of a JSON document that contains multiple test cases for the clock language model you created.</li>
+  <li>In the Language Understanding portal, in the Test panel, select <strong>Batch testing panel</strong>. Then select <strong>＋ Import</strong> and import the <strong>batch-test.json</strong> file, assigning the name <strong>clock-test</strong>.</li>
+  <li>In the Batch testing panel, run the <strong>clock-test</strong> test.</li>
+  <li>When the test has completed, select <strong>See results</strong>.</li>
+  <li>
+    <p>On the results page, view the confusion matrix that represents the prediction results. It shows true positive, false positive, true negative, and false negative predictions for the intent or entity that is selected in the list on the right.</p>
+
+    <p><a href="images/luis-confusion-matrix.jpg" target="_blank"><img src="images/luis-confusion-matrix.jpg" alt="A confusion matrix for a language understanding batch test"></a></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Each utterance is scored as <em>positive</em> or <em>negative</em> for each intent - so for example “what time is it?” should be scored as <em>positive</em> for the <strong>GetTime</strong> intent, and <em>negative</em> for the <strong>GetDate</strong> intent. The points on the confusion matrix show which utterances were predicted correctly (<em>true</em>) and incorrectly (<em>false</em>) as <em>positive</em> and <em>negative</em> for the selected intent.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>With the <strong>GetDate</strong> intent selected, select any of the points on the confusion matrix to see the details of the prediction - including the utterance and the confidence score for the prediction. Then select the <strong>GetDay</strong>, <strong>GetTime</strong> and <strong>None</strong> intents and view their prediction results. The app should have done well at predicting the intents correctly.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The user interface may not clear previously selected points.</p>
+    </blockquote>
+  </li>
+  <li>Select the <strong>Location</strong> entity and view the prediction results in the confusion matrix. In particular, note the predictions that were <em>false negatives</em> - these were cases where the app failed to detect the specified location in the utterance, indicating that you may need to add more sample utterances to the intents and retrain the model.</li>
+  <li>Close the Batch testing panel.</li>
+</ol>
+
+<h2 id="publish-the-app">Publish the app</h2>
+
+<p>In a real project, you’d iteratively refine intents and entities, retrain, and retest until you are satisfied with the predictive performance. Then, you can publish the app for client applications to use.</p>
+
+<ol>
+  <li>At the top right of the Language Understanding portal, select <strong>Publish</strong>.</li>
+  <li>Select <strong>Production slot</strong>, and publish the app.</li>
+  <li>After publishing is complete, at the top of the Language Understanding portal, select <strong>Manage</strong>.</li>
+  <li>On the <strong>Settings</strong> page, note the <strong>App ID</strong>. Client applications need this to use your app.</li>
+  <li>On the <strong>Azure Resources</strong> page, note the <strong>Primary Key</strong>, <strong>Secondary Key</strong>, and <strong>Endpoint URL</strong> for the prediction resource through which the app can be consumed. Client applications need the endpoint and one of the keys to connect to the prediction resource and be authenticated.</li>
+  <li>In Visual Studio Code, in the <strong>09-luis-app</strong> folder, select the <strong>GetIntent.cmd</strong> batch file and view the code it contains. This command-line script uses cURL to call the Language Understanding REST API for the specified application and prediction endpoint.</li>
+  <li>Replace the placeholder values in the script with the <strong>App ID</strong>, <strong>Endpoint URL</strong>, and either the <strong>Primary Key</strong> or <strong>Secondary Key</strong> for your Language Understanding app; and then save the updated file.</li>
+  <li>
+    <p>Right-click the <strong>09-luis-app</strong> folder and open an integrated terminal. Then enter the following command (be sure to include the quotation marks!):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"What's the time?"</span></span>
+</code></pre>
+  </li>
+  <li>Review the JSON response returned by your app, which should indicate the top scoring intent predicted for your input (which should be <strong>GetTime</strong>).</li>
+  <li>
+    <p>Try the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"What's today's date?"</span></span>
+</code></pre>
+  </li>
+  <li>Examine the response and verify that it predicts the <strong>GetDate</strong> intent.</li>
+  <li>
+    <p>Try the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"What time is it in Sydney?"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Examine the response and verify that it includes a <strong>Location</strong> entity.</p>
+  </li>
+  <li>
+    <p>Try the following commands and examine the responses:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"What time is it in Glasgow?"</span></span>
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"What's the time in Nairobi?"</span></span>
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"What's the UK time?"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Try a few more variations - the goal is to generate at least some responses that correctly predict the <strong>GetTime</strong> intent, but fail to detect a <strong>Location</strong> entity.</p>
+
+    <p>Keep the terminal open. You will return to it later.</p>
+  </li>
+</ol>
+
+<h2 id="apply-active-learning">Apply <em>active learning</em></h2>
+
+<p>You can improve a Language Understanding app based on historical utterances submitted to the endpoint. This practice is called <em>active learning</em>.</p>
+
+<p>In the previous procedure, you used cURL to submit requests to your app’s endpoint. These requests included the option to log the queries, which enables the app to track them for use in active learning.</p>
+
+<ol>
+  <li>In the Language Understanding portal, Select <strong>Build</strong> and view the <strong>Review endpoint utterances</strong> page. This page lists logged utterances that the service has flagged for review.</li>
+  <li>For any utterances for which the intent and a new location entity (that wasn’t included in the original training utterances) are correctly predicted, select <strong>✓</strong> to confirm the entity, and then use the <strong>⤒</strong> icon to add the utterance to the intent as a training example.</li>
+  <li>Find an example of an utterance in which the <strong>GetTime</strong> intent was correctly identified, but a <strong>Location</strong> entity was <u>not</u> identified; and select the location name and map it to the <strong>location</strong> entity. Then use the <strong>⤒</strong> icon to add the utterance to the intent as a training example.</li>
+  <li>Go to the <strong>Intents</strong> page and open the <strong>GetTime</strong> intent to confirm that the suggested utterances have been added.</li>
+  <li>At the top of the Language Understanding portal, select <strong>Train</strong> to retrain the app.</li>
+  <li>At the top right of the Language Understanding portal, select <strong>Publish</strong> and republish the app to the <strong>Production slot</strong>.</li>
+  <li>Return to the terminal for the <strong>09-luis-app</strong> folder, and use the <strong>GetIntent</strong> command to submit the utterance you added and corrected during active learning.</li>
+  <li>Verify that the result now includes the <strong>Location</strong> entity. Then try another utterance that uses the same phrasing but specifies a different location (for example, <em>Berlin</em>).</li>
+</ol>
+
+<h2 id="export-the-app">Export the app</h2>
+
+<p>You can use the Language Understanding portal to develop and test your language app, but in a software development process for DevOps, you should maintain a source controlled definition of the app that can be included in continuous integration and delivery (CI/CD) pipelines. While you <em>can</em> use the Language Understanding SDK or REST API in code scripts to create and train the app, a simpler way is to use the portal to create the app, and export it as a <em>.lu</em> file that can be imported and retrained in another Language Understanding instance. This approach enables you to make use of the productivity benefits of the portal while maintaining portability and reproducibility for the app.</p>
+
+<ol>
+  <li>In the Language Understanding portal, select <strong>Manage</strong>.</li>
+  <li>On the <strong>Versions</strong> page, select the current version of the app (there should only be one).</li>
+  <li>In the <strong>Export</strong> drop-down list, select <strong>Export as LU</strong>. Then, when prompted by your browser, save the file in the <strong>09-luis-app</strong> folder.</li>
+  <li>In Visual Studio Code, open the <strong>.lu</strong> file you just exported and downloaded (if you are prompted to search the marketplace for an extension that can read it, dismiss the prompt). Note that the LU format is human-readable, making it an effective way to document the definition of your Language Understanding app in a team development environment.</li>
+</ol>
+
+<h2 id="more-information">More information</h2>
+
+<p>For more information about using the <strong>Language Understanding</strong> service, see the <a href="https://docs.microsoft.com/azure/cognitive-services/luis/">Language Understanding documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

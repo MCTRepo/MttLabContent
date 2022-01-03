@@ -1,0 +1,357 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            WS-013T00-Azure-Stack-HCI
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                WS-013T00-Azure-Stack-HCI
+            </a>
+            <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#task-1-provision-the-lab-environment-vms">Task 1: Provision the lab environment VMs</a></li><li class="nav-item"><a class="nav-link" href="#task-2-deploy-a-storage-spaces-direct-cluster">Task 2: Deploy a Storage Spaces Direct cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-3-examine-physical-disk-owners">Task 3: Examine physical disk owners</a></li><li class="nav-item"><a class="nav-link" href="#task-4-explore-metadata-of-the-storage-pool">Task 4: Explore metadata of the storage pool</a></li><li class="nav-item"><a class="nav-link" href="#task-5-explore-metadata-of-a-volume">Task 5: Explore metadata of a volume</a></li><li class="nav-item"><a class="nav-link" href="#task-6-explore-metadata-of-a-scoped-volume">Task 6: Explore metadata of a scoped volume</a></li><li class="nav-item"><a class="nav-link" href="#task-7-deprovision-the-lab-resources">Task 7: Deprovision the lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-e-answer-key-identifying-and-analyzing-metadata-of-a-storage-spaces-direct-cluster-optional">Lab E answer key: Identifying and analyzing metadata of a Storage Spaces Direct cluster (optional)</h1>
+
+<h2 id="exercise-1-identifying-and-analyzing-metadata-of-a-storage-spaces-direct-cluster">Exercise 1: Identifying and analyzing metadata of a Storage Spaces Direct cluster</h2>
+
+<h3 id="task-1-provision-the-lab-environment-vms">Task 1: Provision the lab environment VMs</h3>
+
+<ol>
+  <li>
+    <p>From the lab VM, in the <strong>script</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to rename <strong>LabConfig.ps1</strong> and <strong>Scenario.ps1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Set-Location -Path 'F:\WSLab-master\Scripts'
+Move-Item -Path '.\LabConfig.ps1' -Destination '.\LabConfig.m3l5.ps1' -Force -ErrorAction SilentlyContinue
+Move-Item -Path '.\Scenario.ps1' -Destination '.\Scenario.m3l5.ps1' -Force -ErrorAction SilentlyContinue
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, open a new tab, and in the <strong>script</strong> pane, paste the following command, and then save it as <strong>F:\WSLab-master\Scripts\LabConfig.ps1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">$LabConfig=@{ DomainAdminName = 'LabAdmin'; AdminPassword = 'LS1setup!'; Prefix = 'WSLab-'; SwitchName = 'LabSwitch'; DCEdition = '4' ; Internet = $true ;AdditionalNetworksConfig = @(); VMs = @()}
+1..6 | % {$VMNames = "6node"; $LABConfig.VMs += @{ VMName = "$VMNames$_" ; Configuration = 'S2D' ; ParentVHD = 'Win2019Core_G2.vhdx'; SSDNumber = 0; SSDSize=800GB ; HDDNumber = 4; HDDSize = 4TB ; MemoryStartupBytes = 2GB ; MemoryMinimumBytes=512MB }}
+$LABConfig.VMs += @{
+     VMName = "Management" ;
+     Configuration = 'S2D' ;
+     ParentVHD = 'Win2019_G2.vhdx';
+     SSDNumber = 1;
+     SSDSize = 50GB ;
+     MemoryStartupBytes = 8GB;
+     NestedVirt = $false;
+     StaticMemory = $true;
+     VMProcessorCount = 4
+}
+</code></pre>
+  </li>
+  <li>
+    <p>On the lab VM, in the <strong>Administrator: Windows PowerShell ISE</strong> window, open and run the <strong>F:\WSLab-master\Scripts\3_Deploy.ps1</strong> script to provision VMs for the Storage Spaces Direct environment.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> Select <strong>None</strong> for the Telemetry prompt. The script should complete in about 15 minutes. When prompted <strong>Press enter to continue</strong>, select the <strong>Enter</strong> key.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>When the script completes, in the <strong>Administrator: Windows PowerShell ISE</strong> window, from the <strong>console</strong> pane, run the following command to start the newly provisioned VMs that will host the Storage Spaces Direct environment:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Get-VM -Name 'WSLab-Management' | Start-VM
+Start-Sleep 150
+Get-VM | Where-Object Name -like 'WSLab-*node*' | Start-VM -AsJob
+</code></pre>
+  </li>
+  <li>On the lab VM, start <strong>Hyper-V Manager</strong> and connect via a console session to <strong>WSLab-DC</strong>. When prompted to sign in, provide the username <strong>CORP\LabAdmin</strong> and the password <strong>LS1setup!</strong>.</li>
+  <li>In the <strong>WSLab-DC</strong> VM console session, start <strong>Windows PowerShell ISE</strong> as an administrator.</li>
+  <li>From the <strong>Administrator: Windows PowerShell ISE</strong> window, run <code>slmgr -rearm</code> and then select <strong>OK</strong>.</li>
+  <li>From the <strong>Administrator: Windows PowerShell ISE</strong> window, run <code>Restart-Computer -Force</code>.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: Make sure that the <strong>WSLab-DC</strong> VM is running before you proceed to the next task.</p>
+</blockquote>
+
+<h3 id="task-2-deploy-a-storage-spaces-direct-cluster">Task 2: Deploy a Storage Spaces Direct cluster</h3>
+
+<ol>
+  <li>On the lab VM, in the <strong>Server Manager</strong> window, select <strong>Tools</strong>, and then in the drop-down list, select <strong>Hyper-V Manager</strong>.</li>
+  <li>On the lab VM, in the <strong>Hyper-V Manager</strong> console, in the list of virtual machines, right-click or access the context menu for the <strong>WSLab-Management</strong> entry, and then select <strong>Connect</strong> to establish a console session to the <strong>WSLab-Management</strong> VM. When prompted to sign in, provide the username <strong>CORP\LabAdmin</strong> and the password <strong>LS1setup!</strong>.</li>
+  <li>In the console session to the <strong>WSLab-Management</strong> VM, start Windows PowerShell ISE as Administrator.</li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>script</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to provision a six-node Storage Spaces Direct cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">$clusters = @()
+$clusters += @{Nodes=1..6 | % {"6node$_"} ; Name="6nodeCluster" ; IP="10.0.0.116" }
+
+Install-WindowsFeature -Name RSAT-Clustering,RSAT-Clustering-Mgmt,RSAT-Clustering-PowerShell,RSAT-Hyper-V-Tools,RSAT-AD-PowerShell, RSAT-ADDS
+
+# Install features on servers
+Invoke-Command -computername $clusters.nodes -ScriptBlock {
+   Install-WindowsFeature -Name "Failover-Clustering","Hyper-V-PowerShell"
+}
+
+# Restart all servers to finalize installation of Failover Clustering
+Restart-Computer -ComputerName $clusters.nodes -Protocol WSMan -Wait -For PowerShell
+
+# Create clusters
+foreach ($cluster in $clusters){
+   New-Cluster -Name $cluster.Name -Node $cluster.Nodes -StaticAddress $cluster.IP
+   Start-Sleep 5
+   Clear-DNSClientCache
+}
+
+# Add file share witness
+foreach ($cluster in $clusters){
+   $clusterName = $cluster.Name
+   # Create new directory
+   $witnessName = $clusterName+"Witness"
+   Invoke-Command -ComputerName DC -ScriptBlock {New-Item -Path c:\Shares -Name $using:witnessName -ItemType Directory}
+   $accounts = @()
+   $accounts += "CORP\$($clusterName)$"
+   $accounts += "CORP\Domain Admins"
+   New-SmbShare -Name $witnessName -Path "c:\Shares\$witnessName" -FullAccess $accounts -CimSession DC
+   # Set NTFS permissions
+   Invoke-Command -ComputerName DC -ScriptBlock {(Get-SmbShare $using:witnessName).PresetPathAcl | Set-Acl}
+   # Set Quorum
+   Set-ClusterQuorum -Cluster $clusterName -FileShareWitness "\\DC\$WitnessName"
+}
+
+# Enable S2D
+Enable-ClusterS2D -CimSession $clusters.Name -Verbose -Confirm:0
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Wait for the script to complete. This should take about five minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-3-examine-physical-disk-owners">Task 3: Examine physical disk owners</h3>
+
+<ol>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to display the physical disks of the <strong>6nodecluster</strong> Storage Spaces Direct cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">Get-PhysicalDisk -CimSession 6nodecluster |ft FriendlyName,Size,Description
+</code></pre>
+  </li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>script</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to set the <strong>Description</strong> attribute of each physical disk to the name of the cluster node to which the disk is attached for the Storage Spaces Direct cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">$clusters = @()
+$clusters += @{Nodes=1..6 | % {"6node$_"} ; Name="6nodeCluster" ; IP="10.0.0.116" }
+foreach ($clusterName in ($clusters.Name | select -Unique)){
+   $storageNodes=Get-StorageSubSystem -CimSession $clusterName -FriendlyName Clus* | Get-StorageNode
+   foreach ($storageNode in $storageNodes){$storageNode | Get-PhysicalDisk -PhysicallyConnected -CimSession $storageNode.Name | Set-PhysicalDisk -Description $storageNode.Name -CimSession $storageNode.Name}
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, rerun the following command to display physical disks of <strong>6nodecluster</strong> Storage Spaces Direct cluster, this time with the <strong>Description</strong> attribute containing the name of the owner node:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Get-PhysicalDisk -CimSession 6nodecluster |ft FriendlyName,Size,Description
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="task-4-explore-metadata-of-the-storage-pool">Task 4: Explore metadata of the storage pool</h3>
+
+<ol>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to display the number of disks with metadata for the six-node cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">foreach ($clusterName in ($clusters.Name | select -Unique)){
+  Get-StoragePool -CimSession $clusterName |
+  Get-PhysicalDisk -HasMetadata -CimSession $clusterName |
+  Sort-Object Description |
+  Format-Table DeviceId,FriendlyName,SerialNumber,MediaType,Description
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> The number of disks with metadata depends on the size of the cluster, as the following table displays:</p>
+    </blockquote>
+
+    <p><em>Table 1: The number of disks with metadata</em></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Number of nodes (fault domains)</th>
+          <th>Number of disks with metadata</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>8</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>5</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note:</strong> In a six-node cluster, metadata is located on five of the six nodes. This means that if you lose random half nodes, 50 percent of the storage pool will go offline.</p>
+    </blockquote>
+  </li>
+  <li>In the console session to the <strong>WSLab-Management</strong> VM, switch to the <strong>Server Manager</strong> window, select <strong>Tools</strong>, and then in the <strong>Tools</strong> drop-down list, select <strong>Failover Cluster Manager</strong>.</li>
+  <li>In the <strong>Failover Cluster Manager</strong> window, right-click or access the context menu for the <strong>Failover Cluster Manager</strong> node, and then in the context menu, select <strong>Connect to cluster</strong>.</li>
+  <li>In the <strong>Select Cluster</strong> dialog box, in the <strong>Cluster name</strong> text box, enter <code>6nodecluster.corp.contoso.com</code>, and then select <strong>OK</strong>.</li>
+  <li>In the <strong>Failover Cluster Manager</strong> window, select <strong>Nodes</strong>, and then review the list of nodes.</li>
+  <li>In the <strong>Failover Cluster Manager</strong> window, in the <strong>Storage</strong> node tree, select <strong>Pools</strong>, and then verify that it contains a single pool named <strong>Cluster Pool 1</strong>.</li>
+  <li>Select the <strong>Cluster Pool 1</strong> entry, and on the <strong>Cluster Pool 1</strong> pane, examine its properties by selecting the <strong>Summary</strong> tab, followed by the <strong>Virtual Disks</strong> and <strong>Physical Disks</strong> tabs.</li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, switch to the <strong>Administrator: Windows PowerShell ISE</strong> window, and then from the <strong>script</strong> pane, run the following command to capture the list of three nodes hosting the storage pool metadata of the six-node cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">$nodesToShutDown = (Get-StoragePool -CimSession 6nodecluster |
+Get-PhysicalDisk -HasMetadata -CimSession $clusterName | Select-Object -First 3).Description
+</code></pre>
+  </li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to shut down the three nodes hosting the metadata of the six-node cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">Stop-Computer -ComputerName $nodesToShutDown -Force
+</code></pre>
+  </li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, switch to the <strong>Failover Cluster Manager</strong> window, and then in the <strong>Storage</strong> node tree, with the <strong>Pools</strong> node selected, verify that the <strong>Cluster Pool 1</strong> storage pool has a status of <strong>Failed</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> It might take a few minutes before the storage pool reaches the <strong>Failed</strong> status.</p>
+    </blockquote>
+  </li>
+  <li>In the <strong>Failover Cluster Manager</strong> window, on the <strong>Actions</strong> pane, select <strong>Show Critical Events</strong>, and in the list of events, locate the most recent event that references the storage pool failure because of the lack of quorum of healthy disks.</li>
+  <li>In the <strong>Critical events for Cluster Pool 1</strong> window, review the event, and then select <strong>Close</strong>.</li>
+  <li>Switch to the lab VM, and then in the <strong>Hyper-V Manager</strong> console, in the list of virtual machines, select the VMs you shut down earlier in this task, and then in the <strong>Actions</strong> pane, in the <strong>Selected Virtual Machines</strong> section, select <strong>Start</strong>.</li>
+  <li>Switch to the <strong>WSLab-Management</strong> VM, in the <strong>Failover Cluster Manager</strong> window, right-click or access the context menu for the <strong>Cluster Pool 1</strong> entry, and in the context menu, select <strong>Bring Online</strong>.</li>
+</ol>
+
+<h3 id="task-5-explore-metadata-of-a-volume">Task 5: Explore metadata of a volume</h3>
+
+<ol>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to create a volume on the six-node cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-powershell">Invoke-Command -ComputerName ($clusters.Name | select -Unique) -ScriptBlock {New-Volume -FriendlyName labVolume -Size 100GB}
+</code></pre>
+  </li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to display the metadata of the newly created volume on the six-node cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-powershell">foreach ($clusterName in ($clusters.Name | select -Unique)){
+   Get-VirtualDisk -FriendlyName labVolume -CimSession $clusterName |
+   Get-PhysicalDisk -HasMetadata -CimSession $clusterName |
+   Sort-Object Description |
+   Format-table DeviceId,FriendlyName,SerialNumber,MediaType,Description
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Based on the output, you can determine whether the number of disks with metadata matches the number of disks used by the storage pool metadata.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-6-explore-metadata-of-a-scoped-volume">Task 6: Explore metadata of a scoped volume</h3>
+
+<ol>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>script</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to create scoped volumes on the six-node cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-powershell">$faultDomains = Get-StorageFaultDomain -Type StorageScaleUnit -CimSession 6nodecluster | Sort FriendlyName
+New-Volume -FriendlyName "2Scope-Volume" -Size 100GB -StorageFaultDomainsToUse ($faultDomains | Get-Random -Count 2) -CimSession 6nodecluster -StoragePoolFriendlyName S2D* -NumberOfDataCopies 2
+New-Volume -FriendlyName "3Scope-Volume" -Size 100GB -StorageFaultDomainsToUse ($faultDomains | Get-Random -Count 3) -CimSession 6nodecluster -StoragePoolFriendlyName S2D*
+New-Volume -FriendlyName "4Scope-Volume" -Size 100GB -StorageFaultDomainsToUse ($faultDomains | Get-Random -Count 4) -CimSession 6nodecluster -StoragePoolFriendlyName S2D*
+New-Volume -FriendlyName "5Scope-Volume" -Size 100GB -StorageFaultDomainsToUse ($faultDomains | Get-Random -Count 5) -CimSession 6nodecluster -StoragePoolFriendlyName S2D*
+New-Volume -FriendlyName "6Scope-Volume" -Size 100GB -StorageFaultDomainsToUse ($faultDomains | Get-Random -Count 6) -CimSession 6nodecluster -StoragePoolFriendlyName S2D*
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> For a six-node cluster, set the number of a volume’s scopes to four. The additional volumes in this exercise aren’t used as an example of their practical use, but rather as an illustration about how different scope values affect volume distribution.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>script</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to display the metadata of the newly created volumes on the six-node cluster:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-powershell">$friendlyNames=2..6 | % {"$($_)Scope-Volume"}
+foreach ($friendlyName in $friendlyNames){
+   Write-Host -Object "$friendlyName" -ForeGroundColor Cyan
+   Get-VirtualDisk -FriendlyName $friendlyName -CimSession 6nodecluster |
+   Get-PhysicalDisk -HasMetadata -CimSession 6nodecluster |
+   Sort-Object Description |
+   Format-Table DeviceId,FriendlyName,SerialNumber,MediaType,Description
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Review the output and note that the number of cluster nodes containing metadata of each volume matches the scope determined by the value of the <strong>StorageFaultDomainsToUse</strong> parameter of the <strong>New-Volume</strong> cmdlet.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-7-deprovision-the-lab-resources">Task 7: Deprovision the lab resources</h3>
+
+<ol>
+  <li>Switch to the lab VM, and in the <strong>Administrator: Windows PowerShell ISE</strong> window, open and run the <strong>F:\WSLab-master\Scripts\Cleanup.ps1</strong> script to remove all VMs provisioned in this lab. When prompted, on the <strong>console</strong> pane, enter <strong>Y</strong>, and then select <strong>Enter</strong>.</li>
+  <li>After the script completes, select any key.</li>
+  <li>In the <strong>Administrator: Windows PowerShell ISE</strong> window, close the tab displaying the <strong>F:\WSLab-master\Scripts\Cleanup.ps1</strong> script.</li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="ml-2">
+                    MicrosoftLearning/WS-013T00-Azure-Stack-HCI
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.js"></script>
+
+
+
+</body></html>

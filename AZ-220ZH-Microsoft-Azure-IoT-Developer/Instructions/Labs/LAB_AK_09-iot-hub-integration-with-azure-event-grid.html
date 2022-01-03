@@ -1,0 +1,586 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220ZH-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220ZH-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1验证实验室先决条件">练习 1：验证实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习-2创建发送电子邮件的-http-webhook-逻辑应用">练习 2：创建发送电子邮件的 HTTP Webhook 逻辑应用</a></li><li class="nav-item"><a class="nav-link" href="#练习-3配置-azure-iot-中心事件订阅">练习 3：配置 Azure IoT 中心事件订阅</a></li><li class="nav-item"><a class="nav-link" href="#练习-4使用新设备测试逻辑应用">练习 4：使用新设备测试逻辑应用</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="将-iot-中心与事件网格集成">将 IoT 中心与事件网格集成</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你使用 Azure IoT 服务创建的原型解决方案给 Contoso 管理层留下了深刻印象，并且他们愿意为你所演示的功能分配额外预算。他们现在要求你尝试集成某些运营支持功能。具体来说，他们希望了解 Azure 工具如何支持向负责特定工作区域的经理发送警报通知。警报条件将由业务区域经理定义。到达 IoT 中心的遥测数据将被评估以生成通知。</p>
+
+<p>你已经确定一位过去曾与之成功合作过的业务经理 Nancy。在解决方案的初始阶段，你将与她合作。</p>
+
+<p>Nancy 告知你，她的设备技术员团队将负责安装新的联网恒温器，用于监视不同干酪储藏室的温度。恒温器设备用作可连接到 IoT 中心的 IoT 设备。要启动项目，你需要同意创建一个在实现新设备后能够生成通知的警报。</p>
+
+<p>要生成警报，需要在 IoT 中心创建新恒温器设备时将一个设备创建的事件类型推送到事件网格。你将创建一个逻辑应用实例，用来（在事件网格上）对此事件做出响应，并在创建新设备时发送电子邮件到警报设施，用以指定设备 ID 和连接状态。</p>
+
+<p>将创建以下资源：</p>
+
+<p><a href="media/LAB_AK_09-architecture.png" target="_blank"><img src="media/LAB_AK_09-architecture.png" alt="实验室 9 基础结构"></a></p>
+
+<h2 id="本实验室概览">本实验室概览</h2>
+
+<p>在本实验室中，你将完成以下活动：</p>
+
+<ul>
+  <li>验证是否满足实验室先决条件（具有必需的 Azure 资源）</li>
+  <li>创建用于发送电子邮件的逻辑应用</li>
+  <li>配置 Azure IoT 中心事件订阅</li>
+  <li>新建设备以触发逻辑应用</li>
+</ul>
+
+<h3 id="练习-1验证实验室先决条件">练习 1：验证实验室先决条件</h3>
+
+<p>本实验室假定以下 Azure 资源可用：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>资源类型</th>
+      <th>资源名称</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>资源组</td>
+      <td>rg-az220</td>
+    </tr>
+    <tr>
+      <td>IoT 中心</td>
+      <td>iot-az220-training-{your-id}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>如果这些资源不可用，请按照以下说明运行 <strong>“lab09-setup.azcli”</strong> 脚本，然后再前往练习 2。脚本文件包含在本地克隆作为开发环境配置（实验室 3）的 GitHub 存储库中。</p>
+
+<p>写入 <strong>lab09-setup.azcli</strong> 脚本，并在 <strong>Bash</strong> shell 环境中运行，执行此操作最简便的方法是在 Azure Cloud Shell 中。</p>
+
+<ol>
+  <li>
+    <p>使用浏览器，打开 <a href="https://shell.azure.com/">Azure Cloud Shell</a>，并使用本课程使用的 Azure 订阅登录。</p>
+  </li>
+  <li>
+    <p>验证 Cloud Shell 是否在使用 <strong>Bash</strong>。</p>
+
+    <p>Azure Cloud Shell 页面左上角的下拉菜单用于选择环境。验证所选的下拉值是否为 <strong>Bash</strong>。</p>
+  </li>
+  <li>
+    <p>要上传安装脚本，请在 Cloud Shell 工具栏中，单击 <strong>“上传/下载文件”</strong> （从右数第四个按钮）。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 工具栏上，单击 <strong>“上传/下载文件”</strong> （从右数第四个按钮）。</p>
+  </li>
+  <li>
+    <p>在下拉菜单中，单击 <strong>“上传”</strong>。</p>
+  </li>
+  <li>
+    <p>在“文件选择”对话框中，导航到配置开发环境时下载的 GitHub 实验室文件的文件夹位置。</p>
+
+    <p>在“实验室 3：<em>设置开发环境</em>，你可以通过下载 ZIP 文件并从本地提取内容来克隆包含实验室资源的 GitHub 存储库。提取的文件夹结构包括以下文件夹路径：</p>
+
+    <ul>
+      <li>Allfiles
+        <ul>
+          <li>实验室
+            <ul>
+              <li>实验室 09：将 IoT 中心与事件网格集成
+                <ul>
+                  <li>设置</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>lab09-setup.azcli 脚本文件位于实验室 9 的 Setup 文件夹中。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“lab09-setup.azcli”</strong> 文件，然后单击 <strong>“打开”</strong>。</p>
+
+    <p>文件上传完成后，系统将显示一条通知。</p>
+  </li>
+  <li>
+    <p>若要验证在 Azure Cloud Shell 中已上传了正确文件，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs"> ls
+</code></pre>
+
+    <p>使用 <code>ls</code> 命令列出当前目录的内容。你应该会看到列出的 lab09-setup.azcli 文件。</p>
+  </li>
+  <li>
+    <p>若要为此实验室创建一个包含安装脚本的目录，然后移至该目录，请输入以下 Bash 命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs"> mkdir lab9
+ mv lab09-setup.azcli lab9
+ <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> lab9
+</code></pre>
+  </li>
+  <li>
+    <p>为了保证 <strong>lab09-setup.azcli</strong> 具有执行权限，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs"> chmod +x lab09-setup.azcli
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 工具栏上，请单击 <strong>“打开编辑器”</strong> （右侧的第二个按钮 - <strong>{ }</strong>）以启用对 lab09-setup.azcli 文件的访问。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 列表中，要展开 lab9 文件夹并打开脚本文件，单击 <strong>“lab9”</strong>，然后单击 <strong>“lab09-setup.azcli”</strong>。</p>
+
+    <p>编辑器现在将显示 <strong>“lab09-setup.azcli”</strong> 文件的内容。</p>
+  </li>
+  <li>
+    <p>在编辑器中，更新 <code>{your-id}</code> 和 <code>{your-location}</code> 分配的值。</p>
+
+    <p>以下面的示例为例，需要将 <code>{your-id}</code> 设置为在本课程开始时创建的唯一 ID（即 <strong>cah191211</strong>），然后将 <code>{your-location}</code> 设置为对你的资源有意义的位置。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> <span class="hljs-comment"><span class="hljs-comment">#!/bin/bash</span></span>
+
+ <span class="hljs-comment"><span class="hljs-comment"># Change these values!</span></span>
+ YourID=<span class="hljs-string"><span class="hljs-string">"{your-id}"</span></span>
+ Location=<span class="hljs-string"><span class="hljs-string">"{your-location}"</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注：</strong>  应将 <code>{your-location}</code> 变量设置为要部署所有资源的区域的短名称。输入以下命令，可以看到可用位置及其短名称的列表（<strong>“名称”</strong> 列）：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs"> az account list-locations -o Table
+
+ DisplayName           Latitude    Longitude    Name
+ --------------------  ----------  -----------  ------------------
+ East Asia             22.267      114.188      eastasia
+ Southeast Asia        1.283       103.833      southeastasia
+ Central US            41.5908     -93.6208     centralus
+ East US               37.3719     -79.8164     eastus
+ East US 2             36.6681     -78.3889     eastus2
+</code></pre>
+  </li>
+  <li>
+    <p>要保存对文件所做的更改并关闭编辑器，请单击编辑器窗口右上角的 “<strong>…</strong>”，然后单击 <strong>“关闭编辑器”</strong>。</p>
+
+    <p>如果提示保存，请单击 <strong>“保存”</strong>，编辑器将会关闭。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  可以使用 <strong>Ctrl+S</strong> 随时保存，使用 <strong>Ctrl+Q</strong> 关闭编辑器。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>要创建本实验室所需的资源，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs"> ./lab09-setup.azcli
+</code></pre>
+
+    <p>运行将花费几分钟时间。每个步骤完成时，你都会看到输出。</p>
+
+    <p><strong>备注</strong>： 你可能需要注册 <strong>microsoft.eventgrid</strong> 资源提供程序，本实验室才能成功。运行以下命令进行检查：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-bash hljs"> az provider show --namespace microsoft.eventgrid -o tsv
+</code></pre>
+    <blockquote>
+      <p>如果结果显示 <strong>“Registered”</strong>，则无需执行更多操作。如果显示 <strong>“NotRegistered”</strong>，请运行以下命令，注册 <strong>microsoft.eventgrid</strong> 提供程序。</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-bash hljs"> az provider register --namespace microsoft.eventgrid
+</code></pre>
+    <blockquote>
+      <p>这可能需要 15 分钟或更长时间才能完成。你应看到以下消息：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-bash hljs"> Registering is still on-going. You can monitor using <span class="hljs-string"><span class="hljs-string">'az provider show -n microsoft.eventgrid'</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="练习-2创建发送电子邮件的-http-webhook-逻辑应用">练习 2：创建发送电子邮件的 HTTP Webhook 逻辑应用</h3>
+
+<p>Azure 逻辑应用是一种云服务，当你需要跨企业或组织集成应用、数据、系统和服务时，可帮助你计划、自动执行和编排任务、业务流程和工作流。</p>
+
+<p>在本练习中，你将新建一个通过 HTTP Webhook 触发的 Azure 逻辑应用，然后使用 Outlook.com 电子邮件地址发送电子邮件。</p>
+
+<h4 id="任务-1在-azure-门户中创建逻辑应用资源">任务 1：在 Azure 门户中创建逻辑应用资源</h4>
+
+<ol>
+  <li>
+    <p>如有必要，使用你在本课程中使用的 Azure 帐户凭据登录到 <a href="https://portal.azure.com">Azure 门户</a>。</p>
+
+    <p>如果有多个 Azure 帐户，请确保使用与本课程要使用的订阅绑定的帐户登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户菜单上，单击 <strong>“+ 创建资源”</strong>。</p>
+  </li>
+  <li>
+    <p>在“<strong>创建资源</strong>”边栏选项卡上，在“<strong>搜索服务和市场</strong>”框中输入“<strong>逻辑应用</strong>”</p>
+  </li>
+  <li>
+    <p>在搜索结果中，单击“<strong>逻辑应用(消耗)</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>逻辑应用(消耗)</strong>”边栏选项卡上，单击“<strong>创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“基本”</strong> 选项卡中的 <strong>“项目详细信息”</strong> 下，选择本课程所使用的 <strong>“订阅”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 下拉菜单中的 <strong>“选择现有”</strong> 下，单击 <strong>“rg-az220”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“实例详细信息”</strong> 下的 <strong>“名称”</strong> 字段内，输入 <strong>“logic-az220-training-{your-id}”</strong></p>
+
+    <p>例如： <strong>logic-az220-training-cp191218</strong></p>
+
+    <p>Azure 逻辑应用的名称必须具有全球唯一性，因为它是可公开访问的资源，必须能够从任何 IP 连接的设备访问。</p>
+  </li>
+  <li>
+    <p>在 <strong>“位置”</strong> 下拉菜单中，选择用于资源组的同一 Azure 区域。</p>
+  </li>
+  <li>
+    <p>将 <strong>“Log Analytics”</strong> 设为 <strong>“关”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“查看 + 创建”</strong> 选项卡上，单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  逻辑应用部署需要一到两分钟才能完成。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>导航回到 Azure 门户仪表板。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2配置你的逻辑应用">任务 2：配置你的逻辑应用。</h4>
+
+<ol>
+  <li>
+    <p>在资源组磁贴上，单击指向刚刚部署的逻辑应用资源的链接。</p>
+
+    <p>如果未显示 <strong>“logic-az220-training-{your-id}”</strong> 逻辑应用，请刷新资源组磁贴。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 首次导航到 <strong>“逻辑应用”</strong> 时，将显示 <strong>“逻辑应用设计器”</strong> 窗格。如果此页面没有自动显示，请单击 <strong>“逻辑应用”</strong> 边栏选项卡上 <strong>“开发工具”</strong> 部分下面的 <strong>“逻辑应用设计器”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“从常见触发器开始”</strong> 部分下，单击 <strong>“收到 HTTP 请求时”</strong>。</p>
+
+    <p>开始使用逻辑应用时，从常用触发器开始会更便捷。</p>
+  </li>
+  <li>
+    <p>请注意，视觉设计器打开时，<strong>“收到 HTTP 请求时”</strong> 触发器默认已选择。</p>
+  </li>
+  <li>
+    <p>在 <strong>“收到 HTTP 请求时”</strong> 触发器上，在 <strong>“请求正文 JSON 架构”</strong> 文本框下方，单击 <strong>“使用样本有效负载生成架构”</strong> 链接。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 在下一步中，将向“请求正文 JSON 架构”文本框添加 <strong>“DeviceCreated”</strong> 示例事件架构。如需了解更多信息，可以通过下面的链接获取该事件架构示例以及其他示例和相关文档：用于 IoT 中心的 <a href="https://docs.microsoft.com/zh-cn/azure/event-grid/event-schema-iot-hub">Azure 事件网格事件架构</a>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>使用复制粘贴操作以将下列示例 JSON 添加到“<strong>输入或粘贴一个示例 JSON 有效负载。</strong>”文本框，然后单击“<strong>完成</strong>”。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-json hljs"> [{
+   <span class="hljs-attr"><span class="hljs-attr">"id"</span></span>: <span class="hljs-string"><span class="hljs-string">"56afc886-767b-d359-d59e-0da7877166b2"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"topic"</span></span>: <span class="hljs-string"><span class="hljs-string">"/SUBSCRIPTIONS/&lt;subscription ID&gt;/RESOURCEGROUPS/&lt;resource group name&gt;/PROVIDERS/MICROSOFT.DEVICES/IOTHUBS/&lt;hub name&gt;"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"subject"</span></span>: <span class="hljs-string"><span class="hljs-string">"devices/LogicAppTestDevice"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"eventType"</span></span>: <span class="hljs-string"><span class="hljs-string">"Microsoft.Devices.DeviceCreated"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"eventTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"2018-01-02T19:17:44.4383997Z"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"data"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"twin"</span></span>: {
+       <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"LogicAppTestDevice"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"etag"</span></span>: <span class="hljs-string"><span class="hljs-string">"AAAAAAAAAAE="</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"deviceEtag"</span></span>: <span class="hljs-string"><span class="hljs-string">"null"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"enabled"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"statusUpdateTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"connectionState"</span></span>: <span class="hljs-string"><span class="hljs-string">"Disconnected"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"lastActivityTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"cloudToDeviceMessageCount"</span></span>: <span class="hljs-number"><span class="hljs-number">0</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"authenticationType"</span></span>: <span class="hljs-string"><span class="hljs-string">"sas"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"x509Thumbprint"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"primaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"secondaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+       },
+       <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"desired"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2018-01-02T19:17:44.4383997Z"</span></span>
+           },
+           <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"reported"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2018-01-02T19:17:44.4383997Z"</span></span>
+           },
+           <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         }
+       }
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"hubName"</span></span>: <span class="hljs-string"><span class="hljs-string">"egtesthub1"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"LogicAppTestDevice"</span></span>
+   },
+   <span class="hljs-attr"><span class="hljs-attr">"dataVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"metadataVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1"</span></span>
+ }]
+</code></pre>
+
+    <p>此示例 JSON 是在创建逻辑应用后，事件网格将为逻辑应用发布到 Webhook 终结点的 JSON 示例。该示例包括将发送遥测消息的 IoT 设备的 IoT 中心消息遥测属性。</p>
+  </li>
+  <li>
+    <p>请注意 <strong>“请求正文 JSON 架构”</strong> 文本框中现已填充基于你提供的示例 JSON 自动生成的 JSON 架构。</p>
+  </li>
+  <li>
+    <p>在 <strong>“收到 HTTP 请求时”</strong> 触发器下方，单击 <strong>“+ 新建步骤”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择动作”</strong> 下方的搜索文本框中，输入 <strong>“Outlook.com”</strong></p>
+  </li>
+  <li>
+    <p>在“操作”列表中，向下滚动到“发送”选项，然后单击 <strong>“发送电子邮件 (V2)”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  这些说明逐步介绍了如何配置逻辑应用以使用 <strong>“Outlook.com”</strong> 电子邮件地址发送电子邮件。此外，也可以将逻辑应用配置为使用 Office 365 Outlook 或 Gmail 连接器发送电子邮件。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“Outlook.com”</strong> 连接器上，单击 <strong>“登录”</strong>，然后按照提示使用现有 Outlook.com 帐户进行身份验证。</p>
+  </li>
+  <li>
+    <p>如果提示 <strong>“允许此应用访问你的个人信息”</strong>，单击 <strong>“是”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“发送电子邮件(V2)”</strong> 操作的 <strong>“收件人”</strong> 字段中，输入要发送到的电子邮件地址。</p>
+
+    <p>出于本实验的目的，你需要提供一个电子邮件地址，以便接收电子邮件通知。你可以输入用于此连接器的 Outlook.com 帐户，也可以输入其他易于访问的电子邮件帐户。</p>
+
+    <p>将使用上一步中经过身份验证的 Outlook.com 帐户发送电子邮件。</p>
+  </li>
+  <li>
+    <p>在 <strong>“主题”</strong> 字段中，输入 <strong>“IoT 中心警报：”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“正文”</strong> 字段中，输入以下消息内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-text"> This is an automated email to inform you that:
+
+ {eventType} occurred at {eventTime}
+
+ IoT Hub: {hubName}
+ Device ID: {deviceID}
+ Connection state: {connectionState}
+</code></pre>
+  </li>
+  <li>
+    <p>花点时间检查你刚刚输入的消息正文。</p>
+
+    <p>你可能已经意识到，大括号条目旨在表示动态内容。你需要用实际的动态内容值替换这些占位符条目。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 如果连接器右侧未显示“添加动态内容”工具，请单击 <strong>“正文”</strong> 文本框正下方的 <strong>“添加动态内容”</strong> 超链接。如果未列出你需要的字段，请单击“动态内容”窗格中的 <strong>“查看更多”</strong>，以包括你输入的消息正文中包含的字段。</p>
+    </blockquote>
+
+    <p>在下一步中，将每个占位符值替换为相应的动态内容值。</p>
+  </li>
+  <li>
+    <p>对于每个动态内容占位符，删除该条目，然后将其替换为相应的“动态内容”字段。</p>
+
+    <p>在添加第一个动态内容值时，由于输入数据架构是针对数组的，因此逻辑应用设计器会自动将电子邮件操作更改为嵌套在 <strong>“对于每个”</strong> 操作中。出现这种情况时，<strong>发送电子邮件 (V2)</strong> 操作会折叠。要重新打开电子邮件，请单击 <strong>“发送电子邮件 (V2)”</strong>，然后继续编辑消息正文。</p>
+
+    <p>完成此步骤后，你会看到类似于以下内容的消息正文：</p>
+
+    <p><a href="media/LAB_AK_09-email_content.png" target="_blank"><img src="media/LAB_AK_09-email_content.png" alt="填写电子邮件信息"></a></p>
+  </li>
+  <li>
+    <p>要将所有更改保存到逻辑应用工作流，单击设计器顶部的 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>要展开“收到 HTTP 请求时”__触发器，请单击 <strong>“收到 HTTP 请求时”</strong>。</p>
+  </li>
+  <li>
+    <p>复制 <strong>“HTTP POST URL”</strong> 的显示值。</p>
+
+    <p><strong>“HTTP POST URL”</strong> 类似于以下内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-text"> https://prod-87.eastus.logic.azure.com:443/workflows/b16b5556cbc54c97b063479ed55b2669/triggers/manual/paths/invoke?api-version=2016-10-01&amp;sp=%2Ftriggers%2Fmanual%2Frun&amp;sv=1.0&amp;sig=ZGqYl-R5JKTugLG3GR5Ir1FuM0zIpCrMw4Q2WycJRiM
+</code></pre>
+
+    <p>该 URL 是用于通过 HTTPS 调用逻辑应用触发器的 Webhook 终结点。注意 <strong>“sig”</strong> 查询字符串参数及其值。 <strong>“sig”</strong> 参数包含用于验证对 Webhook 终结点的请求的共享访问密钥。</p>
+  </li>
+  <li>
+    <p>保存该 URL，以备将来参考。</p>
+  </li>
+</ol>
+
+<h3 id="练习-3配置-azure-iot-中心事件订阅">练习 3：配置 Azure IoT 中心事件订阅</h3>
+
+<p>通过将 Azure IoT 中心与 Azure 事件网格集成，你可将事件通知发送到其他服务并触发下游流程。你可以将业务应用程序配置为侦听 IoT 中心事件，以便以可靠、可缩放和安全的方式对关键事件做出反应。例如，生成具有以下用途的应用程序：在每次将新 IoT 设备注册到 IoT 中心时，更新数据库、创建工作票证，并发送电子邮件通知。</p>
+
+<p>在本练习中，你将在 Azure IoT 中心内创建事件订阅以设置事件网格集成，用来触发逻辑应用发送警报电子邮件。</p>
+
+<ol>
+  <li>
+    <p>导航回到 Azure 门户仪表板。</p>
+  </li>
+  <li>
+    <p>在资源组磁贴上，要导航到 IoT 中心，请单击 <strong>“iot-az220-training-{your-id}”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 中心”</strong> 边栏选项卡的左侧导航菜单上，单击 <strong>“事件”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“事件”</strong> 窗格顶部，单击 <strong>“+ 事件订阅”</strong>。</p>
+  </li>
+  <li>
+    <p>在“创建事件订阅”边栏选项卡的 <strong>“名称”</strong> 字段内，输入 <strong>“MyDeviceCreateEvent”</strong></p>
+  </li>
+  <li>
+    <p>确保将 <strong>“EventSchema”</strong> 字段设为 <strong>“事件网格架构”</strong>。</p>
+  </li>
+  <li>
+    <p>保持 <strong>“主题详细信息”</strong> 部分不变。</p>
+
+    <p>本节信息量丰富，且为只读模式。</p>
+  </li>
+  <li>
+    <p>在 <strong>“事件类型”</strong> 选项下， 打开 <strong>“按事件类型筛选”</strong> 下拉列表，然后取消选择除 <strong>“已创建设备”</strong> 之外的所有选择。</p>
+  </li>
+  <li>
+    <p>在 <strong>“终结点详细信息”</strong> 选项下， 打开 <strong>“终结点类型”</strong> 下拉列表，然后单击 <strong>“Web Hook”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“终结点详细信息”</strong> 下，单击 <strong>“选择终结点”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择 Webhook”</strong> 窗格中的 <strong>“订阅者终结点”</strong> 下，粘贴你从逻辑应用复制的 URL，然后单击 <strong>“确认选择”</strong>。</p>
+
+    <blockquote>
+      <p><strong>重要说明</strong>： 不要单击“创建”！</p>
+    </blockquote>
+
+    <p>你可以在此处保存事件订阅，并接收在 IoT 中心内创建的每个设备的通知。但是，我们将在本实验室中使用可选字段筛选特定设备。</p>
+  </li>
+  <li>
+    <p>在窗格顶部，单击 <strong>“筛选器”</strong>。</p>
+
+    <p>你将使用筛选器来筛选特定设备。</p>
+  </li>
+  <li>
+    <p>在 <strong>“高级筛选器”</strong> 下，单击 <strong>“新增筛选器”</strong>，然后使用以下值填充字段：</p>
+
+    <ul>
+      <li>
+        <p><strong>密钥</strong>： 输入 <code>Subject</code></p>
+      </li>
+      <li>
+        <p><strong>操作员</strong>： 选择 <code>String begins with</code></p>
+      </li>
+      <li>
+        <p><strong>值</strong>：  输入 <code>devices/sensor-th</code></p>
+      </li>
+    </ul>
+
+    <p>我们将使用该值来筛选与奶酪储藏室温度和湿度传感器相关的设备事件。</p>
+  </li>
+  <li>
+    <p>要保存事件订阅，请单击 <strong>“创建”</strong>。</p>
+  </li>
+</ol>
+
+<h3 id="练习-4使用新设备测试逻辑应用">练习 4：使用新设备测试逻辑应用</h3>
+
+<p>新建设备来触发事件通知电子邮件，从而测试逻辑应用。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，按需导航到“IoT 中心”边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在左侧导航菜单中的 <strong>“资源管理器”</strong> 选项下，单击 <strong>“IoT 设备”</strong>。</p>
+  </li>
+  <li>
+    <p>在“IoT 设备”边栏选项卡顶部，单击 <strong>“+ 新建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“设备 ID”</strong> 字段中，输入 <strong>“sensor-th-0050”</strong></p>
+  </li>
+  <li>
+    <p>保留所有其他字段的默认值，然后单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>要测试事件订阅筛选器，请使用以下设备 ID 创建其他设备：</p>
+
+    <ul>
+      <li><code>sensor-v-3002</code></li>
+      <li><code>sensor-th-0030</code></li>
+      <li><code>sensor-v-3003</code></li>
+    </ul>
+
+    <p>如果总共添加了四个示例，则 IoT 设备列表应如下图所示：</p>
+
+    <p><a href="media/LAB_AK_09-iot-hub-device-list.png" target="_blank"><img src="media/LAB_AK_09-iot-hub-device-list.png" alt="IoT 中心设备列表"></a></p>
+  </li>
+  <li>
+    <p>将一些设备添加到 IoT 中心后，请查看你的电子邮件以了解哪些设备触发了逻辑应用。</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.js"></script>
+
+
+
+</body></html>

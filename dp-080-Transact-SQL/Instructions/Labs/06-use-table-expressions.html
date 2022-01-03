@@ -1,0 +1,268 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            dp-080-Transact-SQL
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                dp-080-Transact-SQL
+            </a>
+            <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#challenge-1-create-a-view">Challenge 1: Create a view</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2-use-a-derived-table">Challenge 2: Use a derived table</a></li><li class="nav-item"><a class="nav-link" href="#challenge-1">Challenge 1</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2">Challenge 2</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="create-queries-with-table-expressions">Create queries with table expressions</h1>
+
+<p>In this lab, you’ll use table expressions to query the <strong>adventureworks</strong> database. For your reference, the following diagram shows the tables in the database (you may need to resize the pane to see them clearly).</p>
+
+<p><a href="images/adventureworks-erd.png" target="_blank"><img src="images/adventureworks-erd.png" alt="An entity relationship diagram of the adventureworks database"></a></p>
+
+<blockquote>
+  <p><strong>Note</strong>: If you’re familiar with the standard <strong>AdventureWorks</strong> sample database, you may notice that in this lab we are using a simplified version that makes it easier to focus on learning Transact-SQL syntax.</p>
+</blockquote>
+
+<h2 id="create-a-view">Create a view</h2>
+
+<p>You use the CREATE VIEW statement to create a view.</p>
+
+<ol>
+  <li>
+    <p>Start Azure Data Studio, and create a new query (you can do this from the <strong>File</strong> menu or on the <em>welcome</em> page).</p>
+  </li>
+  <li>
+    <p>In the new <strong>SQLQuery_…</strong> pane, use the <strong>Connect</strong> button to connect the query to the <strong>AdventureWorks</strong> saved connection.</p>
+  </li>
+  <li>
+    <p>After you’ve connected to your database, you can query it.  Let’s fetch some data. Enter the following query to retrieve all products that are classified as road bikes (<em>ProductCategoryID=6</em>) from the <strong>SalesLT.Products</strong> table:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ListPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ProductCategoryID = <span class="hljs-number"><span class="hljs-number">6</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>⏵Run</strong> to run your query.</p>
+  </li>
+  <li>
+    <p>The query returned all products that are categorized as road bikes. But what if you wanted to use a view for this data to ensure applications don’t need to access the underlying table to fetch it? Replace your previous code with the code shown below:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">VIEW</span></span> SalesLT.vProductsRoadBikes <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ListPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ProductCategoryID = <span class="hljs-number"><span class="hljs-number">6</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>This code creates a view called <strong>vProductsRoadBikes</strong> for all road bikes. Select <strong>⏵Run</strong> to run the code and create the view.</p>
+  </li>
+</ol>
+
+<h2 id="query-a-view">Query a view</h2>
+
+<p>You’ve created your view. Now you can use it. For example, you can use your view to get a list of any road bikes based on their <strong>ListPrice</strong>.</p>
+
+<ol>
+  <li>
+    <p>In the query editor, replace the code you entered previously with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ListPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.vProductsRoadBikes
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ListPrice &lt; <span class="hljs-number"><span class="hljs-number">1000</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>⏵Run</strong>.</p>
+  </li>
+  <li>
+    <p>Review the results. You’ve queried your view and retrieved a list of any road bikes that have a <strong>ListPrice</strong> under 1000. Your query uses your view as a source for the data. This means your applications can use your view for specific searches like this, and won’t need to access the underlying table to fetch the data they need.</p>
+  </li>
+</ol>
+
+<h2 id="use-a-derived-table">Use a derived table</h2>
+
+<p>Sometimes you might end up having to rely on complex queries. You can use derived tables in place of those complex queries to avoid adding to their complexity.</p>
+
+<ol>
+  <li>
+    <p>In the query editor, replace the code you entered previously with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ListPrice,
+        <span class="hljs-keyword"><span class="hljs-keyword">CASE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> ListPrice &gt; <span class="hljs-number"><span class="hljs-number">1000</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> N<span class="hljs-string"><span class="hljs-string">'High'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ELSE</span></span> N<span class="hljs-string"><span class="hljs-string">'Normal'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> PriceType
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>⏵Run</strong>.</p>
+  </li>
+  <li>
+    <p>The query calculates whether the price of a product is considered high or normal. But you’d like to be able to further build on this query based on additional criteria, without further adding to its complexity. In order to do this, you can create a derived table for it. Replace the previous code with the code below:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> DerivedTable.ProductID, DerivedTable.Name, DerivedTable.ListPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span>
+     (
+         <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span>
+         ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ListPrice,
+         <span class="hljs-keyword"><span class="hljs-keyword">CASE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> ListPrice &gt; <span class="hljs-number"><span class="hljs-number">1000</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> N<span class="hljs-string"><span class="hljs-string">'High'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ELSE</span></span> N<span class="hljs-string"><span class="hljs-string">'Normal'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> PriceType
+         <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+     ) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> DerivedTable
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> DerivedTable.PriceType = N<span class="hljs-string"><span class="hljs-string">'High'</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>⏵Run</strong>.</p>
+  </li>
+  <li>
+    <p>You’ve created derived table based on your previous query.  Your new code uses that derived table and fetches the <strong>ProductID</strong>, <strong>Name</strong>, and <strong>ListPrice</strong> of products that have a <strong>PriceType</strong> of <em>High</em> only. Your derived table enabled you to easily build on top of your initial query based on your additional criteria, without making the initial query any more complex.</p>
+  </li>
+</ol>
+
+<h2 id="challenges">Challenges</h2>
+
+<p>Now it’s your turn to use table expressions.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>: Try to determine the appropriate code for yourself. If you get stuck, suggested answers are provided at the end of this lab.</p>
+</blockquote>
+
+<h3 id="challenge-1-create-a-view">Challenge 1: Create a view</h3>
+
+<p>Adventure Works is forming a new sales team located in Canada. The team wants to create a map of all of the customer addresses in Canada. This team will need access to address details on Canadian customers only. Your manager has asked you to make sure that the team can get the data they require, but ensure that they don’t access the underlying source data when getting their information.</p>
+
+<p>To carry out the task do the following:</p>
+
+<ol>
+  <li>Write a Transact-SQL query to create a view for customer addresses in Canada.
+    <ul>
+      <li>Create a view based on the following columns in the <strong>SalesLT.Address</strong> table:
+        <ul>
+          <li><strong>AddressLine1</strong></li>
+          <li><strong>City</strong></li>
+          <li><strong>StateProvince</strong></li>
+          <li><strong>CountryRegion</strong></li>
+        </ul>
+      </li>
+      <li>In your query, use the <strong>CountryRegion</strong> column to filter for addresses located in <em>Canada</em> only.</li>
+    </ul>
+  </li>
+  <li>Query your new view.
+    <ul>
+      <li>Fetch the rows in your newly created view to ensure it was created successfully. Notice that it only shows address in Canada.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="challenge-2-use-a-derived-table">Challenge 2: Use a derived table</h3>
+
+<p>The transportation team at Adventure Works wants to optimize its processes. Products that weigh more than 1000 are considered to be heavy products, and will also need to use a new transportation method if their list price is over 2000. You’ve been asked to classify products according to their weight, and then provide a list of products that meet both these weight and list price criteria.</p>
+
+<p>To help, you’ll:</p>
+
+<ol>
+  <li>Write a query that classifies products as heavy and normal based on their weight.
+    <ul>
+      <li>Use the <strong>Weight</strong> column to decide whether a product is heavy or normal.</li>
+    </ul>
+  </li>
+  <li>Create a derived table based on your query
+    <ul>
+      <li>Use your derived table to find any heavy products with a list price over 2000.</li>
+      <li>Make sure to select the following columns: <strong>ProductID, Name, Weight, ListPrice</strong>.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="challenge-solutions">Challenge Solutions</h2>
+
+<p>This section contains suggested solutions for the challenge queries.</p>
+
+<h3 id="challenge-1">Challenge 1</h3>
+
+<ol>
+  <li>
+    <p>Write a Transact-SQL query to create a view for customer addresses in Canada.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">VIEW</span></span> SalesLT.vAddressCA <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> AddressLine1, City, StateProvince, CountryRegion
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Address
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> CountryRegion = <span class="hljs-string"><span class="hljs-string">'Canada'</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Query your new view.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> * <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.vAddressCA;
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="challenge-2">Challenge 2</h3>
+
+<ol>
+  <li>
+    <p>Write a query that classifies products as heavy and normal based on their weight.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, Weight, ListPrice,
+        <span class="hljs-keyword"><span class="hljs-keyword">CASE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> Weight &gt; <span class="hljs-number"><span class="hljs-number">1000</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> N<span class="hljs-string"><span class="hljs-string">'Heavy'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ELSE</span></span> N<span class="hljs-string"><span class="hljs-string">'Normal'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> WeightType
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>
+    <p>Create a derived table based on your query.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> DerivedTable.ProductID, DerivedTable.Name, DerivedTable.Weight, DerivedTable.ListPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span>
+     (
+         <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, Weight, ListPrice,
+                <span class="hljs-keyword"><span class="hljs-keyword">CASE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> Weight &gt; <span class="hljs-number"><span class="hljs-number">1000.</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> N<span class="hljs-string"><span class="hljs-string">'Heavy'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ELSE</span></span> N<span class="hljs-string"><span class="hljs-string">'Normal'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> WeightType
+         <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+     ) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> DerivedTable
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> DerivedTable.WeightType = N<span class="hljs-string"><span class="hljs-string">'Heavy'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AND</span></span> DerivedTable.ListPrice &gt; <span class="hljs-number"><span class="hljs-number">2000</span></span>;
+</code></pre>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="ml-2">
+                    MicrosoftLearning/dp-080-Transact-SQL
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.js"></script>
+
+
+
+</body></html>

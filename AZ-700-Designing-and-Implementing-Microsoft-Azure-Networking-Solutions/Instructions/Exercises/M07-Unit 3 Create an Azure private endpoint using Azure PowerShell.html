@@ -1,0 +1,508 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m07-unit-3-create-an-azure-private-endpoint-using-azure-powershell">M07-Unit 3 Create an Azure private endpoint using Azure PowerShell</h1>
+
+<p>Get started with Azure Private Link by using a Private Endpoint to connect securely to an Azure web app. There are many ways to create Endpoints including Portal, CLI, PowerShell etc.</p>
+
+<p>You’ll create a Private Endpoint for an Azure web app and deploy a virtual machine to test the private connection.</p>
+
+<p>Private Endpoints can be created for different kinds of Azure services, such as Azure SQL and Azure Storage.</p>
+
+<p><strong>Prerequisites</strong></p>
+
+<ul>
+  <li>
+    <p>An Azure account with an active subscription. Create an account for free.</p>
+  </li>
+  <li>
+    <p>An Azure Web App with a PremiumV2-tier or higher app service plan deployed in your Azure subscription.</p>
+  </li>
+</ul>
+
+<ol>
+  <li>
+    <p>Find and open parameters.json in M07 folder. Open it in Notepad and find the line “value”: “GEN-UNIQUE”. Replace the placeholder GEN-UNIQUE string with a unique value for your webapp name. Save this change.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, click the Upload/Download files icon, in the drop-down menu, click Upload and upload the following files template.json and parameters.json into the Cloud Shell home directory.</p>
+  </li>
+</ol>
+
+<p>If you choose to install and use PowerShell locally, this example requires the Azure PowerShell module version 5.4.1 or later. Run <code>Get-Module -ListAvailable Az</code> to find the installed version. If you need to upgrade, see <a href="https://docs.microsoft.com/en-us/azure/app-service/quickstart-dotnetcore">Install Azure PowerShell module</a>. If you’re running PowerShell locally, you also need to run <code>Connect-AzAccount</code> to create a connection with Azure.</p>
+
+<p>In this exercise, you will:</p>
+
+<ul>
+  <li>Task 1: Create a resource group</li>
+  <li>Task 2: Create a virtual network and bastion host</li>
+  <li>Task 3: Create a test virtual machine</li>
+  <li>Task 4: Create a Private Endpoint</li>
+  <li>Task 5: Configure the private DNS zone</li>
+  <li>Task 6: Test connectivity to the Private Endpoint</li>
+  <li>Task 7: Clean up resources</li>
+</ul>
+
+<h2 id="task-1-create-a-resource-group-and-deploy-the-prerequisite-web-app">Task 1: Create a resource group and deploy the prerequisite web app</h2>
+
+<p>An Azure resource group is a logical container into which Azure resources are deployed and managed.</p>
+
+<p>Create a resource group with <a href="https://docs.microsoft.com/en-us/powershell/module/az.resources/new-azresourcegroup">New-AzResourceGroup</a>:</p>
+
+<p>```Azure PowerShell
+New-AzResourceGroup -Name ‘CreatePrivateEndpointQS-rg’ -Location ‘eastus’</p>
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs php">Deploy the following ARM templates to create the PremiumV2-tier Azure Web App needed <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> this exercise:
+
+   ```powershell
+   $RGName = <span class="hljs-string"><span class="hljs-string">"CreatePrivateEndpointQS-rg"</span></span>
+   
+   <span class="hljs-keyword"><span class="hljs-keyword">New</span></span>-AzResourceGroupDeployment -ResourceGroupName $RGName -TemplateFile template.json -TemplateParameterFile parameters.json
+</code></pre>
+
+<h2 id="task-2-create-a-virtual-network-and-bastion-host">Task 2: Create a virtual network and bastion host</h2>
+
+<p>You’ll create a virtual network, subnet, and bastion host.</p>
+
+<p>The bastion host will be used to connect securely to the virtual machine for testing the Private Endpoint.</p>
+
+<p>Create a virtual network and bastion host with:</p>
+
+<ul>
+  <li>
+    <p>New-AzVirtualNetwork</p>
+  </li>
+  <li>
+    <p>New-AzPublicIpAddress</p>
+  </li>
+  <li>
+    <p>New-AzBastion</p>
+  </li>
+</ul>
+
+<p>```Azure PowerShell</p>
+<h2 id="create-backend-subnet-config">Create backend subnet config.</h2>
+
+<p>$subnetConfig = New-AzVirtualNetworkSubnetConfig -Name myBackendSubnet -AddressPrefix 10.0.0.0/24```</p>
+
+<h2 id="create-azure-bastion-subnet">Create Azure Bastion subnet.</h2>
+
+<p>$bastsubnetConfig = New-AzVirtualNetworkSubnetConfig -Name AzureBastionSubnet -AddressPrefix 10.0.1.0/24</p>
+
+<h2 id="create-the-virtual-network">Create the virtual network.</h2>
+
+<p>$parameters1 = @{</p>
+
+<p>Name = ‘MyVNet’</p>
+
+<p>ResourceGroupName = ‘CreatePrivateEndpointQS-rg’</p>
+
+<p>Location = ‘eastus’</p>
+
+<p>AddressPrefix = ‘10.0.0.0/16’</p>
+
+<p>Subnet = $subnetConfig, $bastsubnetConfig</p>
+
+<p>}</p>
+
+<p>$vnet = New-AzVirtualNetwork <a href="https://github.com/parameters1" class="user-mention">@parameters1</a></p>
+
+<h2 id="create-public-ip-address-for-bastion-host">Create public IP address for bastion host.</h2>
+
+<p>$parameters2 = @{</p>
+
+<p>Name = ‘myBastionIP’</p>
+
+<p>ResourceGroupName = ‘CreatePrivateEndpointQS-rg’</p>
+
+<p>Location = ‘eastus’</p>
+
+<p>Sku = ‘Standard’</p>
+
+<p>AllocationMethod = ‘Static’</p>
+
+<p>}</p>
+
+<p>$publicip = New-AzPublicIpAddress <a href="https://github.com/parameters2" class="user-mention">@parameters2</a></p>
+
+<h2 id="create-bastion-host">Create bastion host</h2>
+
+<p>$parameters3 = @{</p>
+
+<p>ResourceGroupName = ‘CreatePrivateEndpointQS-rg’</p>
+
+<p>Name = ‘myBastion’</p>
+
+<p>PublicIpAddress = $publicip</p>
+
+<p>VirtualNetwork = $vnet</p>
+
+<p>}</p>
+
+<p>New-AzBastion <a href="https://github.com/parameters3" class="user-mention">@parameters3</a></p>
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs http">
+
+<span class="http"><span class="http">
+
+</span><span class="shell"><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Task 3: Create a test virtual machine</span></span></span></span></span></span><span class="http"><span class="shell">
+
+In this section, you'll create a virtual machine that will be used to test the Private Endpoint.
+
+- Create the virtual machine with:
+
+- Get-Credential (Note: when prompted enter a local admin account credentials for the VM (i.e. Student and Pa55w.rd1234)).
+
+- New-AzNetworkInterface
+
+- New-AzVM
+
+- New-AzVMConfig
+
+- Set-AzVMOperatingSystem
+
+- Set-AzVMSourceImage
+
+- Add-AzVMNetworkInterface
+
+``` Azure PowerShell
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Set credentials for server admin and password. ##</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">cred = Get-Credential</span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Command to get virtual network configuration. ##</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">vnet = Get-AzVirtualNetwork -Name myVNet -ResourceGroupName CreatePrivateEndpointQS-rg</span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Command to create network interface for VM ##</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">parameters1 = @{</span></span></span></span><span class="http"><span class="shell">
+
+ Name = 'myNicVM'
+
+ ResourceGroupName = 'CreatePrivateEndpointQS-rg'
+
+ Location = 'eastus'
+
+ Subnet = $vnet.Subnets[0]
+
+}
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">nicVM = New-AzNetworkInterface @parameters1</span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Create a virtual machine configuration.##</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">parameters2 = @{</span></span></span></span><span class="http"><span class="shell">
+
+ VMName = 'myVM'
+
+ VMSize = 'Standard_DS1_v2'
+
+}
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">parameters3 = @{</span></span></span></span><span class="http"><span class="shell">
+
+ ComputerName = 'myVM'
+
+ Credential = $cred
+
+}
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">parameters4 = @{</span></span></span></span><span class="http"><span class="shell">
+
+ PublisherName = 'MicrosoftWindowsServer'
+
+ Offer = 'WindowsServer'
+
+ Skus = '2019-Datacenter'
+
+ Version = 'latest'
+
+}
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">vmConfig = New-AzVMConfig @parameters2 | Set-AzVMOperatingSystem -Windows @parameters3 | Set-AzVMSourceImage @parameters4 | Add-AzVMNetworkInterface -Id </span></span></span><span class="hljs-variable"><span class="http"><span class="shell"><span class="bash"><span class="hljs-variable">$nicVM</span></span></span></span></span><span class="http"><span class="shell"><span class="bash">.Id</span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Create the virtual machine ##</span></span></span></span></span></span><span class="http"><span class="shell">
+
+New-AzVM -ResourceGroupName 'CreatePrivateEndpointQS-rg' -Location 'eastus' -VM $vmConfig 
+
+
+</span></span></span></span></code></pre>
+
+<p>Azure provides an ephemeral IP for Azure Virtual Machines which aren’t assigned a public IP address, or are in the backend pool of an internal Basic Azure Load Balancer. The ephemeral IP mechanism provides an outbound IP address that isn’t configurable.</p>
+
+<p>The ephemeral IP is disabled when a public IP address is assigned to the virtual machine or the virtual machine is placed in the backend pool of a Standard Load Balancer with or without outbound rules. If a Azure Virtual Network NAT gateway resource is assigned to the subnet of the virtual machine, the ephemeral IP is disabled.</p>
+
+<p>For more information on outbound connections in Azure, see Using Source Network Address Translation (SNAT) for outbound connections.</p>
+
+<h2 id="task-4-create-a-private-endpoint">Task 4: Create a Private Endpoint</h2>
+
+<p>In this section, you’ll create the Private Endpoint and connection using:</p>
+
+<ul>
+  <li>
+    <p>New-AzPrivateLinkServiceConnection</p>
+  </li>
+  <li>
+    <p>New-AzPrivateEndpoint</p>
+  </li>
+</ul>
+
+<p>```Azure PowerShell</p>
+<h2 id="place-web-app-into-variable-replace--with-the-resource-group-of-your-webapp">Place web app into variable. Replace <webapp-resource-group-name> with the resource group of your webapp.</webapp-resource-group-name>
+</h2>
+
+<h2 id="replace--with-your-webapp-name">Replace <your-webapp-name> with your webapp name</your-webapp-name>
+</h2>
+
+<p>$webapp = Get-AzWebApp -ResourceGroupName <webapp-resource-group-name> -Name <your-webapp-name></your-webapp-name></webapp-resource-group-name></p>
+
+<h2 id="create-private-endpoint-connection">Create Private Endpoint connection.</h2>
+
+<p>$parameters1 = @{</p>
+
+<p>Name = ‘myConnection’</p>
+
+<p>PrivateLinkServiceId = $webapp.ID</p>
+
+<p>GroupID = ‘sites’</p>
+
+<p>}</p>
+
+<p>$privateEndpointConnection = New-AzPrivateLinkServiceConnection <a href="https://github.com/parameters1" class="user-mention">@parameters1</a></p>
+
+<h2 id="place-virtual-network-into-variable">Place virtual network into variable.</h2>
+
+<p>$vnet = Get-AzVirtualNetwork -ResourceGroupName ‘CreatePrivateEndpointQS-rg’ -Name ‘myVNet’</p>
+
+<h2 id="disable-private-endpoint-network-policy">Disable private endpoint network policy</h2>
+
+<p>$vnet.Subnets[0].PrivateEndpointNetworkPolicies = “Disabled”</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>$vnet</td>
+      <td>Set-AzVirtualNetwork</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="create-private-endpoint">Create private endpoint</h2>
+
+<p>$parameters2 = @{</p>
+
+<p>ResourceGroupName = ‘CreatePrivateEndpointQS-rg’</p>
+
+<p>Name = ‘myPrivateEndpoint’</p>
+
+<p>Location = ‘eastus’</p>
+
+<p>Subnet = $vnet.Subnets[0]</p>
+
+<p>PrivateLinkServiceConnection = $privateEndpointConnection</p>
+
+<p>}</p>
+
+<p>New-AzPrivateEndpoint <a href="https://github.com/parameters2" class="user-mention">@parameters2</a></p>
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs http">
+
+<span class="http"><span class="http">
+
+</span><span class="shell"><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Task 5: Configure the private DNS zone</span></span></span></span></span></span><span class="http"><span class="shell">
+
+In this section you'll create and configure the private DNS zone using:
+
+- New-AzPrivateDnsZone
+
+- New-AzPrivateDnsVirtualNetworkLink
+
+- New-AzPrivateDnsZoneConfig
+
+- New-AzPrivateDnsZoneGroup
+
+```Azure PowerShell
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Place virtual network into variable. ##</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">vnet = Get-AzVirtualNetwork -ResourceGroupName </span></span></span><span class="hljs-string"><span class="http"><span class="shell"><span class="bash"><span class="hljs-string">'CreatePrivateEndpointQS-rg'</span></span></span></span></span><span class="http"><span class="shell"><span class="bash"> -Name </span></span></span><span class="hljs-string"><span class="http"><span class="shell"><span class="bash"><span class="hljs-string">'myVNet'</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Create private dns zone. ##</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">parameters1 = @{</span></span></span></span><span class="http"><span class="shell">
+
+ ResourceGroupName = 'CreatePrivateEndpointQS-rg'
+
+ Name = 'privatelink.azurewebsites.net'
+
+}
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">zone = New-AzPrivateDnsZone @parameters1</span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Create dns network link. ##</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">parameters2 = @{</span></span></span></span><span class="http"><span class="shell">
+
+ ResourceGroupName = 'CreatePrivateEndpointQS-rg'
+
+ ZoneName = 'privatelink.azurewebsites.net'
+
+ Name = 'myLink'
+
+ VirtualNetworkId = $vnet.Id
+
+}
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">link = New-AzPrivateDnsVirtualNetworkLink @parameters2</span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Create DNS configuration ##</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">parameters3 = @{</span></span></span></span><span class="http"><span class="shell">
+
+ Name = 'privatelink.azurewebsites.net'
+
+ PrivateDnsZoneId = $zone.ResourceId
+
+}
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">config = New-AzPrivateDnsZoneConfig @parameters3</span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+#</span></span></span></span><span class="bash"><span class="hljs-comment"><span class="http"><span class="shell"><span class="bash"><span class="hljs-comment"># Create DNS zone group. ##</span></span></span></span></span></span><span class="http"><span class="shell">
+</span></span><span class="hljs-meta"><span class="http"><span class="shell"><span class="hljs-meta">
+$</span></span></span></span><span class="bash"><span class="http"><span class="shell"><span class="bash">parameters4 = @{</span></span></span></span><span class="http"><span class="shell">
+
+ ResourceGroupName = 'CreatePrivateEndpointQS-rg'
+
+ PrivateEndpointName = 'myPrivateEndpoint'
+
+ Name = 'myZoneGroup'
+
+ PrivateDnsZoneConfig = $config
+
+}
+
+New-AzPrivateDnsZoneGroup @parameters4 
+</span></span></span></span></code></pre>
+
+<h2 id="task-6-test-connectivity-to-the-private-endpoint">Task 6: Test connectivity to the Private Endpoint</h2>
+
+<p>In this section, you’ll use the virtual machine you created in the previous step to connect to the SQL server across the Private Endpoint.</p>
+
+<ul>
+  <li>
+    <p>Sign in to the <a href="https://portal.azure.com/">Azure portal</a></p>
+  </li>
+  <li>
+    <p>Select <strong>Resource groups</strong> in the left-hand navigation pane.</p>
+  </li>
+  <li>
+    <p>Select <strong>CreatePrivateEndpointQS-rg</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>myVM</strong>.</p>
+  </li>
+  <li>
+    <p>On the overview page for <strong>myVM</strong>, select <strong>Connect</strong> then <strong>Bastion</strong>.</p>
+  </li>
+  <li>
+    <p>Select the blue <strong>Use Bastion</strong> button.</p>
+  </li>
+  <li>
+    <p>Enter the username and password that you entered during the virtual machine creation.</p>
+  </li>
+  <li>
+    <p>Open Windows PowerShell on the server after you connect.</p>
+  </li>
+  <li>
+    <p>Enter nslookup &lt;your- webapp-name&gt;.azurewebsites.net. Replace &lt;your-webapp-name&gt; with the name of the web app you created in the previous steps. You’ll receive a message similar to what is displayed below:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">Server</span></span>: <span class="hljs-selector-tag"><span class="hljs-selector-tag">UnKnown</span></span>
+  
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">Address</span></span>: 168<span class="hljs-selector-class"><span class="hljs-selector-class">.63</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.129</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.16</span></span>
+  
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">Non-authoritative</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">answer</span></span>:
+  
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">Name</span></span>: <span class="hljs-selector-tag"><span class="hljs-selector-tag">mywebapp8675</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.privatelink</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.azurewebsites</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.net</span></span>
+  
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">Address</span></span>: 10<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.5</span></span>
+  
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">Aliases</span></span>: <span class="hljs-selector-tag"><span class="hljs-selector-tag">mywebapp8675</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.azurewebsites</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.net</span></span> 
+</code></pre>
+  </li>
+</ul>
+
+<p>A private IP address of <strong>10.0.0.5</strong> is returned for the web app name. This address is in the subnet of the virtual network you created previously.</p>
+
+<ul>
+  <li>In the bastion connection to <strong>myVM</strong>, open Internet Explorer.</li>
+  <li>Enter the url of your web app, <strong>https://&lt;your-webapp-name&gt;.azurewebsites.net</strong>.</li>
+  <li>You’ll receive the default web app page if your application hasn’t been deployed:
+<a href="../media/web-app-default-page.png" target="_blank"><img src="../media/web-app-default-page.png" alt="screen shot of page in Azure indicating an app service is up and running"></a>
+</li>
+  <li>Close the connection to <strong>myVM</strong>.</li>
+</ul>
+
+<h2 id="task-7-clean-up-resources">Task 7: Clean up resources</h2>
+
+<p>When you’re done using the Private Endpoint and the VM, use <a href="https://docs.microsoft.com/en-us/powershell/module/az.resources/remove-azresourcegroup">Remove-AzResourceGroup</a> to remove the resource group and all the resources it has:</p>
+
+<p><code>Azure PowerShell
+Remove-AzResourceGroup -Name CreatePrivateEndpointQS-rg -Force -AsJob
+</code></p>
+
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

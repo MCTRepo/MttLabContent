@@ -1,0 +1,1279 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220ZH-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220ZH-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1验证实验室先决条件">练习 1：验证实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习2启用-azure-defender-for-iot-中心">练习2：启用 Azure Defender for IoT 中心</a></li><li class="nav-item"><a class="nav-link" href="#练习-3创建并注册新设备">练习 3：创建并注册新设备</a></li><li class="nav-item"><a class="nav-link" href="#练习-4创建一个安全模块孪生">练习 4：创建一个安全模块孪生</a></li><li class="nav-item"><a class="nav-link" href="#练习-5部署-azure-defender-for-iot-c-安全代理">练习 5：部署 Azure Defender for IoT C# 安全代理</a></li><li class="nav-item"><a class="nav-link" href="#练习-6配置解决方案管理">练习 6：配置解决方案管理</a></li><li class="nav-item"><a class="nav-link" href="#练习-7引入自定义警报">练习 7：引入自定义警报</a></li><li class="nav-item"><a class="nav-link" href="#练习-8配置设备应用">练习 8：配置设备应用</a></li><li class="nav-item"><a class="nav-link" href="#练习-9查看-azure-defender-for-iot-警报">练习 9：查看 Azure Defender for IoT 警报</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="使用-azure-defender-for-iot-检测设备篡改情况">使用 Azure Defender for IoT 检测设备篡改情况</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>Contoso 在构建所有解决方案时都考虑到了安全性。但是，他们希望了解如何更好地在其所有本地和云工作负载（包括其 Azure IoT 解决方案）中获得安全性的统一视图。另外，在加入新设备时，该公司希望跨工作负载（Leaf 设备、Microsoft Edge 设备、IoT 中心）应用安全策略，以确保符合安全标准并改善安全状况。</p>
+
+<p>Contoso 正在增加一条配备了新 IoT 设备的全新装配线，以帮助解决增加新订单带来的运输和包装需求。你希望确保所有新设备都受到保护，并且还希望能够看到可帮助继续提高解决方案安全性的安全建议（考虑完整的端到端 IoT 解决方案）。你将开始针对解决方案使用 Azure IoT Center for IoT 进行调查。</p>
+
+<p>Contoso 还正在安装新连接的恒温器，以提高对不同奶酪储藏室温度的监视和控制能力。作为 Contoso 安全要求的一部分，你将创建一个自定义警报，以监视恒温器是否超出了预期的遥测传输频率。</p>
+
+<p>将创建以下资源：</p>
+
+<p><a href="media/LAB_AK_18-architecture.png" target="_blank"><img src="media/LAB_AK_18-architecture.png" alt="实验室 18 基础结构"></a></p>
+
+<blockquote>
+  <p><strong>提示</strong>： <strong>Azure Defender for IoT</strong> 之前被称为适用于 IoT 的 Azure 安全中心。由于更名是分阶段开展的，因此可能会在在线文档、GitHub 资源和本内容中发现一些不一致的地方。</p>
+</blockquote>
+
+<h2 id="本实验室概览">本实验室概览</h2>
+
+<p>在本实验室中，你将完成以下活动：</p>
+
+<ul>
+  <li>
+    <p>验证是否满足实验室先决条件（具有必需的 Azure 资源）</p>
+
+    <ul>
+      <li>该脚本将创建 IoT 中心（如果需要）</li>
+    </ul>
+  </li>
+  <li>启用 Azure Defender for IoT</li>
+  <li>创建并注册新设备</li>
+  <li>创建一个安全模块孪生</li>
+  <li>在 Linux 设备上安装基于 C# 的安全代理</li>
+  <li>配置受监视的资源</li>
+  <li>创建自定义警报</li>
+  <li>创建控制台应用以触发警报</li>
+  <li>在 Azure Defender for IoT 查看警报</li>
+</ul>
+
+<h2 id="实验室说明">实验室说明</h2>
+
+<h3 id="练习-1验证实验室先决条件">练习 1：验证实验室先决条件</h3>
+
+<p>本实验室假定以下 Azure 资源可用：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">资源类型</th>
+      <th style="text-align: left">资源名称</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">资源组</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT 中心</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>如果这些资源不可用，请按照以下说明运行 <strong>lab18-setup.azcli</strong> 脚本，然后再前往练习 2。脚本文件包含在本地克隆作为开发环境配置（实验室 3）的 GitHub 存储库中。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 写入 <strong>lab18-setup.azcli</strong>  脚本，在 <strong>Bash</strong> shell 环境中运行 - 在 Azure Cloud Shell 中执行此操作最简便。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>使用浏览器，打开 <a href="https://shell.azure.com/">Azure Cloud Shell</a>，并使用本课程使用的 Azure 订阅登录。</p>
+  </li>
+  <li>
+    <p>如果系统提示设置 Cloud Shell 的存储，请接受默认设置。</p>
+  </li>
+  <li>
+    <p>验证 Cloud Shell 是否在使用 <strong>Bash</strong>。</p>
+
+    <p>Azure Cloud Shell 页面左上角的下拉菜单用于选择环境。验证所选的下拉值是否为 <strong>Bash</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 工具栏上，单击 <strong>“上传/下载文件”</strong> （从右数第四个按钮）。</p>
+  </li>
+  <li>
+    <p>在下拉菜单中，单击 <strong>“上传”</strong>。</p>
+  </li>
+  <li>
+    <p>在“文件选择”对话框中，导航到配置开发环境时下载的 GitHub 实验室文件的文件夹位置。</p>
+
+    <p>在本课程的实验室 3（“设置开发环境”）中，通过下载 ZIP 文件并在本地提取内容来克隆包含实验室资源的 GitHub 存储库。提取的文件夹结构包括以下文件夹路径：</p>
+
+    <ul>
+      <li>Allfiles
+        <ul>
+          <li>实验室
+            <ul>
+              <li>18-Azure-security-center-for-iot
+                <ul>
+                  <li>设置</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>lab18-setup.azcli 脚本文件位于实验室 18 的 Setup 文件夹中。</p>
+  </li>
+  <li>
+    <p>选择 <strong>lab18-setup.azcli</strong> 文件，然后单击 <strong>“打开”</strong>。</p>
+
+    <p>文件上传完成后，系统将显示一条通知。</p>
+  </li>
+  <li>
+    <p>要验证是否上传了正确的文件，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs"> ls
+</code></pre>
+
+    <p>使用 <code>ls</code> 命令列出当前目录的内容。你应该会看到列出的 lab18-setup.azcli 文件。</p>
+  </li>
+  <li>
+    <p>若要为此实验室创建一个包含安装脚本的目录，然后移至该目录，请输入以下 Bash 命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs"> mkdir lab18
+ mv lab18-setup.azcli lab18
+ <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> lab18
+</code></pre>
+
+    <p>这些命令将为此实验室创建一个目录，将 <strong>lab18-setup.azcli</strong> 文件放入该目录，然后将当前工作目录更改为该新目录。</p>
+  </li>
+  <li>
+    <p>为确保 <strong>“lab18-setup.azcli”</strong> 具有执行权限，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs"> chmod +x lab18-setup.azcli
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”工具栏上，请单击 <strong>“打开编辑器”</strong> （右侧的第二个按钮 - <strong>{ }</strong>）以启用对 lab18-setup.azcli 文件的访问。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 列表中，要展开 lab18 文件夹并打开脚本文件，请先单击 <strong>“lab18”</strong>，再单击 <strong>“lab18-setup.azcli”</strong>。</p>
+
+    <p>编辑器现在将显示 <strong>lab18-setup.azcli</strong> 文件的内容。</p>
+  </li>
+  <li>
+    <p>在编辑器中，更新 <code>{your-id}</code> 和 <code>{your-location}</code> 变量的值。</p>
+
+    <p>以下面的示例为例，需要将 <code>{your-id}</code> 设置为在本课程开始时创建的唯一 ID（即 <strong>cah191211</strong>），然后将 <code>{your-location}</code> 设置为对你的资源有意义的位置。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> <span class="hljs-comment"><span class="hljs-comment">#!/bin/bash</span></span>
+
+ <span class="hljs-comment"><span class="hljs-comment"># Change these values!</span></span>
+ YourID=<span class="hljs-string"><span class="hljs-string">"{your-id}"</span></span>
+ Location=<span class="hljs-string"><span class="hljs-string">"{your-location}"</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 应将 <code>{your-location}</code> 变量设置为要部署所有资源的区域的短名称。输入以下命令，可以看到可用位置及其短名称的列表（<strong>“名称”</strong> 列）：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs"> az account list-locations -o Table
+
+ DisplayName           Latitude    Longitude    Name
+ --------------------  ----------  -----------  ------------------
+ East Asia             22.267      114.188      eastasia
+ Southeast Asia        1.283       103.833      southeastasia
+ Central US            41.5908     -93.6208     centralus
+ East US               37.3719     -79.8164     eastus
+ East US 2             36.6681     -78.3889     eastus2
+</code></pre>
+  </li>
+  <li>
+    <p>要保存对文件所做的更改并关闭编辑器，请单击编辑器窗口右上角的 <strong>…</strong>，然后单击 <strong>“关闭编辑器”</strong>。</p>
+
+    <p>如果提示保存，请单击 <strong>“保存”</strong>，编辑器将会关闭。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可以使用 <strong>Ctrl+S</strong> 随时保存，使用 <strong>Ctrl+Q</strong> 关闭编辑器。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>要创建本实验室所需的资源，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs"> ./lab18-setup.azcli
+</code></pre>
+
+    <p>运行将花费几分钟时间。每个步骤完成时，你都会看到输出。</p>
+  </li>
+</ol>
+
+<h3 id="练习2启用-azure-defender-for-iot-中心">练习2：启用 Azure Defender for IoT 中心</h3>
+
+<p>借助 Azure Defender for IoT，你能够统一安全管理，同时对混合云工作负载以及 Azure IoT 解决方案启用端到端的威胁检测和分析。</p>
+
+<p>Azure Defender for IoT 由以下组件构成：</p>
+
+<ul>
+  <li>IoT 中心集成</li>
+  <li>设备代理（可选）</li>
+  <li>发送安全消息 SDK</li>
+  <li>分析管道</li>
+</ul>
+
+<h4 id="任务-1启用-azure-defender-for-iot">任务 1：启用 Azure Defender for IoT</h4>
+
+<p>在此任务中，你将为 IoT 中心启用 <strong>Azure Defender for IoT</strong>。</p>
+
+<ol>
+  <li>
+    <p>如有必要，请使用 Azure 帐户凭据登录到 Azure 门户。</p>
+
+    <p>如果有多个 Azure 帐户，请确保使用与本课程要使用的订阅绑定的帐户登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 仪表板上，单击 <strong>“iot-az220-training-{your-id}”</strong>。</p>
+
+    <p>仪表板上的 rg-az220 资源组磁贴应该具有指向你的 IoT 中心的链接。</p>
+  </li>
+  <li>
+    <p>在左侧菜单中的“<strong>Defender for IoT</strong>”下，单击“<strong>概览</strong>”。</p>
+
+    <p>首次打开“安全性”窗格时，会载入 Azure Defender for IoT 中心。</p>
+  </li>
+  <li>
+    <p>如果显示 <strong>“保护 IoT 解决方案”</strong> 按钮，请单击 <strong>“保护 IoT 解决方案”</strong>，然后在出现提示时刷新浏览器窗口。</p>
+
+    <p>片刻之后，你会看到消息 <strong>“成功载入此 IoT 中心，请刷新以使更改生效”</strong></p>
+  </li>
+  <li>
+    <p>花费片刻时间查看“安全概述”窗格上的内容。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 载入 Azure Defender for IoT 的第一时间是无法立即检测到威胁的，在本实验室结束前，你将看到此“概览”窗格上报告威胁检测。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2创建-log-analytics">任务 2：创建 Log Analytics</h4>
+
+<p>启用 Azure Defender for IoT 以后，应创建 Azure Log Analytics 工作区，以用于存储 IoT 设备、IoT Edge 和 IoT 中心的原始安全事件、警报和建议。</p>
+
+<p>在此任务中，你将快速查看 Log Analytics 的工作区配置。</p>
+
+<ol>
+  <li>
+    <p>在左侧导航区域的 <strong>“安全性”</strong> 下，单击 <strong>“设置”</strong>。</p>
+
+    <p>随后显示 <strong>“设置”</strong> 页面，其中列出了可配置的四个部分：</p>
+
+    <ul>
+      <li>数据收集</li>
+      <li>推荐配置</li>
+      <li>受监视资源</li>
+      <li>自定义警报</li>
+    </ul>
+  </li>
+  <li>
+    <p>要查看默认 <strong>“数据收集”</strong> 设置，请单击 <strong>“数据收集”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“工作区配置”</strong> 部分的 <strong>“选择要连接到的 Log Analytics 工作区:”</strong> 下，确保切换按钮设置为 <strong>“开”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“订阅”</strong> 下拉列表中，确保已选择于本实验室要使用的订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“工作区”</strong> 下拉列表下，单击 <strong>“创建新工作区”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Log Analytics 工作区”</strong> 窗格的 <strong>“Log Analytics 工作区”</strong> 下，输入 <strong>“log-az220-training-{your-id}”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“订阅”</strong> 下，请确保已选择本课程要使用的订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 下拉列表中，单击 <strong>“rg-az220”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“位置”</strong> 下拉列表中，选择离你最近或已经预配 Azure IoT 中心的 Azure 区域。</p>
+  </li>
+  <li>
+    <p>在 <strong>“定价层”</strong> 下，确保已选择 <strong>“即用即付”</strong>。</p>
+  </li>
+  <li>
+    <p>要创建工作区，请单击 <strong>“确定”</strong>。</p>
+
+    <p>片刻之后，将创建工作区并关闭窗格。</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>返回到 **“设置”</td>
+          <td>“数据收集”** 页，在 <strong>“工作区”</strong> 下拉列表中，选择 <strong>“log-az220-training-{your-id}”</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>确保已勾选 <strong>“访问原始安全数据”</strong>。</p>
+  </li>
+  <li>
+    <p>确保已勾选 <strong>“深度安全建议和自定义警报”</strong>。</p>
+  </li>
+  <li>
+    <p>确保已勾选 <strong>“IP 数据收集”</strong>。</p>
+  </li>
+  <li>要保存“数据收集”配置，请单击 <strong>“保存”</strong>，要关闭页面，请单击页面右上方的 <strong>“关闭”</strong> 按钮。</li>
+</ol>
+
+<h3 id="练习-3创建并注册新设备">练习 3：创建并注册新设备</h3>
+
+<p>在本练习中，你将设置一个之后用于模拟 IoT 设备的虚拟机。在本实验室后面的部分中，你将使用此设备测量传送带上的振动。</p>
+
+<h4 id="任务-1新建-iot-设备">任务 1：新建 IoT 设备</h4>
+
+<p>在此任务中，你将创建代表你的 IoT 设备的虚拟机。你将在这个实验室中使用 VM 而不是模拟设备代码，因为你要在 IoT 设备 (VM) 上安装一个安全模块。</p>
+
+<ol>
+  <li>
+    <p>使用你的 Azure 帐户凭据登录到 <a href="https://portal.azure.com">portal.azure.com</a>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“搜索资源、服务和文档”</strong> 字段中，输入 <strong>“虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在搜索结果的 <strong>“服务”</strong> 下，单击 <strong>“虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在“<strong>虚拟机</strong>”页面上，单击“<strong>+ 创建</strong>”并选择“<strong>虚拟机</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“订阅”</strong> 下拉菜单中，请确保已选择将用于本课程的订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 下拉列表中，单击 <strong>“rg-az220vm”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 我们将使用一个资源组来跟踪和管理本课程中创建的所有虚拟机资源。如果 <strong>rg-az220vm</strong> 资源组还没有创建，请使用下面的说明立即创建：</p>
+    </blockquote>
+
+    <ul>
+      <li>在 <strong>“资源组”</strong> 下拉列表中，选择 <strong>“新建”</strong>。</li>
+      <li>在上下文菜单中的 <strong>“名称”</strong> 下，输入 <strong>“rg-az220vm”</strong>，然后单击 <strong>“确定”</strong></li>
+    </ul>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你可能会遇到建议为每个 VM 创建一个单独的资源组的指导。为每个虚拟机创建一个单独的资源组可以帮助你管理添加到虚拟机的任何额外资源。但由于在本课程中 VM 的使用方式比较简单，因此为每个 VM 建立单独的资源组是不必要的，也是不实际的。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“实例详细信息”</strong> 的 <strong>“虚拟机名称”</strong> 文本框中，输入 <strong>“vm-az220-training-edge0002-{your-id}”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“区域”</strong> 下拉列表中，选择离你最近或已经预配 Azure IoT 中心的 Azure 区域。</p>
+  </li>
+  <li>
+    <p>在 <strong>“可用性选项”</strong> 下拉列表中，确保选中 <strong>“无需基础架构冗余”</strong>。</p>
+
+    <blockquote>
+      <p><strong>提示</strong>：
+Azure 提供一系列的选项，用于管理应用程序的可用性和复原能力。将解决方案构建为使用可用性区域或可用性集中的已复制 VM，使应用和数据免受事件中心中断和维护事件的影响。在本实验室中，我们不需要任何高可用性功能。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“映像”</strong> 字段，选择 <strong>“Ubuntu Server 18.04 LTS - Gen1”</strong> 映像。</p>
+  </li>
+  <li>
+    <p>将 <strong>“Azure Spot 实例”</strong> 字段保留未勾选状态。</p>
+  </li>
+  <li>
+    <p>在 <strong>“大小”</strong> 右侧，单击 <strong>“改变大小”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择 VM 大小”</strong> 边栏选项卡的 <strong>“VM 大小”</strong> 下，单击 <strong>Standard_B1ms</strong>，然后单击 <strong>“选择”</strong>。</p>
+
+    <p>可能需要使用 <strong>“清除筛选器”</strong> 链接以在列表中提供此大小。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 并非所有 VM 大小都可在所有区域中使用。如果在后续步骤中无法选择 VM 大小，请尝试其他区域。例如，如果 <strong>“美国西部”</strong> 没有可用的尺寸，请尝试 <strong>“美国西部 2”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“管理员帐户”</strong> 下的 <strong>“身份验证类型”</strong> 右侧，单击 <strong>“密码”</strong>。</p>
+  </li>
+  <li>
+    <p>对于 VM 管理员帐户，输入<strong>用户名</strong>、<strong>密码</strong>和<strong>确认密码</strong>字段的值。</p>
+
+    <blockquote>
+      <p><strong>重要说明：</strong> 请勿遗失/忘记这些值 - 没有这些值就无法连接到 VM。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>请注意， <strong>“入站端口规则”</strong> 配置为启用入站 <strong>SSH</strong> 访问 VM 的权限。</p>
+
+    <p>这将用于远程连接到 VM 进行配置/管理。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>等待将显示在边栏选项卡顶部的 <strong>“验证通过”</strong> 消息，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 部署最多可能需要 5 分钟才能完成。可以在部署时继续进行下一个练习。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2注册新设备">任务 2：注册新设备</h4>
+
+<p>由于必须先将设备注册到 IoT 中心才能进行连接，我们来创建注册。</p>
+
+<ol>
+  <li>
+    <p>在“Azure 门户中心”菜单上，单击 <strong>“仪表板”</strong>。</p>
+  </li>
+  <li>
+    <p>在 rg-az220 资源组磁贴上，单击 <strong>“iot-az220-training-{your-id}”</strong>。</p>
+
+    <p>还有许多其他方法可以打开 IoT 中心边栏选项卡，可以使用你喜欢的任何方法。</p>
+  </li>
+  <li>
+    <p>在左侧菜单的 <strong>“资源管理器”</strong> 下，单击 <strong>“IoT 设备”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 设备”</strong> 窗格顶部，单击 <strong>“+ 新建”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“设备 ID”</strong> 下，输入 <strong>“vm-az220-training-edge0002-{your-id}”</strong></p>
+
+    <p>是的，你要使用分配给 VM 的名称作为设备 ID。</p>
+
+    <p>你将使用<strong>对称密钥</strong>进行身份验证，因此可以保留其他设置的默认值。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡顶部，单击 <strong>“保存”</strong>。</p>
+  </li>
+</ol>
+
+<h3 id="练习-4创建一个安全模块孪生">练习 4：创建一个安全模块孪生</h3>
+
+<p>Azure Defender for IoT 可与现有的 IoT 设备管理平台完全集成，使你能够管理设备的安全状态，以及利用现有的设备控制功能。</p>
+
+<p>Azure Defender for IoT 利用模块孪生机制，并为每个设备维护一个名为 azureiotsecurity 的安全模块孪生。该安全模块孪生保存每个设备的所有设备安全性相关信息。为了充分利用 Azure Defender for IoT 功能，你需要为新的 IoT Edge 设备创建、配置和使用这些安全模块孪生。</p>
+
+<p>可以使用以下两种方法中的任意一种创建安全模块孪生 (<strong>azureiotsecurity</strong>)：</p>
+
+<ul>
+  <li>使用<a href="https://github.com/Azure/Azure-IoT-Security/tree/master/security_module_twin">模块批处理脚本</a>。该脚本使用默认配置自动为新设备（或没有模块孪生的设备）创建模块孪生。</li>
+  <li>使用每个设备的特定配置分别手动编辑每个模块孪生。</li>
+</ul>
+
+<p>在此任务中，你将手动创建一个安全模块孪生。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，如有必要，导航到 IoT 中心的 <strong>“IoT 设备”</strong> 窗格。</p>
+
+    <p>要打开 IoT 中心边栏选项卡的 <strong>“IoT 设备”</strong> 窗格，在左侧菜单中的 <strong>“资源管理器”</strong> 下，单击 <strong>“IoT 设备”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“设备 ID”</strong> 下，单击 <strong>“vm-az220-training-edge0002-{your-id}”</strong>。</p>
+
+    <p>你可能需要单击 <strong>“加载更多”</strong> 以查看所列设备。</p>
+  </li>
+  <li>
+    <p>在 <strong>“vm-az220-training-edge0002-{your-id}”</strong> 边栏选项卡顶部附近，单击 <strong>“+ 添加模块标识”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加模块标识”</strong> 窗格的 <strong>“模块标识名称”</strong> 下，输入 <strong>“azureiotsecurity”</strong></p>
+
+    <p>由于你将使用对称密钥进行身份验证，因此可以将所有字段保留为默认值。</p>
+  </li>
+  <li>
+    <p>在窗格底部，单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“vm-az220-training-edge0002-{your-id}”</strong> 边栏选项卡的 <strong>“模块标识”</strong> 下，现在应该可以看到列出的 <strong>azureiotsecurity</strong> 设备。</p>
+
+    <p>请注意，连接状态为 <strong>“已断开”</strong>。</p>
+
+    <blockquote>
+      <p><strong>重要说明</strong>： 模块标识名称必须是 <strong>“azureiotsecurity”</strong>，不能是其他唯一名称。</p>
+    </blockquote>
+
+    <p><a href="media/LAB_AK_18-module-identity.png" target="_blank"><img src="media/LAB_AK_18-module-identity.png" alt="Azure IoT 安全模块的屏幕截图"></a></p>
+  </li>
+  <li>
+    <p>在 <strong>“vm-az220-training-edge0002-{your-id}”</strong> 边栏选项卡上，在 <strong>“主键”</strong> 右侧单击 <strong>“复制”</strong>，然后保存该值供以后使用。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 确保复制设备的 <strong>“主键”</strong> 而不是连接字符串。</p>
+    </blockquote>
+
+    <p><a href="media/LAB_AK_18-primary-key.png" target="_blank"><img src="media/LAB_AK_18-primary-key.png" alt="Azure IoT 安全模块的屏幕截图"></a></p>
+  </li>
+  <li>
+    <p>回到 IoT 中心边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在左侧菜单上，单击 <strong>“概述”</strong>。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡顶部附近的“概要”区域中，在 <strong>“主机名”</strong> 右边，单击 <strong>“复制到剪贴板”</strong>，然后保存该值以备后用。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： IoT 中心的主机名类似于：iot-az220-training-cah102119.azure-devices.net</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-5部署-azure-defender-for-iot-c-安全代理">练习 5：部署 Azure Defender for IoT C# 安全代理</h3>
+
+<p>Azure Defender for IoT 为通过 IoT 中心记录、处理、聚合和发送安全数据的安全代理提供了参考体系结构。有基于 C 和 C# 的代理。对于具有更多受限或最少设备资源的设备，建议使用 C 代理。</p>
+
+<p>安全代理支持以下功能：</p>
+
+<ul>
+  <li>从基础操作系统（Linux、Windows）收集原始安全事件。如需了解有关可用安全数据收集器的更多信息，请参阅《Azure Defender for IoT 代理配置》。</li>
+  <li>将原始安全事件聚合为通过 IoT 中心发送的消息。</li>
+  <li>使用现有设备标识或专用模块标识进行身份验证。要了解更多信息，请参阅《安全代理身份验证方法》。</li>
+  <li>通过使用 <strong>azureiotsecurity</strong> 模块孪生进行远程配置。如需了解更多信息，请参阅《配置 Azure Defender for IoT 代理》。</li>
+</ul>
+
+<p>在本练习中，你将添加用于 C# 的安全代理，并将其部署到模拟设备 (Linux VM)。</p>
+
+<h4 id="任务-1登录-iot-设备linux-vm">任务 1：登录 IoT 设备：Linux VM</h4>
+
+<ol>
+  <li>
+    <p>如有必要，请使用 Azure 帐户凭据登录到 Azure 门户。</p>
+
+    <p>如果有多个 Azure 帐户，请确保使用与本课程要使用的订阅绑定的帐户登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户菜单中，单击 <strong>“所有资源”</strong>。</p>
+
+    <p>请务必选择 <strong>“所有资源”</strong>，而非 <strong>“所有服务”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“所有资源”</strong> 边栏选项卡，在 <strong>“按名称筛选”</strong> 文本框，输入 <strong>“vm-az220-training-edge0002”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“名称”</strong> 下，单击 <strong>“vm-az220-training-edge0002-{your-id}”</strong>。</p>
+
+    <p>新创建虚拟机 (<strong>vm-az220-training-edge0002-{your-id}</strong>) 的“概览”窗格现在应该已打开。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡顶部，单击 <strong>“连接”</strong>，然后单击 <strong>“SSH”</strong>。</p>
+  </li>
+  <li>
+    <p>花点时间查看 <strong>“连接”</strong> 窗格的内容</p>
+
+    <p>正如在本教程前面看到的，向你提供了用于打开 SSH 连接的示例命令。</p>
+  </li>
+  <li>
+    <p>使用示例 SSH 命令来创建一个用于连接虚拟机的命令。</p>
+
+    <p>将示例命令复制到文本编辑器，然后从命令中删除 `-i <private key path>。你应该会看到以下格式的命令：</private></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-cmd\sh"> ssh &lt;admin user&gt;@&lt;ip address&gt;
+</code></pre>
+
+    <p>命令应该类似于：<code>ssh demouser@52.170.205.79</code></p>
+  </li>
+  <li>
+    <p>在 Azure 门户工具栏上，单击 <strong>“Cloud Shell”</strong>。</p>
+
+    <p>确保在 Cloud Shell 中选择 <strong>“Bash”</strong> 环境。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符后输入上面创建的 <code>ssh</code> 命令，然后按 <strong>Enter</strong>。</p>
+  </li>
+  <li>
+    <p>当提示 <strong>“确定要继续连接吗?”</strong> 时，键入 <strong>“yes”</strong>，然后按 <strong>Enter</strong>。</p>
+
+    <p>此提示是安全确认，因为用于保护与 VM 的连接的证书为自签名证书。系统将记住此提示的回答，以便用于后续连接，并且仅在第一次连接时提示。</p>
+  </li>
+  <li>
+    <p>当提示输入密码时，输入你为 VM 创建的管理员密码。</p>
+
+    <p>请注意，连接后终端命令提示符将更改为显示 Linux VM 名称，类似于以下内容。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-cmd/sh"> demouser@vm-az220-training-edge0002-{your-id}:~$
+</code></pre>
+
+    <p>这有助于你跟踪连接到哪个 VM 和跟踪当前用户。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3将对称密钥添加到设备">任务 3：将对称密钥添加到设备</h4>
+
+<p>你可以使用安全代理的 C# 版本连接到 IoT 中心。要实现连接，你将需要设备的对称密钥或证书信息。</p>
+
+<p>在本实验室中，你将使用对称密钥作为身份验证，并需要将其存储在设备上的临时文本文档中。</p>
+
+<ol>
+  <li>
+    <p>确认你是否拥有可用的 <strong>vm-az220-training-edge0002-{your-id}</strong> 设<strong>备的主键</strong>值。</p>
+
+    <p>你之前在本实验室应已保存主键值。如果没有，请完成以下操作：</p>
+
+    <ol>
+      <li>打开新的浏览器标签页，在该新标签页中导航到 Azure 门户。</li>
+      <li>在 Azure 门户菜单上，单击 <strong>“仪表板”</strong>，然后打开 IoT 中心。</li>
+      <li>在左侧菜单的 <strong>“资源管理器”</strong> 下，单击 <strong>“IoT 设备”</strong>。</li>
+      <li>在 <strong>“设备 ID”</strong> 下，单击 <strong>“vm-az220-training-edge0002-{your-id}”</strong>。</li>
+      <li>复制详细信息列表中<strong>的主键</strong>。</li>
+      <li>返回 Azure Cloud Shell 浏览器选项卡 - 此时你应该仍与 <strong>vm-az220-training-edge0002-{your-id}</strong> 虚拟机处于连接状态。</li>
+    </ol>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符下，输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-cmd/sh"> echo "&lt;primary_key&gt;" &gt; s.key
+</code></pre>
+
+    <p>此命令将使用 <strong>vm-az220-training-edge0002-{your-id}</strong> 设备<strong>的主键</strong>创建设备身份验证类型文件。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 要检查是否向文件中添加了正确的主键，请使用 <code>nano s.key</code> 命令打开文件。检查设备<strong>的主键</strong>是否在文件中。要退出 nano 编辑器，请按住 <code>Ctrl</code> 和 <code>X</code>。按住 <code>shift</code> 和 <code>Y</code>保存文件。然后按 Enter。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4安装安全代理">任务 4：安装安全代理</h4>
+
+<ol>
+  <li>
+    <p>确保 Cloud Shell 会话仍然通过 SSH 连接到你的 VM。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符下，要将最新版本的 C# 安全代理下载到设备，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-bash hljs"> wget https://github.com/Azure/Azure-IoT-Security-Agent-CS/releases/download/0.0.6/ubuntu-18.04-x64.tar.gz
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请注意，上述命令面向 Ubuntu Server 18.04 LTS</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符下，要提取包内容并导航到 <code>/Install</code> 文件夹，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-bash hljs"> tar -xzvf ubuntu-18.04-x64.tar.gz &amp;&amp; <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> Install
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符下，请输入以下命令将执行权限添加到 <code>InstallSecurityAgent</code> 脚本：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-bash hljs"> chmod +x InstallSecurityAgent.sh
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符下，自定义并输入以下命令：</p>
+
+    <p>你需要将这些占位符值替换为你的身份验证参数。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-bash hljs"> sudo ./InstallSecurityAgent.sh -i -aui Device -aum SymmetricKey -f &lt;Insert file location of your s.key file&gt; -hn &lt;Insert your full IoT Hub host name&gt; -di vm-az220-training-edge0002-{your-id}
+</code></pre>
+
+    <p>该命令应如下所示：</p>
+
+    <p><code>sudo ./InstallSecurityAgent.sh -i -aui Device -aum SymmetricKey -f ../s.key -hn iot-az220-training-ab200213.azure-devices.net -di vm-az220-training-edge0002-{your-id}</code></p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 确保指定你的 IoT 中心主机名，而不是列出的那个主机名</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>重要说明</strong>：
+确保为 <code>-hn</code> 切换值使用完整的 IoT 中心主机名，即 <strong>iot-az220-training-ab200213.azure-devices.net</strong>。</p>
+    </blockquote>
+
+    <p>该脚本执行以下函数：</p>
+
+    <ul>
+      <li>安装必备组件。</li>
+      <li>添加服务用户（禁用交互式登录）。</li>
+      <li>将代理安装为守护程序，假定设备使用 <strong>systemd</strong> 用于服务管理。</li>
+      <li>配置 <strong>sudo 用户</strong>以允许代理以 root 身份执行某些任务。</li>
+      <li>使用提供的身份验证参数配置代理。</li>
+    </ul>
+  </li>
+  <li>
+    <p>通过查看 Cloud Shell 终端中的输出观察命令进度。</p>
+
+    <p>请注意，需要重启才能完成代理安装。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 终端中，输入 <strong>“y”</strong> 开始重启</p>
+
+    <p>设备重启后，SSH 会话将丢失。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符下，请输入你先前使用的 SSH 命令重新连接到虚拟机。</p>
+
+    <p>Azure Defender for IoT 代理现在应该处于活动状态并正在运行。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符下，请输入以下命令检查 Azure Defender for IoT 代理的部署状态。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-cmd/sh"> systemctl status ASCIoTAgent.service
+</code></pre>
+
+    <p>此时会看到与下面类似的输出：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-log"> ● ASCIoTAgent.service - Azure Security Center for IoT Agent
+    Loaded: loaded (/etc/systemd/system/ASCIoTAgent.service; enabled; vendor preset: enabled)
+    Active: active (running) since Wed 2020-01-15 19:08:15 UTC; 3min 3s ago
+  Main PID: 1092 (ASCIoTAgent)
+     Tasks: 7 (limit: 9513)
+    CGroup: /system.slice/ASCIoTAgent.service
+         └─1092 /var/ASCIoTAgent/ASCIoTAgent
+</code></pre>
+
+    <p>具体来说，你应该验证该服务是否是 <strong>Loaded: loaded</strong> 和 <strong>Active: active (running)</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果 Azure Defender for IoT 代理未运行或未处于活动状态，请查看<a href="https://docs.microsoft.com/zh-cn/azure/defender-for-iot/device-builders/how-to-deploy-linux-cs">为 Linux 部署 Defender for IoT 基于 C# 的安全代理</a>。常见问题是可能会造成服务 <strong>Active: activating</strong> 的键值错误或未指定完整的 IoT 中心主机名。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航回 IoT 中心边栏选项卡，然后打开 <strong>vm-az220-training-edge0002-{your-id}</strong> 设备边栏选项卡。</p>
+
+    <p>打开 IoT 中心边栏选项卡，在 <strong>“资源管理器”</strong> 下的导航菜单中，单击 <strong>“IoT 设备”</strong> ，然后单击 <strong>“vm-az220-training-edge0002-{your-id}”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“模块标识”</strong> 下，请注意 <strong>“azureiotsecurity”</strong> 模块的当前状态为 <strong>“已连接”</strong>。</p>
+
+    <p><a href="media/LAB_AK_18-device-connected-agent.png" target="_blank"><img src="media/LAB_AK_18-device-connected-agent.png" alt="连接的 Azure IoT 安全模块的屏幕截图"></a></p>
+  </li>
+</ol>
+
+<p>现在，设备上已安装了 Azure Defender for IoT 设备代理，这些代理将能够收集、聚合和分析设备中的原始安全事件。</p>
+
+<h3 id="练习-6配置解决方案管理">练习 6：配置解决方案管理</h3>
+
+<p>Azure Defender for IoT 为基于 Azure 的 IoT 解决方案提供端到端安全性。</p>
+
+<p>使用 Azure Defender for IoT 时，可在一个仪表板中监视整个 IoT 解决方案，并显示 Azure 中你的所有 IoT 设备、IoT 平台和后端资源。</p>
+
+<p>在 IoT 中心启用后，Azure Defender for IoT 会自动识别也已连接到你的 IoT 中心的，以及与你的 IoT 解决方案相关的其他 Azure 服务。</p>
+
+<p>除了自动关系检测以外，还可以选择要将其他哪些 Azure 资源组标记为 IoT 解决方案的一部分。做出选择后，可以添加整个订阅、资源组或单个资源。</p>
+
+<h4 id="任务-1打开-iot-中心">任务 1：打开 IoT 中心</h4>
+
+<ol>
+  <li>
+    <p>在浏览器中，打开 Azure 门户并导航到 IoT 中心。</p>
+  </li>
+  <li>
+    <p>在左侧菜单中的 <strong>“安全性”</strong> 下，单击 <strong>“设置”</strong>。</p>
+
+    <p><strong>“设置”</strong> 页面会列出以下部分：</p>
+
+    <ul>
+      <li>数据收集</li>
+      <li>推荐配置</li>
+      <li>受监视资源</li>
+      <li>自定义警报</li>
+    </ul>
+  </li>
+  <li>
+    <p>要查看资源列表，请单击 <strong>“受监视资源”</strong>。</p>
+
+    <p>请注意，资源列表已包括你的 IoT 中心、之前激活 Azure Defender for IoT 时创建的工作区以及当前订阅。</p>
+  </li>
+  <li>
+    <p>在窗格顶部，单击 <strong>“编辑”</strong>。</p>
+
+    <p><strong>“解决方案管理”</strong> 窗格会打开，在其中可以通过选择其他 Azure 资源的所属资源组来将这些资源连接到安全解决方案。</p>
+  </li>
+  <li>
+    <p>在 <strong>“订阅”</strong> 下，请确保已选择本课程要使用的订阅。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>
+你可以将多个订阅中的资源添加到安全解决方案中。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 下拉列表中，单击 <strong>“rg-az220vm”</strong>。</p>
+
+    <p>现在，你应该选择了两个资源组。请注意，“资源”列表已更新，以反映你刚刚添加的资源组中的其他资源。</p>
+  </li>
+  <li>
+    <p>在 <strong>“解决方案管理”</strong> 窗格中，单击 <strong>“应用”</strong>。</p>
+
+    <p>如果 <strong>“应用”</strong> 按钮不可用，不用担心，已经添加资源。</p>
+  </li>
+  <li>
+    <p>关闭 <strong>“解决方案管理”</strong> 窗格。</p>
+  </li>
+</ol>
+
+<p>定义所有资源关系后，Azure Defender for IoT 会利用 Azure Defender 来提供安全建议，并针对这些资源发出警报。</p>
+
+<h4 id="任务-2查看运行中的-azure-defender-for-iot">任务 2：查看运行中的 Azure Defender for IoT</h4>
+
+<p>现在，你已在设备上安装了安全代理，并配置了解决方案。现在非常适合检查 Azure Defender for IoT 的不同视图。</p>
+
+<ol>
+  <li>
+    <p>在左侧菜单中的 <strong>“安全性”</strong> 下，单击 <strong>“概览”</strong>。</p>
+
+    <p>你将看到两个图表上显示的设备、中心和其他资源的运行状况概述。你可以看到在开启 Azure IoT Defender 时立即启用的内置实时监视、建议和警报。</p>
+
+    <p><a href="media/LAB_AK_18-security-dashboard.png" target="_blank"><img src="media/LAB_AK_18-security-dashboard.png" alt="Azure IoT 安全模块的屏幕截图"></a></p>
+  </li>
+  <li>
+    <p>在左侧菜单的 <strong>“安全性”</strong> 下，要查看受监视资源，请单击 <strong>“设置”</strong>，然后单击 <strong>“受监视资源”</strong></p>
+
+    <p>此窗格列出了当前为你的 IoT 解决方案监视的所有资源。你可以一目了然地查看 IoT 解决方案中资源的总体运行状况，然后可以深入了解每个资源，查看更多的详细信息。如果想添加额外的资源，可以单击 <strong>“编辑”</strong>，然后选择要添加其中资源的订阅和资源组。</p>
+
+    <blockquote>
+      <p><strong>重要说明</strong>：
+IoT 资源安全性配置的评估过程可能需要多达 24 小时的时间，因此仪表板上显示的初始状态无法反映资源的实际状态。</p>
+    </blockquote>
+
+    <p>下图显示了执行安全评估后的仪表板状态。</p>
+
+    <p><a href="media/LAB_AK_18-updated-security-dashboard.png" target="_blank"><img src="media/LAB_AK_18-updated-security-dashboard.png" alt="更新后的 Azure IoT 安全性模块的屏幕截图"></a></p>
+  </li>
+</ol>
+
+<h3 id="练习-7引入自定义警报">练习 7：引入自定义警报</h3>
+
+<p>自定义安全组和警报可用于在整个 IoT 解决方案中充分利用端到端安全信息和分类设备知识。这将帮助你为解决方案提供更好的安全性。</p>
+
+<h4 id="为何要使用自定义警报">为何要使用自定义警报？</h4>
+
+<p>你比现成算法更了解你的 IoT 设备。</p>
+
+<p>对于完全了解其预期设备行为的客户，Azure Defender for IoT 可将这种了解转化为设备行为策略，并在背离预期的正常行为时发出警报。</p>
+
+<h4 id="任务-1---自定义警报">任务 1 - 自定义警报</h4>
+
+<p>如上所述，了解其解决方案的特定所需行为的客户可以配置自定义警报，这些警报将在超出所需行为时触发。在本练习中，你将创建一个自定义警报，用于监控通过 <strong>MQTT</strong> 协议发送的 <strong>“设备到云”</strong> 消息。</p>
+
+<p>在正常情况下，Contoso 的奶酪储藏室监控系统不会以很高的速率发送 IoT 中心温度和湿度数据。你希望每台设备在五分钟的时间内发送一到五个设备到云的消息。此范围适用于傍晚时段，此时温度变化可能更快，并且可能需要更高频率的数据以确保各值不超出既定边界值。</p>
+
+<p>在此任务中，你将创建一个自定义警报。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航到“IoT 中心”边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在左侧菜单中的 <strong>“安全性”</strong> 下，单击 <strong>“设置”</strong>。</p>
+
+    <p><strong>“设置”</strong> 页面会列出以下部分：</p>
+
+    <ul>
+      <li>数据收集</li>
+      <li>推荐配置</li>
+      <li>受监视资源</li>
+      <li>自定义警报</li>
+    </ul>
+  </li>
+  <li>
+    <p>要查看自定义警报列表，请单击 <strong>“自定义警报”</strong>。</p>
+  </li>
+  <li>
+    <p>花点时间检查一下 <strong>“自定义提醒”</strong> 窗格。</p>
+
+    <p>该窗格乍看可能是空的，但 <strong>“名称”</strong> 下列出的项目实际上是为你自动创建的<strong>默认</strong>安全组。</p>
+
+    <p>使用安全组可以定义设备的逻辑组，并集中管理设备的安全状态。这些组可以表示具有特定硬件的设备、部署在某个位置的设备，或适合具体需求的其他任何组。</p>
+  </li>
+  <li>
+    <p>要将自定义警报添加到默认安全组，请单击 <strong>“默认”</strong>。</p>
+
+    <p><strong>“设备安全组”</strong> 边栏选项卡列出所有处于活动状态的自定义警报。由于这是你第一次访问边栏选项卡，因此它将是空的。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡顶部，单击 <strong>“创建自定义警报规则”</strong>。</p>
+
+    <p><strong>“创建自定义警报规则”</strong> 窗格将打开。请注意 <strong>“设备安全组”</strong> 字段中填充了 <strong>“默认”</strong> 组。</p>
+  </li>
+  <li>
+    <p>在 <strong>“自定义警报”</strong> 下拉菜单中，单击 <strong>“设备到云消息的数量（MQTT 协议）不在允许范围内”</strong>。</p>
+
+    <blockquote>
+      <p><strong>提示</strong>：
+查看许多可用的自定义警报。考虑如何使用它们来保护你的解决方案。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：
+<strong>“描述”</strong> 和 <strong>“必需的属性”</strong> 会根据所选的 <strong>“自定义警报”</strong> 而变化。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“必需的属性”</strong> 下的 <strong>“最小阈值”</strong> 字段，输入 <strong>“1”</strong>。</p>
+
+    <p>这满足了在 5 分钟内至少发送一条消息的期望。</p>
+  </li>
+  <li>
+    <p>在 <strong>“最大阈值”</strong> 下，输入 <strong>“5”</strong>。</p>
+
+    <p>这使得 5 分钟内的预期消息发送数量不超过五个。</p>
+  </li>
+  <li>
+    <p>在 <strong>“时间窗口大小”</strong> 下拉列表中，单击 <strong>“00:05:00”</strong>。</p>
+
+    <p>这符合已设定的五分钟时长。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：
+ 有 4 个可用时间窗口：</p>
+      <ul>
+        <li>5 分钟</li>
+        <li>10 分钟</li>
+        <li>15 分钟</li>
+        <li>30 分钟</li>
+      </ul>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“创建自定义预警规则”</strong> 窗格底部，单击 <strong>“确定”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“默认”</strong> （设备安全组）边栏选项卡顶部，单击 <strong>“保存”</strong>。</p>
+
+    <p>如果不保存新警报，下一次关闭 IoT 中心时会删除该警报。</p>
+
+    <p>你将返回到自定义警报列表。下图显示了一些自定义警报：</p>
+
+    <p><a href="media/LAB_AK_18-many-custom-alerts.png" target="_blank"><img src="media/LAB_AK_18-many-custom-alerts.png" alt="许多自定义警报"></a></p>
+  </li>
+</ol>
+
+<h3 id="练习-8配置设备应用">练习 8：配置设备应用</h3>
+
+<p>在本练习中，你将配置一个 IoT 中心设备和一个 .Net Core 控制台应用程序 (C#)，它们将利用 <strong>Microsoft.Azure.Devices.Client</strong> nuget 包连接到 IoT 中心。控制台应用程序将每 10 秒钟发送一次遥测，其目的是超过（你在上一个练习中创建的）自定义警报中配置的“设备到云”消息阈值。</p>
+
+<h4 id="任务-1注册新的-iot-设备">任务 1：注册新的 IoT 设备</h4>
+
+<p>必须先将设备注册到 IoT 中心才能进行连接。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户菜单上，单击 <strong>“仪表板”</strong>，然后打开 IoT 中心。</p>
+  </li>
+  <li>
+    <p>在左侧菜单的 <strong>“资源管理器”</strong> 下，单击 <strong>“IoT 设备”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 设备”</strong> 窗格顶部，单击 <strong>“+ 新建”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“创建设备”</strong> 边栏选项卡的 <strong>“设备 ID”</strong> 下，输入 <strong>sensor-th-0070</strong></p>
+
+    <p>你将使用 <strong>“对称密钥”</strong> 进行身份验证，因此将其他值保留为默认值。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡顶部，单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 设备”</strong> 窗格的 <strong>“设备 ID”</strong> 下，单击 <strong>“sensor-th-0070”</strong>。</p>
+
+    <p>你可能需要单击 <strong>“加载更多”</strong> 以访问 <strong>sensor-th-0070</strong> 设备。</p>
+  </li>
+  <li>
+    <p>要显示设备孪生，请单击 <strong>“设备孪生”</strong>。</p>
+
+    <p>此时会显示现有的设备孪生 JSON，如下所示：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"sensor-th-0070"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"etag"</span></span>: <span class="hljs-string"><span class="hljs-string">"AAAAAAAAAAE="</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceEtag"</span></span>: <span class="hljs-string"><span class="hljs-string">"Mjg2NzY5NzAw"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"enabled"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"statusUpdateTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"connectionState"</span></span>: <span class="hljs-string"><span class="hljs-string">"Disconnected"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"lastActivityTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"cloudToDeviceMessageCount"</span></span>: <span class="hljs-number"><span class="hljs-number">0</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"authenticationType"</span></span>: <span class="hljs-string"><span class="hljs-string">"sas"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"x509Thumbprint"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"primaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"secondaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"tags"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"SecurityGroup"</span></span>: <span class="hljs-string"><span class="hljs-string">"default"</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"desired"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2020-06-11T13:09:38.4712899Z"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"reported"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2020-06-11T13:09:38.4712899Z"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         }
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"capabilities"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"iotEdge"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>
+     }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>要将设备添加到<strong>默认</strong>安全组，请在 <strong>“版本”</strong> 和 <strong>“属性”</strong> 字段之间插入以下 JSON：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-json hljs"> <span class="hljs-string"><span class="hljs-string">"tags"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"SecurityGroup"</span></span>: <span class="hljs-string"><span class="hljs-string">"default"</span></span>
+ },
+</code></pre>
+
+    <p>产生的 JSON 会类似于：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"sensor-th-0070"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"etag"</span></span>: <span class="hljs-string"><span class="hljs-string">"AAAAAAAAAAE="</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceEtag"</span></span>: <span class="hljs-string"><span class="hljs-string">"Mjg2NzY5NzAw"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"enabled"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"statusUpdateTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"connectionState"</span></span>: <span class="hljs-string"><span class="hljs-string">"Disconnected"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"lastActivityTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00Z"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"cloudToDeviceMessageCount"</span></span>: <span class="hljs-number"><span class="hljs-number">0</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"authenticationType"</span></span>: <span class="hljs-string"><span class="hljs-string">"sas"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"x509Thumbprint"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"primaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"secondaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"tags"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"SecurityGroup"</span></span>: <span class="hljs-string"><span class="hljs-string">"default"</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"desired"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2020-06-11T13:09:38.4712899Z"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"reported"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2020-06-11T13:09:38.4712899Z"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         }
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"capabilities"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"iotEdge"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>
+     }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>要应用更新的 JSON，请单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>关闭 <strong>“设备孪生”</strong> 窗格，并返回 <strong>“sensor-th-0070”</strong> 详细信息视图。</p>
+  </li>
+  <li>
+    <p>在 <strong>“主连接字符串”</strong> 右侧，单击 <strong>“复制”</strong>，然后将值保存到文本文件。</p>
+
+    <p>请务必注意，这是 sensor-th-0070 设备的连接字符串。你将需要设备应用的连接字符串值。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2配置-cave-device-应用">任务 2：配置 Cave Device 应用</h4>
+
+<ol>
+  <li>
+    <p>打开 <strong>Visual Studio Code</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 菜单上，单击 <strong>“打开文件夹”</strong></p>
+  </li>
+  <li>
+    <p>在“打开文件夹”对话框中，导航到“实验室 18 初学者”文件夹。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“CaveDevice”</strong>，然后单击 <strong>“选择文件夹”</strong>。</p>
+
+    <p>你应该会在 Visual Studio Code 的资源管理器窗格中看到以下文件：</p>
+
+    <ul>
+      <li>Program.cs</li>
+      <li>CaveDevice.csproj</li>
+    </ul>
+  </li>
+  <li>
+    <p>打开 <strong>Program.cs</strong> 文件。</p>
+
+    <p>粗略地看一下就会发现，<strong>CaveDevice</strong> 应用程序与前面的实验室中使用的应用程序非常相似。这个版本增加了延迟，因此每 10 秒就会发送一次消息：<code>await Task.Delay(10000);</code></p>
+  </li>
+  <li>
+    <p>在 <strong>“终端”</strong> 菜单中，单击 <strong>“新建终端”</strong>。</p>
+
+    <p>注意命令提示符中指示的目录路径。你无需在上一个实验室项目的文件夹结构中开始构建此项目。</p>
+  </li>
+  <li>
+    <p>在终端命令提示符下，请输入以下命令以验证应用程序版本：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-bash hljs">dotnet build
+</code></pre>
+
+    <p>输出结果会类似于：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-text"> ❯ dotnet build
+ Microsoft (R) Build Engine version 16.5.0+d4cbfca49 for .NET Core
+ Copyright (C) Microsoft Corporation. All rights reserved.
+
+ Restore completed in 39.27 ms for D:\Az220-Code\AllFiles\Labs\15-Remotely monitor and control devices with Azure IoT Hub\Starter\CheeseCaveDevice\CheeseCaveDevice.csproj.
+ CheeseCaveDevice -&gt; D:\Az220-Code\AllFiles\Labs\15-Remotely monitor and control devices with Azure IoT Hub\Starter\CheeseCaveDevice\bin\Debug\netcoreapp3.1\CheeseCaveDevice.dll
+
+ Build succeeded.
+     0 Warning(s)
+     0 Error(s)
+
+ Time Elapsed 00:00:01.16
+</code></pre>
+  </li>
+  <li>
+    <p>在代码编辑器窗格中，查找以下代码行：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> deviceConnectionString = <span class="hljs-string"><span class="hljs-string">"&lt;your device connection string&gt;"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>将 <code>&lt;your device connection string&gt;</code> 替换为 sensor-th-0070 设备的主要连接字符串。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 菜单中，单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>在终端命令提示符下，要生成和运行该应用程序，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-bash hljs"> dotnet run
+</code></pre>
+  </li>
+  <li>
+    <p>验证遥测信息是否已成功发送至 IoT 中心。</p>
+
+    <p>输出应类似于：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-text"> IoT Hub C# Simulated Thermostat Device. CTRL+C to exit.
+
+ 2/28/2020 1:32:21 PM &gt; Sending message: {"temperature":25.7199231282435,"humidity":79.50078555359542}
+ 2/28/2020 1:32:31 PM &gt; Sending message: {"temperature":21.877205091005752,"humidity":61.30029373862794}
+ 2/28/2020 1:32:41 PM &gt; Sending message: {"temperature":21.245898961204055,"humidity":71.36471955634873}
+ 2/28/2020 1:32:51 PM &gt; Sending message: {"temperature":32.61750500072609,"humidity":66.07430422961447}
+ 2/28/2020 1:33:01 PM &gt; Sending message: {"temperature":31.100763578946125,"humidity":79.93955616836416}
+ 2/28/2020 1:33:11 PM &gt; Sending message: {"temperature":25.02041019034591,"humidity":70.50569472392355}
+</code></pre>
+
+    <p>你可以在本实验的其余部分中使该应用运行，以生成多个警报。</p>
+  </li>
+</ol>
+
+<h3 id="练习-9查看-azure-defender-for-iot-警报">练习 9：查看 Azure Defender for IoT 警报</h3>
+
+<p>此时，你的控制台应用将发送足够的遥测数据，以触发先前创建的自定义警报。</p>
+
+<blockquote>
+  <p><strong>提示</strong>：
+警报设置为在 5 分钟内从设备发送到云的消息少于 1 条且多于 5 条时触发。</p>
+</blockquote>
+
+<h4 id="任务-1查看-azure-defender-for-iot-仪表板">任务 1：查看 Azure Defender for IoT 仪表板</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户菜单上，单击 <strong>“仪表板”</strong> 然后打开你的 IoT 中心。</p>
+  </li>
+  <li>
+    <p>在左侧菜单中的 <strong>“安全性”</strong> 下，单击 <strong>“概览”</strong>。</p>
+
+    <p>查看 <strong>“威胁检测”</strong> 部分。你应该看到一个或多个警报显示在 <strong>“设备安全警报”</strong> 图表中：</p>
+
+    <p><a href="media/LAB_AK_18-device-security-alert-chart.png" target="_blank"><img src="media/LAB_AK_18-device-security-alert-chart.png" alt="设备安全警报图"></a></p>
+
+    <p>你还应该在 <strong>“警报最多的设备”</strong> 磁贴中看到 <strong>“sensor-th-0070”</strong> 设备的条目：</p>
+
+    <p><a href="media/LAB_AK_18-devices-with-most-alerts-tile.png" target="_blank"><img src="media/LAB_AK_18-devices-with-most-alerts-tile.png" alt="警报磁贴最多的设备"></a></p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 警报最多可能需要 30 分钟才会在仪表板上显示。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“威胁检测”</strong> 下，单击 <strong>“警报最多的设备”</strong> 磁贴。</p>
+
+    <p>此操作将打开 <strong>“警报”</strong> 边栏选项卡，你也可以单击左侧菜单中 <strong>“安全性”</strong> 下的 <strong>“安全警报”</strong> 打开相同的边栏选项卡。</p>
+
+    <p>你将看到一个安全警报列表：</p>
+
+    <p><a href="media/LAB_AK_18-security-alert-list.png" target="_blank"><img src="media/LAB_AK_18-security-alert-list.png" alt="安全警报列表"></a></p>
+
+    <p>最新警报将标有 <strong>“新”</strong> 标签。</p>
+  </li>
+  <li>
+    <p>单击最新警报。</p>
+
+    <p>将打开一个详细信息窗格。 <strong>“一般信息”</strong> 提供有关警报的高级信息。在其下方， <strong>“最近 10 个受影响的设备”</strong> 应该列出 <strong>“sensor-th-0070”</strong> 设备。</p>
+
+    <p><a href="media/LAB_AK_18-custom-alert-details-pane.png" target="_blank"><img src="media/LAB_AK_18-custom-alert-details-pane.png" alt="“自定义警报详细信息”窗格"></a></p>
+  </li>
+  <li>
+    <p>返回到 Visual Studio Code 并退出设备应用。</p>
+
+    <p>你可以将输入焦点放在“终端”窗口上并按 <strong>CTRL+C</strong> 来关闭应用。</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.js"></script>
+
+
+
+</body></html>

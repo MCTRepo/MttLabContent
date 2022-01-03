@@ -1,0 +1,414 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            dp-080-Transact-SQL
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                dp-080-Transact-SQL
+            </a>
+            <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#challenge-1-retrieve-order-shipping-information">Challenge 1: Retrieve order shipping information</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2-aggregate-product-sales">Challenge 2: Aggregate product sales</a></li><li class="nav-item"><a class="nav-link" href="#challenge-1">Challenge 1</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2">Challenge 2</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="use-built-in-functions">Use Built-in Functions</h1>
+
+<p>In this lab, you’ll use built-in functions to retrieve and aggregate data in the <strong>adventureworks</strong> database. For your reference, the following diagram shows the tables in the database (you may need to resize the pane to see them clearly).</p>
+
+<p><a href="images/adventureworks-erd.png" target="_blank"><img src="images/adventureworks-erd.png" alt="An entity relationship diagram of the adventureworks database"></a></p>
+
+<blockquote>
+  <p><strong>Note</strong>: If you’re familiar with the standard <strong>AdventureWorks</strong> sample database, you may notice that in this lab we are using a simplified version that makes it easier to focus on learning Transact-SQL syntax.</p>
+</blockquote>
+
+<h2 id="scalar-functions">Scalar functions</h2>
+
+<p>Transact-SQL provides a large number of functions that you can use to extract additional information from your data. Most of these functions are <em>scalar</em> functions that return a single value based on one or more input parameters, often a data field.</p>
+
+<p><strong>Tip</strong>: We don’t have enough time in this exercise to explore every function available in Transact-SQL. To learn more about the functions covered int his exercise, and more, view the <a href="https://docs.microsoft.com/sql/t-sql/functions/functions">Transact-SQL documentation</a>.</p>
+
+<ol>
+  <li>Start Azure Data Studio, and create a new query (you can do this from the <strong>File</strong> menu or on the <em>welcome</em> page).</li>
+  <li>In the new <strong>SQLQuery_…</strong> pane, use the <strong>Connect</strong> button to connect the query to the <strong>AdventureWorks</strong> saved connection.</li>
+  <li>
+    <p>In the query editor, enter the following code.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">YEAR</span></span>(SellStartDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SellStartYear, ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> SellStartYear;
+</code></pre>
+  </li>
+  <li>
+    <p>Use the <strong>⏵Run</strong> button to run the query, and and after a few seconds, review the results, noting that the <strong>YEAR</strong> function has retrieved the year from the <strong>SellStartDate</strong> field.</p>
+  </li>
+  <li>
+    <p>Modify the query as follows to use some additional scalar functions that operate on <em>datetime</em> values.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">YEAR</span></span>(SellStartDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SellStartYear,
+        <span class="hljs-keyword"><span class="hljs-keyword">DATENAME</span></span>(mm,SellStartDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SellStartMonth,
+        <span class="hljs-keyword"><span class="hljs-keyword">DAY</span></span>(SellStartDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SellStartDay,
+        <span class="hljs-keyword"><span class="hljs-keyword">DATENAME</span></span>(dw, SellStartDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SellStartWeekday,
+        <span class="hljs-keyword"><span class="hljs-keyword">DATEDIFF</span></span>(yy,SellStartDate, <span class="hljs-keyword"><span class="hljs-keyword">GETDATE</span></span>()) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> YearsSold,
+        ProductID,
+        <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> SellStartYear;
+</code></pre>
+  </li>
+  <li>
+    <p>Run the query and review the results.</p>
+
+    <p>Note that the <strong>DATENAME</strong> function returns a different value depending on the <em>datepart</em> parameter that is passed to it. In this example, <strong>mm</strong> returns the month name, and <strong>dw</strong> returns the weekday name.</p>
+
+    <p>Note also that the <strong>DATEDIFF</strong> function returns the specified time interval between and start date and an end date. In this case the interval is measured in years (<strong>yy</strong>), and the end date is determined by the <strong>GETDATE</strong> function; which when used with no parameters returns the current date and time.</p>
+  </li>
+  <li>
+    <p>Replace the existing query with the following code.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">CONCAT</span></span>(FirstName + <span class="hljs-string"><span class="hljs-string">' '</span></span>, LastName) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> FullName
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer;
+</code></pre>
+  </li>
+  <li>Run the query and note that it returns the concatenated first and last name for each customer.</li>
+  <li>
+    <p>Replace the query with the following code to explore some more functions that manipulate string-based values.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">UPPER</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductName,
+        ProductNumber,
+        <span class="hljs-keyword"><span class="hljs-keyword">ROUND</span></span>(Weight, <span class="hljs-number"><span class="hljs-number">0</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ApproxWeight,
+        <span class="hljs-keyword"><span class="hljs-keyword">LEFT</span></span>(ProductNumber, <span class="hljs-number"><span class="hljs-number">2</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductType,
+        <span class="hljs-keyword"><span class="hljs-keyword">SUBSTRING</span></span>(ProductNumber,<span class="hljs-keyword"><span class="hljs-keyword">CHARINDEX</span></span>(<span class="hljs-string"><span class="hljs-string">'-'</span></span>, ProductNumber) + <span class="hljs-number"><span class="hljs-number">1</span></span>, <span class="hljs-number"><span class="hljs-number">4</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ModelCode,
+        <span class="hljs-keyword"><span class="hljs-keyword">SUBSTRING</span></span>(ProductNumber, <span class="hljs-keyword"><span class="hljs-keyword">LEN</span></span>(ProductNumber) - <span class="hljs-keyword"><span class="hljs-keyword">CHARINDEX</span></span>(<span class="hljs-string"><span class="hljs-string">'-'</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">REVERSE</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">RIGHT</span></span>(ProductNumber, <span class="hljs-number"><span class="hljs-number">3</span></span>))) + <span class="hljs-number"><span class="hljs-number">2</span></span>, <span class="hljs-number"><span class="hljs-number">2</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SizeCode
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>Run the query and note that it returns the following data:
+    <ul>
+      <li>The product name, converted to upper case by the <strong>UPPER</strong> function.</li>
+      <li>The product number, which is a string code that encapsulates details of the product.</li>
+      <li>The weight of the product, rounded to the nearest whole number by using the <strong>ROUND</strong> function.</li>
+      <li>The product type, which is indicated by the first two characters of the product number, starting from the left (using the <strong>LEFT</strong> function).</li>
+      <li>The model code, which is extracted from the product number by using the <strong>SUBSTRING</strong> function, which extracts the four characters immediately following the first <em>-</em> character, which is found using the <strong>CHARINDEX</strong> function.</li>
+      <li>The size code, which is extracted using the <strong>SUBSTRING</strong> function to extract the two characters following the last <em>-</em> in the product code. The last <em>-</em> character is found by taking the total length (<strong>LEN</strong>) of the product ID and finding its index (<strong>CHARINDEX</strong>) in the reversed (<strong>REVERSE</strong>) first three characters from the right (<strong>RIGHT</strong>). This example shows how you can combine functions to apply fairly complex logic to extract the values you need.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="use-logical-functions">Use logical functions</h2>
+
+<p><em>Logical</em> functions are used to apply logical tests to values, and return an appropriate value based on the results of the logical evaluation.</p>
+
+<ol>
+  <li>
+    <p>Replace the existing query with the following code.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">Size</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> NumericSize
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ISNUMERIC(<span class="hljs-keyword"><span class="hljs-keyword">Size</span></span>) = <span class="hljs-number"><span class="hljs-number">1</span></span>;
+</code></pre>
+  </li>
+  <li>Run the query and note that the results only products with a numeric size.</li>
+  <li>
+    <p>Replace the query with the following code, which nests the <strong>ISNUMERIC</strong> function used previously in an <strong>IIF</strong> function; which in turn evaluates the result of the <strong>ISNUMERIC</strong> function and returns <em>Numeric</em> if the result is <strong>1</strong> (<em>true</em>), and <em>Non-Numeric</em> otherwise.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">IIF</span></span>(ISNUMERIC(<span class="hljs-keyword"><span class="hljs-keyword">Size</span></span>) = <span class="hljs-number"><span class="hljs-number">1</span></span>, <span class="hljs-string"><span class="hljs-string">'Numeric'</span></span>, <span class="hljs-string"><span class="hljs-string">'Non-Numeric'</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SizeType
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>Run the query and review the results.</li>
+  <li>
+    <p>Replace the query with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> prd.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductName,
+        cat.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Category</span></span>,
+        <span class="hljs-keyword"><span class="hljs-keyword">CHOOSE</span></span> (cat.ParentProductCategoryID, <span class="hljs-string"><span class="hljs-string">'Bikes'</span></span>,<span class="hljs-string"><span class="hljs-string">'Components'</span></span>,<span class="hljs-string"><span class="hljs-string">'Clothing'</span></span>,<span class="hljs-string"><span class="hljs-string">'Accessories'</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductType
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> prd
+ <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> cat
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> prd.ProductCategoryID = cat.ProductCategoryID;
+</code></pre>
+  </li>
+  <li>Run the query and note that the <strong>CHOOSE</strong> function returns the value in the ordinal position in a list based on the a specified index value. The list index is 1-based so in this query the function returns <em>Bikes</em> for category 1, <em>Components</em> for category 2, and so on.</li>
+</ol>
+
+<h2 id="use-aggregate-functions">Use aggregate functions</h2>
+
+<p><em>Aggregate</em> functions return an aggregated value, such as a sum, count, average, minimum, or maximum.</p>
+
+<ol>
+  <li>
+    <p>Replace the existing query with the following code.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(*) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> Products,
+        <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">DISTINCT</span></span> ProductCategoryID) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> Categories,
+        <span class="hljs-keyword"><span class="hljs-keyword">AVG</span></span>(ListPrice) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> AveragePrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>Run the query and note that the following aggregations are returned:
+    <ul>
+      <li>The number of products in the table. This is returned by using the <strong>COUNT</strong> function to count the number of rows (<strong>*</strong>).</li>
+      <li>The number of categories. This is returned by using rhe <strong>COUNT</strong> function to count the number of distinct category IDs in the table.</li>
+      <li>The average price of a product. This is returned by using the <strong>AVG</strong> function with the <strong>ListPrice</strong> field.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Replace the query with the following code.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(p.ProductID) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> BikeModels, <span class="hljs-keyword"><span class="hljs-keyword">AVG</span></span>(p.ListPrice) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> AveragePrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> p
+ <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> c
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> p.ProductCategoryID = c.ProductCategoryID
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> c.Name <span class="hljs-keyword"><span class="hljs-keyword">LIKE</span></span> <span class="hljs-string"><span class="hljs-string">'%Bikes'</span></span>;
+</code></pre>
+  </li>
+  <li>Run the query, noting that it returns the number of models and the average price for products with category names that end in “bikes”.</li>
+</ol>
+
+<h2 id="group-aggregated-results-with-the-group-by-clause">Group aggregated results with the GROUP BY clause</h2>
+
+<p>Aggregate functions are especially useful when combined with the <strong>GROUP BY</strong> clause to calculate aggregations for different groups of data.</p>
+
+<ol>
+  <li>
+    <p>Replace the existing query with the following code.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> Salesperson, <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(CustomerID) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> Customers
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> Salesperson
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> Salesperson;
+</code></pre>
+  </li>
+  <li>Run the query and note that it returns the number of customers assigned to each salesperson.</li>
+  <li>
+    <p>Replace the query with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> c.Salesperson, <span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(oh.SubTotal) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SalesRevenue
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer c
+ <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.SalesOrderHeader oh
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> c.CustomerID = oh.CustomerID
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> c.Salesperson
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> SalesRevenue <span class="hljs-keyword"><span class="hljs-keyword">DESC</span></span>;
+</code></pre>
+  </li>
+  <li>Run the query, noting that it returns the total sales revenue for each salesperson who has completed any sales.</li>
+  <li>
+    <p>Modify the query as follows to use an outer join:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> c.Salesperson, <span class="hljs-keyword"><span class="hljs-keyword">ISNULL</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(oh.SubTotal), <span class="hljs-number"><span class="hljs-number">0.00</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SalesRevenue
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer c
+ <span class="hljs-keyword"><span class="hljs-keyword">LEFT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.SalesOrderHeader oh
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> c.CustomerID = oh.CustomerID
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> c.Salesperson
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> SalesRevenue <span class="hljs-keyword"><span class="hljs-keyword">DESC</span></span>;
+</code></pre>
+  </li>
+  <li>Run the query, noting that it returns the sales totals for salespeople who have sold items, and 0.00 for those who haven’t.</li>
+</ol>
+
+<h2 id="filter-groups-with-the-having-clause">Filter groups with the HAVING clause</h2>
+
+<p>After grouping data, you may want to filter the results to include only the groups that meet specified criteria. For example, you may want to return only salespeople with more than 100 customers.</p>
+
+<ol>
+  <li>
+    <p>Replace the existing query with the following code, which you may think would return salespeople with more than 100 customers (but you’d be wrong, as you will see!)</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> Salesperson, <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(CustomerID) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> Customers
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(CustomerID) &gt; <span class="hljs-number"><span class="hljs-number">100</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> Salesperson
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> Salesperson;
+</code></pre>
+  </li>
+  <li>Run the query and note that it returns an error. The <strong>WHERE</strong> clause is applied <em>before</em> the aggregations and the <strong>GROUP BY</strong> clause, so you can’t use it to filter on the aggregated value.</li>
+  <li>
+    <p>Modify the query as follows to add a <strong>HAVING</strong> clause, which is applied <em>after</em> the aggregations and <strong>GROUP BY</strong> clause.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> Salesperson, <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(CustomerID) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> Customers
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> Salesperson
+ <span class="hljs-keyword"><span class="hljs-keyword">HAVING</span></span> <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(CustomerID) &gt; <span class="hljs-number"><span class="hljs-number">100</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> Salesperson;
+</code></pre>
+  </li>
+  <li>Run the query, and note that it returns only salespeople who have more than 100 customers assigned to them.</li>
+</ol>
+
+<h2 id="challenges">Challenges</h2>
+
+<p>Now it’s time to try using functions to retrieve data in some queries of your own.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>: Try to determine the appropriate queries for yourself. If you get stuck, suggested answers are provided at the end of this lab.</p>
+</blockquote>
+
+<h3 id="challenge-1-retrieve-order-shipping-information">Challenge 1: Retrieve order shipping information</h3>
+
+<p>The operations manager wants reports about order shipping based on data in the <strong>SalesLT.SalesOrderHeader</strong> table.</p>
+
+<ol>
+  <li>Retrieve the order ID and freight cost of each order.
+    <ul>
+      <li>Write a query to return the order ID for each order, together with the the <strong>Freight</strong> value rounded to two decimal places in a column named <strong>FreightCost</strong>.</li>
+    </ul>
+  </li>
+  <li>Add the shipping method.
+    <ul>
+      <li>Extend your query to include a column named <strong>ShippingMethod</strong> that contains the <strong>ShipMethod</strong> field, formatted in lower case.</li>
+    </ul>
+  </li>
+  <li>Add shipping date details.
+    <ul>
+      <li>Extend your query to include columns named <strong>ShipYear</strong>, <strong>ShipMonth</strong>, and <strong>ShipDay</strong> that contain the year, month, and day of the <strong>ShipDate</strong>. The <strong>ShipMonth</strong> value should be displayed as the month name (for example, <em>June</em>)</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="challenge-2-aggregate-product-sales">Challenge 2: Aggregate product sales</h3>
+
+<p>The sales manager would like reports that include aggregated information about product sales.</p>
+
+<ol>
+  <li>Retrieve total sales by product
+    <ul>
+      <li>Write a query to retrieve a list of the product names from the <strong>SalesLT.Product</strong> table and the total revenue for each product calculated as the sum of <strong>LineTotal</strong> from the <strong>SalesLT.SalesOrderDetail</strong> table, with the results sorted in descending order of total revenue.</li>
+    </ul>
+  </li>
+  <li>Filter the product sales list to include only products that cost over 1,000
+    <ul>
+      <li>Modify the previous query to include sales totals for products that have a list price of more than 1000.</li>
+    </ul>
+  </li>
+  <li>Filter the product sales groups to include only total sales over 20,000
+    <ul>
+      <li>Modify the previous query to only include only product groups with a total sales value greater than 20,000.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="challenge-solutions">Challenge Solutions</h2>
+
+<p>This section contains suggested solutions for the challenge queries.</p>
+
+<h3 id="challenge-1">Challenge 1</h3>
+
+<ol>
+  <li>
+    <p>Retrieve the order ID and freight cost of each order:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SalesOrderID,
+        <span class="hljs-keyword"><span class="hljs-keyword">ROUND</span></span>(Freight, <span class="hljs-number"><span class="hljs-number">2</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> FreightCost
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderHeader;
+</code></pre>
+  </li>
+  <li>
+    <p>Add the shipping method:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SalesOrderID,
+        <span class="hljs-keyword"><span class="hljs-keyword">ROUND</span></span>(Freight, <span class="hljs-number"><span class="hljs-number">2</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> FreightCost,
+        <span class="hljs-keyword"><span class="hljs-keyword">LOWER</span></span>(ShipMethod) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ShippingMethod
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderHeader;
+</code></pre>
+  </li>
+  <li>
+    <p>Add shipping date details:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SalesOrderID,
+        <span class="hljs-keyword"><span class="hljs-keyword">ROUND</span></span>(Freight, <span class="hljs-number"><span class="hljs-number">2</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> FreightCost,
+        <span class="hljs-keyword"><span class="hljs-keyword">LOWER</span></span>(ShipMethod) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ShippingMethod,
+        <span class="hljs-keyword"><span class="hljs-keyword">YEAR</span></span>(ShipDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ShipYear,
+        <span class="hljs-keyword"><span class="hljs-keyword">DATENAME</span></span>(mm, ShipDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ShipMonth,
+        <span class="hljs-keyword"><span class="hljs-keyword">DAY</span></span>(ShipDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ShipDay
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderHeader;
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="challenge-2">Challenge 2</h3>
+
+<p>The product manager would like reports that include aggregated information about product sales.</p>
+
+<ol>
+  <li>
+    <p>Retrieve total sales by product:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> p.Name,<span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(o.LineTotal) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> TotalRevenue
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> o
+ <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> p
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> o.ProductID = p.ProductID
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> p.Name
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> TotalRevenue <span class="hljs-keyword"><span class="hljs-keyword">DESC</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Filter the product sales list to include only products that cost over 1,000:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> p.Name,<span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(o.LineTotal) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> TotalRevenue
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> o
+ <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> p
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> o.ProductID = p.ProductID
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> p.ListPrice &gt; <span class="hljs-number"><span class="hljs-number">1000</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> p.Name
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> TotalRevenue <span class="hljs-keyword"><span class="hljs-keyword">DESC</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Filter the product sales groups to include only total sales over 20,000:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> p.Name,<span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(o.LineTotal) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> TotalRevenue
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> o
+ <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> p
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> o.ProductID = p.ProductID
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> p.ListPrice &gt; <span class="hljs-number"><span class="hljs-number">1000</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> p.Name
+ <span class="hljs-keyword"><span class="hljs-keyword">HAVING</span></span> <span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(o.LineTotal) &gt; <span class="hljs-number"><span class="hljs-number">20000</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> TotalRevenue <span class="hljs-keyword"><span class="hljs-keyword">DESC</span></span>;
+</code></pre>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="ml-2">
+                    MicrosoftLearning/dp-080-Transact-SQL
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.js"></script>
+
+
+
+</body></html>

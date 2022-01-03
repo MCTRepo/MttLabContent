@@ -1,0 +1,641 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D907526b117000ffdbc71b1bcc102e524d83415a3.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1">Exercise 1</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-11---implement-monitoring">Lab 11 - Implement Monitoring</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>You need to evaluate Azure functionality that would provide insight into performance and configuration of Azure resources, focusing in particular on Azure virtual machines. To accomplish this, you intend to examine the capabilities of Azure Monitor, including Log Analytics.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>In this lab, you will:</p>
+
+<ul>
+  <li>Task 1: Provision the lab environment</li>
+  <li>Task 2: Register the Microsoft.Insights and Microsoft.AlertsManagement resource providers</li>
+  <li>Task 3: Create and configure an Azure Log Analytics workspace and Azure Automation-based solutions</li>
+  <li>Task 4: Review default monitoring settings of Azure virtual machines</li>
+  <li>Task 5: Configure Azure virtual machine diagnostic settings</li>
+  <li>Task 6: Review Azure Monitor functionality</li>
+  <li>Task 7: Review Azure Log Analytics functionality</li>
+</ul>
+
+<h2 id="estimated-timing-45-minutes">Estimated timing: 45 minutes</h2>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="exercise-1">Exercise 1</h3>
+
+<h4 id="task-1-provision-the-lab-environment">Task 1: Provision the lab environment</h4>
+
+<p>In this task, you will deploy a virtual machine that will be used to test monitoring scenarios.</p>
+
+<ol>
+  <li>
+    <p>Sign in to the <a href="https://portal.azure.com">Azure portal</a>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open the <strong>Azure Cloud Shell</strong> by clicking on the icon in the top right of the Azure Portal.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and click <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, click the <strong>Upload/Download files</strong> icon, in the drop-down menu, click <strong>Upload</strong> and upload the files <strong>\Allfiles\Labs\11\az104-11-vm-template.json</strong> and <strong>\Allfiles\Labs\11\az104-11-vm-parameters.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create the resource group that will be hosting the virtual machines (replace the <code>[Azure_region]</code> placeholder with the name of an Azure region where you intend to deploy Azure virtual machines):</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure to choose one of the regions listed as <strong>Log Analytics Workspace Region</strong> in the referenced in <a href="https://docs.microsoft.com/en-us/azure/automation/how-to/region-mappings">Workspace mappings documentation</a></p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location = '[Azure_region]'
+
+$rgName = 'az104-11-rg0'
+
+New-AzResourceGroup -Name $rgName -Location $location
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create the first virtual network and deploy a virtual machine into it by using the template and parameter files you uploaded:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-11-vm-template.json `
+   -TemplateParameterFile $HOME/az104-11-vm-parameters.json `
+   -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Do not wait for the deployment to complete but instead proceed to the next task. The deployment should take about 3 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-register-the-microsoftinsights-and-microsoftalertsmanagement-resource-providers">Task 2: Register the Microsoft.Insights and Microsoft.AlertsManagement resource providers.</h4>
+
+<ol>
+  <li>
+    <p>From the Cloud Shell pane, run the following to register the Microsoft.Insights and Microsoft.AlertsManagement resource providers.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Register-AzResourceProvider -ProviderNamespace Microsoft.Insights
+
+Register-AzResourceProvider -ProviderNamespace Microsoft.AlertsManagement
+</code></pre>
+  </li>
+  <li>
+    <p>Minimize Cloud Shell pane (but do not close it).</p>
+  </li>
+</ol>
+
+<h4 id="task-3-create-and-configure-an-azure-log-analytics-workspace-and-azure-automation-based-solutions">Task 3: Create and configure an Azure Log Analytics workspace and Azure Automation-based solutions</h4>
+
+<p>In this task, you will create and configure an Azure Log Analytics workspace and Azure Automation-based solutions</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Log Analytics workspaces</strong> and, on the <strong>Log Analytics workspaces</strong> blade, click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create Log Analytics workspace</strong> blade, enter the following settings, click <strong>Review + Create</strong> and then click <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Settings</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group <strong>az104-11-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Log Analytics Workspace</td>
+          <td>any unique name</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the name of the Azure region into which you deployed the virtual machine in the previous task</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure that you specify the same region into which you deployed virtual machines in the previous task.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete. The deployment should take about 1 minute.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Automation Accounts</strong>, and on the <strong>Automation Accounts</strong> blade, click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create an Automation Account</strong> blade, specify the following settings, and click <strong>Review + Create</strong> upon validation click <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Settings</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td>any unique name</td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-11-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>the name of the Azure region determined based on <a href="https://docs.microsoft.com/en-us/azure/automation/how-to/region-mappings">Workspace mappings documentation</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure that you specify the Azure region based on the <a href="https://docs.microsoft.com/en-us/azure/automation/how-to/region-mappings">Workspace mappings documentation</a></p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete. The deployment might take about 3 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Go to resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the Automation account blade, in the <strong>Configuration Management</strong> section, click <strong>Inventory</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Inventory</strong> pane, in the <strong>Log Analytics workspace</strong> drop-down list, select the Log Analytics workspace you created earlier in this task and click <strong>Enable</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the installation of the corresponding Log Analytics solution to complete. This might take about 3 minutes.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: This automatically installs the <strong>Change tracking</strong> solution as well.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the Automation account blade, in the <strong>Update Management</strong> section, click <strong>Update management</strong> and click <strong>Enable</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the installation to complete. This might take about 5 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-review-default-monitoring-settings-of-azure-virtual-machines">Task 4: Review default monitoring settings of Azure virtual machines</h4>
+
+<p>In this task, you will review default monitoring settings of Azure virtual machines</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual machines</strong>, and on the <strong>Virtual machines</strong> blade, click <strong>az104-11-vm0</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-11-vm0</strong> blade, in the <strong>Monitoring</strong> section, click <strong>Metrics</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-11-vm0 | Metrics</strong> blade, on the default chart, note that the only available <strong>Metrics Namespace</strong> is <strong>Virtual Machine Host</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is expected, since no guest-level diagnostic settings have been configured yet. You do have, however, the option of enabling guest memory metrics directly from the <strong>Metrics Namespace</strong> drop down-list. You will enable it later in this exercise.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Metric</strong> drop-down list, review the list of available metrics.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The list includes a range of CPU, disk, and network-related metrics that can be collected from the virtual machine host, without having access into guest-level metrics.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Metric</strong> drop-down list, select <strong>Percentage CPU</strong>, in the <strong>Aggregation</strong> drop-down list, select <strong>Avg</strong>, and review the resulting chart.</p>
+  </li>
+</ol>
+
+<h4 id="task-5-configure-azure-virtual-machine-diagnostic-settings">Task 5: Configure Azure virtual machine diagnostic settings</h4>
+
+<p>In this task, you will configure Azure virtual machine diagnostic settings.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>az104-11-vm0</strong> blade, in the <strong>Monitoring</strong> section, click <strong>Diagnostic settings</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Overview</strong> tab of the <strong>az104-11-vm0 | Diagnostic settings</strong> blade, click <strong>Enable guest-level monitoring</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the operation to take effect. This might take about 3 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Switch to the <strong>Performance counters</strong> tab of the <strong>az104-11-vm0 | Diagnostic settings</strong> blade and review the available counters.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: By default, CPU, memory, disk, and network counters are enabled. You can switch to the <strong>Custom</strong> view for more detailed listing.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Switch to the <strong>Logs</strong> tab of the <strong>az104-11-vm0 | Diagnostic settings</strong> blade and review the available event log collection options.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: By default, log collection includes critical, error, and warning entries from the Application Log and System log, as well as Audit failure entries from the Security log. Here as well you can switch to the <strong>Custom</strong> view for more detailed configuration settings.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az104-11-vm0</strong> blade, in the <strong>Monitoring</strong> section, click <strong>Logs</strong> and then click <strong>Enable</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-11-vm0 - Logs</strong> blade, ensure that the Log Analytics workspace you created earlier in this lab is selected in the <strong>Choose a Log Analytics Workspace</strong> drop-down list and click <strong>Enable</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Do not wait for the operation to complete but instead proceed to the next step. The operation might take about 5 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az104-11-vm0 | Logs</strong> blade, in the <strong>Monitoring</strong> section, click <strong>Metrics</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-11-vm0 | Metrics</strong> blade, on the default chart, note that at this point, the <strong>Metrics Namespace</strong> drop-down list, in addition to the <strong>Virtual Machine Host</strong> entry includes also the <strong>Guest (classic)</strong> entry.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is expected, since you enabled guest-level diagnostic settings. You also have the option to <strong>Enable new guest memory metrics</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Metrics Namespace</strong> drop-down list, select  the <strong>Guest (classic)</strong> entry.</p>
+  </li>
+  <li>
+    <p>In the <strong>Metric</strong> drop-down list, review the list of available metrics.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The list includes additional guest-level metrics not available when relying on the host-level monitoring only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Metric</strong> drop-down list, select <strong>Memory\Available Bytes</strong>, in the <strong>Aggregation</strong> drop-down list, select <strong>Max</strong>, and review the resulting chart.</p>
+  </li>
+</ol>
+
+<h4 id="task-6-review-azure-monitor-functionality">Task 6: Review Azure Monitor functionality</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Monitor</strong> and, on the <strong>Monitor | Overview</strong> blade, click <strong>Metrics</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Select a scope</strong> blade, on the <strong>Browse</strong> tab, navigate to the <strong>az104-11-rg0</strong> resource group, expand it, select the checkbox next to the <strong>az104-11-vm0</strong> virtual machine entry within that resource group, and click <strong>Apply</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This gives you the same view and options as those available from the <strong>az104-11-vm0 - Metrics</strong> blade.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Metric</strong> drop-down list, select <strong>Percentage CPU</strong>, in the <strong>Aggregation</strong> drop-down list, select <strong>Avg</strong>, and review the resulting chart.</p>
+  </li>
+  <li>
+    <p>On the <strong>Monitor | Metrics</strong> blade, on the <strong>Avg Percentage CPU for az104-11-vm0</strong> pane, click <strong>New alert rule</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Creating an alert rule from Metrics is not supported for metrics from the Guest (classic) metric namespace. This can be accomplished by using Azure Resource Manager templates, as described in the document <a href="https://docs.microsoft.com/en-us/azure/azure-monitor/platform/collect-custom-metrics-guestos-resource-manager-vm">Send Guest OS metrics to the Azure Monitor metric store using a Resource Manager template for a Windows virtual machine</a></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Create alert rule</strong> blade, in the <strong>Condition</strong> section, click the existing condition entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>Configure signal logic</strong> blade, in the list of signals, in the <strong>Alert logic</strong> section, specify the following settings (leave others with their default values) and click <strong>Done</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Settings</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Threshold</td>
+          <td><strong>Static</strong></td>
+        </tr>
+        <tr>
+          <td>Operator</td>
+          <td><strong>Greater than</strong></td>
+        </tr>
+        <tr>
+          <td>Aggregation type</td>
+          <td><strong>Average</strong></td>
+        </tr>
+        <tr>
+          <td>Threshold value</td>
+          <td><strong>2</strong></td>
+        </tr>
+        <tr>
+          <td>Aggregation granularity (Period)</td>
+          <td><strong>1 minute</strong></td>
+        </tr>
+        <tr>
+          <td>Frequency of evaluation</td>
+          <td><strong>Every 1 Minute</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Create alert rule</strong> blade, in the <strong>Action group</strong> section, click <strong>Add action groups</strong> and then click the <strong>+ Create action group</strong> button.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create action group</strong> blade, specify the following settings (leave others with their default values) and select <strong>Next: Notifications &gt;</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Settings</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az104-11-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Action group name</td>
+          <td><strong>az104-11-ag1</strong></td>
+        </tr>
+        <tr>
+          <td>Display name</td>
+          <td><strong>az104-11-ag1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Notifications</strong> tab of the <strong>Create action group</strong> blade, in the <strong>Notification type</strong> drop-down list, select <strong>Email/SMS/Push/Voice</strong>. In the <strong>Name</strong> text box, type <strong>admin email</strong>. Click the <strong>Edit details</strong> (pencil) icon.</p>
+  </li>
+  <li>
+    <p>On the <strong>Email/SMS/Push/Voice</strong> blade, select the <strong>Email</strong> checkbox, type your email address in the <strong>Email</strong> textbox, leave others with their default values, click <strong>OK</strong>, back on the <strong>Notifications</strong> tab of the <strong>Create action group</strong> blade, select <strong>Next: Actions  &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Actions</strong> tab of the <strong>Create action group</strong> blade, review items available in the <strong>Action type</strong> drop-down list without making any changes and select <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab of the <strong>Create action group</strong> blade, select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>Create alert rule</strong> blade, in the <strong>Alert rule details</strong> section, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Settings</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Alert rule name</td>
+          <td><strong>CPU Percentage above the test threshold</strong></td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td><strong>CPU Percentage above the test threshold</strong></td>
+        </tr>
+        <tr>
+          <td>Severity</td>
+          <td><strong>Sev 3</strong></td>
+        </tr>
+        <tr>
+          <td>Enable rule upon creation</td>
+          <td><strong>Yes</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Create alert rule</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: It can take up to 10 minutes for a metric alert rule to become active.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual machines</strong>, and on the <strong>Virtual machines</strong> blade, click <strong>az104-11-vm0</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az104-11-vm0</strong> blade, click <strong>Connect</strong>, in the drop-down menu, click <strong>RDP</strong>, on the <strong>Connect with RDP</strong> blade, click <strong>Download RDP File</strong> and follow the prompts to start the Remote Desktop session.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This step refers to connecting via Remote Desktop from a Windows computer. On a Mac, you can use Remote Desktop Client from the Mac App Store and on Linux computers you can use an open source RDP client software.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can ignore any warning prompts when connecting to the target virtual machines.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>When prompted, sign in by using the <strong>Student</strong> username and <strong>Pa55w.rd1234</strong> password.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session, click <strong>Start</strong>, expand the <strong>Windows System</strong> folder, and click <strong>Command Prompt</strong>.</p>
+  </li>
+  <li>
+    <p>From the Command Prompt, run the following to trigger increased CPU utilization on the <strong>az104-11-vm0</strong> Azure VM:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> /l %a <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> (0,0,1) <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> <span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> a
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will initiate the infinite loop that should increase the CPU utilization above the threshold of the newly created alert rule.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave the Remote Desktop session open and switch back to the browser window displaying the Azure portal on your lab computer.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>Monitor</strong> blade and click <strong>Alerts</strong>.</p>
+  </li>
+  <li>
+    <p>Note the number of <strong>Sev 3</strong> alerts and then click the <strong>Sev 3</strong> row.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to wait for a few minutes and click <strong>Refresh</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>All Alerts</strong> blade, review generated alerts.</p>
+  </li>
+</ol>
+
+<h4 id="task-7-review-azure-log-analytics-functionality">Task 7: Review Azure Log Analytics functionality</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>Monitor</strong> blade, click <strong>Logs</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to click <strong>Get Started</strong> if this is the first time you access Log Analytics.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>If necessary, click <strong>Select scope</strong>, on the <strong>Select a scope</strong> blade, select the <strong>Recent</strong> tab, select <strong>az104-11-vm0</strong>, and click <strong>Apply</strong>.</p>
+  </li>
+  <li>
+    <p>In the query window, paste the following query, click <strong>Run</strong>, and review the resulting chart:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">// Virtual Machine available memory
+// Chart the VM<span class="hljs-string"><span class="hljs-string">'s available memory over the last hour.
+InsightsMetrics
+| where TimeGenerated &gt; ago(1h)
+| where Name == "AvailableMB"
+| project TimeGenerated, Name, Val
+| render timechart
+</span></span></code></pre>
+  </li>
+  <li>
+    <p>Click <strong>Queries</strong> in the toolbar, on the <strong>Queries</strong> pane, locate the <strong>Track VM availability</strong> tile, click the <strong>Run</strong> command button in the tile, and review the results.</p>
+  </li>
+  <li>
+    <p>On the <strong>New Query 1</strong> tab, select the <strong>Tables</strong> header, and review the list of tables in the <strong>Virtual machines</strong> section.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The names of several tables correspond to the solutions you installed earlier in this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Hover the mouse over the <strong>VMComputer</strong> entry and click the <strong>See Preview data</strong> icon.</p>
+  </li>
+  <li>
+    <p>If any data is available, in the <strong>Update</strong> pane, click <strong>Use in editor</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to wait a few minutes before the update data becomes available.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="clean-up-resources">Clean up resources</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>List all resource groups created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-11*'
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-11*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the -AsJob parameter), so while you will be able to run another PowerShell command immediately afterwards within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this lab, you have:</p>
+
+<ul>
+  <li>Provisioned the lab environment</li>
+  <li>Created and configured an Azure Log Analytics workspace and Azure Automation-based solutions</li>
+  <li>Reviewed default monitoring settings of Azure virtual machines</li>
+  <li>Configured Azure virtual machine diagnostic settings</li>
+  <li>Reviewed Azure Monitor functionality</li>
+  <li>Reviewed Azure Log Analytics functionality</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D907526b117000ffdbc71b1bcc102e524d83415a3.js"></script>
+
+
+
+</body></html>

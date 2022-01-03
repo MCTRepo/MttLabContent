@@ -1,0 +1,407 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m04-unit-6-create-a-traffic-manager-profile-using-the-azure-portal">M04-Unit 6 Create a Traffic Manager profile using the Azure portal</h1>
+
+<p>In this exercise, you will create a Traffic Manager profile to deliver high availability for the fictional Contoso Ltd organization’s web application.</p>
+
+<p>You will create two instances of a web application deployed in two different regions (East US and West Europe). The East US region will act as a primary endpoint for Traffic Manager, and the West Europe region will act as a failover endpoint.</p>
+
+<p>You will then create a Traffic Manager profile based on endpoint priority. This profile will direct user traffic to the primary site running the web application. Traffic Manager will continuously monitor the web application, and if the primary site in East US is unavailable, it will provide automatic failover to the backup site in West Europe.</p>
+
+<p>The diagram below approximately illustrates the environment you will be deploying in this exercise.</p>
+
+<p>​	<a href="../media/exercise-traffic-manager-environment-diagram.png" target="_blank"><img src="../media/exercise-traffic-manager-environment-diagram.png" alt="Picture 14"></a></p>
+
+<p>In this exercise, you will:</p>
+
+<ul>
+  <li>Task 1: Create the web apps</li>
+  <li>Task 2: Create a Traffic Manager profile</li>
+  <li>Task 3: Add Traffic Manager endpoints</li>
+  <li>Task 4: Test the Traffic Manager profile</li>
+  <li>Task 5: Clean up resources</li>
+</ul>
+
+<h2 id="task-1-create-the-web-apps">Task 1: Create the web apps</h2>
+
+<p>In this section, you will create two instances of a web application deployed in the two different Azure regions.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, click <strong>Create a resource</strong>, then select <strong>Web App</strong> (if this resource type is not listed on the page, use the search box at the top of the page to search for it and select it).</p>
+  </li>
+  <li>
+    <p>On the <strong>Create Web App</strong> page, on the <strong>Basics</strong> tab, use the information in the table below to create the first web application.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>Select <strong>Create  new</strong>  Name: <strong>Contoso-RG-TM1</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>ContosoWebAppEastUSxx</strong> (where xx are your initials to make the name unique)</td>
+        </tr>
+        <tr>
+          <td>Publish</td>
+          <td><strong>Code</strong></td>
+        </tr>
+        <tr>
+          <td>Runtime stack</td>
+          <td><strong>ASP.NET V4.8</strong></td>
+        </tr>
+        <tr>
+          <td>Operating system</td>
+          <td><strong>Windows</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td><strong>East US</strong></td>
+        </tr>
+        <tr>
+          <td>Windows Plan</td>
+          <td>Select <strong>Create  new</strong>  Name: <strong>ContosoAppServicePlanEastUS</strong></td>
+        </tr>
+        <tr>
+          <td>Sku and size</td>
+          <td><strong>Standard S1 100 total ACU, 1.75-GB  memory</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next : Deployment (Preview)</strong>, then click <strong>Next : Monitoring</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Monitoring</strong> tab, select the <strong>No</strong> option for <strong>Enable Application Insights</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+
+    <p><a href="../media/create-web-app-1.png" target="_blank"><img src="../media/create-web-app-1.png" alt="Picture 18"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>. When the Web App successfully deploys, it creates a default web site.</p>
+  </li>
+  <li>
+    <p>Repeat steps 1-6 above to create a second web app. Use the same settings as before except for the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Resource group</td>
+          <td>Select <strong>Create  new</strong>  Name: <strong>Contoso-RG-TM2</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>ContosoWebAppWestEuropexx</strong> (where xx are your initials to make the name unique)</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td><strong>West Europe</strong></td>
+        </tr>
+        <tr>
+          <td>Windows Plan</td>
+          <td>Select <strong>Create  new</strong>  Name: <strong>ContosoAppServicePlanWestEurope</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the Azure home page, click <strong>All services</strong>, in the left navigation menu, select <strong>Web</strong>, and then click <strong>App Services</strong>.</p>
+  </li>
+  <li>
+    <p>You should see the two new web apps listed.</p>
+
+    <p><a href="../media/create-web-app-2.png" target="_blank"><img src="../media/create-web-app-2.png" alt="Picture 19"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-2-create-a-traffic-manager-profile">Task 2: Create a Traffic Manager profile</h2>
+
+<p>Now you will create a Traffic Manager profile that directs user traffic based on endpoint priority.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, click <strong>Create a resource</strong>.</p>
+  </li>
+  <li>
+    <p>In the search box at the top of the page, type <strong>Traffic Manager profile</strong>, and then select it from the pop-up list.</p>
+
+    <p><a href="../media/create-tmprofile-1.png" target="_blank"><img src="../media/create-tmprofile-1.png" alt="Picture 20"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create Traffic Manager profile</strong> page, use the information in the table below to create the Traffic Manager profile.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>Contoso-TMProfilexx</strong> (where xx are your initials to make the name unique)</td>
+        </tr>
+        <tr>
+          <td>Routing method</td>
+          <td><strong>Priority</strong></td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>Contoso-RG-TM1</strong></td>
+        </tr>
+        <tr>
+          <td>Resource group location</td>
+          <td><strong>East US</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-3-add-traffic-manager-endpoints">Task 3: Add Traffic Manager endpoints</h2>
+
+<p>In this section, you will add the website in the East US as the primary endpoint to route all the user traffic. You will then add the website in West Europe as a failover endpoint. If the primary endpoint becomes unavailable, then traffic will automatically be routed to the failover endpoint.</p>
+
+<ol>
+  <li>
+    <p>On the Azure portal home page, click <strong>All resources</strong>, then click on <strong>Contoso-TMProfile</strong> in the resources list.</p>
+  </li>
+  <li>
+    <p>Under <strong>Settings</strong>, select <strong>Endpoints</strong>, and then click <strong>Add</strong>.</p>
+
+    <p><a href="../media/create-tmendpoints-1.png" target="_blank"><img src="../media/create-tmendpoints-1.png" alt="Picture 21"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Add endpoint</strong> page, enter the information from the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Type</td>
+          <td><strong>Azure endpoint</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>myPrimaryEndpoint</strong></td>
+        </tr>
+        <tr>
+          <td>Target resource type</td>
+          <td><strong>App Service</strong></td>
+        </tr>
+        <tr>
+          <td>Target resource</td>
+          <td><strong>ContosoWebAppEastUS (East US)</strong></td>
+        </tr>
+        <tr>
+          <td>Priority</td>
+          <td><strong>1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>Repeat steps 2-4 above to create the failover endpoint. Use the same settings as before except for the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>myFailoverEndpoint</strong></td>
+        </tr>
+        <tr>
+          <td>Target resource</td>
+          <td><strong>ContosoWebAppWestEurope (West Europe)</strong></td>
+        </tr>
+        <tr>
+          <td>Priority</td>
+          <td><strong>2</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Setting a priority of 2 means that traffic will route to this failover endpoint if the configured primary endpoint becomes unhealthy.</p>
+  </li>
+  <li>
+    <p>The two new endpoints are displayed in the Traffic Manager profile. Notice that after a few minutes the <strong>Monitoring status</strong> should change to <strong>Online</strong>.</p>
+
+    <p><a href="../media/create-tmendpoints-2.png" target="_blank"><img src="../media/create-tmendpoints-2.png" alt="Picture 22"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-4-test-the-traffic-manager-profile">Task 4: Test the Traffic Manager profile</h2>
+
+<p>In this section, you will check the DNS name of your Traffic Manager profile, and then you will configure the primary endpoint so that it is unavailable. You will then verify that the web app is still available, to test that the Traffic Manager profile is successfully sending traffic to the failover endpoint.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>Contoso-TMProfile</strong> page, click <strong>Overview</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Overview</strong> screen, copy the <strong>DNS name</strong> entry to the clipboard (or take note of it somewhere).</p>
+
+    <p><a href="../media/check-dnsname-1.png" target="_blank"><img src="../media/check-dnsname-1.png" alt="Picture 23"></a></p>
+  </li>
+  <li>
+    <p>Open a web browser tab, and paste (or enter) the <strong>DNS name</strong> entry (contoso-tmprofile.trafficmanager.net) into the address bar, and press Enter.</p>
+  </li>
+  <li>
+    <p>The web app’s default web site should be displayed.</p>
+
+    <p><a href="../media/tm-webapp-test-1a.png" target="_blank"><img src="../media/tm-webapp-test-1a.png" alt="Picture 24"></a></p>
+  </li>
+  <li>
+    <p>Currently all traffic is being sent to the primary endpoint as you set its <strong>Priority</strong> to <strong>1</strong>.</p>
+  </li>
+  <li>
+    <p>To test the failover endpoint is working properly, you need to disable the primary site.</p>
+  </li>
+  <li>
+    <p>On the <strong>Contoso-TMProfile</strong> page, on the overview screen, select <strong>myPrimaryEndpoint</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>myPrimaryEndpoint</strong> page, under <strong>Status</strong>, click <strong>Disabled</strong>, and then click <strong>Save</strong>.</p>
+
+    <p><a href="../media/disable-primary-endpoint-1.png" target="_blank"><img src="../media/disable-primary-endpoint-1.png" alt="Picture 25"></a></p>
+  </li>
+  <li>
+    <p>Close the <strong>myPrimaryEndpoint</strong> page (click the <strong>X</strong> in the top right corner of the page).</p>
+  </li>
+  <li>
+    <p>On the <strong>Contoso-TMProfile</strong> page, the <strong>Monitor status</strong> for <strong>myPrimaryEndpoint</strong> should now be <strong>Disabled</strong>.</p>
+  </li>
+  <li>
+    <p>Open a new web browser session, and paste (or enter) the <strong>DNS name</strong> entry (contoso-tmprofile.trafficmanager.net) into the address bar, and press Enter.</p>
+  </li>
+  <li>
+    <p>Verify that the web app is still responding. As the primary endpoint was not available, the traffic was instead routed to the failover endpoint to allow the web site to still function.</p>
+  </li>
+</ol>
+
+<p>## Task 5: Clean up resources</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">
+Remove-AzResourceGroup -Name 'Contoso-RG-TM1' -Force -AsJob
+
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the -AsJob parameter), so while you will be able to run another PowerShell command immediately afterwards within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

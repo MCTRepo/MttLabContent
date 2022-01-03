@@ -1,0 +1,646 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-deploy-configure-and-manage-azure-vms-by-using-ansible">Exercise 1: Deploy, configure, and manage Azure VMs by using Ansible</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-14a-ansible-with-azure">Lab 14a: Ansible with Azure</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-overview">Lab overview</h2>
+
+<p>In this lab we will deploy, configure, and manage Azure resources by using Ansible.</p>
+
+<p>Ansible is declarative configuration management software. It relies on a description of the intended configuration applicable to managed computers in the form of playbooks. Ansible automatically applies that configuration and maintains it going forward, addressing any potential discrepancies. Playbooks are formatted by using YAML.</p>
+
+<p>Unlike the majority of other configuration management tools, such as Puppet or Chef, Ansible is agentless, which means that it does not require the installation of any software in the managed machines. Ansible uses SSH to manage Linux servers and Powershell Remoting to manage Windows servers and clients.</p>
+
+<p>In order to interact with resources other than operating systems (such as, for example, Azure resources accessible via Azure Resource Manager), Ansible supports extensions called modules. Ansible is written in Python so, effectively, the modules are implemented as Python libraries. In order to manage Azure resources, Ansible relies on <a href="https://github.com/ansible-collections/azure">GitHub-hosted modules</a>.</p>
+
+<p>Ansible requires that the managed resources are specified in a designated host inventory. Ansible supports dynamic inventories for some systems, including Azure, so that the host inventory is dynamically generated at runtime.</p>
+
+<p>The lab will consist of the following high-level steps:</p>
+
+<ul>
+  <li>Installing and configuring Ansible on the Azure VM</li>
+  <li>Downloading Ansible configuration and sample playbook files</li>
+  <li>Creating and configuring a managed identity in Azure AD</li>
+  <li>Configuring Azure AD credentials and SSH for use with Ansible</li>
+  <li>Deploying an Azure VM by using an Ansible playbook</li>
+  <li>Configuring an Azure VM by using an Ansible playbook</li>
+</ul>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After you complete this lab, you will be able to:</p>
+
+<ul>
+  <li>Install and configure Ansible on Azure VM</li>
+  <li>Download Ansible configuration and sample playbook files</li>
+  <li>Create and configure Azure Active Directory managed identity</li>
+  <li>Configure Azure AD credentials and SSH for use with Ansible</li>
+  <li>Deploy an Azure VM by using an Ansible playbook</li>
+  <li>Configure an Azure VM by using an Ansible playbook</li>
+</ul>
+
+<h2 id="lab-duration">Lab duration</h2>
+
+<ul>
+  <li>Estimated time: <strong>90 minutes</strong></li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-virtual-machine">Sign in to the lab virtual machine</h4>
+
+<p>Ensure that you’re signed in to your Windows 10 computer by using the following credentials:</p>
+
+<ul>
+  <li>Username: <strong>Student</strong></li>
+  <li>Password: <strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="review-applications-required-for-this-lab">Review applications required for this lab</h4>
+
+<p>Identify the applications that you’ll use in this lab:</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="prepare-an-azure-subscription">Prepare an Azure subscription</h4>
+
+<ul>
+  <li>Identify an existing Azure subscription or create a new one.</li>
+  <li>Verify that you have a Microsoft account or an Azure AD account with the Owner role in the Azure subscription and the Global Administrator role in the Azure AD tenant associated with the Azure subscription. For details, refer to <a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-list-portal">List Azure role assignments using the Azure portal</a> and <a href="https://docs.microsoft.com/en-us/azure/active-directory/roles/manage-roles-portal#view-my-roles">View and assign administrator roles in Azure Active Directory</a>.</li>
+</ul>
+
+<h3 id="exercise-1-deploy-configure-and-manage-azure-vms-by-using-ansible">Exercise 1: Deploy, configure, and manage Azure VMs by using Ansible</h3>
+
+<p>In this exercise, you will deploy, configure, and manage Azure VMs by using Ansible.</p>
+
+<h4 id="task-1-provision-an-azure-vm-serving-as-the-ansible-control-node">Task 1: Provision an Azure VM serving as the Ansible control node</h4>
+
+<p>In this task, you will deploy an Azure VM by using Azure CLI and configure it as an Ansible control node that manages your Ansible environment.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: You will use the Azure VM configured as an Ansible control node to perform Ansible management tasks, including those you performed in the previous tasks of this lab.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the toolbar, click the <strong>Cloud Shell</strong> icon located directly to the right of the search text box.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Alternatively, you can access Cloud Shell directly by navigating to <a href="https://shell.azure.com">https://shell.azure.com</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>Bash</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Bash session in the Cloud Shell pane, run the following to specify the name of the Azure region that will host the resources you deploy in this lab (replace the <code>&lt;Azure_region&gt;</code> placeholder with the name of the Azure region where you intend to deploy resources. Make sure that the name does not contain any spaces, e.g. <code>westeurope</code>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs">LOCATION=&lt;Azure_region&gt;
+</code></pre>
+  </li>
+  <li>
+    <p>From the Bash session in the Cloud Shell pane, run the following to create resource groups that will host the Azure VMs you deploy in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs">RG1NAME=az400m14l03rg
+az group create --name <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+RG2NAME=az400m14l03arg
+az group create --name <span class="hljs-variable"><span class="hljs-variable">$RG2NAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to deploy an Azure VM running Ubuntu into the resource group you created in the previous step:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs">VM1NAME=az400m1403vm1
+az vm create \
+--resource-group <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> \
+--name <span class="hljs-variable"><span class="hljs-variable">$VM1NAME</span></span> \
+--image UbuntuLTS \
+--authentication-type password \
+--admin-username azureuser \
+--admin-password Pa55w.rd1234
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before you proceed to the next step. This might take about 2 minutes.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Once the provisioning completes, in the JSON-based output, identify the value of the <strong>“publicIpAddress”</strong> property included in the output.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following to connect to the newly deployed Azure VM by using SSH:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs">PIP=$(az vm show --show-details --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$VM1NAME</span></span> --query publicIps --output tsv)
+ssh azureuser@<span class="hljs-variable"><span class="hljs-variable">$PIP</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>When prompted for confirmation to proceed, type <strong>yes</strong> and press the <strong>Enter</strong> key and, when prompted to provide the password, type <strong>Pa55w.rd1234</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-install-and-configure-ansible-on-an-azure-vm">Task 2: Install and configure Ansible on an Azure VM</h4>
+
+<p>In this task, you will install and configure Ansible on the Azure VM you deployed in the previous task.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session in the Cloud Shell pane, within the SSH session to the newly deployed Azure VM, run the following to update the Advanced Packaging Tool (apt) package list to include the latest version and package details:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs">sudo apt-get update
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to install Ansible and the required Azure modules (<strong>make sure that you run the commands individually, line by line</strong>, and, whenever you are prompted for confirmation, type <strong>y</strong> and press the <strong>Enter</strong> key):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs">sudo apt install python3-pip
+sudo -H pip3 install --upgrade pip
+sudo -H pip3 install ansible[azure]
+sudo apt-add-repository --yes --update ppa:ansible/ansible
+sudo apt install ansible
+sudo ansible-galaxy collection install azure.azcollection
+curl -O https://raw.githubusercontent.com/ansible-collections/azure/dev/requirements-azure.txt
+sudo pip3 install -r requirements-azure.txt
+rm requirements-azure.txt
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Disregard any warnings. If you encounter any errors, rerun the commands.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following to install the dnspython package to allow the Ansible playbooks to verify DNS names before deployment:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-bash hljs">sudo -H pip3 install dnspython
+</code></pre>
+  </li>
+  <li>
+    <p>In the Bash session in the Cloud Shell pane, within the SSH session to the newly deployed Azure VM, run the following to install the <strong>jq</strong> JSON parsing tool (when prompted, type <strong>y</strong> and press the <strong>Enter</strong> key):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-bash hljs">sudo apt install jq
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to install Azure CLI:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-bash hljs">curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-3-download-ansible-configuration-and-sample-playbook-files">Task 3: Download Ansible configuration and sample playbook files</h4>
+
+<p>In this task, you will download from GitHub the Ansible configuration repository along with the sample lab files.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session in the Cloud Shell pane, within the SSH session to the newly deployed Azure VM, run the following to ensure that <strong>git</strong> is installed:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-bash hljs">sudo apt install git
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to clone the PartsUnlimitedMRP repo from GitHub:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-bash hljs">git <span class="hljs-built_in"><span class="hljs-built_in">clone</span></span> https://github.com/Microsoft/PartsUnlimitedMRP.git
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This repository contains playbooks for creating a wide range of resources, some of which we will use in the lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-create-and-configure-azure-active-directory-managed-identity">Task 4: Create and configure Azure Active Directory managed identity</h4>
+
+<p>In this task, you will generate an Azure AD managed identity in order to facilitate non-interactive authentication of Ansible, which is necessary to access Azure resources. You will also assign to the managed identity the Contributor role on the resource group you created in the previous task.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session in the Cloud Shell pane, within the SSH session to the newly deployed Azure VM, run the following to sign in to the Azure AD tenant associated with your Azure subscription:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-bash hljs">az login
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the command fails, rerun the installation of Azure CLI.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Note the code displayed in the output of the previous command and switch to your lab computer. From your lab computer, open another tab in the browser window displaying the Azure portal, navigate to <a href="https://microsoft.com/devicelogin">the Microsoft Device Login page</a> and, when prompted, enter the code and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted, sign in with credentials you are using in this lab and close the browser tab.</p>
+  </li>
+  <li>
+    <p>Switch back to the Bash session in the Cloud Shell pane. Within the SSH session to the Azure VM configured as the Ansible control node, run the following to generate a system assigned managed identity:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-bash hljs">RG1NAME=az400m14l03rg
+VM1NAME=az400m1403vm1
+az vm identity assign --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$VM1NAME</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to identify the value of your subscription by running:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-bash hljs">SUBSCRIPTIONID=$(az account show --query id --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to retrieve the value of the <strong>ID</strong> property of the built-in Azure Role Based Access Control Contributor role:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-bash hljs">CONTRIBUTORID=$(az role definition list --name <span class="hljs-string"><span class="hljs-string">"Contributor"</span></span> --query <span class="hljs-string"><span class="hljs-string">"[].id"</span></span> --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to assign the Contributor role on the resource group you created earlier in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-bash hljs">MIID=$(az resource list --name <span class="hljs-variable"><span class="hljs-variable">$VM1NAME</span></span> --query [*].identity.principalId --out tsv)
+
+RG2NAME=az400m14l03arg
+az role assignment create --assignee <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$MIID</span></span></span><span class="hljs-string">"</span></span> \
+--role <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$CONTRIBUTORID</span></span></span><span class="hljs-string">"</span></span> \
+--scope /subscriptions/<span class="hljs-variable"><span class="hljs-variable">$SUBSCRIPTIONID</span></span>/resourceGroups/<span class="hljs-variable"><span class="hljs-variable">$RG2NAME</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-5-configure-ssh-for-use-with-ansible">Task 5: Configure SSH for use with Ansible</h4>
+
+<p>In this task, you will configure SSH for use with Ansible.</p>
+
+<ol>
+  <li>
+    <p>In the Bash session in the Cloud Shell pane, within the SSH session to the newly deployed Azure VM, run the following to generate the key pair (when prompted, press the <strong>Enter</strong> key three times to accept the default values of the locations of the files and not to set the passphrase):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-bash hljs">ssh-keygen -t rsa
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to grant read, write, and execute permissions on the <strong>.ssh</strong> folder hosting the private key:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-bash hljs">chmod 755 ~/.ssh
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to create as well as set read and write permissions on the <strong>authorized_keys</strong> file.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-bash hljs">touch ~/.ssh/authorized_keys
+chmod 644 ~/.ssh/authorized_keys
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: By providing keys included in this file, you are allowed access without having to provide a password.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following to add the password to the <strong>authorized_keys</strong> file:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-bash hljs">ssh-copy-id azureuser@127.0.0.1
+</code></pre>
+  </li>
+  <li>When prompted, type <strong>yes</strong> and enter the password <strong>Pa55w.rd1234</strong> for the <strong>azureuser</strong> user account you specified when deploying the third Azure VM earlier in this lab.</li>
+  <li>
+    <p>Run the following to verify that you are not prompted for password:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-bash hljs">ssh 127.0.0.1
+</code></pre>
+  </li>
+  <li>Type <strong>exit</strong> and press the <strong>Enter</strong> key to terminate the loopback connection you just established.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: Establishing passwordless SSH authentication is a critical step for setting up your Ansible environment.</p>
+</blockquote>
+
+<h4 id="task-6-create-a-web-server-azure-vm-by-using-an-ansible-playbook">Task 6: Create a web server Azure VM by using an Ansible playbook</h4>
+
+<p>In this task, you will create an Azure VM hosting a web server by using an Ansible playbook.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Now that we have Ansible up and running in the control Azure VM, we can deploy our first playbook in order to create and configure a managed Azure VM. Before deploying the sample playbook, you need to replace the public SSH key included in its content with the key you generated in the previous task.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Bash session in the Cloud Shell pane, within the SSH session to the Azure VM configured as the Ansible control node, run the following to identify the locally stored public key which you generated in the previous task:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-bash hljs">cat ~/.ssh/id_rsa.pub
+</code></pre>
+  </li>
+  <li>Record the output, including the username at the end of the output string.</li>
+  <li>
+    <p>Run the following to open the <strong>new_vm_web.yml</strong> file in the Code text editor:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-bash hljs">code ~/PartsUnlimitedMRP/Labfiles/AZ-400T05-ImplemntgAppInfra/Labfiles/ansible/new_vm_web.yml
+</code></pre>
+  </li>
+  <li>
+    <p>In the Code editor, if needed, change the name of the region in the <code>dnsname: '.westeurope.cloudapp.azure.com'</code> entry to the name of the Azure region you are targeting for deployment.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure that this region matches the Azure region where you created the <strong>az400m14l03rg</strong> resource group.</p>
+    </blockquote>
+  </li>
+  <li>In the Code editor, change the value of <code>vm_size</code> entry from <code>Standard_A0</code> to <code>Standard_DS1_v2</code>.</li>
+  <li>
+    <p>In the Code editor, locate the SSH string towards the end of the file, in the <code>key_data</code> entry, delete the existing key value and replace it with the key value that you recorded earlier in this task.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure that the value of <code>admin_username</code> entry that is included in the file matches the user name you used to sign in to the Azure VM hosting the Ansible control system (<strong>azureuser</strong>). The same user name must be used in the <code>path</code> entry of <code>ssh_public_keys</code> section.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the Code editor interface, click the <strong>…</strong> on the top right, and select <strong>Save</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Next, you will deploy an Azure VM into the resource group created at the beginning of the lab. Use the following values for the deployment:</p>
+    </blockquote>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az400m14l03arg</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az400m1403aVNET</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>az400m1403aSubnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: The variables can be defined inside of playbooks or can be entered at runtime when invoking the <code>ansible-playbook</code> command by including the <code>--extra-vars</code> option. As the VM name, use only up to 15 lower case letters and numbers (no hyphens, underscore signs or upper case letters) and ensure it is globally unique, since the same name is used to generate the storage account and the DNS name for the public IP address associated with the corresponding Azure VM.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following to create the virtual network and its subnet into which you will deploy an Azure VM by using an ansible playbook:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-bash hljs">RG1NAME=az400m14l03arg
+LOCATION=$(az group show --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> --query location --output tsv)
+RG2NAME=az400m14l03arg
+VNETNAME=az400m1403aVNET
+SUBNETNAME=az400m1403aSubnet
+az network vnet create \
+--name <span class="hljs-variable"><span class="hljs-variable">$VNETNAME</span></span> \
+--resource-group <span class="hljs-variable"><span class="hljs-variable">$RG2NAME</span></span> \
+--location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> \
+--address-prefixes 192.168.0.0/16 \
+--subnet-name <span class="hljs-variable"><span class="hljs-variable">$SUBNETNAME</span></span> \
+--subnet-prefix 192.168.1.0/24
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following to deploy the sample ansible playbook that provisions an Azure VM (<strong>make sure to replace the <code>&lt;VM_name&gt;</code> with the unique VM name you chose</strong>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-bash hljs">sudo ansible-playbook ~/PartsUnlimitedMRP/Labfiles/AZ-400T05-ImplemntgAppInfra/Labfiles/ansible/new_vm_web.yml --extra-vars <span class="hljs-string"><span class="hljs-string">"vmname=&lt;VM_name&gt; resgrp=az400m14l03arg vnet=az400m1403aVNET subnet=az400m1403aSubnet"</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Disregard deprecation warning regarding the setting ip_configuration.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might receive the following errors if you enter an existing or an invalid VM name:</p>
+    </blockquote>
+
+    <ul>
+      <li><code>fatal: [localhost]: FAILED! =&gt; {"changed": false, "failed": true, "msg": "The storage account named storageaccountname is already taken. - Reason.already_exists"}</code>. To resolve this, use another name for the Azure VM, since the one you used is not globally unique.</li>
+      <li><code>fatal: [localhost]: FAILED! =&gt; {"changed": false, "failed": true, "msg": "Error creating or updating your-vm-name - Azure Error: InvalidDomainNameLabel\nMessage: The domain name label for your VM is invalid. It must conform to the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$.”}</code>. To resolve this issue, use another name for the Azure VM following the required naming convention.</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete. This might take about 3 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following to create a new file named <strong>myazure_rm.yml</strong> and open it in the Code text editor:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-bash hljs">code ./myazure_rm.yml
+</code></pre>
+  </li>
+  <li>
+    <p>Within the Code editor interface, paste the following content:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-bash hljs">plugin: azure_rm
+include_vm_resource_groups:
+- az400m14l03arg
+auth_source: msi
+
+keyed_groups:
+- prefix: tag
+  key: tags
+</code></pre>
+  </li>
+  <li>Within the Code editor interface, click the <strong>…</strong> on the top right, and select <strong>Save</strong>.</li>
+  <li>
+    <p>Back in the Bash session in the Cloud Shell pane, within the SSH session to the Azure VM configured as the Ansible control node, run the following to perform a ping test, verifying that the dynamic inventory file includes the newly deployed Azure VM:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="language-bash hljs">sudo ansible --user azureuser --private-key=/home/azureuser/.ssh/id_rsa all -m ping -i ./myazure_rm.yml
+</code></pre>
+  </li>
+  <li>
+    <p>When prompted whether you want to continue connecting, type <strong>yes</strong> and press the <strong>Enter</strong> key.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The output should resemble the following:</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-bash hljs">az400m1403vm2_5444 | SUCCESS =&gt; {
+    <span class="hljs-string"><span class="hljs-string">"ansible_facts"</span></span>: {
+        <span class="hljs-string"><span class="hljs-string">"discovered_interpreter_python"</span></span>: <span class="hljs-string"><span class="hljs-string">"/usr/bin/python"</span></span>
+    },
+    <span class="hljs-string"><span class="hljs-string">"changed"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+    <span class="hljs-string"><span class="hljs-string">"ping"</span></span>: <span class="hljs-string"><span class="hljs-string">"pong"</span></span>
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The first time you run the command you will have to acknowledge the authenticity of the target VMs, by typing <strong>yes</strong> and pressing the <strong>Enter</strong> key.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-7-configure-an-azure-vm-by-using-an-ansible-playbook">Task 7: Configure an Azure VM by using an Ansible playbook</h4>
+
+<p>In this task, you will run another Ansible playbook, this time to configure the newly deployed Azure VM. You will use a playbook that installs a software package httpd and downloads an HTML page from a GitHub repository. Once this is completed, you will have a fully functional Web server.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: We will use the sample playbook <strong>~/PartsUnlimitedMRP/Labfiles/AZ-400T05-ImplemntgAppInfra/Labfiles/ansible/httpd.yml</strong>. We will use the variable <strong>vmname</strong> in order to modify the hosts parameter of the playbook that defines which host (out of the ones returned by the dynamic inventory script) the playbook will target.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Bash session in the Cloud Shell pane, within the SSH session to the Azure VM configured as the Ansible control node, run the following to identify the public IP address of the newly deployed Azure VM (<strong>make sure to replace the <code>&lt;VM_name&gt;</code> placeholder with the name you assigned to the newly provisioned Azure VM</strong>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-bash hljs">RGNAME=<span class="hljs-string"><span class="hljs-string">'az400m14l03arg'</span></span>
+VMNAME=<span class="hljs-string"><span class="hljs-string">'&lt;VM_name&gt;'</span></span>
+PIP=$(az vm show --show-details --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$VMNAME</span></span> --query publicIps --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>Run the folowing to verify that the newly deployed Azure VM is currently not running any web service (where the <code>&lt;IP_address&gt;</code> placeholder represents the public IP address assigned to the network adapter of the Azure VM you provisioned in the previous task):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-bash hljs">curl http://<span class="hljs-variable"><span class="hljs-variable">$PIP</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the response is in the format <code>curl: (7) Failed to connect to 52.186.157.26 port 80: Connection refused</code>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following to install the HTTP service by using the Ansible playbook (where the <code>&lt;VM_name&gt;</code> placeholder represents the name of the VM you provisioned in the previous task):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-bash hljs">sudo ansible-playbook --user azureuser --private-key=/home/azureuser/.ssh/id_rsa -i ./myazure_rm.yml ~/PartsUnlimitedMRP/Labfiles/AZ-400T05-ImplemntgAppInfra/Labfiles/ansible/httpd.yml --extra-vars <span class="hljs-string"><span class="hljs-string">"vmname=&lt;VM_name&gt;*"</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure to include the trailing asterisk (<strong>*</strong>) following the Azure VM name.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the installation to complete. This should take less than a minute.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Once the installation completes, run the following to verify that the newly deployed Azure VM is now running a web service (where the <code>&lt;IP_address&gt;</code> placeholder represents the public IP address assigned to the network adapter of the Azure VM you provisioned in the previous task):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="language-bash hljs">curl http://<span class="hljs-variable"><span class="hljs-variable">$PIP</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The output should have the following content:</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="language-html hljs xml"> <span class="hljs-meta"><span class="hljs-meta">&lt;!DOCTYPE html&gt;</span></span>
+ <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">html</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">lang</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"en"</span></span></span><span class="hljs-tag">&gt;</span></span>
+     <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">head</span></span></span><span class="hljs-tag">&gt;</span></span>
+         <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">meta</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">charset</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"utf-8"</span></span></span><span class="hljs-tag">&gt;</span></span>
+         <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">title</span></span></span><span class="hljs-tag">&gt;</span></span>Hello World<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">title</span></span></span><span class="hljs-tag">&gt;</span></span>
+     <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">head</span></span></span><span class="hljs-tag">&gt;</span></span>
+     <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">body</span></span></span><span class="hljs-tag">&gt;</span></span>
+         <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>Hello World<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>
+         <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">p</span></span></span><span class="hljs-tag">&gt;</span></span>
+             <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">br</span></span></span><span class="hljs-tag">&gt;</span></span>This is a test page
+             <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">br</span></span></span><span class="hljs-tag">&gt;</span></span>This is a test page
+             <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">br</span></span></span><span class="hljs-tag">&gt;</span></span>This is a test page
+         <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">p</span></span></span><span class="hljs-tag">&gt;</span></span>
+     <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">body</span></span></span><span class="hljs-tag">&gt;</span></span>
+ <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">html</span></span></span><span class="hljs-tag">&gt;</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</h3>
+
+<p>In this exercise, you will remove the Azure resources provisioned in this lab to eliminate unexpected charges.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<h4 id="task-1-remove-the-azure-lab-resources">Task 1: Remove the Azure lab resources</h4>
+
+<p>In this task, you will use Azure Cloud Shell to remove the Azure resources provisioned in this lab to eliminate unnecessary charges.</p>
+
+<ol>
+  <li>In the Azure portal, open the <strong>Bash</strong> shell session within the <strong>Cloud Shell</strong> pane.</li>
+  <li>
+    <p>List all resource groups created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m14l03')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m14l03')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the –nowait parameter), so while you will be able to run another Azure CLI command immediately afterwards within the same Bash session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="review">Review</h2>
+
+<p>In this lab, you learned how to deploy, configure, and manage Azure resources by using Ansible.</p>
+
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.js"></script>
+
+
+
+</body></html>

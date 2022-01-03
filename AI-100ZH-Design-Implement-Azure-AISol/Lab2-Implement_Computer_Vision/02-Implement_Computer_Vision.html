@@ -1,0 +1,347 @@
+<!DOCTYPE html><html lang="en-US"><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>实验验室 2 - 实现计算机视觉 | AI-100ZH-Design-Implement-Azure-AISol</title>
+<meta name="generator" content="Jekyll v3.9.0">
+<meta property="og:title" content="实验验室 2 - 实现计算机视觉">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="AI100T01A ILT 课程的实验文件">
+<meta property="og:description" content="AI100T01A ILT 课程的实验文件">
+<link rel="canonical" href="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab2-Implement_Computer_Vision/02-Implement_Computer_Vision.html">
+<meta property="og:url" content="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab2-Implement_Computer_Vision/02-Implement_Computer_Vision.html">
+<meta property="og:site_name" content="AI-100ZH-Design-Implement-Azure-AISol">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="实验验室 2 - 实现计算机视觉">
+<script type="application/ld+json">
+{"description":"AI100T01A ILT 课程的实验文件","url":"https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab2-Implement_Computer_Vision/02-Implement_Computer_Vision.html","@type":"WebPage","headline":"实验验室 2 - 实现计算机视觉","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <style class="anchorjs"></style><link rel="stylesheet" href="../assets/css/style_v%3D3a0ab1c74f6d3ca7c17e819da8185129fa5047f9.css">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/AI-100ZH-Design-Implement-Azure-AISol/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="../">AI-100ZH-Design-Implement-Azure-AISol</a></h1>
+      
+
+      <h1 id="实验验室-2---实现计算机视觉">实验验室 2 - 实现计算机视觉</h1>
+
+<h2 id="简介">简介<a class="anchorjs-link " href="#简介" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>我们将构建一个端到端的应用程序，它允许你引入自己的图片，使用认知服务获取描述文字和一些关于图像的标记。在后面的实验室中，我们将使用 LUIS 构建一个 Bot Framework 机器人，以便轻松且有针对性地查询此类图像。</p>
+
+<h2 id="实验室-20目标">实验室 2.0：目标<a class="anchorjs-link " href="#实验室-20目标" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>在本实验室中，你将：</p>
+
+<ul>
+  <li>了解各种认知服务 API</li>
+  <li>了解如何配置应用以调用认知服务</li>
+  <li>构建一个在 .NET 应用程序中调用各种认知服务 API（尤其是计算机视觉）的应用程序</li>
+</ul>
+
+<p>虽然重点是认知服务，但你还将使用 Visual Studio 2019。</p>
+
+<blockquote>
+  <p><strong>注意：</strong> 如果你还没有帐户，请按照指示创建 Azure 帐户和认知服务，并在 <a href="../Lab1-Technical_Requirements/02-Technical_Requirements.html">Lab1-Technical_Requirements.md</a> 中获取 API 密钥。</p>
+</blockquote>
+
+<h2 id="实验室-21体系结构">实验室 2.1：体系结构<a class="anchorjs-link " href="#实验室-21体系结构" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>我们将构建一个简单的 C# 应用程序，它允许你从本地驱动器中引入图片，然后调用<a href="https://www.microsoft.com/cognitive-services/zh-cn/computer-vision-api">计算机视觉 API</a> 以分析图像并获取标记和描述。</p>
+
+<p>在这个实验室的后续部分，我们将向你展示如何查询数据，以及构建 <a href="https://dev.botframework.com/">Bot Framework</a> 机器人以进行查询。最后，我们将通过 <a href="https://www.microsoft.com/cognitive-services/zh-cn/language-understanding-intelligent-service-luis">LUIS</a> 扩展这个机器人，以自动从查询中获取意图，并使用这些信息智能地指导搜索。</p>
+
+<p><img src="../images/AI_Immersion_Arch.png" alt="体系结构图"></p>
+
+<h2 id="实验室-22资源">实验室 2.2：资源<a class="anchorjs-link " href="#实验室-22资源" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p><a href="https://github.com/MicrosoftLearning/AI-100ZH-Design-Implement-Azure-AISol/blob/master/Lab2-Implement_Computer_Vision/">主要</a> github 存储库文件夹中有一些目录：</p>
+
+<ul>
+  <li>
+    <p><strong>sample_images</strong>：一些示例图像用于测试认知服务的实现。</p>
+  </li>
+  <li>
+    <p><strong>code</strong>：在这里，有两个目录。每个文件夹都包含一个解决方案 (.sln)，其中包含实验室的多个不同项目。</p>
+
+    <ul>
+      <li>
+        <p><strong>Starter</strong>：一个入门项目，如果你想学习创建项目中使用的代码，可以使用该项目。</p>
+      </li>
+      <li>
+        <p><strong>Finished</strong>：一个完成的项目，你将利用它来实现计算机视觉并使用本实验室中的图像。</p>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="实验室-23图像处理">实验室 2.3：图像处理<a class="anchorjs-link " href="#实验室-23图像处理" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<h3 id="认知服务">认知服务<a class="anchorjs-link " href="#认知服务" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>认知服务可以用于为你的应用、网站和机器人引入算法，通过自然的交流方式来了解、听取、说出、理解和解释你的用户需求。</p>
+
+<p>可用的认知服务有五个主要类别：</p>
+
+<ul>
+  <li><strong>视觉</strong>：图像处理算法，用于识别、标注和调整图片</li>
+  <li><strong>知识</strong>：映射复杂的信息和数据，以解决智能推荐和语义搜索等任务</li>
+  <li><strong>语言</strong>：允许你的应用使用预构建脚本处理自然语言，评估情绪并学习如何识别用户想要的内容</li>
+  <li><strong>语音</strong>：将音频转换为文本，使用语音进行验证，或将说话人识别添加到应用中</li>
+  <li><strong>搜索</strong>：将必应搜索 API 添加到应用中，并利用该功能将数以亿计的网页、图像、视频和新闻整合到一个 API 调用中</li>
+</ul>
+
+<p>可以浏览<a href="https://azure.microsoft.com/zh-cn/services/cognitive-services/directory/">服务目录</a>中的所有特定 API。</p>
+
+<p>让我们通过回顾 Finished 项目中的示例代码来讨论如何在应用程序中调用认知服务。</p>
+
+<h3 id="图像处理库">图像处理库<a class="anchorjs-link " href="#图像处理库" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<ol>
+  <li>
+    <p>打开 <strong>code/Finished/ImageProcessing.sln</strong> 解决方案</p>
+  </li>
+  <li>
+    <p>在 <code class="language-plaintext highlighter-rouge">ImageProcessing</code> 解决方案中，可找到 <code class="language-plaintext highlighter-rouge">ProcessingLibrary</code> 项目。它可用作多种服务的包装器。这个特定的 PCL 包含一些用于访问计算机视觉 API 的帮助程序类（位于 ServiceHelpers 文件夹中）以及一个封装结果的“ImageInsights”类。</p>
+
+    <p><img src="../images/ProcessingLibrary.png" alt="处理库 PCL"></p>
+  </li>
+  <li>
+    <p>你应能够挑选该可移植类库并将其放入包含认知服务的其他项目（需进行某些修改，具体取决于要使用的认知服务）。</p>
+  </li>
+</ol>
+
+<p><strong>ProcessingLibrary：服务帮助程序</strong></p>
+
+<ol>
+  <li>
+    <p>当你开发应用时，可以使用服务帮助程序简化操作。服务帮助程序的其中一个主要作用是能够检测 API 调用何时返回超过调用率的错误，并自动重试该调用（经过一些延迟之后）。它们还可帮助引入方法，处理异常以及处理密钥。</p>
+  </li>
+  <li>
+    <p>你可在<a href="https://github.com/Microsoft/Cognitive-Samples-IntelligentKiosk/tree/master/Kiosk/ServiceHelpers">智能 Kiosk 示例应用程序</a>中找到适用于某些其他认知服务的其他服务帮助程序。利用这些资源，可以根据需要轻松添加和删除未来项目中的服务帮助程序。</p>
+  </li>
+</ol>
+
+<p><strong>ProcessingLibrary：“ImageInsights”类</strong></p>
+
+<ol>
+  <li>
+    <p>在 <strong>ProcessingLibrary</strong> 项目中，导航到 <strong>ImageInsights.cs</strong> 文件。</p>
+  </li>
+  <li>
+    <p>你可以看到图像有 <code class="language-plaintext highlighter-rouge">Caption</code> 和 <code class="language-plaintext highlighter-rouge">Tags</code> 属性以及唯一的 <code class="language-plaintext highlighter-rouge">ImageId</code>。“ImageInsights”从计算机视觉 API 收集信息。</p>
+  </li>
+  <li>
+    <p>现在让我们退回一步。它不像创建“ImageInsights”类以及从服务帮助程序处复制某些方法/错误处理那么简单。我们仍需调用 API 并在某处处理图像。为完成本实验室，我们将逐步讲解 <code class="language-plaintext highlighter-rouge">ImageProcessor.cs</code>，以了解如何使用。在未来的项目中，可随意将此类添加到 PCL 并从那里开始（需对其进行更改，具体取决于正在调用的认知服务和正在处理的内容 - 图像、文本、语音等）。</p>
+  </li>
+</ol>
+
+<h2 id="实验室-24查看-imageprocessorcs">实验室 2.4：查看 ImageProcessor.cs<a class="anchorjs-link " href="#实验室-24查看-imageprocessorcs" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>
+    <p>导航到 <code class="language-plaintext highlighter-rouge">ProcessingLibrary</code> 中的 <strong>ImageProcessor.cs</strong>。</p>
+  </li>
+  <li>
+    <p>注意类<strong>顶部</strong>的以下 <a href="https://docs.microsoft.com/zh-cn/dotnet/csharp/language-reference/keywords/using-directive"><code class="language-plaintext highlighter-rouge">using</code> 指令</a>，它们位于命名空间上方：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.IO</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Linq</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Threading.Tasks</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.ProjectOxford.Vision</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">ServiceHelpers</span><span class="p">;</span>
+</code></pre></div>    </div>
+
+    <p><a href="https://blogs.technet.microsoft.com/machinelearning/tag/project-oxford/">Project Oxford</a> 是在其中开始进行许多认知服务的项目。如你所见，NuGet 包甚至在标记在 Project Oxford 下。在这种情况下，我们将为计算机视觉 API 调用 <code class="language-plaintext highlighter-rouge">Microsoft.ProjectOxford.Vision</code>。此外，我们将引用服务帮助程序（请记住，这些将简化我们的操作）。你需要根据要在应用程序中利用的认知服务来引用不同的包。</p>
+  </li>
+  <li>
+    <p>在 <strong>ImageProcessor.cs</strong> 中，我们将从使用处理图像的方法 <code class="language-plaintext highlighter-rouge">ProcessImageAsync</code> 开始。该代码将利用异步处理，因为它将利用服务来执行操作。</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">public</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">ImageInsights</span><span class="p">&gt;</span> <span class="nf">ProcessImageAsync</span><span class="p">(</span><span class="kt">string</span> <span class="n">imgPath</span><span class="p">,</span> <span class="kt">string</span> <span class="n">imageId</span><span class="p">)</span>
+ <span class="p">{</span>
+   <span class="c1">// Set up an array that we'll fill in over the course of the processor:</span>
+   <span class="n">VisualFeature</span><span class="p">[]</span> <span class="n">DefaultVisualFeaturesList</span> <span class="p">=</span> <span class="k">new</span> <span class="n">VisualFeature</span><span class="p">[]</span> <span class="p">{</span> <span class="n">VisualFeature</span><span class="p">.</span><span class="n">Tags</span><span class="p">,</span> <span class="n">VisualFeature</span><span class="p">.</span><span class="n">Description</span> <span class="p">};</span>
+
+   <span class="c1">// Call the Computer Vision service and store the results in imageAnalysisResult:</span>
+   <span class="kt">var</span> <span class="n">imageAnalysisResult</span> <span class="p">=</span> <span class="k">await</span> <span class="n">VisionServiceHelper</span><span class="p">.</span><span class="nf">AnalyzeImageAsync</span><span class="p">(</span><span class="n">imgPath</span><span class="p">,</span> <span class="n">DefaultVisualFeaturesList</span><span class="p">);</span>
+
+   <span class="c1">// Create an entry in ImageInsights:</span>
+   <span class="n">ImageInsights</span> <span class="n">result</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ImageInsights</span>
+   <span class="p">{</span>
+     <span class="n">ImageId</span> <span class="p">=</span> <span class="n">imageId</span><span class="p">,</span>
+     <span class="n">Caption</span> <span class="p">=</span> <span class="n">imageAnalysisResult</span><span class="p">.</span><span class="n">Description</span><span class="p">.</span><span class="n">Captions</span><span class="p">[</span><span class="m">0</span><span class="p">].</span><span class="n">Text</span><span class="p">,</span>
+     <span class="n">Tags</span> <span class="p">=</span> <span class="n">imageAnalysisResult</span><span class="p">.</span><span class="n">Tags</span><span class="p">.</span><span class="nf">Select</span><span class="p">(</span><span class="n">t</span> <span class="p">=&gt;</span> <span class="n">t</span><span class="p">.</span><span class="n">Name</span><span class="p">).</span><span class="nf">ToArray</span><span class="p">()</span>
+   <span class="p">};</span>
+
+   <span class="c1">// Return results:</span>
+   <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+
+    <p>在上述代码中，我们使用 <code class="language-plaintext highlighter-rouge">Func&lt;Task&lt;Stream&gt;&gt;</code>，因为我们要确保可以多次处理图像（为需要它的每项服务都处理一次），因此我们具有一个函数，可让我们回到获取流。由于获取流通常是异步操作，而不是函数返回流本身的操作，因它会返回一个允许我们以异步形式执行这个操作的任务。</p>
+
+    <p>在 <code class="language-plaintext highlighter-rouge">ImageProcessor.cs</code> 的 <code class="language-plaintext highlighter-rouge">ProcessImageAsync</code> 方法中，我们设置将在处理器运行期间填写的<a href="https://stackoverflow.com/questions/4594850/definition-of-static-arrays">静态数组</a>。如你所见，这些是我们想要为 <code class="language-plaintext highlighter-rouge">ImageInsights.cs</code> 调用的主要属性。</p>
+  </li>
+  <li>
+    <p>接下来，我们要调用认知服务（尤其是计算机视觉），并将结果放在 <code class="language-plaintext highlighter-rouge">imageAnalysisResult</code> 中。</p>
+  </li>
+  <li>
+    <p>我们使用以下代码调用计算机视觉 API（借助 <code class="language-plaintext highlighter-rouge">VisionServiceHelper.cs</code>），并将结果存储在 <code class="language-plaintext highlighter-rouge">imageAnalysisResult</code> 中。在 <code class="language-plaintext highlighter-rouge">VisionServiceHelper.cs</code> 的底部附近，你希望查看用于调用（<code class="language-plaintext highlighter-rouge">RunTaskWithAutoRetryOnQuotaLimitExceededError</code>、<code class="language-plaintext highlighter-rouge">DescribeAsync</code>、<code class="language-plaintext highlighter-rouge">AnalyzeImageAsync</code>、<code class="language-plaintext highlighter-rouge">RecognizeTextAsyncYou</code>）的可用方法。你将使用 AnalyzeImageAsync 方法，以返回可视特征。</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="kt">var</span> <span class="n">imageAnalysisResult</span> <span class="p">=</span> <span class="k">await</span> <span class="n">VisionServiceHelper</span><span class="p">.</span><span class="nf">AnalyzeImageAsync</span><span class="p">(</span><span class="n">imgPath</span><span class="p">,</span> <span class="n">DefaultVisualFeaturesList</span><span class="p">);</span>
+</code></pre></div>    </div>
+
+    <p>调用计算机视觉服务之后，我们想要在仅包含以下结果的“ImageInsights”中创建一个条目：ImageId、Caption 和 Tags（可通过重新访问 <code class="language-plaintext highlighter-rouge">ImageInsights.cs</code> 进行确认）。</p>
+  </li>
+  <li>
+    <p>下面的代码完成了此任务。</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">ImageInsights</span> <span class="n">result</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ImageInsights</span>
+ <span class="p">{</span>
+     <span class="n">ImageId</span> <span class="p">=</span> <span class="n">imageId</span><span class="p">,</span>
+     <span class="n">Caption</span> <span class="p">=</span> <span class="n">imageAnalysisResult</span><span class="p">.</span><span class="n">Description</span><span class="p">.</span><span class="n">Captions</span><span class="p">[</span><span class="m">0</span><span class="p">].</span><span class="n">Text</span><span class="p">,</span>
+     <span class="n">Tags</span> <span class="p">=</span> <span class="n">imageAnalysisResult</span><span class="p">.</span><span class="n">Tags</span><span class="p">.</span><span class="nf">Select</span><span class="p">(</span><span class="n">t</span> <span class="p">=&gt;</span> <span class="n">t</span><span class="p">.</span><span class="n">Name</span><span class="p">).</span><span class="nf">ToArray</span><span class="p">()</span>
+ <span class="p">};</span>
+</code></pre></div>    </div>
+
+    <p>所以现在我们有了计算机视觉 API 所需的描述文字和标记，并且每个图像的结果（具有 imageId）都存储在“ImageInsights”中。</p>
+  </li>
+  <li>
+    <p>最后，我们需要通过在方法末尾使用以下行来关闭该方法：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>为了使用此应用程序，我们需要生成项目，为此请按 <strong>Ctrl-Shift-B</strong>，选择 <strong>“生成”</strong> 菜单，然后选择 <strong>“生成解决方案”</strong>。</p>
+  </li>
+  <li>
+    <p>与你的讲师一起修复任何错误。</p>
+  </li>
+</ol>
+
+<h3 id="浏览-cosmos-db">浏览 Cosmos DB<a class="anchorjs-link " href="#浏览-cosmos-db" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>Azure Cosmos DB 是 Microsoft 的可复原 NoSQL PaaS 解决方案，对于存储结构松散的数据（如我们具有的包含图像元数据结果的数据）非常有用。还有其他选择（Azure 表存储、SQL Server），但 Cosmos DB 使我们可以灵活地自由发展架构（比如为新服务添加数据）、轻松查询，并且可以快速集成到 Azure 认知搜索（我们将在之后的实验室中进行这个操作）。</p>
+
+<h2 id="实验室-25可选了解-cosmosdbhelper">实验室 2.5（可选）：了解 CosmosDBHelper<a class="anchorjs-link " href="#实验室-25可选了解-cosmosdbhelper" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>Cosmos DB 不是这个实验室的重点，但如果你对将要进行的操作感兴趣，这里有一些我们将使用的代码的重点：</p>
+
+<ol>
+  <li>
+    <p>导航到 <code class="language-plaintext highlighter-rouge">ImageStorageLibrary</code> 项目中的 <code class="language-plaintext highlighter-rouge">CosmosDBHelper.cs</code> 类。查看代码和注释。使用的许多实现都可在<a href="https://docs.microsoft.com/zh-cn/azure/cosmos-db/documentdb-get-started">入门指南</a>中找到。</p>
+  </li>
+  <li>
+    <p>转到 <code class="language-plaintext highlighter-rouge">TestCLI</code> 项目的 <code class="language-plaintext highlighter-rouge">Util.cs</code> 文件并查看 <code class="language-plaintext highlighter-rouge">ImageMetadata</code> 类（代码和注释）。在这里，我们会将从认知服务中检索的 <code class="language-plaintext highlighter-rouge">ImageInsights</code> 转换为要存储到 Cosmos DB 的相应元数据。</p>
+
+    <ul>
+      <li>
+        <p>最后，查看 <code class="language-plaintext highlighter-rouge">TestCLI</code> 和 <code class="language-plaintext highlighter-rouge">ProcessDirectoryAsync</code> 中的 <code class="language-plaintext highlighter-rouge">Program.cs</code>。首先，我们要检查是否已上传图像和元数据 - 可以使用 <code class="language-plaintext highlighter-rouge">CosmosDBHelper</code> 按 ID 查找文档，如果文档不存在，则返回 <code class="language-plaintext highlighter-rouge">null</code>。接下来，如果我们设置了 <code class="language-plaintext highlighter-rouge">forceUpdate</code> 或之前未处理图像，则将使用 <code class="language-plaintext highlighter-rouge">ProcessingLibrary</code> 中的 <code class="language-plaintext highlighter-rouge">ImageProcessor</code> 调用认知服务，并检索添加到当前 <code class="language-plaintext highlighter-rouge">ImageMetadata</code> 的 <code class="language-plaintext highlighter-rouge">ImageInsights</code>。</p>
+      </li>
+      <li>
+        <p>完成所有这些操作后，我们首先可以使用 <code class="language-plaintext highlighter-rouge">BlobStorageHelper</code> 实例将实际图像存储到 Blob 存储中，然后使用 <code class="language-plaintext highlighter-rouge">CosmosDBHelper</code> 实例将 <code class="language-plaintext highlighter-rouge">ImageMetadata</code> 存储到 Cosmos DB 中。如果文档已经存在（基于我们上一次检查），则应更新现有文档。如果不存在，我们应该创建一个新文档。</p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="实验室-26使用-testcli-加载图像">实验室 2.6：使用 TestCLI 加载图像<a class="anchorjs-link " href="#实验室-26使用-testcli-加载图像" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>我们将实现主要的处理和存储代码作为命令行/控制台应用程序，因为这使你可以专注于处理代码，而无需担心事件循环、窗体或任何其他用户体验相关干扰。之后可随意添加自己的用户体验。</p>
+<ol>
+  <li>在 <strong>TestCLI</strong> 项目中，打开 <strong>settings.json</strong> 文件</li>
+  <li>
+    <p>从 <a href="../Lab1-Technical_Requirements/02-Technical_Requirements.html">Lab1-Technical_Requirements.md</a> 添加特定的环境设置</p>
+
+    <blockquote>
+      <p><strong>注意：</strong>对于牛津项目 API，认知服务的 URL 应以** /vision/v1.0** 结尾。  例如 <code class="language-plaintext highlighter-rouge">ENDPOINT/vision/v1.0</code>。
+在创建的认知服务的“资源管理”、“密钥和终结点”边栏选项卡中可以找到 ENDPOINT URL</p>
+    </blockquote>
+  </li>
+  <li>如果尚未这样做，请生成项目</li>
+  <li>
+    <p>打开命令提示符，并导航到 <strong>TestCLI</strong> 项目的生成目录。  该生成目录类似于 <strong>{GitHubDir}\Lab2-Implement_Computer_Vision\code\Finished\TestCLI</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：请勿导航到调试目录	
+<strong>备注</strong>：.net core 3.1 是必需的，可在 https://dotnet.microsoft.com/download/dotnet-core/3.1 中查找到相应安装程序</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行命令 <strong>dotnet run</strong></p>
+
+    <pre><code class="language-cmd"> Usage:  [options]	
+ Options:	
+ -force            Use to force update even if file has already been added.	
+ -settings         The settings file (optional, will use embedded resource settings.json if not set)	
+ -process          The directory to process	
+ -query            The query to run	
+ -? | -h | --help  Show help information	
+</code></pre>
+  </li>
+  <li>
+    <p>默认情况下，它会从 <code class="language-plaintext highlighter-rouge">settings.json</code> 中加载你的设置（它会将其构建到 <code class="language-plaintext highlighter-rouge">.exe</code>），但你可以使用 <code class="language-plaintext highlighter-rouge">-settings</code> 标记提供你自己的设置。要将图像（及其来自认知服务的元数据）加载到你的云存储中，你只需要求 TestCLI__ <code class="language-plaintext highlighter-rouge">-process</code> 图像目录，如下所示：</p>
+
+    <pre><code class="language-cmd"> dotnet run -process "&lt;%GitHubDir%&gt;\AI-100-Design-Implement-Azure-AISol\Lab2-Implement_Computer_Vision\sample_images"	
+</code></pre>
+    <blockquote>
+      <p><strong>备注</strong>：将 &lt;%GitHubDir%&gt; 值替换为在其中克隆存储库的文件夹。	
+ 完成处理后，可直接使用 TestCLI__ 查询 Cosmos DB，如下所示：</p>
+      <pre><code class="language-cmd"> dotnet run -query "select * from images"	
+</code></pre>
+    </blockquote>
+  </li>
+  <li>
+    <p>花一些时间查看示例图像（可在 /sample_images 中找到它们），并将图像与应用程序中的结果进行比较。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：还可以在 Azure 的 CosmosDb 资源中浏览结果。  打开资源，然后选择“<strong>数据资源管理器</strong>”。  展开“<strong>元数据</strong>”数据库，然后选择“<strong>项目</strong>”节点。  你将看到多个包含结果的 json 文档。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="学分">学分<a class="anchorjs-link " href="#学分" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>这个实验室按这个<a href="https://github.com/noodlefrenzy/CognitiveServicesTutorial">认知服务教程</a>进行了修改。</p>
+
+<h2 id="资源">资源<a class="anchorjs-link " href="#资源" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="https://www.microsoft.com/cognitive-services/zh-cn/computer-vision-api">计算机视觉 API</a></li>
+  <li><a href="https://dev.botframework.com/">Bot Framework</a></li>
+  <li><a href="https://azure.microsoft.com/zh-cn/services/cognitive-services/directory/">服务目录</a></li>
+  <li><a href="https://docs.microsoft.com/zh-cn/dotnet/standard/cross-platform/cross-platform-development-with-the-portable-class-library">可移植类库 (PCL)</a></li>
+  <li><a href="https://github.com/Microsoft/Cognitive-Samples-IntelligentKiosk/tree/master/Kiosk/ServiceHelpers">智能亭示例应用程序</a></li>
+</ul>
+
+<h2 id="后续步骤">后续步骤<a class="anchorjs-link " href="#后续步骤" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="../Lab3-Basic_Filter_Bot/01-Introduction.html">实验室 03-01：基础筛选器机器人</a></li>
+</ul>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  
+
+</body></html>

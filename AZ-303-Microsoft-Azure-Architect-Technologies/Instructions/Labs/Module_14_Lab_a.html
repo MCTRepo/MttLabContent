@@ -1,0 +1,454 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-303-Microsoft-Azure-Architect-Technologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D479f9cfd893a2bea83ac41ba638fc5e7bd9113e0.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-303-Microsoft-Azure-Architect-Technologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-implement-an-azure-app-service-web-app">Exercise 1: Implement an Azure App Service web app</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-manage-app-service-web-app-deployment-slots">Exercise 2: Manage App Service web app deployment slots</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-implementing-an-azure-app-service-web-app-with-a-staging-slot">Lab: Implementing an Azure App Service Web App with a Staging Slot</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>Adatum Corporation has a number of web apps that are updated on relatively frequent basis. While Adatum has not yet fully embraced DevOps principles, it relies on Git as its version control and is exploring the options to streamline the app updates. As Adatum is transitioning some of its workloads to Azure, the Adatum Enterprise Architecture team decided to evaluate the use of Azure App Service and its deployment slots to accomplish this objective.</p>
+
+<p>Deployment slots are live apps with their own host names. App content and configurations elements can be swapped between two deployment slots, including the production slot. Deploying apps to a non-production slot has the following benefits:</p>
+
+<ul>
+  <li>
+    <p>It is possible to validate app changes in a staging deployment slot before swapping it with the production slot.</p>
+  </li>
+  <li>
+    <p>Deploying an app to a slot first and swapping it into production makes sure that all instances of the slot are warmed up before being swapped into production. This eliminates downtime when during app deployment. The traffic redirection is seamless, and no requests are dropped because of swap operations. This workflow can be automated by configuring auto swap when pre-swap validation is not needed.</p>
+  </li>
+  <li>
+    <p>After a swap, the slot with previously staged app has the previous production app. If the changes swapped into the production slot need to be reversed, this simply involves another swap immediately to return to the last known good state.</p>
+  </li>
+</ul>
+
+<p>Deployment slots facilitate two common deployment patterns: blue/green and A/B testing. Blue-green deployment involves deploying an update into a production environment that is separate from the live application. After the deployment is validated, traffic routing is switched to the updated version. A/B testing involves gradually routing some of the traffic to a staging site in order to test a new version of an app.</p>
+
+<p>The Adatum Architecture team wants to use Azure App Service web apps with deployment slots in order to test these two deployment patterns:</p>
+
+<ul>
+  <li>
+    <p>Blue/Green deployments</p>
+  </li>
+  <li>
+    <p>A/B testing</p>
+  </li>
+</ul>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ul>
+  <li>
+    <p>Implement Blue/Green deployment pattern by using deployment slots of Azure App Service web apps</p>
+  </li>
+  <li>
+    <p>Perform A/B testing by using deployment slots of Azure App Service web apps</p>
+  </li>
+</ul>
+
+<h2 id="lab-environment">Lab Environment</h2>
+
+<p>Estimated Time: 60 minutes</p>
+
+<h2 id="lab-files">Lab Files</h2>
+
+<p>None</p>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="exercise-1-implement-an-azure-app-service-web-app">Exercise 1: Implement an Azure App Service web app</h3>
+
+<ol>
+  <li>
+    <p>Deploy an Azure App Service web app</p>
+  </li>
+  <li>
+    <p>Create an App Service web app deployment slot</p>
+  </li>
+</ol>
+
+<h4 id="task-1-deploy-an-azure-app-service-web-app">Task 1: Deploy an Azure App Service web app</h4>
+
+<ol>
+  <li>
+    <p>From your lab computer, start a web browser, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in by providing credentials of a user account with the Owner role in the subscription you will be using in this lab.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>Bash</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a new directory named <strong>az30314a1</strong> and set it as your current directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-sh hljs bash">mkdir az30314a1
+<span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> ~/az30314a1/
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to clone a sample app repository to the <strong>az30314a1</strong> directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-sh hljs bash">REPO=https://github.com/Azure-Samples/html-docs-hello-world.git
+git <span class="hljs-built_in"><span class="hljs-built_in">clone</span></span> <span class="hljs-variable"><span class="hljs-variable">$REPO</span></span>
+<span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> html-docs-hello-world
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to configure a deployment user:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-sh hljs bash">USERNAME=az30314user<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+PASSWORD=az30314pass<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+az webapp deployment user <span class="hljs-built_in"><span class="hljs-built_in">set</span></span> --user-name <span class="hljs-variable"><span class="hljs-variable">$USERNAME</span></span> --password <span class="hljs-variable"><span class="hljs-variable">$PASSWORD</span></span> 
+<span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> <span class="hljs-variable"><span class="hljs-variable">$USERNAME</span></span>
+<span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> <span class="hljs-variable"><span class="hljs-variable">$PASSWORD</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Verify that the deployment user was created successfully. If you receive an error message indicating a conflict, repeat the previous step.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure to record the value of the username and the corresponding password.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create the resource group which will host the App Service web app (replace the <code>&lt;location&gt;</code> placeholder with the name of the Azure region that is available in your subscription and which is closest to the location of your lab computer):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sh hljs bash">LOCATION=<span class="hljs-string"><span class="hljs-string">'&lt;location&gt;'</span></span>
+RGNAME=<span class="hljs-string"><span class="hljs-string">'az30314a-labRG'</span></span>
+az group create --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a new App Service plan:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">SPNAME=az30314asp<span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+az appservice plan create --name <span class="hljs-variable"><span class="hljs-variable">$SPNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --sku S1
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a new, Git-enabled App Service web app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sh hljs bash">WEBAPPNAME=az30314<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+az webapp create --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --plan <span class="hljs-variable"><span class="hljs-variable">$SPNAME</span></span> --deployment-local-git
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to retrieve the publishing URL of the newly created App Service web app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-sh hljs bash">URL=$(az webapp deployment list-publishing-credentials --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query scmUri --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to set the git remote alias representing the Git-enabled Azure App Service web app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-sh hljs bash">git remote add azure <span class="hljs-variable"><span class="hljs-variable">$URL</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to push to the Azure remote with git push azure master:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-sh hljs bash">git push azure master
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to identify the FQDN of the newly deployed App Service web app.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-sh hljs bash">az webapp show --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query defaultHostName --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-create-an-app-service-web-app-deployment-slot">Task 2: Create an App Service web app deployment slot</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>App Services</strong> and, on the <strong>App Services</strong> blade, select the newly created App Service web app.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the blade displaying the newly deployed App Service web app, select the <strong>URL</strong> link, and verify that it displays the <strong>Azure App Service - Sample Static HTML Site</strong>. Leave the browser tab open.</p>
+  </li>
+  <li>
+    <p>On the App Service web app blade, in the <strong>Deployment</strong> section, select <strong>Deployment slots</strong> and then select <strong>+ Add Slot</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a slot</strong> blade, specify the following settings, select <strong>Add</strong>, and then select <strong>Close</strong>.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>staging</strong></td>
+        </tr>
+        <tr>
+          <td>Clone settings from</td>
+          <td>the name of the web app</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h3 id="exercise-2-manage-app-service-web-app-deployment-slots">Exercise 2: Manage App Service web app deployment slots</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Deploy web content to an App Service web app staging slot</p>
+  </li>
+  <li>
+    <p>Swap App Service web app staging slots</p>
+  </li>
+  <li>
+    <p>Configure A/B testing</p>
+  </li>
+  <li>
+    <p>Remove Azure resources deployed in the lab</p>
+  </li>
+</ol>
+
+<h4 id="task-1-deploy-web-content-to-an-app-service-web-app-staging-slot">Task 1: Deploy web content to an App Service web app staging slot</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to ensure that the current set <strong>az30314a1/html-docs-hello-world</strong> as the current directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> ~/az30314a1/html-docs-hello-world
+</code></pre>
+  </li>
+  <li>
+    <p>In the Cloud Shell pane, run the following to start the built-in editor:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-sh hljs bash">code index.html
+</code></pre>
+  </li>
+  <li>
+    <p>In the Cloud Shell pane, in the code editor, replace the line:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-html hljs xml"><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>Azure App Service - Sample Static HTML Site<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>
+</code></pre>
+
+    <p>with the following line:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-html hljs xml"><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>Azure App Service - Sample Static HTML Site v1.0.1<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Save the changes and close the editor window.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to specify the required global git configuration settings:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-sh hljs bash">git config --global user.email <span class="hljs-string"><span class="hljs-string">"user@az30314.com"</span></span>
+git config --global user.name <span class="hljs-string"><span class="hljs-string">"user az30314"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to commit the change you applied locally to the master branch:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-sh hljs bash">git add index.html
+git commit -m <span class="hljs-string"><span class="hljs-string">'v1.0.1'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to retrieve the publishing URL of the newly created staging slot of the App Service web app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-sh hljs bash">RGNAME=<span class="hljs-string"><span class="hljs-string">'az30314a-labRG'</span></span>
+WEBAPPNAME=$(az webapp list --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv)
+SLOTNAME=<span class="hljs-string"><span class="hljs-string">'staging'</span></span>
+URLSTAGING=$(az webapp deployment list-publishing-credentials --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> --slot <span class="hljs-variable"><span class="hljs-variable">$SLOTNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query scmUri --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to set the git remote alias representing the staging slot of the Git-enabled Azure App Service web app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-sh hljs bash">git remote add azure-staging <span class="hljs-variable"><span class="hljs-variable">$URLSTAGING</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to push to the Azure remote with git push azure master:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-sh hljs bash">git push azure-staging master
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the blade displaying the deployment slots of the App Service web app and select the staging slot.</p>
+  </li>
+  <li>
+    <p>On the blade displaying the staging slot overview, select the <strong>URL</strong> link.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-swap-app-service-web-app-staging-slots">Task 2: Swap App Service web app staging slots</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate back to the blade displaying the App Service web app and select <strong>Deployment slots</strong>.</p>
+  </li>
+  <li>
+    <p>On the deployment slots blade, select <strong>Swap</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Swap</strong> blade, select <strong>Swap</strong> and then select <strong>Close</strong>.</p>
+  </li>
+  <li>
+    <p>Switch to the browser tab showing the App Service web app and refresh the browser window. Verify that it displays the changes you deployed to the staging slot.</p>
+  </li>
+  <li>
+    <p>Switch to the browser tab showing the staging slot of the App Service web app and refresh the browser window. Verify that it displays the original web page included in the original deployment.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-configure-ab-testing">Task 3: Configure A/B testing</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate back to the blade displaying the deployment slots of the App Service web app.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, on the blade displaying the App Service web app deployment slots, in the row displaying the staging slot, set the value in the <strong>TRAFFIC %</strong> column to 50. This will automatically set the value of <strong>TRAFFIC %</strong> in the row representing the production slot to 50.</p>
+  </li>
+  <li>
+    <p>On the blade displaying the App Service web app deployment slots, select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to verify set the variables representing  the name of the target web app and its distribution group:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-sh hljs bash">RGNAME=<span class="hljs-string"><span class="hljs-string">'az30314a-labRG'</span></span>
+WEBAPPNAME=$(az webapp list --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following several times to identify the traffic distribution between the two slots.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-sh hljs bash">curl -H <span class="hljs-string"><span class="hljs-string">'Cache-Control: no-cache'</span></span> https://<span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span>.azurewebsites.net --stderr - | grep <span class="hljs-string"><span class="hljs-string">'&lt;h1&gt;Azure App Service - Sample Static HTML Site'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Traffic distribution is not entirely deterministic, but you should see several responses from each target site.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-remove-azure-resources-deployed-in-the-lab">Task 4: Remove Azure resources deployed in the lab</h4>
+
+<ol>
+  <li>
+    <p>From the Cloud Shell pane, run the following to list the resource group you created in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the output contains only the resource group you created in this lab. This group will be deleted in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to delete the resource group you created in this lab</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to remove the <strong>az30314a1</strong> directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-sh hljs bash">rm -r -f ~/az30314a1
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D479f9cfd893a2bea83ac41ba638fc5e7bd9113e0.js"></script>
+
+
+
+</body></html>

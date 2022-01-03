@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            MS-500-Microsoft-365-Security
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../../assets/css/style_v%3Dc203d5d5aaaf93bae4a8af2ae04b27f6314242c4.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../../">
+                MS-500-Microsoft-365-Security
+            </a>
+            <a href="https://github.com/MicrosoftLearning/MS-500-Microsoft-365-Security" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#task-1---configure-your-upn-suffix">Task 1 - Configure your UPN suffix</a></li><li class="nav-item"><a class="nav-link" href="#task-2---enable-directory-synchronization">Task 2 - Enable Directory Synchronization</a></li><li class="nav-item"><a class="nav-link" href="#task-3---run-azure-ad-connect">Task 3 - Run Azure AD Connect</a></li><li class="nav-item"><a class="nav-link" href="#task-4---validate-the-results-of-directory-synchronization-and-license-a-user">Task 4 - Validate the results of directory synchronization and license a user.</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="module-2---lab-1---exercise-1---setting-up-your-organization-for-identity-synchronization">Module 2 - Lab 1 - Exercise 1 - Setting up your organization for identity synchronization</h1>
+
+<p>You are Holly Dickson the security administrator for Adatum Corporation, and you have Microsoft 365 deployed in a virtualized lab environment. In this lab, you will implement identity synchronization between your Microsoft 365 tenant accounts and your local active directory accounts.</p>
+
+<h3 id="task-1---configure-your-upn-suffix">Task 1 - Configure your UPN suffix</h3>
+
+<ol>
+  <li>On LON-DC1, log on as <strong>Adatum\Administrator</strong> and password assigned from your lab hoster.</li>
+  <li>
+    <p>Using Windows PowerShell as administrator, update the UPN suffix for the domain and on the UPN on every user in AD DS with “@zzzzzzz.onmicrosoft.com” (where zzzzzzz is your unique UPN name) for the domain name. To do this, run the following command (remember to change zzzzzzz to your unique UPN name):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">Set</span></span>-ADForest -<span class="hljs-keyword"><span class="hljs-keyword">identity</span></span> <span class="hljs-string"><span class="hljs-string">"adatum.com"</span></span> -UPNSuffixes @{<span class="hljs-keyword"><span class="hljs-keyword">replace</span></span>=<span class="hljs-string"><span class="hljs-string">"zzzzzzz.onmicrosoft.com"</span></span>}  
+</code></pre>
+  </li>
+  <li>
+    <p>Next type the follow command (remember to change zzzzzzz to your unique UPN name):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs perl">Get-ADUser –Filter * -Properties SamAccountName | ForEach-Object { Set-ADUser $_ -UserPrincipalName ($_.SamAccountName + <span class="hljs-string"><span class="hljs-string">"@zzzzzzz.onmicrosoft.com"</span></span> )}
+</code></pre>
+  </li>
+  <li>
+    <p>At the Windows PowerShell prompt, type the following command, and then press Enter:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs javascript"><span class="hljs-built_in"><span class="hljs-built_in">Set</span></span>-ExecutionPolicy Unrestricted  
+</code></pre>
+  </li>
+  <li>To confirm the execution policy change, enter <strong>A</strong> for Yes to All press Enter key.</li>
+</ol>
+
+<h3 id="task-2---enable-directory-synchronization">Task 2 - Enable Directory Synchronization</h3>
+
+<ol>
+  <li>Open your browser and go to <code>https://portal.office.com/</code></li>
+  <li>Sign in as <strong>holly@WWLxZZZZZZ.onmicrosoft.com</strong> with the password <code>Pa55w.rd</code>.</li>
+  <li>Click <strong>Admin</strong> to go to the Microsoft 365 admin center.</li>
+  <li>If asked about <strong>update your admin contact information **click the Cancel button to skip this request.<br>
+**Note:</strong> If you see the Active Directory synchronization is being activated warning, you can ignore it at this time, but you will not be able to run directory synchronization later in this exercise. You must wait until directory synchronization is activated. However, you can complete the following steps, even if you do see the warning message.</li>
+  <li>In the left navigation, select <strong>users</strong> icon and select <strong>Active users</strong>, click on the ellipses at the top menu and choose <strong>Directory Synchronization</strong>.</li>
+  <li>Click on the <strong>Go to the Download center to get the Azure AD Connect tool</strong>.   Download and Run the download once prompted.</li>
+</ol>
+
+<h3 id="task-3---run-azure-ad-connect">Task 3 - Run Azure AD Connect</h3>
+
+<ol>
+  <li>On the Microsoft Azure Active Directory Connect setup wizard, proceed through the wizard.</li>
+  <li>Agree to the license terms and privacy notice.</li>
+  <li>Click on <strong>Use express settings</strong>.</li>
+  <li>On the <strong>Connect to Azure AD</strong> screen enter your Office 365 admin username of 
+<strong>holly@WWLxZZZZZZ.onmicrosoft.com</strong> with password <code>Pa55w.rd</code> and click Next.</li>
+  <li>If there is a pop up sign in window <strong>Connect to AD DS</strong> screen enter your domain administrator <strong>Admin@WWLxZZZZZZ.onmicrosoft.com</strong> and password <code>ycYoe&amp;L20a%%</code> and select <strong>Next</strong>.</li>
+  <li>On the <strong>Connect to AD DS</strong> screen enter your domain administrator <strong>ADATUM\Administrator</strong> and password <code>Pa55w.rd</code> and select <strong>Next</strong>.</li>
+  <li>Select <strong>Continue without matching all UPN suffixes to verified domains</strong> checkbox. Select <strong>Next</strong> on the Azure AD sign-in configuration screen.</li>
+  <li>On the <strong>Ready to configure</strong> screen make sure the check box for <strong>Start the synchronization process when configuration completes</strong> is marked and select <strong>Install</strong>.</li>
+  <li>Wait for the installation to complete (this may take several minutes).</li>
+  <li>Select <strong>Exit</strong>.</li>
+</ol>
+
+<h3 id="task-4---validate-the-results-of-directory-synchronization-and-license-a-user">Task 4 - Validate the results of directory synchronization and license a user.</h3>
+
+<p><strong>Note</strong>  When your M365 subscription was provisioned, all available licenses were allocated. Because we need a few licenses for this and future labs, you can remove
+license assignments for a few users.</p>
+
+<ol>
+  <li>To verify the new user you created open the Office 365 Admin Center in the browser by typing <code>https://portal.office.com</code> in the address bar.</li>
+  <li>Sign in as Holly Dickson with the following credentials:  User name: <strong>holly@WWLxZZZZZZ.onmicrosoft.com</strong>, Password: <code>Pa55w.rd</code></li>
+  <li>Navigate to the <strong>Active Users</strong>.</li>
+  <li>You should now see many users that have become synced from the local Active Directory.  You may need to click the refresh button to update the data in the page.</li>
+  <li>Edit the following users to remove <strong>both</strong> the Microsoft 365 E5 and the Enterprise Mobility + Security E5 licenses:
+-Debra Berger
+-Irvin Sayers
+-Johanna Lorenz
+-Lidia Hallowey
+-Pradeep Gupta
+<strong>Note</strong>  When your M365 subscription was provisioned, all available licenses were allocated. Because we need a few licenses for this and future labs, you can remove
+license assignments for a few users that don’t need them.</li>
+  <li>Select Abbie Parsons.  Abbie is a user that was only in the AD DS domain prior to our synchronization. Edit Abbie Parsons Product licenses as follows:
+    <ul>
+      <li>Location = United Kingdom</li>
+      <li>Product License = Enterprise Mobility + Security E5</li>
+    </ul>
+  </li>
+  <li>Click <strong>Save changes</strong> to make the changes. Close the window.</li>
+</ol>
+
+<p>You have successfully synced local ADATUM users into Office 365 and licensed the synced user Abbie Parsons.</p>
+
+<h1 id="end-of-lab">End of lab</h1>
+
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/MS-500-Microsoft-365-Security" target="_blank" class="ml-2">
+                    MicrosoftLearning/MS-500-Microsoft-365-Security
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../../assets/js/script_v%3Dc203d5d5aaaf93bae4a8af2ae04b27f6314242c4.js"></script>
+
+
+
+</body></html>

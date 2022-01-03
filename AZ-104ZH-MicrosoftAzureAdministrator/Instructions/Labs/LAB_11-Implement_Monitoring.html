@@ -1,0 +1,645 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104ZH-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104ZH-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1">练习 1</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-11---实现监视">实验室 11 - 实现监视</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你需要评估 Azure 功能，以深入了解 Azure 资源的性能和配置，尤其要关注 Azure 虚拟机。为此，需检查 Azure Monitor 的功能，包括 Log Analytics。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>在本实验室中，你将：</p>
+
+<ul>
+  <li>任务 1：预配实验室环境</li>
+  <li>任务 2：注册 Microsoft.Insights 和 Microsoft.AlertsManagement 资源提供程序</li>
+  <li>任务 3：创建和配置 Azure Log Analytics 工作区和基于 Azure 自动化的解决方案</li>
+  <li>任务 4：查看 Azure 虚拟机的默认监视设置</li>
+  <li>任务 5：配置 Azure 虚拟机诊断设置</li>
+  <li>任务 6：查看 Azure Monitor 功能</li>
+  <li>任务 7：查看 Azure Log Analytics 功能</li>
+</ul>
+
+<h2 id="预计用时45-分钟">预计用时：45 分钟</h2>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="练习-1">练习 1</h3>
+
+<h4 id="任务-1预配实验室环境">任务 1：预配实验室环境</h4>
+
+<p>在此任务中，你将部署一个虚拟机，用于测试监视方案。</p>
+
+<ol>
+  <li>
+    <p>登录到 <a href="https://portal.azure.com">Azure 门户</a>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，单击 Azure 门户右上方的图标，打开 <strong>Azure Cloud Shell</strong>。</p>
+  </li>
+  <li>
+    <p>提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong> 时，选择 <strong>“PowerShell”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果这是第一次启动 Cloud Shell，并看到 <strong>“未装载任何存储”</strong> 消息，请选择在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的工具栏中，单击 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中，单击 <strong>“上传”</strong> 并将文件 <strong>\Allfiles\Labs\11\az104-11-vm-template.json</strong> 和 <strong>\Allfiles\Labs\11\az104-11-vm-parameters.json</strong> 上传到 Cloud Shell 主页目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建托管虚拟机的资源组（将 <code>[Azure_region]</code> 占位符替换为你打算将 Azure 虚拟机部署到的 Azure 区域的名称）：</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：确保在引用的<a href="https://docs.microsoft.com/zh-cn/azure/automation/how-to/region-mappings">工作区映射文档</a>中，选择列为 <strong>“Log Analytics 工作区区域”</strong> 的一个区域</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location = '[Azure_region]'
+
+$rgName = 'az104-11-rg0'
+
+New-AzResourceGroup -Name $rgName -Location $location
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令创建第一个虚拟网络，并使用上传的模板和参数文件将虚拟机部署到其中：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-11-vm-template.json `
+   -TemplateParameterFile $HOME/az104-11-vm-parameters.json `
+   -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 不要等待部署完成，而是继续执行下一个任务。该部署大约需要 3 分钟。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2注册-microsoftinsights-和-microsoftalertsmanagement-资源提供程序">任务 2：注册 Microsoft.Insights 和 Microsoft.AlertsManagement 资源提供程序。</h4>
+
+<ol>
+  <li>
+    <p>在“Cloud Shell”窗格中，运行以下命令以注册 Microsoft.Insights 和 Microsoft.AlertsManagement 资源提供程序。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Register-AzResourceProvider -ProviderNamespace Microsoft.Insights
+
+Register-AzResourceProvider -ProviderNamespace Microsoft.AlertsManagement
+</code></pre>
+  </li>
+  <li>
+    <p>最小化 Cloud Shell 窗格（但不要将其关闭）。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3创建和配置-azure-log-analytics-工作区和基于-azure-自动化的解决方案">任务 3：创建和配置 Azure Log Analytics 工作区和基于 Azure 自动化的解决方案</h4>
+
+<p>在此任务中，你将创建和配置 Azure Log Analytics 工作区和基于 Azure 自动化的解决方案</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>Log Analytics 工作区</strong>”，然后在“<strong>Log Analytics 工作区</strong>”边栏选项卡上，选择“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>创建 Log Analytics 工作区</strong>”边栏选项卡的“<strong>基本信息</strong>”选项卡中，输入以下设置，单击“<strong>查看 + 创建</strong>”，然后单击“<strong>创建</strong>”：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td>新资源组名称 <strong>az104-11-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>Log Analytics 工作区</td>
+          <td>任意唯一名称</td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>在上一个任务中将虚拟机部署到的 Azure 区域的名称</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 确保指定你在上一个任务中将虚拟机部署到的区域。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待部署完成。该部署大约需要 1 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>自动化帐户</strong>”，然后在“<strong>自动化帐户</strong>”边栏选项卡上，选择“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>创建自动化帐户</strong>”边栏选项卡上，指定以下设置，然后单击“<strong>查看 + 创建</strong>”，再在验证后单击“<strong>创建</strong>”：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td>任意唯一名称</td>
+        </tr>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-11-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>位置</td>
+          <td>根据<a href="https://docs.microsoft.com/zh-cn/azure/automation/how-to/region-mappings">工作区映射文档</a>确定的 Azure 区域名称</td>
+        </tr>
+        <tr>
+          <td>按照帐户创建 Azure 运行</td>
+          <td><strong>是</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 务必根据<a href="https://docs.microsoft.com/zh-cn/azure/automation/how-to/region-mappings">工作区映射文档</a>指定 Azure 区域</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待部署完成。该部署可能需要 3 分钟左右。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“<strong>创建自动化帐户</strong>”边栏选项卡上单击“<strong>刷新</strong>”，然后单击代表新创建的自动化帐户的条目。</p>
+  </li>
+  <li>
+    <p>在“自动化帐户”边栏选项卡上，单击 <strong>“配置管理”</strong> 部分中的 <strong>“清单”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“清单”</strong> 窗格中的 <strong>“Log Analytics 工作区”</strong> 下拉列表中，选择你之前在此任务中创建的 Log Analytics 工作区，然后单击 <strong>“启用”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待相应的 Log Analytics 解决方案安装完成。该操作需要约 3 分钟。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这同样会自动安装更<strong>改追踪</strong>解决方案。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“自动化帐户”边栏选项卡上的 <strong>“更新管理”</strong> 部分，单击 <strong>“更新管理”</strong>，然后单击 <strong>“启用”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待安装完成。该过程大约需要 5 分钟。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4查看-azure-虚拟机的默认监视设置">任务 4：查看 Azure 虚拟机的默认监视设置</h4>
+
+<p>在此任务中将查看 Azure 虚拟机的默认监视设置</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟机”</strong>，并在 <strong>“虚拟机”</strong> 边栏选项卡上选择 <strong>“az104-11-vm0”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-11-vm0”</strong> 边栏选项卡上，单击 <strong>“监视”</strong> 部分中的 <strong>“指标”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-11-vm0 | 指标”</strong> 边栏选项卡的默认图表上，可以看到唯一可用的 <strong>“指标命名空间”</strong> 是 <strong>“虚拟机主机”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这是意料之中的，因为尚未配置来宾级诊断设置。但是，你确实可以选择直接从 <strong>“指标命名空间”</strong> 下拉列表中启用来宾内存指标。你稍后将在本练习中启用该指标。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“指标”</strong> 下拉列表中，查看列出的可用指标。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该列表包括一系列可以从虚拟机主机收集的与 CPU、磁盘和网络相关的指标，不能访问来宾级指标。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“指标”</strong> 下拉列表中，选择 <strong>“CPU 百分比”</strong>，在 <strong>“聚合”</strong> 下拉列表中，选择 <strong>“平均”</strong>，然后查看生成的图表。</p>
+  </li>
+</ol>
+
+<h4 id="任务-5配置-azure-虚拟机诊断设置">任务 5：配置 Azure 虚拟机诊断设置</h4>
+
+<p>在此任务中，你将配置 Azure 虚拟机诊断设置。</p>
+
+<ol>
+  <li>
+    <p>在 <strong>“az104-11-vm0”</strong> 边栏选项卡上，单击 <strong>“监视”</strong> 部分的 <strong>“诊断设置”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-11-vm0 | 诊断设置”</strong> 边栏选项卡的 <strong>“概述”</strong> 选项卡 上，单击 <strong>“启用来宾级监视”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待操作生效。该操作需要约 3 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>切换到 <strong>“az104-11-vm0 | 诊断设置”</strong> 边栏选项卡的 <strong>“性能计数器”</strong> 选项卡，并查看可用的计数器。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 默认情况下，CPU、内存、磁盘和网络计数器均处于启用状态。你可以切换到 <strong>“自定义”</strong> 视图查看更多详细列表。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>切换到 <strong>“az104-11-vm0 | 诊断设置”</strong> 边栏选项卡的 <strong>“日志”</strong> 选项卡，并查看可用的事件日志收集选项。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 默认情况下，日志集合包括来自应用程序日志和系统日志的严重、错误和警告条目，以及来自安全日志的审核失败条目。在这里，你还可以切换到 <strong>“自定义”</strong> 视图以了解更详细的配置设置。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>az104-11-vm0</strong> 边栏选项卡上的 <strong>“监视”</strong> 部分，单击 <strong>“日志”</strong>，然后单击 <strong>“启用”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-11-vm0 - 日志”</strong> 边栏选项卡上，确保在 <strong>“选择 Log Analytics 工作区”</strong> 下拉列表中选择了你之前在本实验室中创建的 Log Analytics 工作区，然后单击 <strong>“启用”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 不要等待操作完成，而是继续执行下一步。该操作可能需要 5 分钟左右。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az104-11-vm0 | 日志”</strong> 边栏选项卡上，在 <strong>“监视”</strong> 部分中单击 <strong>“指标”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-11-vm0 | 指标”</strong> 边栏选项卡，在默认图表上，可以看到此时 <strong>“指标命名空间”</strong> 下拉列表不但包含了 <strong>“虚拟机主机”</strong> 条目，还包含了 <strong>“来宾(经典)”</strong> 条目。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>：这是意料之中的，因为你启用了来宾级诊断设置。你还可以选择 <strong>“启用新的来宾内存指标”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“指标命名空间”</strong> 下拉列表中，选择 <strong>“来宾(经典)”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“指标”</strong> 下拉列表中，查看列出的可用指标。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该列表包括仅依赖主机级监视时不可用的其他来宾级指标。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“指标”</strong> 下拉列表中，选择 <strong>“内存\可用字节”</strong>，在 <strong>“聚合”</strong> 下拉列表中，选择 <strong>“最大”</strong>，然后查看生成的图表。</p>
+  </li>
+</ol>
+
+<h4 id="任务-6查看-azure-monitor-功能">任务 6：查看 Azure Monitor 功能</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“Monitor”</strong>，在 <strong>“Monitor | 概述”</strong> 边栏选项卡上，单击 <strong>“指标”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择范围”</strong> 边栏选项卡的 <strong>“浏览”</strong> 选项卡上，导航到 <strong>“az104-11-rg0”</strong> 资源组，将其展开，选中该资源组内 <strong>“az104-11-vm0”</strong> 虚拟机条目旁边的复选框，然后单击 <strong>“应用”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这为你提供了与 <strong>“az104-11-vm0 - 指标”</strong> 边栏选项卡相同的视图和选项。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“指标”</strong> 下拉列表中，选择 <strong>“CPU 百分比”</strong>，在 <strong>“聚合”</strong> 下拉列表中，选择 <strong>“平均”</strong>，然后查看生成的图表。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Monitor | 指标”</strong> 边栏选项卡上，在 <strong>“az104-11-vm0 的平均 CPU 百分比”</strong> 窗格中单击 <strong>“新建警报规则”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：来宾（经典）指标命名空间中的指标不支持从指标创建警报规则。这可以通过使用 Azure 资源管理器模板来完成，如<a href="https://docs.microsoft.com/zh-cn/azure/azure-monitor/platform/collect-custom-metrics-guestos-resource-manager-vm">使用 Windows 虚拟机的资源管理器模板将来宾 OS 指标发送到 Azure Monitor 指标存储</a>文档所述</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“创建警报规则”</strong> 边栏选项卡的 <strong>“条件”</strong> 部分，单击现有条件条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“配置信号逻辑”</strong> 边栏选项卡上，在信号列表的 <strong>“警报逻辑”</strong> 部分，指定以下设置（将其他设置保留为默认值），然后单击 <strong>“完成”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>阈值</td>
+          <td><strong>静态</strong></td>
+        </tr>
+        <tr>
+          <td>运算符</td>
+          <td><strong>大于</strong></td>
+        </tr>
+        <tr>
+          <td>聚合类型</td>
+          <td><strong>平均值</strong></td>
+        </tr>
+        <tr>
+          <td>阈值</td>
+          <td><strong>2</strong></td>
+        </tr>
+        <tr>
+          <td>聚合粒度（周期）</td>
+          <td><strong>1 分钟</strong></td>
+        </tr>
+        <tr>
+          <td>评估频率</td>
+          <td><strong>每 1 分钟</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“创建警报规则”</strong> 边栏选项卡的 <strong>“操作组”</strong> 部分，单击 <strong>“添加操作组”</strong>，然后单击 <strong>“+ 创建操作组”</strong> 按钮。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建操作组”</strong> 边栏选项卡的 <strong>“基本设置”</strong> 选项卡上，指定以下设置（将其他设置保留为默认值）并选择 <strong>“下一步: 通知 &gt;”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-11-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>操作组名称</td>
+          <td><strong>az104-11-ag1</strong></td>
+        </tr>
+        <tr>
+          <td>显示名称</td>
+          <td><strong>az104-11-ag1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“创建操作组”</strong> 边栏选项卡的 <strong>“通知”</strong> 选项卡上，在 <strong>“通知类型”</strong> 下拉列表中选择 <strong>“电子邮件/短信/推送/语音”</strong>。在 <strong>“名称”</strong> 文本框中，输入 <strong>“管理员邮箱”</strong>。单击 <strong>“编辑细节”</strong> （铅笔）图标。</p>
+  </li>
+  <li>
+    <p>在 <strong>“电子邮件/短信/推送/语音”</strong> 边栏选项卡上选中 <strong>“电子邮件”</strong> 复选框，在 <strong>“电子邮件”</strong> 文本框中键入你的电子邮件地址，将其他设置保留默认值，单击 <strong>“确定”</strong>，然后回到 <strong>“创建操作组”</strong> 边栏选项卡的 <strong>“通知”</strong> 选项卡，选择 <strong>“下一步: 操作  &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建操作组”</strong> 边栏选项卡的 <strong>“操作”</strong> 选项卡上，查看 <strong>“操作类型”</strong> 下拉列表中显示的项而不进行任何更改，然后选择 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建操作组”</strong> 边栏选项卡的 <strong>“查看 + 创建”</strong> 选项卡中，选择 <strong>“创建”</strong>。</p>
+  </li>
+  <li>
+    <p>回到 <strong>“创建警报规则”</strong> 边栏选项卡，在 <strong>“警报规则详细信息”</strong> 部分中，指定以下设置（将其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>警报规则名称</td>
+          <td><strong>CPU 百分比高于测试阈值</strong></td>
+        </tr>
+        <tr>
+          <td>描述</td>
+          <td><strong>CPU 百分比高于测试阈值</strong></td>
+        </tr>
+        <tr>
+          <td>严重性</td>
+          <td><strong>严重性 3</strong></td>
+        </tr>
+        <tr>
+          <td>创建后启用规则</td>
+          <td><strong>是</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“创捷警报规则”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 指标警报规则最多可能需要 10 分钟才能生效。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟机”</strong>，并在 <strong>“虚拟机”</strong> 边栏选项卡上选择 <strong>“az104-11-vm0”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>az104-11-vm0</strong> 边栏选项卡上单击 <strong>“连接”</strong>，在下拉列表中单击 <strong>“RDP”</strong>，在 <strong>“使用 RDP 连接”</strong> 边栏选项卡上单击 <strong>“下载 RDP 文件”</strong>，并按照提示启动远程桌面会话。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此步骤是指在 Windows 计算机中通过远程桌面进行连接。在 Mac 上，可以使用 Mac App Store 中的远程桌面客户端，而在 Linux 计算机上，可以使用开源 RDP 客户端软件。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 连接到目标虚拟机时，可以忽略任何警告提示。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>出现提示时，请使用用户名 <strong>“Student”</strong> 和密码 <strong>“Pa55w.rd1234”</strong> 登录。</p>
+  </li>
+  <li>
+    <p>在远程桌面会话中，单击 <strong>“启动”</strong>，展开 <strong>“Windows 系统”</strong> 文件夹，然后单击 <strong>“命令提示符”</strong>。</p>
+  </li>
+  <li>
+    <p>在命令提示符中，运行以下命令以触发 <strong>az104-11-vm0</strong> Azure VM 的 CPU 利用率提高：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> /l %a <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> (0,0,1) <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> <span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> a
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这将启动无限循环，从而使 CPU 利用率超过新创建的警报规则的阈值。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在实验室计算机上，使远程桌面会话保持打开状态，然后切换回显示 Azure 门户的浏览器窗口。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航回到 <strong>“监视器”</strong> 边栏选项卡，并单击 <strong>“警报”</strong>。</p>
+  </li>
+  <li>
+    <p>记下 <strong>“严重性 3”</strong> 警报的数字，然后单击 <strong>“严重性 3”</strong> 行。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 可能需要等待几分钟，然后单击 <strong>“刷新”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“所有警报”</strong> 边栏选项卡上，查看生成的警报。</p>
+  </li>
+</ol>
+
+<h4 id="任务-7查看-azure-log-analytics-功能">任务 7：查看 Azure Log Analytics 功能</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航回到 <strong>“监视器”</strong> 边栏选项卡，单击 <strong>“日志”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果这是你第一次访问 Log Analytics，则需要单击 <strong>“开始使用”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>如有必要，请单击“<strong>选择范围</strong>”，在“<strong>选择范围</strong>”边栏选项卡上选择“<strong>最近</strong>”选项卡，然后选择“<strong>az104-11-vm0</strong>”并单击“<strong>应用</strong>”。</p>
+  </li>
+  <li>
+    <p>在查询窗口中，粘贴以下查询并单击 <strong>“运行”</strong>，然后查看生成的图表：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">// Virtual Machine available memory
+// Chart the VM<span class="hljs-string"><span class="hljs-string">'s available memory over the last hour.
+InsightsMetrics
+| where TimeGenerated &gt; ago(1h)
+| where Name == "AvailableMB"
+| project TimeGenerated, Name, Val
+| render timechart
+</span></span></code></pre>
+  </li>
+  <li>
+    <p>单击工具栏中的 <strong>“查询”</strong>，在 <strong>“查询”</strong> 窗格中找到 <strong>“跟踪 VM 可用性”</strong> 磁贴，单击该磁贴中的 <strong>“运行”</strong> 命令按钮，然后查看结果。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新查询 1”</strong> 选项卡上，选择 <strong>“表”</strong> 标头，在 <strong>“虚拟机”</strong> 部分中查看表列表。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 几个表的名称与你之前在本实验室中安装的解决方案相对应。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>将鼠标悬停在“<strong>VMComputer</strong>”条目上，然后单击“<strong>查看预览数据</strong>”图标。</p>
+  </li>
+  <li>
+    <p>如有任何可用数据，请在 <strong>“更新”</strong> 窗格中单击 <strong>“在编辑器中使用”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你可能需要等待几分钟才能使用更新数据。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="清理资源">清理资源</h4>
+
+<blockquote>
+  <p><strong>备注</strong>： 请记得删除任何新创建而不会再使用的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，在 <strong>“Cloud Shell”</strong> 窗格中打开 <strong>“PowerShell”</strong> 会话。</p>
+  </li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-11*'
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-11*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该命令异步执行（由 -AsJob 参数确定），因此尽管此后可以立即在同一 PowerShell 会话中运行另一个 PowerShell 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本实验室中，你已：</p>
+
+<ul>
+  <li>预配实验室环境</li>
+  <li>创建和配置 Azure Log Analytics 工作区和基于 Azure 自动化的解决方案</li>
+  <li>查看 Azure 虚拟机的默认监视设置</li>
+  <li>配置 Azure 虚拟机诊断设置</li>
+  <li>查看 Azure Monitor 功能</li>
+  <li>查看 Azure Log Analytics 功能</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

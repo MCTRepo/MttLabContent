@@ -1,0 +1,208 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            WS-013T00-Azure-Stack-HCI
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                WS-013T00-Azure-Stack-HCI
+            </a>
+            <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#task-1-provision-the-lab-environment-vms">Task 1: Provision the lab environment VMs</a></li><li class="nav-item"><a class="nav-link" href="#task-2-configure-the-management-server">Task 2: Configure the management server</a></li><li class="nav-item"><a class="nav-link" href="#task-3-deploy-a-storage-spaces-direct-cluster-on-the-lab-vms-by-using-powershell">Task 3: Deploy a Storage Spaces Direct cluster on the lab VMs by using PowerShell</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-a-answer-key-implementing-a-storage-spaces-direct-cluster-by-using-windows-powershell">Lab A answer key: Implementing a Storage Spaces Direct cluster by using Windows PowerShell</h1>
+
+<h2 id="exercise-1-implementing-a-storage-spaces-direct-cluster-by-using-windows-powershell">Exercise 1: Implementing a Storage Spaces Direct cluster by using Windows PowerShell</h2>
+
+<h3 id="task-1-provision-the-lab-environment-vms">Task 1: Provision the lab environment VMs</h3>
+
+<ol>
+  <li>
+    <p>On the lab VM, in the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to rename <strong>LabConfig.ps1</strong> and <strong>Scenario.ps1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Set-Location -Path 'F:\WSLab-master\Scripts'
+Move-Item -Path '.\LabConfig.ps1' -Destination '.\LabConfig.m3l2.ps1' -Force -ErrorAction SilentlyContinue
+Move-Item -Path '.\Scenario.ps1' -Destination '.\Scenario.m3l2.ps1' -Force -ErrorAction SilentlyContinue
+</code></pre>
+  </li>
+  <li>
+    <p>On the lab VM, in the <strong>Administrator: Windows PowerShell ISE</strong> window, open a new tab on the <strong>script</strong> pane, paste the following command, and then save it as <strong>F:\WSLab-master\Scripts\LabConfig.ps1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">$LabConfig=@{ DomainAdminName = 'LabAdmin'; AdminPassword = 'LS1setup!'; Prefix = 'WSLab-'; SecureBoot = $false; SwitchName = 'LabSwitch'; DCEdition = '4'; VMs = @(); InstallSCVMM = 'No'; PullServerDC = $false; Internet = $true ; AdditionalNetworksConfig = @(); EnableGuestServiceInterface = $true; AddToolsVHD = $True ; DisableWCF = $True }
+1..4 | % {
+     $VMNames = "S2D";
+     $LABConfig.VMs += @{
+     VMName = "$VMNames$_" ;
+     Configuration = 'S2D' ;
+     ParentVHD = 'Win2019Core_G2.vhdx';
+     HDDNumber = 12;
+     HDDSize = 4TB ;
+     MemoryStartupBytes = 4GB;
+     NestedVirt = $True
+    }
+}
+$LabConfig.VMs += @{
+     VMName = 'Management' ;
+     Configuration = 'Simple';
+     ParentVHD = 'Win2019_G2.vhdx';
+     StaticMemory = $true;
+     MemoryStartupBytes = 8GB;
+     AddToolsVHD = $True;
+     DisableWCF = $True;
+     VMProcessorCount = 4
+}
+</code></pre>
+  </li>
+  <li>
+    <p>On the lab VM, in the <strong>Administrator: Windows PowerShell ISE</strong> window, open and run the <strong>F:\WSLab-master\Scripts\3_Deploy.ps1</strong> script to provision VMs for the Storage Spaces Direct environment.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> For the Telemetry Level prompt, select the default setting of None. The script should complete in about ten minutes. For the prompt to start the VMs, select <strong>No</strong>. When prompted with Press enter to continue, select <strong>Enter</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>After the script completes, in the <strong>Administrator: Windows PowerShell ISE</strong> window, from the <strong>console</strong> pane, run the following command to start the newly provisioned VMs that will host the Storage Spaces Direct environment:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Get-VM -Name 'WSLab-Management' | Start-VM
+Start-Sleep 150
+Get-VM | Where-Object Name -like 'WSLab-S2D*' | Start-VM -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>On the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to copy the <strong>Scenario.ps1</strong> file from <strong>F:\WSLab-master\Scenarios\S2D Hyperconverged</strong> to the current directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">Copy-Item -Path 'F:\WSLab-master\Scenarios\S2D Hyperconverged\Scenario.ps1' -Destination '.\'
+</code></pre>
+  </li>
+  <li>On the lab VM, start <strong>Hyper-V Manager</strong> and connect via a console session to <strong>WSLab-DC</strong>. When prompted to sign in, provide the username <strong>CORP\LabAdmin</strong> and the password <strong>LS1setup!</strong>.</li>
+  <li>In the <strong>WSLab-DC</strong> VM console session, start <strong>Windows PowerShell ISE</strong> as an administrator.</li>
+  <li>From the <strong>Administrator: Windows PowerShell ISE</strong> window, run <code>slmgr -rearm</code> and then select <strong>OK</strong>.</li>
+  <li>From the <strong>Administrator: Windows PowerShell ISE</strong> window, run <code>Restart-Computer -Force</code>.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: Make sure that the <strong>WSLab-DC</strong> VM is running before you proceed to the next task.</p>
+</blockquote>
+
+<h3 id="task-2-configure-the-management-server">Task 2: Configure the management server</h3>
+
+<ol>
+  <li>On the lab VM, in the <strong>Server Manager</strong> window, select <strong>Tools</strong>, and then from the drop-down list, select <strong>Hyper-V Manager</strong>.</li>
+  <li>On the lab VM, in the <strong>Hyper-V Manager</strong> console, in the list of virtual machines, right-click or access the context menu for the <strong>WSLab-Management</strong> entry, and then select <strong>Connect</strong> to establish a console session to the <strong>WSLab-Management</strong> VM. When prompted to sign in, provide the username <strong>CORP\LabAdmin</strong> and password <strong>LS1setup!</strong>.</li>
+  <li>In the console session to the <strong>WSLab-Management</strong> VM, start <strong>Windows PowerShell ISE</strong> as Administrator.</li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to install Remote Server Administration Tools:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">Install-WindowsFeature -Name RSAT-Clustering,RSAT-Clustering-Mgmt,RSAT-Clustering-PowerShell,RSAT-Hyper-V-Tools,RSAT-AD-PowerShell,RSAT-ADDS
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Proceed to the next step without waiting for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>In the console session to the <strong>WSLab-Management</strong> VM, start another instance of Windows PowerShell ISE as Administrator.</li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>script</strong> pane of the newly started <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to download and install the Microsoft Edge (Chromium) browser:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">$progressPreference='SilentlyContinue'
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2069324&amp;language=en-us&amp;Consent=1" -UseBasicParsing -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
+Start-Process -FilePath "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe" -Wait
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Proceed to the next step without waiting for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>In the console session to the <strong>WSLab-Management</strong> VM, start another instance of <strong>Windows PowerShell ISE</strong> as Administrator.</li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>script</strong> pane of the newly started <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to download and install Windows Admin Center:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Invoke-WebRequest -UseBasicParsing -Uri https://aka.ms/WACDownload -OutFile "$env:USERPROFILE\Downloads\WindowsAdminCenter.msi"
+Start-Process msiexec.exe -Wait -ArgumentList "/i $env:USERPROFILE\Downloads\WindowsAdminCenter.msi /qn /L*v waclog.txt REGISTRY_REDIRECT_PORT_80=1 SME_PORT=443 SSL_CERTIFICATE_OPTION=generate"
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Proceed to the next step without waiting for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Return to the first <strong>Administrator: Windows PowerShell ISE</strong> window where you initiated installation of the Remote Server Administration Tools, wait for the installation to complete, and then from the <strong>script</strong> pane, run the following command to configure Kerberos constrained delegation to minimize prompts for credentials when using Windows Admin Center:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">$gateway = "Management"
+$nodes = Get-ADComputer -Filter * -SearchBase "ou=workshop,DC=corp,dc=contoso,DC=com"
+$gatewayObject = Get-ADComputer -Identity $gateway
+foreach ($node in $nodes){
+ Set-ADComputer -Identity $node -PrincipalsAllowedToDelegateToAccount $gatewayObject
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Before you proceed to the next step, verify that the installation of Microsoft Edge and Windows Admin Center completed.</p>
+    </blockquote>
+  </li>
+  <li>Close the other two instances of the <strong>Administrator: Windows PowerShell ISE</strong> window you opened earlier in this task without saving the scripts you ran from each.</li>
+  <li>Switch to the Microsoft Edge browser window, select <strong>Get started</strong>, accept the default tab page settings, select the <strong>Continue without Signing-in</strong> link, use the Microsoft Edge browser to navigate to <code>https://management.corp.contoso.com</code>, and when prompted to authenticate, sign in as <strong>CORP\LabAdmin</strong> with the password <strong>LS1setup!</strong>.</li>
+</ol>
+
+<h3 id="task-3-deploy-a-storage-spaces-direct-cluster-on-the-lab-vms-by-using-powershell">Task 3: Deploy a Storage Spaces Direct cluster on the lab VMs by using PowerShell</h3>
+
+<ol>
+  <li>In the console session to the <strong>WSLab-Management</strong> VM, start File Explorer and create a <strong>C:\Library</strong> folder.</li>
+  <li>Switch to the lab VM, start File Explorer, navigate to the <strong>F:\WSLab-master\Scripts\</strong> folder, right-click or access the context menu for <strong>Scenario.ps1</strong>, and then in the context menu, select <strong>Copy</strong>.</li>
+  <li>Switch to the <strong>WSLab-Management</strong> VM, in the File Explorer window, right-click or access the context menu for the <strong>C:\Library</strong> folder, and then select <strong>Paste</strong>.</li>
+  <li>In the console session to the <strong>WSLab-Management</strong> VM, switch to the <strong>Administrator: Windows PowerShell ISE</strong> window, and in the <strong>Administrator: Windows PowerShell ISE</strong> window, open the <strong>C:\Library\Scenario.ps1</strong> script.</li>
+  <li>
+    <p>In the console session to the <strong>WSLab-Management</strong> VM, from the <strong>script</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the <strong>Scenario.ps1</strong> script to deploy and configure a Storage Spaces Direct cluster on the lab VMs.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> Wait for the script to complete before you proceed to the next lab. The script should complete in about 35 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="ml-2">
+                    MicrosoftLearning/WS-013T00-Azure-Stack-HCI
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.js"></script>
+
+
+
+</body></html>

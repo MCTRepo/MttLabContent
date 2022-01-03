@@ -1,0 +1,1299 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220ZH-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220ZH-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1验证实验室先决条件">练习 1：验证实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习-2部署-linux-vm">练习 2：部署 Linux VM</a></li><li class="nav-item"><a class="nav-link" href="#练习-3使用-azure-cli-在-iot-中心中创建-iot-edge-设备标识">练习 3：使用 Azure CLI 在 IoT 中心中创建 IoT Edge 设备标识</a></li><li class="nav-item"><a class="nav-link" href="#练习-4安装-iotedge-并将-iot-edge-设备连接到-iot-中心">练习 4：安装 IotEdge 并将 IoT Edge 设备连接到 IoT 中心</a></li><li class="nav-item"><a class="nav-link" href="#练习-5将-edge-模块添加到-edge-设备">练习 5：将 Edge 模块添加到 Edge 设备</a></li><li class="nav-item"><a class="nav-link" href="#练习-6将-azure-流分析部署为-iot-edge-模块">练习 6：将 Azure 流分析部署为 IoT Edge 模块</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="azure-iot-edge-简介">Azure IoT Edge 简介</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>为鼓励全球市场中的本地消费者，Contoso 已与本地工匠合作在全球新地区生产奶酪。</p>
+
+<p>每个地点都支持多条生产线，这些生产线配备有用于制造本地奶酪的混合与加工机器。目前，这些设施已将 IoT 设备连接到每台机器。这些设备将传感器数据流式传输到 Azure，并且所有数据都在云中进行处理。</p>
+
+<p>由于收集了大量数据，并且某些机器上需要急速响应，因此 Contoso 希望使用 IoT Edge 网关设备将某些智能引入 Edge 以进行即时处理。部分数据仍将发送到云。将数据智能引入 IoT Edge 还可确保即使在本地网络很差的情况，它们也能处理数据并快速做出反应。</p>
+
+<p>你的任务是 Azure IoT Edge 解决方案原型设计。首先，将设置一个监视温度的 IoT Edge 设备（模拟连接到其中一台奶酪加工机的设备）。然后，将在设备上部署一个流分析模块，该模块将用于计算平均温度并在超出过程控制值时生成警报通知。</p>
+
+<p>将创建以下资源：</p>
+
+<p><a href="media/LAB_AK_11-architecture.png" target="_blank"><img src="media/LAB_AK_11-architecture.png" alt="实验室 11 基础结构"></a></p>
+
+<h2 id="本实验室概览">本实验室概览</h2>
+
+<p>在本实验室中，你将完成以下活动：</p>
+
+<ul>
+  <li>验证是否满足实验室先决条件（具有必需的 Azure 资源）</li>
+  <li>部署已启用 Azure IoT Edge 的 Linux VM</li>
+  <li>使用 Azure CLI 在 IoT 中心中创建 IoT Edge 设备标识</li>
+  <li>将 IoT Edge 设备连接到 IoT 中心</li>
+  <li>将 Edge 模块添加到 Edge 设备</li>
+  <li>将 Azure 流分析作为 IoT Edge 模块进行部署</li>
+</ul>
+
+<h2 id="实验室说明">实验室说明</h2>
+
+<h3 id="练习-1验证实验室先决条件">练习 1：验证实验室先决条件</h3>
+
+<p>本实验室假定以下 Azure 资源可用：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">资源类型</th>
+      <th style="text-align: left">资源名称</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">资源组</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT 中心</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>如果这些资源不可用，请按照以下说明运行 <strong>“lab11-setup.azcli”</strong> 脚本，然后再前往练习 2。脚本文件包含在本地克隆作为开发环境配置（实验室 3）的 GitHub 存储库中。</p>
+
+<blockquote>
+  <p><strong>备注：</strong>  写入 <strong>lab11-setup.azcli</strong> 脚本，并在 <strong>Bash</strong> shell 环境中运行，执行此操作最简便的方法是在 Azure Cloud Shell 中。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>使用浏览器，打开 <a href="https://shell.azure.com/">Azure Cloud Shell</a>，并使用本课程使用的 Azure 订阅登录。</p>
+  </li>
+  <li>
+    <p>如果系统提示设置 Cloud Shell 的存储，请接受默认设置。</p>
+  </li>
+  <li>
+    <p>验证 Cloud Shell 是否在使用 <strong>Bash</strong>。</p>
+
+    <p>Azure Cloud Shell 页面左上角的下拉菜单用于选择环境。验证所选的下拉值是否为 <strong>Bash</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 工具栏上，单击 <strong>“上传/下载文件”</strong> （从右数第四个按钮）。</p>
+  </li>
+  <li>
+    <p>在下拉菜单中，单击 <strong>“上传”</strong>。</p>
+  </li>
+  <li>
+    <p>在“文件选择”对话框中，导航到配置开发环境时下载的 GitHub 实验室文件的文件夹位置。</p>
+
+    <p>在本课程的实验室 3（“设置开发环境”）中，通过下载 ZIP 文件并在本地提取内容来克隆包含实验室资源的 GitHub 存储库。提取的文件夹结构包括以下文件夹路径：</p>
+
+    <ul>
+      <li>Allfiles
+        <ul>
+          <li>实验室
+            <ul>
+              <li>11 - Azure IoT Edge 简介
+                <ul>
+                  <li>设置</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>lab11-setup.azcli 脚本文件位于实验室 11 的 Setup 文件夹中。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“lab11-setup.azcli”</strong> 文件，然后单击 <strong>“打开”</strong>。</p>
+
+    <p>文件上传完成后，系统将显示一条通知。</p>
+  </li>
+  <li>
+    <p>要验证是否上传了正确的文件，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs"> ls
+</code></pre>
+
+    <p>使用 <code>ls</code> 命令列出当前目录的内容。你应该会看到列出的 lab11-setup.azcli 文件。</p>
+  </li>
+  <li>
+    <p>若要为此实验室创建一个包含安装脚本的目录，然后移至该目录，请输入以下 Bash 命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs"> mkdir lab11
+ mv lab11-setup.azcli lab11
+ <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> lab11
+</code></pre>
+
+    <p>这些命令将为此实验室创建一个目录，将 <strong>“lab11-setup.azcli”</strong> 文件放入该目录，然后将当前工作目录更改为该新目录。</p>
+  </li>
+  <li>
+    <p>为确保 <strong>“lab11-setup.azcli”</strong> 具有执行权限，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs"> chmod +x lab11-setup.azcli
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 工具栏上，请单击 <strong>“打开编辑器”</strong> （右侧的第二个按钮 - <strong>{ }</strong>）以启用对 lab11-setup.azcli 文件的访问。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 列表中，要展开 lab11 文件夹并打开脚本文件，请先单击 <strong>“lab11”</strong>，再单击 <strong>“lab11-setup.azcli”</strong>。</p>
+
+    <p>编辑器现在将显示 <strong>“lab11-setup.azcli”</strong> 文件的内容。</p>
+  </li>
+  <li>
+    <p>在编辑器中，更新 <code>{your-id}</code> 和 <code>{your-location}</code> 变量的值。</p>
+
+    <p>以下面的示例为例，需要将 <code>{your-id}</code> 设置为在本课程开始时创建的唯一 ID（即 <strong>cah191211</strong>），然后将 <code>{your-location}</code> 设置为对你的资源有意义的位置。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> <span class="hljs-comment"><span class="hljs-comment">#!/bin/bash</span></span>
+
+ <span class="hljs-comment"><span class="hljs-comment"># Change these values!</span></span>
+ YourID=<span class="hljs-string"><span class="hljs-string">"{your-id}"</span></span>
+ Location=<span class="hljs-string"><span class="hljs-string">"{your-location}"</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注：</strong> 应将 <code>{your-location}</code> 变量设置为要部署所有资源的区域的短名称。输入以下命令，可以看到可用位置及其短名称的列表（<strong>“名称”</strong> 列）：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs"> az account list-locations -o Table
+
+ DisplayName           Latitude    Longitude    Name
+ --------------------  ----------  -----------  ------------------
+ East Asia             22.267      114.188      eastasia
+ Southeast Asia        1.283       103.833      southeastasia
+ Central US            41.5908     -93.6208     centralus
+ East US               37.3719     -79.8164     eastus
+ East US 2             36.6681     -78.3889     eastus2
+</code></pre>
+  </li>
+  <li>
+    <p>要保存对文件所做的更改并关闭编辑器，请单击编辑器窗口右上角的 “<strong>…</strong>”，然后单击 <strong>“关闭编辑器”</strong>。</p>
+
+    <p>如果提示保存，请单击 <strong>“保存”</strong>，编辑器将会关闭。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  可以使用 <strong>Ctrl+S</strong> 随时保存，使用 <strong>Ctrl+Q</strong> 关闭编辑器。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>要创建本实验室所需的资源，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs"> ./lab11-setup.azcli
+</code></pre>
+
+    <p>运行将花费几分钟时间。每个步骤完成时，你都会看到输出。</p>
+  </li>
+</ol>
+
+<p>脚本完成后，就可以继续实验室的内容。</p>
+
+<h3 id="练习-2部署-linux-vm">练习 2：部署 Linux VM</h3>
+
+<p>在本练习中，你将部署 Ubuntu Server VM。</p>
+
+<ol>
+  <li>
+    <p>如有必要，请使用 Azure 帐户凭据登录到 Azure 门户。</p>
+
+    <p>如果有多个 Azure 帐户，请确保使用与本课程要使用的订阅绑定的帐户登录。</p>
+  </li>
+  <li>
+    <p>在 <strong>“搜索资源、服务和文档”</strong> 字段中，输入 <strong>“虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在搜索结果的 <strong>“服务”</strong> 下，单击 <strong>“虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在“<strong>虚拟机</strong>”页面上，单击“<strong>+ 创建</strong>”并选择“<strong>虚拟机</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“订阅”</strong> 下拉菜单中，选择用于本课程的 Azure 订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 右侧，单击 <strong>“新建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 你将使用单个资源组来帮助跟踪/管理在本课程中创建的所有虚拟机资源。你可能会遇到建议为每个 VM 创建一个单独的资源组的指导。在生产环境中，为每个 VM 创建一个单独的资源组可以帮助你管理添加到 VM 的任何额外资源。但由于在本课程中 VM 的使用方式比较简单，因此为每个 VM 建立单独的资源组是不必要的，也是不实际的。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在新资源组弹出窗口中的 <strong>“名称”</strong> 处，输入 <strong>rg-az220vm</strong>，然后单击 <strong>“确定”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“虚拟机名称”</strong> 文本框中，输入 <strong>“vm-az220-training-edge0001-{your-id}”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“区域”</strong> 下拉菜单中，选择预配 Azure IoT 中心的区域。</p>
+  </li>
+  <li>
+    <p>将 <strong>“可用性选项”</strong> 保留为 <strong>“无需基础结构冗余”</strong>。</p>
+  </li>
+  <li>
+    <p>在“<strong>映像</strong>”字段，选择“<strong>Ubuntu Server 18.04 LTS - Gen2</strong>”映像。</p>
+  </li>
+  <li>
+    <p>将 <strong>“Azure Spot 实例”</strong> 字段保留未勾选状态。</p>
+  </li>
+  <li>
+    <p>在 <strong>“大小”</strong> 右侧，单击 <strong>“改变大小”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择 VM 大小”</strong> 边栏选项卡的 <strong>“VM 大小”</strong> 下，单击 <strong>Standard_B1ms</strong>，然后单击 <strong>“选择”</strong>。</p>
+
+    <p>如果未列出 Standard_B1ms，则可能需要使用 <strong>“清除所有筛选器”</strong> 链接以在列表中提供此大小。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  并非所有 VM 大小都可在所有区域中使用。如果在后续步骤中无法选择 VM 大小，请尝试其他区域。例如，如果 <strong>“美国西部”</strong> 没有可用的尺寸，请尝试 <strong>“美国西部 2”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“管理员帐户”</strong> 下的 <strong>“身份验证类型”</strong> 右侧，单击 <strong>“密码”</strong>。</p>
+  </li>
+  <li>
+    <p>对于 VM 管理员帐户，输入<strong>用户名</strong>、<strong>密码</strong>和<strong>确认密码</strong>字段的值。</p>
+
+    <blockquote>
+      <p><strong>重要说明：</strong> 请勿遗失/忘记这些值 - 没有这些值就无法连接到 VM。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>请注意， <strong>“入站端口规则”</strong> 配置为启用入站 <strong>SSH</strong> 访问 VM 的权限。</p>
+
+    <p>这将用于远程连接到 VM 进行配置/管理。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>等待将显示在边栏选项卡顶部的 <strong>“验证通过”</strong> 消息，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  部署最多可能需要 5 分钟才能完成。可以在部署时继续进行下一个练习。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-3使用-azure-cli-在-iot-中心中创建-iot-edge-设备标识">练习 3：使用 Azure CLI 在 IoT 中心中创建 IoT Edge 设备标识</h3>
+
+<p>在本练习中，你将使用 Azure CLI 在 Azure IoT 中心内创建新的 IoT Edge 设备标识。</p>
+
+<ol>
+  <li>
+    <p>如有必要，请使用 Azure 帐户凭据登录到 Azure 门户。</p>
+
+    <p>如果有多个 Azure 帐户，请确保使用与本课程要使用的订阅绑定的帐户登录。</p>
+  </li>
+  <li>
+    <p>在“Azure 门户”工具栏上，要打开 Azure Cloud Shell，请单击 <strong>“Cloud Shell”</strong>，。</p>
+
+    <p>在“Azure 门户”工具栏上，而不是左侧导航菜单上的“Cloud Shell”按钮有一个看起来类似于命令提示符的图标。</p>
+  </li>
+  <li>
+    <p>确保你在使用 <strong>Bash</strong> 环境选项。</p>
+
+    <p>在 Cloud Shell 左上角的环境下拉列表中选择“Bash”。</p>
+  </li>
+  <li>
+    <p>在命令提示符处，输入以下命令，即可在 IoT 中心中创建 IoT Edge 设备标识：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-bash hljs"> az iot hub device-identity create --hub-name iot-az220-training-{your-id} --device-id sensor-th-0067 --edge-enabled
+</code></pre>
+
+    <p>请务必将 <code>{your-id}</code> 占位符替换为你在本课程开始时创建的 YOUR-ID 值。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 还可以使用 Azure 门户中的 IoT 中心创建此 IoT Edge 设备： <strong>IoT 中心</strong> -&gt; <strong>IoT Edge</strong> -&gt; <strong>添加 IoT Edge 设备</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>查看该命令创建的输出。</p>
+
+    <p>请注意，输出中包含为 IoT Edge 设备创建的<strong>设备标识</strong>的信息。例如，可以看到它默认为具有自动生成密钥的 <code>symmetricKey</code> 身份验证，并且如指定的 <code>--edge-enabled</code> 参数所示，<code>iotEdge</code> 功能被设置为 <code>true</code>。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"authentication"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"symmetricKey"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"primaryKey"</span></span>: <span class="hljs-string"><span class="hljs-string">"jftBfeefPsXgrd87UcotVKJ88kBl5Zjk1oWmMwwxlME="</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"secondaryKey"</span></span>: <span class="hljs-string"><span class="hljs-string">"vbegAag/mTJReQjNvuEM9HEe1zpGPnGI2j6DJ7nECxo="</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"sas"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"x509Thumbprint"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"primaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"secondaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+         }
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"capabilities"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"iotEdge"</span></span>: <span class="hljs-literal"><span class="hljs-literal">true</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"cloudToDeviceMessageCount"</span></span>: <span class="hljs-number"><span class="hljs-number">0</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"connectionState"</span></span>: <span class="hljs-string"><span class="hljs-string">"Disconnected"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"connectionStateUpdatedTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"sensor-th-0067"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceScope"</span></span>: <span class="hljs-string"><span class="hljs-string">"ms-azure-iot-edge://sensor-th-0067-637093398936580016"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"etag"</span></span>: <span class="hljs-string"><span class="hljs-string">"OTg0MjI1NzE1"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"generationId"</span></span>: <span class="hljs-string"><span class="hljs-string">"637093398936580016"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"lastActivityTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"enabled"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"statusReason"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"statusUpdatedTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>输入以下命令，显示 IoT Edge 设备的<strong>连接字符串</strong>：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-bash hljs"> az iot hub device-identity connection-string show --device-id sensor-th-0067 --hub-name iot-az220-training-{your-id}
+</code></pre>
+
+    <p>请务必将 <code>{your-id}</code> 占位符替换为你在本课程开始时创建的 YOUR-ID 值。</p>
+  </li>
+  <li>
+    <p>从命令的 JSON 输出中复制 <code>connectionString</code> 的值，并将其保存以供稍后引用。</p>
+
+    <p>此连接字符串将用于配置 IoT Edge 设备以连接到 IoT 中心。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-json hljs">     {
+       <span class="hljs-attr"><span class="hljs-attr">"connectionString"</span></span>: <span class="hljs-string"><span class="hljs-string">"HostName={IoTHubName}.azure-devices.net;DeviceId=sensor-th-0067;SharedAccessKey=jftBfeefPsXgrd87UcotVKJ88kBl5Zjk1oWmMwwxlME="</span></span>
+     }
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注：</strong>  还可以通过以下方式在 Azure 门户中访问 IoT Edge 设备连接字符串：导航到 <strong>“IoT 中心”</strong> -&gt; <strong>“IoT Edge”</strong> -&gt; <strong>“你的 Edge 设备”</strong> -&gt; <strong>“连接字符串(主密钥)”</strong></p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-4安装-iotedge-并将-iot-edge-设备连接到-iot-中心">练习 4：安装 IotEdge 并将 IoT Edge 设备连接到 IoT 中心</h3>
+
+<p>在本练习中，你将把 IoT Edge 设备连接到 Azure IoT 中心。</p>
+
+<h4 id="任务-1连接到-vm">任务 1：连接到 VM</h4>
+
+<ol>
+  <li>
+    <p>验证 IoT Edge 虚拟机是否已成功部署。</p>
+
+    <p>可以查看 Azure 门户中的“通知”窗格。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户菜单上，单击 <strong>“资源组”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 边栏选项卡上，找到 rg-az220vm 资源组。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡右侧的 <strong>“rg-az220vm”</strong> 中，单击 <strong>“单击以打开上下文菜单”</strong> （省略号图标 - <strong>…</strong>）</p>
+  </li>
+  <li>
+    <p>在上下文菜单上，单击 <strong>“固定到仪表板”</strong>，然后导航回仪表板。</p>
+
+    <p>如果<strong>编辑</strong> 仪表板来重新排列磁贴更易于访问资源，你可以对其进行编辑。</p>
+  </li>
+  <li>
+    <p>在 <strong>“rg-az220vm”</strong> 资源组磁贴上，单击 <strong>“vm-az220-training-edge0001-{your-id}”</strong>，打开 IoT Edge 虚拟机。</p>
+  </li>
+  <li>
+    <p>在 <strong>“概述”</strong> 窗格中，单击 <strong>“连接”</strong>，然后单击 <strong>“SSH”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“连接”</strong> 窗格的 <strong>“运行以下示例命令以连接到 VM”4</strong>. 下，复制示例命令。</p>
+
+    <p>这是一个示例 SSH 命令，可用于连接到包含 VM 的 IP 地址和管理员用户名的虚拟机。该命令的格式应类似于 <code>ssh username@52.170.205.79</code>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 如果示例命令包含 <code>-i &lt;private key path&gt;</code>，使用文本编辑器删除命令的该部分，然后将更新的命令复制到剪贴板。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>如果仍未打开 Cloud Shell，请单击 <strong>“Cloud Shell”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符处，粘贴在文本编辑器中更新的 <code>ssh</code> 命令，然后按 <strong>Enter</strong>。</p>
+  </li>
+  <li>
+    <p>当提示 <strong>“确定要继续连接吗?”</strong> 时，键入 <code>yes</code>,然后按 <strong>Enter</strong>。</p>
+
+    <p>此提示是安全确认，因为用于保护与 VM 的连接的证书为自签名证书。系统将记住此提示的回答，以便用于后续连接，并且仅在第一次连接时提示。</p>
+  </li>
+  <li>
+    <p>当系统提示输入密码时，请输入预配 VM 时创建的管理员密码。</p>
+  </li>
+  <li>
+    <p>连接后，终端命令提示符将更改为显示 Linux VM 的名称，类似于以下内容。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-bash hljs"> username@vm-az220-training-edge0001-{your-id}:~$
+</code></pre>
+
+    <p>这会告诉你连接的是哪个 VM。</p>
+
+    <blockquote>
+      <p><strong>重要说明：</strong> 连接时，你可能会被告知 Edge VM 有未完成的 OS 更新。  出于实验室目的，我们忽略了这一点，但是在生产环境中，你始终需要确保 Edge 设备保持最新状态。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2将-microsoft-安装包添加到包管理器中">任务 2：将 Microsoft 安装包添加到包管理器中</h4>
+
+<ol>
+  <li>
+    <p>要将 VM 配置为访问 Microsoft 安装包，请运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-bash hljs"> curl https://packages.microsoft.com/config/ubuntu/18.04/multiarch/prod.list &gt; ./microsoft-prod.list
+</code></pre>
+  </li>
+  <li>
+    <p>要将下载的包列表添加到包管理器，请运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-bash hljs"> sudo cp ./microsoft-prod.list /etc/apt/sources.list.d/
+</code></pre>
+  </li>
+  <li>
+    <p>若要安装包，必须安装 Microsoft GPG 公钥。运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-bash hljs"> curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor &gt; microsoft.gpg
+ sudo cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
+</code></pre>
+
+    <blockquote>
+      <p><strong>重要说明</strong>： Azure IoT Edge 软件包受制于每个包中的许可条款（<strong>usr/share/doc/{package-name</strong> 或 <strong>LICENSE</strong> 目录）。使用包之前请阅读许可条款。安装和使用包即表示接受这些条款。如果不同意许可条款，则不要使用包。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-3安装容器引擎">任务 3：安装容器引擎</h4>
+
+<p>Azure IoT Edge 依赖于 OCI 兼容的容器运行时。对于生产场景，建议使用 Moby 引擎。Moby 引擎是官方唯一支持用于 Azure IoT Edge 的容器引擎。Docker CE/EE 容器映像与 Moby 运行时兼容。</p>
+
+<ol>
+  <li>
+    <p>要更新设备上的包列表，请运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-bash hljs"> sudo apt-get update
+</code></pre>
+
+    <p>运行此命令可能需要几分钟。</p>
+  </li>
+  <li>
+    <p>若要安装 <strong>Moby</strong> 引擎，请运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-bash hljs"> sudo apt-get install moby-engine
+</code></pre>
+
+    <p>如果提示继续，请输入 <strong>Y</strong>。安装可能需要几分钟。</p>
+  </li>
+</ol>
+
+<h4 id="任务-4安装-iot-edge">任务 4：安装 IoT Edge</h4>
+
+<p>IoT Edge 安全守护程序提供和维护 IoT Edge 设备上的安全标准。守护程序在每次开机时启动，并通过启动 IoT Edge 运行时的其余部分来启动设备。</p>
+
+<ol>
+  <li>
+    <p>通常，在安装新包之前更新包列表是一种很好的做法，但是在上一个任务中已更新了包。要更新设备上的包列表，请运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-bash hljs"> sudo apt-get update
+</code></pre>
+  </li>
+  <li>
+    <p>要列出可用的 <strong>IoT Edge 运行</strong>时版本，请运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-bash hljs"> apt list -a iotedge
+</code></pre>
+
+    <blockquote>
+      <p><strong>提示</strong>： 如果需要安装运行时的早期版本，可以使用此命令。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>若要安装最新版本的 <strong>IoT Edge 运行</strong>时，请运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-bash hljs"> sudo apt-get install iotedge
+</code></pre>
+
+    <p>如果提示继续，请输入 <strong>Y</strong>。安装可能需要几分钟。</p>
+
+    <blockquote>
+      <p><strong>提示</strong>： 如果要安装 <code>apt list -a iotedge</code> 命令的输出中出现的早期版本，例如 <strong>1.0.9-1</strong>，则可以使用以下命令：</p>
+      <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-bash hljs">sudo apt-get install iotedge=1.0.9-1 libiothsm-std=1.0.9-1
+</code></pre>
+    </blockquote>
+  </li>
+  <li>
+    <p>若要确认 VM 上是否安装了 Azure IoT Edge 运行时，请运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-bash hljs"> iotedge version
+</code></pre>
+
+    <p>此命令输出的 Azure IoT Edge 运行时版本是当前在虚拟机上安装的运行时版本。</p>
+  </li>
+</ol>
+
+<h4 id="任务-5配置连接字符串">任务 5：配置连接字符串</h4>
+
+<p>此任务逐步演示如何使用之前的连接字符串通过对称密钥身份验证连接 VM。</p>
+
+<ol>
+  <li>
+    <p>为确保能够配置 Azure IoT Edge，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-bash hljs"> sudo chmod a+w /etc/iotedge/config.yaml
+</code></pre>
+
+    <p>要配置 Azure IoT Edge，需要修改 <strong>/etc/iotedge/config.yaml</strong> 配置文件以包含指向 IoT Edge 设备上的证书和密钥文件的完整路径。必须确保 <strong>config.yaml</strong> 文件不是只读文件，然后才能编辑文件。上述命令将 <strong>config.yaml</strong> 文件设置为可写。</p>
+  </li>
+  <li>
+    <p>请输入以下命令，在 vi/vim 编辑器中打开 <strong>config.yaml</strong> 文件：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-bash hljs"> sudo vi /etc/iotedge/config.yaml
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注：</strong> 如果你想使用其他编辑器，例如 <strong>code</strong>、<strong>nano</strong> 或 <strong>emacs</strong>，也没有问题。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 vi/vim 编辑器中，在文件中向下滚动，直到找到 <strong>“使用连接字符串手动预配配置”</strong> 部分。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  以下是在编辑 <strong>config.yaml</strong> 文件时使用 <strong>vi</strong> 的一些技巧：</p>
+      <ul>
+        <li>按 <strong>i</strong> 键将使编辑器进入“插入”模式，然后即可进行更改。</li>
+        <li>按 Esc 键停止“插入”模式并返回到 <strong>“普通”</strong> 模式。</li>
+        <li>要“保存并退出”，请键入 <strong>“:x”</strong>，然后按 <strong>Enter</strong>。</li>
+        <li>保存文件，键入 <strong>“:w”</strong>，然后按 <strong>Enter</strong>。</li>
+        <li>要退出 vi，请键入 <strong>“退出”</strong>，然后按 <strong>Enter</strong>。</li>
+      </ul>
+
+      <p>必须先停止插入模式，然后才能保存或退出。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>找到文件的预配配置，并取消注释“使用连接字符串手动预配配置”部分，如果它尚未取消删除注释，方法是删除前导 <strong>‘# ‘</strong> （井号和空格）并将 <code>&lt;ADD DEVICE CONNECTION STRING HERE&gt;</code> 替换为先前为 IoT Edge 设备复制的连接字符串：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-yaml"> # Manual provisioning configuration using a connection string
+ provisioning:
+   source: "manual"
+   device_connection_string: "&lt;ADD DEVICE CONNECTION STRING HERE&gt;"
+   dynamic_reprovisioning: false
+</code></pre>
+
+    <blockquote>
+      <p><strong>重要说明</strong>： YAML 将空格视为重要字符。在上面输入的行中，意味着 <strong>provisioning:</strong> 前面不应有任何前导空格，并且在 <strong>source:</strong>、 <strong>device_connection_string:</strong> 和 <strong>dynamic_reprovisioning:</strong> 之前应有两个前导空格。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>请按 <strong>Esc</strong>，键入 <strong>“x”</strong>，然后按 <strong>Enter</strong>，即可保存更改并退出编辑器</p>
+  </li>
+  <li>
+    <p>若要应用更改，必须使用以下命令重启 IoT Edge 守护程序：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-bash hljs"> sudo systemctl restart iotedge
+</code></pre>
+  </li>
+  <li>
+    <p>要确保 IoT Edge 守护程序正常运行时，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-bash hljs"> sudo systemctl status iotedge
+</code></pre>
+
+    <p>此命令将显示许多行内容，其中前三行指示服务是否正常运行。对于正常运行的服务，输出将类似于以下内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-bash hljs"> ● iotedge.service - Azure IoT Edge daemon
+    Loaded: loaded (/lib/systemd/system/iotedge.service; enabled; vendor preset: enabled)
+    Active: active (running) since Fri 2021-03-19 18:06:16 UTC; 1min 0s ago
+</code></pre>
+  </li>
+  <li>
+    <p>要验证已连接的 IoT Edge 运行时，请运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="language-bash hljs"> sudo iotedge check
+</code></pre>
+
+    <p>这将运行许多检查并显示结果。对于本实验室，请忽略 <strong>“配置检查”</strong> 警告/错误。 <strong>“连接性检查”</strong> 应该会成功，并且类似于以下内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-bash hljs"> Connectivity checks
+ -------------------
+ √ host can connect to and perform TLS handshake with IoT Hub AMQP port - OK
+ √ host can connect to and perform TLS handshake with IoT Hub HTTPS / WebSockets port - OK
+ √ host can connect to and perform TLS handshake with IoT Hub MQTT port - OK
+ √ container on the default network can connect to IoT Hub AMQP port - OK
+ √ container on the default network can connect to IoT Hub HTTPS / WebSockets port - OK
+ √ container on the default network can connect to IoT Hub MQTT port - OK
+ √ container on the IoT Edge module network can connect to IoT Hub AMQP port - OK
+ √ container on the IoT Edge module network can connect to IoT Hub HTTPS / WebSockets port - OK
+ √ container on the IoT Edge module network can connect to IoT Hub MQTT port - OK
+</code></pre>
+
+    <p>如果连接失败，请仔细检查 <strong>config.yaml</strong> 中的连接字符串值。</p>
+  </li>
+</ol>
+
+<h3 id="练习-5将-edge-模块添加到-edge-设备">练习 5：将 Edge 模块添加到 Edge 设备</h3>
+
+<p>在本练习中，你将添加模拟温度传感器作为自定义 IoT Edge 模块，并将其部署在 IoT Edge 设备上运行。</p>
+
+<ol>
+  <li>
+    <p>如有必要，请使用 Azure 帐户凭据登录到 Azure 门户。</p>
+
+    <p>如果有多个 Azure 帐户，请确保使用与本课程要使用的订阅绑定的帐户登录。</p>
+  </li>
+  <li>
+    <p>在“资源组”磁贴上，单击 <strong>“iot-az220-training-{your-id}”</strong>，打开 IoT 中心。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 中心”</strong> 边栏选项卡左侧的 <strong>“自动设备管理”</strong> 下，单击 <strong>“IoT Edge”</strong>。</p>
+  </li>
+  <li>
+    <p>在 IoT Edge 设备列表上，单击 <strong>“sensor-th-0067”</strong>。</p>
+  </li>
+  <li>
+    <p>请注意， <strong>“sensor-th-0067”</strong> 边栏选项卡上的 <strong>“模块”</strong> 选项卡会显示当前为设备配置的模块的列表。</p>
+
+    <p>当前，IoT Edge 设备仅配置了作为 IoT Edge 运行时一部分的 Edge 代理 (<code>$edgeAgent</code>) 和 Edge 中心 (<code>$edgeHub</code>) 模块。</p>
+  </li>
+  <li>
+    <p>在 <strong>“sensor-th-0067”</strong> 边栏选项卡的顶部，单击 <strong>“设置模块”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“在设备上设置模块: sensor-th-0067”</strong> 边栏选项卡中，找到 <strong>“IoT Edge 模块”</strong> 部分。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT Edge 模块”</strong> 下，单击 <strong>“添加”</strong>，然后单击 <strong>“IoT Edge 模块”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加 IoT Edge 模块”</strong> 窗格的 <strong>“IoT Edge 模块名称”</strong> 中输入 <strong>tempsensor</strong></p>
+
+    <p>我们将命名自定义模块“tempsensor”</p>
+  </li>
+  <li>
+    <p>在 <strong>“映像 URI”</strong> 处输入 <strong>asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor</strong></p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 此映像是 Docker Hub 上的已发布映像，该映像由产品组提供以支持此测试方案。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>若要更改选定的选项卡，请单击 <strong>“模块孪生设置”</strong>。</p>
+  </li>
+  <li>
+    <p>若要为模块孪生指定所需的属性，请输入以下 JSON：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"EnableProtobufSerializer"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"EventGeneratingSettings"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"IntervalMilliSec"</span></span>: <span class="hljs-number"><span class="hljs-number">500</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"PercentageChange"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"SpikeFactor"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"StartValue"</span></span>: <span class="hljs-number"><span class="hljs-number">20</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"SpikeFrequency"</span></span>: <span class="hljs-number"><span class="hljs-number">20</span></span>
+     }
+ }
+</code></pre>
+
+    <p>此 JSON 通过设置其模块孪生的所需属性来配置 Edge 模块。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡底部，单击 <strong>“添加”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“在设备上设置模块: sensor-th-0067”</strong> 边栏选项卡底部，单击 <strong>“下一步: 路由 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>请注意，已配置了默认路由。</p>
+
+    <ul>
+      <li>名称：<strong>route</strong></li>
+      <li>值：<code>FROM /messages/* INTO $upstream</code></li>
+    </ul>
+
+    <p>此路由会将所有消息从 IoT Edge 设备上的所有模块发送到 IoT 中心</p>
+  </li>
+  <li>
+    <p>单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“部署”</strong> 处，请花点时间查看显示的部署清单。</p>
+
+    <p>可以看到，IoT Edge 设备的部署清单格式设置为 JSON，这样更易读取。</p>
+
+    <p>在 <code>properties.desired</code> 部分下是声明将要部署到 IoT Edge 设备的 IoT Edge 模块的 <code>modules</code> 部分。这包括所有模块的映像 URI，包括任何容器注册表凭据。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"modulesContent"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"$edgeAgent"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"properties.desired"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"modules"</span></span>: {
+                     <span class="hljs-attr"><span class="hljs-attr">"tempsensor"</span></span>: {
+                         <span class="hljs-attr"><span class="hljs-attr">"settings"</span></span>: {
+                             <span class="hljs-attr"><span class="hljs-attr">"image"</span></span>: <span class="hljs-string"><span class="hljs-string">"asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor"</span></span>,
+                             <span class="hljs-attr"><span class="hljs-attr">"createOptions"</span></span>: <span class="hljs-string"><span class="hljs-string">""</span></span>
+                         },
+                         <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"docker"</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"running"</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"restartPolicy"</span></span>: <span class="hljs-string"><span class="hljs-string">"always"</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>
+                    },
+</code></pre>
+
+    <p>JSON 下方是包含 Edge 中心所需属性的 <strong>$edgeHub</strong> 部分。本部分还包括用于在模块之间路由事件以及路由到 IoT 中心的路由配置。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-json hljs">     <span class="hljs-string"><span class="hljs-string">"$edgeHub"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"properties.desired"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"routes"</span></span>: {
+               <span class="hljs-attr"><span class="hljs-attr">"route"</span></span>: <span class="hljs-string"><span class="hljs-string">"FROM /messages/* INTO $upstream"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"schemaVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.1"</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"storeAndForwardConfiguration"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"timeToLiveSecs"</span></span>: <span class="hljs-number"><span class="hljs-number">7200</span></span>
+             }
+         }
+     },
+</code></pre>
+
+    <p>JSON 下方是 <strong>tempsensor</strong> 模块部分，其中 <code>properties.desired</code> 部分包含 Edge 模块配置所需的属性。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="language-json hljs">             },
+             <span class="hljs-string"><span class="hljs-string">"tempsensor"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"properties.desired"</span></span>: {
+                     <span class="hljs-attr"><span class="hljs-attr">"EnableProtobufSerializer"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+                     <span class="hljs-attr"><span class="hljs-attr">"EventGeneratingSettings"</span></span>: {
+                         <span class="hljs-attr"><span class="hljs-attr">"IntervalMilliSec"</span></span>: <span class="hljs-number"><span class="hljs-number">500</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"PercentageChange"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"SpikeFactor"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"StartValue"</span></span>: <span class="hljs-number"><span class="hljs-number">20</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"SpikeFrequency"</span></span>: <span class="hljs-number"><span class="hljs-number">20</span></span>
+                     }
+                 }
+             }
+         }
+     }
+</code></pre>
+  </li>
+  <li>
+    <p>在边栏选项卡底部，单击 <strong>“创建”</strong>，完成设备模块的设置。</p>
+  </li>
+  <li>
+    <p>请注意，在 <strong>“sensor-th-0067”</strong> 边栏选项卡的 <strong>“模块”</strong> 下，现已列出 <strong>“tempsensor”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 可能需要单击 <strong>“刷新”</strong> 才能首次看到列出的模块。</p>
+    </blockquote>
+
+    <p>你可能会注意到未报告 <strong>tempsensor</strong> 运行时状态。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡顶部，单击 <strong>“刷新”</strong>。</p>
+  </li>
+  <li>
+    <p>请注意，<strong>tempsensor</strong> 模块的<strong>运行时状态</strong>现设置为 <strong>“运行”</strong>。</p>
+
+    <p>如果仍未报告该值，请稍等片刻，然后再次刷新该边栏选项卡。</p>
+  </li>
+  <li>
+    <p>打开 Cloud Shell 会话（如果尚未打开）。</p>
+
+    <p>如果不再连接到 <code>vm-az220-training-edge0001-{your-id}</code> 虚拟机，则和以前一样使用 <strong>SSH</strong> 进行连接。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 命令提示符处，输入以下命令，列出当前在 IoT Edge 设备上运行的模块：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="language-bash hljs"> iotedge list
+</code></pre>
+  </li>
+  <li>
+    <p>命令的输出类似于以下内容。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="language-bash hljs"> demouser@vm-az220-training-edge0001-{your-id}:~$ iotedge list
+ NAME             STATUS           DESCRIPTION      CONFIG
+ edgeHub          running          Up a minute      mcr.microsoft.com/azureiotedge-hub:1.1
+ edgeAgent        running          Up 26 minutes    mcr.microsoft.com/azureiotedge-agent:1.1
+ tempsensor       running          Up 34 seconds    asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor
+</code></pre>
+
+    <p>请注意，<code>tempsensor</code> 被列为正在运行的模块之一。</p>
+  </li>
+  <li>
+    <p>输入以下命令，查看模块日志：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="language-bash hljs"> iotedge logs tempsensor
+</code></pre>
+
+    <p>命令的输出类似于以下内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock36" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock36" class="mt-0"><code class="language-bash hljs"> demouser@vm-az220-training-edge0001-{your-id}:~$ iotedge logs tempsensor
+ 11/14/2019 18:05:02 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:41.199999999999925,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0182182583425192},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:21.460937846433808,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:25},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T18:05:02.8765526Z"</span></span>}
+ 11/14/2019 18:05:03 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:41.599999999999923,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0185790159334602},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:20.51992724976499,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:26},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T18:05:03.3789786Z"</span></span>}
+ 11/14/2019 18:05:03 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:41.999999999999922,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0189397735244012},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:20.715225311096397,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:26},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T18:05:03.8811372Z"</span></span>}
+</code></pre>
+
+    <p><code>iotedge logs</code> 命令可用于查看任何 Edge 模块的模块日志。</p>
+  </li>
+  <li>
+    <p>模拟温度传感器模块将在发送 500 条消息后停止。可以通过运行以下命令重启。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock37" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock37" class="mt-0"><code class="language-bash hljs"> iotedge restart tempsensor
+</code></pre>
+
+    <p>现在无需重启模块，但是如果发现它之后不再发送遥测数据，则返回到 Cloud Shell、Edge VM 的 SSH，然后运行此命令将其重置。重置后，模块将再次开始发送遥测数据。</p>
+  </li>
+</ol>
+
+<h3 id="练习-6将-azure-流分析部署为-iot-edge-模块">练习 6：将 Azure 流分析部署为 IoT Edge 模块</h3>
+
+<p>现在，tempSensor 模块已部署并在 IoT Edge 设备上运行，我们可以添加一个流分析模块，该模块可以在将消息发送到 IoT 中心之前处理 IoT Edge 设备上的消息。</p>
+
+<h4 id="任务-1创建-azure-存储帐户">任务 1：创建 Azure 存储帐户</h4>
+
+<ol>
+  <li>
+    <p>如有必要，请使用 Azure 帐户凭据登录到 Azure 门户。</p>
+
+    <p>如果有多个 Azure 帐户，请确保使用与本课程要使用的订阅绑定的帐户登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户菜单上，单击 <strong>“+ 创建资源”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建”</strong> 边栏选项卡上的搜索文本框中键入 <strong>“存储”</strong>，然后按 <strong>Enter</strong> 键。</p>
+  </li>
+  <li>
+    <p>在 <strong>“市场”</strong> 边栏选项卡上，单击 <strong>“存储帐户”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“存储帐户”</strong> 边栏选项卡上，单击 <strong>“创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡上，确保“订阅”下拉菜单显示的是此课程正使用的订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 下拉列表中，单击 <strong>“rg-az220”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“存储帐户名称”</strong> 文本框中，输入 <strong>az220store{your-id}</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 对于此字段，{your-id} 必须以小写形式输入，并且不允许使用短划线或下划线字符。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>将 <strong>“位置”</strong> 字段设置为用于 Azure IoT 中心的同一 Azure 区域。</p>
+  </li>
+  <li>
+    <p>将“<strong>冗余</strong>”字段设置为“<strong>本地冗余存储(LRS)</strong>”。</p>
+  </li>
+  <li>
+    <p>保留所有其他设置不变。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡底部，单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>等你看到 <strong>“验证通过”</strong> 消息后，单击 <strong>“创建”</strong>。</p>
+
+    <p>部署可能需要一些时间才能完成 - 你可以在创建流分析资源的同时继续创建该资源。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2创建-azure-流分析作业">任务 2：创建 Azure 流分析作业</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户菜单上，单击 <strong>“+ 创建资源”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建”</strong> 边栏选项卡的 <strong>“Azure 市场”</strong> 下，单击 <strong>“物联网”</strong>，然后单击 <strong>“流分析作业”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>
+你可能需要单击 <strong>“查看全部”</strong> 来查看列表中的 <strong>“流分析作业”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“新建流分析作业”</strong> 边栏选项卡的 <strong>“作业名称”</strong> 字段中，输入 <strong>“asa-az220-training-{your-id}”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 下拉列表中，单击 <strong>“rg-az220”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“位置”</strong> 下拉列表中，选择与存储帐户和 Azure IoT 中心相同的 Azure 区域。</p>
+  </li>
+  <li>
+    <p>将 <strong>“托管环境”</strong> 字段设置为 <strong>“Edge”</strong>。</p>
+
+    <p>这决定了流分析作业将部署到本地 IoT 网关 Edge 设备。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡底部，单击 <strong>“创建”</strong>。</p>
+
+    <p>部署此资源可能需要一些时间。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3配置-azure-流分析作业">任务 3：配置 Azure 流分析作业</h4>
+
+<ol>
+  <li>
+    <p>当你看到 <strong>“部署已完成”</strong> 消息时，单击 <strong>“前往资源”</strong>。</p>
+
+    <p>你现在应该在“新建流分析作业”的“概述”窗格中。</p>
+  </li>
+  <li>
+    <p>在左侧导航菜单的 <strong>“作业拓扑”</strong> 下，单击 <strong>“输入”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“输入”</strong> 窗格中，单击 <strong>“添加流输入”</strong>，然后单击 <strong>“Edge 中心”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Edge 中心”</strong> 窗格中的 <strong>“输入别名”</strong> 字段，输入 <strong>“temperature”</strong></p>
+  </li>
+  <li>
+    <p>请确保在 <strong>“事件序列化格式”</strong> 下拉菜单中，选择了 <strong>“JSON”</strong> 格式。</p>
+
+    <p>流分析需要了解消息格式。JSON 是标准格式。</p>
+  </li>
+  <li>
+    <p>请确认在  <strong>“编码”</strong> 下拉菜单中选择了 <strong>“UTF-8”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> UTF-8 是编写时唯一支持的 JSON 编码。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>请确保在 <strong>“事件压缩类型”</strong> 下拉菜单中选择了 <strong>“无”</strong>。</p>
+
+    <p>在本实验室中，将不使用压缩。该服务还支持 GZip 和 Deflate 格式。</p>
+  </li>
+  <li>
+    <p>在窗格底部，单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>在左侧导航菜单的 <strong>“作业拓扑”</strong> 下，单击 <strong>“输出”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“输出”</strong> 窗格中，单击 <strong>“+ 添加”</strong>，然后单击 <strong>“Edge 中心”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Edge 中心”</strong> 窗格中的 <strong>“输出别名”</strong> 字段中，输入 <strong>“警报”</strong></p>
+  </li>
+  <li>
+    <p>请确保在 <strong>“事件序列化格式”</strong> 下拉菜单中，选择了 <strong>“JSON”</strong> 格式。</p>
+
+    <p>流分析需要了解消息格式。JSON 是标准格式，但该服务也支持 CSV。</p>
+  </li>
+  <li>
+    <p>请确保，在 <strong>“格式”</strong> 下拉菜单中选择了 <strong>“行分隔”</strong>。</p>
+  </li>
+  <li>
+    <p>请确认在 <strong>“编码”</strong> 下拉菜单中选择了 <strong>“UTF-8”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> UTF-8 是编写时唯一支持的 JSON 编码。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在窗格底部，单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>在左侧导航菜单的 <strong>“作业拓扑”</strong> 下，单击 <strong>“查询”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“查询”</strong> 窗格中，使用以下内容替换默认查询：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock38" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock38" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span>
+     <span class="hljs-string"><span class="hljs-string">'reset'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> command
+ <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span>
+     alert
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span>
+     temperature <span class="hljs-keyword"><span class="hljs-keyword">TIMESTAMP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> timeCreated
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> TumblingWindow(<span class="hljs-keyword"><span class="hljs-keyword">second</span></span>,<span class="hljs-number"><span class="hljs-number">15</span></span>)
+ <span class="hljs-keyword"><span class="hljs-keyword">HAVING</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Avg</span></span>(machine.temperature) &gt; <span class="hljs-number"><span class="hljs-number">25</span></span>
+</code></pre>
+
+    <p>该查询查看进入<code>temperature</code> 输入的事件，并通过 15 秒的翻转窗口进行分组，然后检查该分组中的平均温度值是否大于 25。如果平均值大于 25，则将 <code>command</code> 属性设置为 <code>reset</code> 值的事件发送到 <code>alert</code> 输出。</p>
+
+    <p>有关 <code>TumblingWindow</code> 函数的更多信息，请参阅以下链接：<a href="https://docs.microsoft.com/zh-cn/stream-analytics-query/tumbling-window-azure-stream-analytics">https://docs.microsoft.com/zh-cn/stream-analytics-query/tumbling-window-azure-stream-analytics</a></p>
+  </li>
+  <li>
+    <p>在查询编辑器顶部，单击 <strong>“保存查询”</strong>。</p>
+  </li>
+</ol>
+
+<h4 id="任务-4配置存储帐户设置">任务 4：配置存储帐户设置</h4>
+
+<p>若准备将流分析作业部署到 IoT Edge 设备，则需要将其关联到 Azure Blob 存储容器。部署作业后，作业定义将导出到存储容器。</p>
+
+<ol>
+  <li>
+    <p>在 <strong>“流分析作业”</strong> 边栏选项卡上，在 <strong>“配置”</strong> 选项的左侧导航菜单处，单击 <strong>“存储帐户设置”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“存储帐户设置”</strong> 窗格上，单击 <strong>“添加存储帐户”</strong>。</p>
+  </li>
+  <li>
+    <p>请确保在 <strong>“存储帐户设置”</strong> 下选择了 <strong>“从订阅中选择存储帐户”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“存储帐户”</strong> 下拉菜单中，请确保选择了 <strong>az220store{your-id}</strong> 存储帐户。</p>
+  </li>
+  <li>
+    <p>在 <strong>“容器”</strong> 下，单击 <strong>“新建”</strong>，然后输入 <strong>jobdefinition</strong> 作为容器的名称。</p>
+  </li>
+  <li>
+    <p>在窗格顶部，单击 <strong>“保存”</strong>。</p>
+
+    <p>如果系统提示确认是否要保存更改，请单击 <strong>“是”</strong></p>
+  </li>
+</ol>
+
+<h4 id="任务-5部署流分析作业">任务 5：部署流分析作业</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>iot-az220-training-{your-id}</strong> IoT 中心资源。</p>
+  </li>
+  <li>
+    <p>在左侧导航菜单的 <strong>“自动设备管理”</strong> 下，单击 <strong>“IoT Edge”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“设备 ID”</strong> 下，单击 <strong>“sensor-th-0067”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“sensor-th-0067”</strong> 窗格的顶部，单击 <strong>“设置模块”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“在设备上设置模块: sensor-th-0067”</strong> 窗格中，找到 <strong>“IoT Edge 模块”</strong> 部分。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT Edge 模块”</strong> 下，单击 <strong>“添加”</strong>，然后单击 <strong>“Azure 流分析模块”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Edge 部署”</strong> 窗格的 <strong>“订阅”</strong> 下，确保选择了本课程要使用的订阅。</p>
+  </li>
+  <li>
+    <p>请确保，在 <strong>“Edge 作业”</strong> 下拉菜单，选择了 <strong>“asa-az220-training-{your-id}”</strong> 流分析作业。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 作业可能已被选择，但 <strong>“保存”</strong> 按钮处于禁用状态 - 只需再次打开 <strong>“Edge 作业”</strong> 下拉菜单，并再次选择 <strong>“asa-az220-training-{your-id}”</strong> 作业即可。之后， <strong>“保存”</strong> 按钮即可处于启用状态。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在窗格底部，单击 <strong>“保存”</strong>。</p>
+
+    <p>部署可能需要一些时间。</p>
+  </li>
+  <li>
+    <p>请注意，在 Edge 程序包成功发布后，新的 ASA 模块会列在 <strong>“IoT Edge 模块”</strong> 部分</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT Edge 模块”</strong> 下，单击 <strong>“asa-az220-training-{your-id}”</strong>。</p>
+
+    <p>这是刚刚添加到 Edge 设备中的流分析模块。</p>
+  </li>
+  <li>
+    <p>在 <strong>“更新 IoT Edge 模块”</strong> 窗格中，注意<strong>映像 URI</strong>指向标准 Azure 流分析映像。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock39" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock39" class="mt-0"><code class="language-text"> mcr.microsoft.com/azure-stream-analytics/azureiotedge:1.0.8
+</code></pre>
+
+    <p>这与部署到 IoT Edge 设备的每个 ASA 作业使用的图像相同</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 配置的 <strong>“映像 URI”</strong> 末尾的版本号反映了创建流分析模块时的当前最新版本。在编写本单元时，版本是 <code>1.0.8</code>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>将所有值保留为默认值，然后关闭 <strong>“IoT Edge 自定义模块”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在 <strong>“在设备上设置模块: sensor-th-0067”</strong> 窗格中，单击 <strong>“下一步: 路由 &gt;”</strong>。</p>
+
+    <p>注意，将显示现有路由。</p>
+  </li>
+  <li>
+    <p>将定义的默认路由替换为以下三个路由：</p>
+
+    <ul>
+      <li>路由 1
+        <ul>
+          <li>名称：<strong>telemetryToCloud</strong></li>
+          <li>值：<code>FROM /messages/modules/tempsensor/* INTO $upstream</code></li>
+        </ul>
+      </li>
+      <li>路由 2
+        <ul>
+          <li>名称：<strong>alertToReset</strong></li>
+          <li>值： <code>FROM /messages/modules/asa-az220-training-{your-id}/* INTO BrokeredEndpoint("/modules/tempsensor/inputs/control")</code></li>
+        </ul>
+      </li>
+      <li>路由 3
+        <ul>
+          <li>名称：<strong>telemetryToAsa</strong></li>
+          <li>值： <code>FROM /messages/modules/tempsensor/* INTO BrokeredEndpoint("/modules/asa-az220-training-{your-id}/inputs/temperature")</code></li>
+        </ul>
+      </li>
+    </ul>
+
+    <blockquote>
+      <p><strong>备注：</strong> 务必将 <code>asa-az220-training-{your-id}</code> 占位符替换为 Azure 流分析作业模块的名称。可以单击 <strong>“上一步”</strong> 查看模块列表及其名称，然后单击 <strong>“下一步”</strong> 返回到这一步。</p>
+    </blockquote>
+
+    <p>定义的路由如下：</p>
+
+    <ul>
+      <li><strong>telemetryToCloud</strong> 路由将所有消息从 <code>tempsensor</code> 模块输出发送到 Azure IoT 中心。</li>
+      <li><strong>alertToReset</strong> 路由将所有警报消息从流分析模块输出发送到 <strong>tempsensor</strong> 模块输入。</li>
+      <li><strong>telemetryToAsa</strong> 路由将所有消息从 <code>tempsensor</code> 模块输出发送到流分析模块输入。</li>
+    </ul>
+  </li>
+  <li>
+    <p>在 <strong>“在设备上设置模块: sensor-th-0067”</strong> 边栏选项卡底部，单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>请注意，在 <strong>“查看 + 创建”</strong> 选项卡中，现在使用流分析模块和刚配置的路由定义对<strong>部署清单</strong> JSON 进行更新。</p>
+  </li>
+  <li>
+    <p>请注意，<code>tempsensor</code> 模拟温度传感器模块的 JSON 配置：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock40" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock40" class="mt-0"><code class="language-json hljs"> <span class="hljs-string"><span class="hljs-string">"tempsensor"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"settings"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"image"</span></span>: <span class="hljs-string"><span class="hljs-string">"asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"createOptions"</span></span>: <span class="hljs-string"><span class="hljs-string">""</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"docker"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"running"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"restartPolicy"</span></span>: <span class="hljs-string"><span class="hljs-string">"always"</span></span>
+ },
+</code></pre>
+  </li>
+  <li>
+    <p>请注意，之前配置的路由的 JSON 配置以及在 JSON 部署定义中如何配置这些路由：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock41" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock41" class="mt-0"><code class="language-json hljs"> <span class="hljs-string"><span class="hljs-string">"$edgeHub"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"properties.desired"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"routes"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"telemetryToCloud"</span></span>: <span class="hljs-string"><span class="hljs-string">"FROM /messages/modules/tempsensor/* INTO $upstream"</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"alertsToReset"</span></span>: <span class="hljs-string"><span class="hljs-string">"FROM /messages/modules/asa-az220-training-CP122619/* INTO BrokeredEndpoint(\\\"/modules/tempsensor/inputs/control\\\")"</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"telemetryToAsa"</span></span>: <span class="hljs-string"><span class="hljs-string">"FROM /messages/modules/tempsensor/* INTO BrokeredEndpoint(\\\"/modules/asa-az220-training-CP122619/inputs/temperature\\\")"</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"schemaVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"storeAndForwardConfiguration"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"timeToLiveSecs"</span></span>: <span class="hljs-number"><span class="hljs-number">7200</span></span>
+         }
+     }
+ },
+</code></pre>
+  </li>
+  <li>
+    <p>在边栏选项卡底部，单击 <strong>“创建”</strong>。</p>
+  </li>
+</ol>
+
+<h4 id="任务-6查看数据">任务 6：查看数据</h4>
+
+<ol>
+  <li>
+    <p>返回到你通过 <strong>SSH</strong> 连接到 <strong>IoT Edge 设备</strong>的 <strong>Cloud Shell</strong> 会话。</p>
+
+    <p>如果关闭或超时，请重新连接。运行 <code>SSH</code> 命令并像以前一样登录。</p>
+  </li>
+  <li>
+    <p>在命令提示符处，输入以下命令，以查看已部署到设备的模块的列表：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock42" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock42" class="mt-0"><code class="language-bash hljs"> iotedge list
+</code></pre>
+
+    <p>将新的流分析模块部署到 IoT Edge 设备可能需要花费一分钟时间。一旦存在，将在此命令的列表输出中看到它。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock43" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock43" class="mt-0"><code class="language-bash hljs"> demouser@vm-az220-training-edge0001-{your-id}:~$ iotedge list
+ NAME               STATUS           DESCRIPTION      CONFIG
+ asa-az220-training-CP1119  running          Up a minute      mcr.microsoft.com/azure-stream-analytics/azureiotedge:1.0.5
+ edgeAgent          running          Up 6 hours       mcr.microsoft.com/azureiotedge-agent:1.0
+ edgeHub            running          Up 4 hours       mcr.microsoft.com/azureiotedge-hub:1.0
+ tempsensor         running          Up 4 hours       asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注：</strong> 如果流分析模块未显示在列表中，请等待一两分钟，然后重试。在 IoT Edge 设备上更新模块部署可能需要一分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在命令提示符处，输入以下命令，以查看 <code>tempsensor</code> 模块从 Edge 设备发送的遥测数据：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock44" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock44" class="mt-0"><code class="language-bash hljs"> iotedge logs tempsensor
+</code></pre>
+  </li>
+  <li>
+    <p>花一分钟查看输出。</p>
+
+    <p>在查看 <strong>tempsensor</strong> 发送的温度遥测数据时，请注意，当 <code>machine.temperature</code> 达到高于 <code>25</code> 的平均值时，由流分析作业发送 <strong>“重启”</strong> 命令。这是在流分析作业查询中配置的操作。</p>
+
+    <p>此事件输出类似于以下内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock45" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock45" class="mt-0"><code class="language-bash hljs"> 11/14/2019 22:26:44 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:231.599999999999959,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0095600761599359},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:21.430643635304012,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:24},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T22:26:44.7904425Z"</span></span>}
+ 11/14/2019 22:26:45 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:531.999999999999957,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0099208337508767},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:20.569532965342297,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:25},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T22:26:45.2901801Z"</span></span>}
+ Received message
+ Received message Body: [{<span class="hljs-string"><span class="hljs-string">"command"</span></span>:<span class="hljs-string"><span class="hljs-string">"reset"</span></span>}]
+ Received message MetaData: {<span class="hljs-string"><span class="hljs-string">"MessageId"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"To"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"ExpiryTimeUtc"</span></span>:<span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,<span class="hljs-string"><span class="hljs-string">"CorrelationId"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"SequenceNumber"</span></span>:0,<span class="hljs-string"><span class="hljs-string">"LockToken"</span></span>:<span class="hljs-string"><span class="hljs-string">"e0e778b5-60ff-4e5d-93a4-ba5295b995941"</span></span>,<span class="hljs-string"><span class="hljs-string">"EnqueuedTimeUtc"</span></span>:<span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,<span class="hljs-string"><span class="hljs-string">"DeliveryCount"</span></span>:0,<span class="hljs-string"><span class="hljs-string">"UserId"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"MessageSchema"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"CreationTimeUtc"</span></span>:<span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,<span class="hljs-string"><span class="hljs-string">"ContentType"</span></span>:<span class="hljs-string"><span class="hljs-string">"application/json"</span></span>,<span class="hljs-string"><span class="hljs-string">"InputName"</span></span>:<span class="hljs-string"><span class="hljs-string">"control"</span></span>,<span class="hljs-string"><span class="hljs-string">"ConnectionDeviceId"</span></span>:<span class="hljs-string"><span class="hljs-string">"sensor-th-0067"</span></span>,<span class="hljs-string"><span class="hljs-string">"ConnectionModuleId"</span></span>:<span class="hljs-string"><span class="hljs-string">"asa-az220-training-CP1119"</span></span>,<span class="hljs-string"><span class="hljs-string">"ContentEncoding"</span></span>:<span class="hljs-string"><span class="hljs-string">"utf-8"</span></span>,<span class="hljs-string"><span class="hljs-string">"Properties"</span></span>:{},<span class="hljs-string"><span class="hljs-string">"BodyStream"</span></span>:{<span class="hljs-string"><span class="hljs-string">"CanRead"</span></span>:<span class="hljs-literal"><span class="hljs-literal">true</span></span>,<span class="hljs-string"><span class="hljs-string">"CanSeek"</span></span>:<span class="hljs-literal"><span class="hljs-literal">false</span></span>,<span class="hljs-string"><span class="hljs-string">"CanWrite"</span></span>:<span class="hljs-literal"><span class="hljs-literal">false</span></span>,<span class="hljs-string"><span class="hljs-string">"CanTimeout"</span></span>:<span class="hljs-literal"><span class="hljs-literal">false</span></span>}}
+ Resetting temperature sensor..
+ 11/14/2019 22:26:45 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:320.4,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:0.99945886361358849},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:20.940019742324957,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:26},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T22:26:45.7931201Z"</span></span>}
+</code></pre>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.js"></script>
+
+
+
+</body></html>

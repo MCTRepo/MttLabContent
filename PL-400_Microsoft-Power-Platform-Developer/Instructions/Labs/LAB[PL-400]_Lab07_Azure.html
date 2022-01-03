@@ -1,0 +1,1343 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            PL-400_Microsoft-Power-Platform-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                PL-400_Microsoft-Power-Platform-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <blockquote>
+  <p>[!NOTE]
+Effective November 2020:</p>
+  <ul>
+    <li>Common Data Service has been renamed to Microsoft Dataverse. <a href="https://aka.ms/PAuAppBlog">Learn more</a></li>
+    <li>Some terminology in Microsoft Dataverse has been updated. For example, <em>entity</em> is now <em>table</em> and <em>Column</em> is now <em>column</em>. <a href="https://go.microsoft.com/fwlink/?linkid=2147247">Learn more</a></li>
+  </ul>
+
+  <p>This content will be updated soon to reflect the latest terminology.</p>
+</blockquote>
+
+<h2 id="lab-07--azure-functions">Lab 07 – Azure Functions</h2>
+
+<h1 id="scenario">Scenario</h1>
+
+<p>A regional building department issues and tracks permits for new buildings and updates for remodeling of existing buildings. Throughout this course you will build applications and automation to enable the regional building department to manage the permitting process. This will be an end-to-end solution which will help you understand the overall process flow.</p>
+
+<p>In this lab you will create an Azure Function that will handle routing inspections. Every morning people call in to request inspections on their permits. They must call before 9:30 AM and once that period ends all the inspections for the day must be assigned and sequenced for the inspectors. To accomplish this, you will build an Azure Function that runs on a schedule, queries pending inspections and assigns them to inspectors. Given the limited time to complete the lab, we’ve simplified the routing and sequencing decisions.</p>
+
+<h1 id="high-level-lab-steps">High-level lab steps</h1>
+
+<p>As part of building the Azure Function, you will complete the following:</p>
+
+<ul>
+  <li>
+    <p>Configure an application user for the app along with a security role</p>
+  </li>
+  <li>
+    <p>Build the function logic to route the requests</p>
+  </li>
+</ul>
+
+<p>Deploy the Azure Function</p>
+
+<h2 id="things-to-consider-before-you-begin">Things to consider before you begin</h2>
+
+<ul>
+  <li>
+    <p>Could we have used Dynamics 365 Universal Resource Scheduling instead of custom code?</p>
+  </li>
+  <li>
+    <p>Could we have used Power Automate instead of custom code?</p>
+  </li>
+  <li>
+    <p>Remember to continue working in your DEVELOPMENT environment. We’ll move everything to production soon.</p>
+  </li>
+</ul>
+
+<p>‎</p>
+
+<h1 id="exercise-1-configure-an-application-user">Exercise #1: Configure an application user</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will configure an application user that will be used to connect the Azure Function back to the Microsoft Dataverse.</p>
+
+<h2 id="task-1-register-azure-ad-application">Task #1: Register Azure AD Application</h2>
+
+<ol>
+  <li>Navigate to Azure Active Directory</li>
+</ol>
+
+<ul>
+  <li>Sign in to <a href="https://portal.azure.com/">Azure Portal</a>.</li>
+</ul>
+
+<p><strong>Note:</strong> You must be logged in with an organization account in the same tenant as your Microsoft Dataverse Environment. This does <strong>NOT</strong> have to be the account that has your Azure subscription.</p>
+
+<ul>
+  <li>Click Show portal menu.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image1.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image1.png" alt="Show portal menu - screenshot"></a></p>
+
+<ul>
+  <li>Select <strong>Azure Active Directory</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image2.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image2.png" alt="Azure active directory - screenshot"></a></p>
+
+<ul>
+  <li>Select <strong>App Registration</strong> from the <strong>Manage</strong> section.</li>
+</ul>
+
+<ol>
+  <li>Create new application registration.</li>
+</ol>
+
+<ul>
+  <li>Click <strong>+ New registration</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image3.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image3.png" alt="New registration - screenshot"></a></p>
+
+<ul>
+  <li>Enter <strong>Inspection Router</strong> for <strong>Name</strong>, select <strong>Accounts in this Organizational Directory Only</strong> for <strong>Supported</strong> <strong>Account Types</strong>, and click <strong>Register</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image4.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image4.png" alt="Register application - screenshot"></a></p>
+
+<ol>
+  <li>Add Client Secret.</li>
+</ol>
+
+<p><strong>Note</strong>: In this lab we are using a secret, however, you can also use a certificate. With either of these options you need to have a plan in place to handle rollover when they expire to ensure that the app keeps running.</p>
+
+<ul>
+  <li>Select <strong>Certificates &amp; Secrets</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image5.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image5.png" alt="Certificate and secrets - screenshot"></a></p>
+
+<ul>
+  <li>Click <strong>+ New Client Secret</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image6.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image6.png" alt="New client secret - screenshot"></a></p>
+
+<ul>
+  <li>Enter <strong>Inspection Routing</strong> for <strong>Description</strong> and click <strong>Add</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image7.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image7.png" alt="Add client secret - screenshot"></a></p>
+
+<ul>
+  <li>Copy the <strong>Value</strong> and save it on a notepad. You need this value in future tasks.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image8.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image8.png" alt="Copy value - screenshot"></a></p>
+
+<h2 id="task-2-create-application-user-and-security-role">Task #2: Create Application User and Security Role</h2>
+
+<p>In this task, you will create the application user and associate it with the Azure AD app that you just registered. You will also create a security role needed to run the routing logic.</p>
+
+<ol>
+  <li>Navigate to security settings of your Dev environment</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Sign in to <a href="https://admin.powerplatform.microsoft.com/">Power Platform admin center</a></p>
+  </li>
+  <li>
+    <p>Select <strong>Environments</strong>.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Dev</strong> environment, click on the <strong>… More Environment Actions</strong> button and select <strong>Settings</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image9.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image9.png" alt="Environment settings - screenshot"></a></p>
+
+<ul>
+  <li>Expand <strong>Users + Permissions</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image10.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image10.png" alt="Expand section - screenshot "></a></p>
+
+<ul>
+  <li>Select <strong>Security Roles</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image11.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image11.png" alt="Security roles - screenshot"></a></p>
+
+<ol>
+  <li>Create New Security Role</li>
+</ol>
+
+<ul>
+  <li>Click <strong>New role</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image12.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image12.png" alt="New security role - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Enter <strong>Inspection Router</strong> for <strong>Role Name</strong> and click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Business Management</strong> tab.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image13.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image13.png" alt="Business management tab - screenshot"></a></p>
+
+<ul>
+  <li>Locate the <strong>User</strong> Table and set <strong>Read</strong> and <strong>Append To</strong> privileges to <strong>Organization</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image14.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image14.png" alt="User Table privileges - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Select the <strong>Custom Tables</strong> tab.</p>
+  </li>
+  <li>
+    <p>Locate the <strong>Inspection</strong> Table and set <strong>Read</strong>, <strong>Write</strong>, <strong>Append,</strong> and <strong>Assign</strong> privileges to <strong>Organization</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image15.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image15.png" alt="User Table privileges - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>Save and Close</strong>.</p>
+  </li>
+  <li>
+    <p>Close the <strong>Security Roles</strong> browser tab/window.</p>
+  </li>
+  <li>
+    <p>Click on the browser back button.</p>
+  </li>
+</ul>
+
+<ol>
+  <li>Navigate to the Application User form</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Expand <strong>Users + permissions</strong> again.</p>
+  </li>
+  <li>
+    <p>Click <strong>Users</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image16.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image16.png" alt="Users - screenshot"></a></p>
+
+<ul>
+  <li>Click <strong>Manage users in Dynamics 365</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image17.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image17.png" alt="manage users in Dynamics 365 - screenshot"></a></p>
+
+<ul>
+  <li>Switch to the <strong>Application Users</strong> view.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image18.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image18.png" alt="Change view - screenshot"></a></p>
+
+<ul>
+  <li>Click <strong>+ New</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image19.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image19.png" alt="New application user - screenshot"></a></p>
+
+<ul>
+  <li>Switch to the <strong>Application User</strong> form.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image20.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image20.png" alt="Switch form - screenshot"></a></p>
+
+<ol>
+  <li>Create Application User.</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Click on the <strong>Full Name</strong> Column.</p>
+  </li>
+  <li>
+    <p>Enter <a href="mailto:InspectionRouter@tenant.onmicrosoft.com">InspectionRouter@Tenant.onmicrosoft.com</a> for User name, <strong>Inspection</strong> for <strong>First Name</strong>, <strong>Router</strong> for <strong>Last Name</strong>, enter <a href="mailto:InspectionRouter@tenant.onmicrosoft.com">InspectionRouter@Tenant.onmicrosoft.com</a> for <strong>Email</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image21.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image21.png" alt="user information - screenshot"></a></p>
+
+<ol>
+  <li>Copy App ID from Azure.</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Go back to your <strong>Azure</strong> portal.</p>
+  </li>
+  <li>
+    <p>Select <strong>Azure Active Directory</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Select <strong>App Registrations</strong> **</td>
+          <td>Owned applications**</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Click to open the registration you created.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image22.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image22.png" alt="App registration - screenshot"></a></p>
+
+<ul>
+  <li>Copy the <strong>Application (Client ID).</strong></li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image23.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image23.png" alt="Application id - screenshot"></a></p>
+
+<ol>
+  <li>Complete the Application User creation</li>
+</ol>
+
+<ul>
+  <li>Paste the Application Id you copied.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image24.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image24.png" alt="Application id - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>The <strong>Application ID URI</strong> and <strong>Azure AD Object ID</strong> Columns should auto populate.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image25.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image25.png" alt="Auto populated Columns - screenshot"></a></p>
+
+<ul>
+  <li>Close the <strong>User</strong> form.</li>
+</ul>
+
+<ol>
+  <li>Assign the Inspection Router security role to the Application User you created</li>
+</ol>
+
+<ul>
+  <li>Refresh the user view, select the user you create, and click <strong>Manage Roles</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image26.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image26.png" alt=" Manage roles - screenshot"></a></p>
+
+<ul>
+  <li>Select <strong>Inspection Router</strong> and click <strong>OK</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image27.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image27.png" alt="Select role - screenshot"></a></p>
+
+<p>‎</p>
+
+<h1 id="exercise-2-create-azure-function-for-inspection-routing">Exercise #2: Create Azure Function for Inspection Routing</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will create the Azure function that will route the inspections.</p>
+
+<h2 id="task-1-create-the-function">Task #1: Create the Function</h2>
+
+<ol>
+  <li>Create Azure Function project</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Start <strong>Visual Studio</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create a New Project</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image28.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image28.png" alt="New visual studio project - screenshot"></a></p>
+
+<ul>
+  <li>Select <strong>Azure Functions</strong> and click <strong>Next</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image29.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image29.png" alt="Azure functions - screenshot"></a></p>
+
+<ul>
+  <li>Enter <strong>InspectionManagementApp</strong> for <strong>Name</strong> and click <strong>Create</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image30.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image30.png" alt="Create project - screenshot"></a></p>
+
+<ul>
+  <li>Select <strong>Azure Function V3 (.NET Core)</strong> and select <strong>Timer Trigger</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image31.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image31.png" alt="Timer trigger - screenshot"></a></p>
+
+<ul>
+  <li>Change the Schedule to <strong>0 0 0</strong> <strong>* (Midnight Every Day) and click **Create</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image32.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image32.png" alt="Create Azure function application - screenshot"></a></p>
+
+<ol>
+  <li>Rename and run the Function</li>
+</ol>
+
+<ul>
+  <li>Rename the function file <strong>InspectionRouter</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image33.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image33.png" alt="Rename function file - screenshot"></a></p>
+
+<ul>
+  <li>Change the function class and FunctionName to <strong>InspectionRouter.</strong></li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image34.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image34.png" alt="Change function name - screenshot"></a></p>
+
+<ul>
+  <li>Click <strong>Run</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image35.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image35.png" alt="Run function - screenshot"></a></p>
+
+<ul>
+  <li>You should see <strong>Now Listening on:</strong> <a href="http://0.0.0.0:7071/">http://0.0.0.0:7071</a></li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image36.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image36.png" alt="Running azure function - screenshot"></a></p>
+
+<ol>
+  <li>Trigger the function with Postman</li>
+</ol>
+
+<ul>
+  <li>
+    <p>If you don’t have <strong>Postman</strong> installed, get it from here <a href="https://www.getpostman.com/">Postman</a> and install it on your machine. Or you can use any similar tool of your preference that allows you to construct an HTTP POST request.</p>
+  </li>
+  <li>
+    <p>Start <strong>Postman</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>POST</strong> and paste the URL: <a href="http://localhost:7071/admin/functions/InspectionRouter">http://localhost:7071/admin/functions/InspectionRouter</a></p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image37.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image37.png" alt="Paste URL - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Select the <strong>Headers</strong> tab.</p>
+  </li>
+  <li>
+    <p>Add <strong>Content-Type</strong> and set it to <strong>application/json</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image38.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image38.png" alt="Add content type - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Select the <strong>Body</strong> tab.</p>
+  </li>
+  <li>
+    <p>Select <strong>Raw</strong> and set it to empty json <strong>{}</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image39.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image39.png" alt="Select body - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>Send</strong>.</p>
+  </li>
+  <li>
+    <p>You should get <strong>202</strong> <strong>Accepted Status</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image40.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image40.png" alt="Status - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Go to the output console.</p>
+  </li>
+  <li>
+    <p>The function should get triggered.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image41.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image41.png" alt="Triggered function - screenshot"></a></p>
+
+<ul>
+  <li>Go back to <strong>Visual Studio</strong> and stop debugging.</li>
+</ul>
+
+<ol>
+  <li>Add NuGet packages</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Right Click on the project and select <strong>Manage NuGet Packages</strong>.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Browse</strong> tab and search for <strong>Microsoft.IdentityModel.Clients.ActiveDirectory</strong>.</p>
+  </li>
+  <li>
+    <p>Select the latest stable version and click <strong>Install</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image42.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image42.png" alt="Install package - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Search for <strong>Xrm.Tools.CrmWebAPI</strong>. Note: This is a community library designed to work with the Microsoft Dataverse Web API. When you are building this type of extension you can use any oData V4 library you prefer. Make sure you select the one developed by DavidYack.</p>
+  </li>
+  <li>
+    <p>Select the latest stable version and click <strong>Install</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image43.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image43.png" alt="Install package - screenshot"></a></p>
+
+<ul>
+  <li>Close the <strong>NuGet Package Manager</strong>.</li>
+</ul>
+
+<ol>
+  <li>Edit the local settings file</li>
+</ol>
+
+<ul>
+  <li>Click to open the <strong>local.settings.json</strong> file</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image44.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image44.png" alt="Local settings file - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Add the <strong>Values</strong> below to <strong>local.settings</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs bash">  <span class="hljs-string"><span class="hljs-string">"cdsurl"</span></span>: <span class="hljs-string"><span class="hljs-string">""</span></span>,
+
+  <span class="hljs-string"><span class="hljs-string">"cdsclientid"</span></span>: <span class="hljs-string"><span class="hljs-string">""</span></span>,
+
+  <span class="hljs-string"><span class="hljs-string">"cdsclientsecret"</span></span>: <span class="hljs-string"><span class="hljs-string">""</span></span>
+</code></pre>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image45.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image45.png" alt="Add values - screenshot"></a></p>
+
+<ul>
+  <li>Find the Client Secret you saved in the notepad and paste as the cdsclientsecret.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image46.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image46.png" alt="Client secret - screenshot"></a></p>
+
+<ol>
+  <li>Copy the App ID</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Go back to your <strong>Azure</strong> portal.</p>
+  </li>
+  <li>
+    <p>Select <strong>Azure Active Directory</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>App Registrations</strong>.</p>
+  </li>
+  <li>
+    <p>Click to open the registration you created.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image47.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image47.png" alt="Open app registration - screenshot"></a></p>
+
+<ul>
+  <li>Copy the <strong>Application (Client ID).</strong></li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image48.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image48.png" alt="Copy app id - screenshot"></a></p>
+
+<ul>
+  <li>Go back to <strong>Visual Studio</strong> and paste the <strong>Application ID</strong> as the <strong>cdsclientid</strong>.</li>
+</ul>
+
+<ol>
+  <li>Find the your Microsoft Dataverse URL</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Sign in to <a href="https://admin.powerplatform.microsoft.com/">https://admin.powerplatform.microsoft.com</a></p>
+  </li>
+  <li>
+    <p>Select <strong>Environments</strong> and click to open the <strong>Dev</strong> environment.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image49.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image49.png" alt="Open environment - screenshot"></a></p>
+
+<ul>
+  <li>Copy the <strong>Environment URL</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image50.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image50.png" alt="Copy environment URL - screenshot"></a></p>
+
+<ul>
+  <li>Go back to <strong>Visual Studio</strong> and paste the <strong>URL</strong> you copied as the <strong>cdsurl</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image51.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image51.png" alt="Paste URL - screenshot"></a></p>
+
+<ul>
+  <li>Save and close the file.</li>
+</ul>
+
+<ol>
+  <li>Add using statements to the function class.</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Open the <strong>InspectionRouter.cs</strong> file</p>
+  </li>
+  <li>
+    <p>Add the using statements below.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Threading</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Tasks</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Xrm</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Tools</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.WebAPI</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.IdentityModel</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Clients</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.ActiveDirectory</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Xrm</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Tools</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.WebAPI</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Results</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Dynamic</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Xrm</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Tools</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.WebAPI</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Requests</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Collections</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Generic</span></span>;
+</code></pre>
+  </li>
+</ul>
+
+<ol>
+  <li>Create a method that will create the web API.</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Add the method below inside the class.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs cs">  <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;CRMWebAPI&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">GetCRMWebAPI</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">ILogger log</span></span></span><span class="hljs-function">)
+  </span></span>{
+  <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-literal"><span class="hljs-literal">null</span></span>;
+  }
+</code></pre>
+  </li>
+  <li>
+    <p>Add the local variables below before the return line on the <strong>GetCRMWebAPI</strong> method.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> clientID = Environment.GetEnvironmentVariable(<span class="hljs-string"><span class="hljs-string">"cdsclientid"</span></span>, EnvironmentVariableTarget.Process);
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> clientSecret = Environment.GetEnvironmentVariable(<span class="hljs-string"><span class="hljs-string">"cdsclientsecret"</span></span>, EnvironmentVariableTarget.Process);
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> crmBaseUrl = Environment.GetEnvironmentVariable(<span class="hljs-string"><span class="hljs-string">"cdsurl"</span></span>, EnvironmentVariableTarget.Process);
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> crmurl = crmBaseUrl + <span class="hljs-string"><span class="hljs-string">"/api/data/v9.0/"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Create <strong>Authentication Parameters</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs coffeescript">  AuthenticationParameters ap = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> AuthenticationParameters.CreateFromUrlAsync(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Uri(crmurl));
+</code></pre>
+  </li>
+  <li>
+    <p>Create <strong>Client Credential</strong> passing your <strong>Client Id</strong> and <strong>Client Secret</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> clientcred = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ClientCredential(clientID, clientSecret);
+</code></pre>
+  </li>
+  <li>
+    <p>Get <strong>Authentication</strong> <strong>Context</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs cs">  <span class="hljs-comment"><span class="hljs-comment">// CreateFromUrlAsync returns endpoint while AuthenticationContext expects authority</span></span>
+  <span class="hljs-comment"><span class="hljs-comment">// workaround is to downgrade adal to v3.19 or to strip the tail</span></span>
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> auth = ap.Authority.Replace(<span class="hljs-string"><span class="hljs-string">"/oauth2/authorize"</span></span>, <span class="hljs-string"><span class="hljs-string">""</span></span>);
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> authContext = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> AuthenticationContext(auth);
+</code></pre>
+  </li>
+  <li>
+    <p>Get <strong>Token</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> authenticationResult = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> authContext.AcquireTokenAsync(crmBaseUrl, clientcred);
+</code></pre>
+  </li>
+  <li>
+    <p>Return the <strong>web API</strong>. Replace the return line with the code below.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> CRMWebAPI(crmurl, authenticationResult.AccessToken);
+</code></pre>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image52.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image52.png" alt="Get CRM web API method - screenshot"></a></p>
+
+<ol>
+  <li>Test the web API you created</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Call the GetCRMWebAPI method. Add the code below to the Run method.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs bash">  CRMWebAPI api = GetCRMWebAPI(<span class="hljs-built_in"><span class="hljs-built_in">log</span></span>).Result;
+</code></pre>
+  </li>
+  <li>
+    <p>Execute <strong>WhoAmI</strong> function and log the <strong>User Id</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">dynamic</span></span> whoami = api.ExecuteFunction(<span class="hljs-string"><span class="hljs-string">"WhoAmI"</span></span>).Result;
+  log.LogInformation(<span class="hljs-string"><span class="hljs-string">$"UserID: </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{whoami.UserId}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image53.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image53.png" alt="Run method - screenshot"></a></p>
+
+<ol>
+  <li>Debug</li>
+</ol>
+
+<ul>
+  <li>Click Run.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image54.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image54.png" alt="Run project - screenshot"></a></p>
+
+<ul>
+  <li>Go back to <strong>Postman</strong> and click <strong>Send</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image55.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image55.png" alt="Postman send - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Go to the output console.</p>
+  </li>
+  <li>
+    <p>You should see the <strong>User ID</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image56.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image56.png" alt="Run result - screenshot"></a></p>
+
+<p>Go back <strong>Visual Studio</strong> and stop debugging.</p>
+
+<h2 id="task-2-get-inspections-and-users-and-assign-inspections">Task #2: Get Inspections and Users and Assign Inspections</h2>
+
+<ol>
+  <li>Create a method that will get all active inspections that are New Request or Pending, and scheduled for today</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Add the method below inside the class.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> Task&lt;CRMGetListResult&lt;ExpandoObject&gt;&gt; GetInspections(CRMWebAPI api)
+
+  {
+
+  <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-literal"><span class="hljs-literal">null</span></span>;
+
+  }
+</code></pre>
+  </li>
+  <li>
+    <p>Create <strong>Fetch XML</strong>. Add the code below before the return line of the GetInspections method.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs xml">  var fetchxml = @"<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">fetch</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">version</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">1.0</span></span></span><span class="hljs-tag">"" </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">mapping</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">logical</span></span></span><span class="hljs-tag">"" &gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">entity</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">contoso_inspection</span></span></span><span class="hljs-tag">"" &gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">attribute</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">contoso_inspectionid</span></span></span><span class="hljs-tag">"" /&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">attribute</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">contoso_name</span></span></span><span class="hljs-tag">"" /&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">attribute</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">ownerid</span></span></span><span class="hljs-tag">"" /&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">attribute</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">contoso_inspectiontype</span></span></span><span class="hljs-tag">"" /&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">attribute</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">contoso_sequence</span></span></span><span class="hljs-tag">"" /&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">attribute</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">contoso_scheduleddate</span></span></span><span class="hljs-tag">"" /&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">filter</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">type</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">and</span></span></span><span class="hljs-tag">"" &gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">condition</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">value</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">0</span></span></span><span class="hljs-tag">"" </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">operator</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">eq</span></span></span><span class="hljs-tag">"" </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">attribute</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">statecode</span></span></span><span class="hljs-tag">"" /&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">condition</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">attribute</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">contoso_scheduleddate</span></span></span><span class="hljs-tag">"" </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">operator</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">today</span></span></span><span class="hljs-tag">"" /&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">condition</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">attribute</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">statuscode</span></span></span><span class="hljs-tag">"" </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">operator</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">""</span></span></span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">in</span></span></span><span class="hljs-tag">"" &gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">value</span></span></span><span class="hljs-tag">&gt;</span></span>1<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">value</span></span></span><span class="hljs-tag">&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">value</span></span></span><span class="hljs-tag">&gt;</span></span>463270000<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">value</span></span></span><span class="hljs-tag">&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">condition</span></span></span><span class="hljs-tag">&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">filter</span></span></span><span class="hljs-tag">&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">entity</span></span></span><span class="hljs-tag">&gt;</span></span>
+  <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">fetch</span></span></span><span class="hljs-tag">&gt;</span></span>";
+</code></pre>
+  </li>
+  <li>
+    <p>Get the list of Inspections.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> inspections = api.GetList&lt;ExpandoObject&gt;(<span class="hljs-string"><span class="hljs-string">"contoso_inspections"</span></span>, QueryOptions: <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> CRMGetListOptions()
+  {
+  FetchXml = fetchxml
+  });
+</code></pre>
+  </li>
+  <li>
+    <p>Return the Inspections. Replace the return line with the code below.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs bash">  <span class="hljs-built_in"><span class="hljs-built_in">return</span></span> inspections;
+</code></pre>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image57.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image57.png" alt="Get inspections method - screenshot"></a></p>
+
+<ol>
+  <li>Call the GetInspections method from the Run method.</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Go back to the <strong>Run</strong> method.</p>
+  </li>
+  <li>
+    <p>Call the <strong>GetInspections</strong> method.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> inspections = GetInspections(api).Result;
+</code></pre>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image58.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image58.png" alt="Call get inspections method - screenshot"></a></p>
+
+<ol>
+  <li>Create a method that will get all users.</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Add the method below inside the class.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> Task&lt;CRMGetListResult&lt;ExpandoObject&gt;&gt; GetUsers(CRMWebAPI api)
+  {
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> users = api.GetList&lt;ExpandoObject&gt;(<span class="hljs-string"><span class="hljs-string">"systemusers"</span></span>);
+  <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> users;
+  }
+</code></pre>
+  </li>
+  <li>
+    <p>Call the <strong>GetUsers</strong> method from the <strong>Run</strong> method.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> users = GetUsers(api).Result;
+</code></pre>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image59.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image59.png" alt="Call get users method - screenshot"></a></p>
+
+<ol>
+  <li>Create a method that will assign inspections to users</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Add the method below to the class.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs cs">  <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;CRMUpdateResult&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">RouteInspection</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">CRMWebAPI api, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">dynamic</span></span></span></span><span class="hljs-function"><span class="hljs-params"> inspection, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params"> userId, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> sequenceNumber</span></span></span><span class="hljs-function">)
+  </span></span>{
+  <span class="hljs-keyword"><span class="hljs-keyword">dynamic</span></span> updateObject = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ExpandoObject();
+  ((IDictionary&lt;<span class="hljs-keyword"><span class="hljs-keyword">string</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">object</span></span>&gt;)updateObject).Add
+  (<span class="hljs-string"><span class="hljs-string">"ownerid@odata.bind"</span></span>, <span class="hljs-string"><span class="hljs-string">"/systemusers("</span></span> + userId + <span class="hljs-string"><span class="hljs-string">")"</span></span>);
+  updateObject.contoso_sequence = sequenceNumber.ToString();
+  <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> api.Update(<span class="hljs-string"><span class="hljs-string">"contoso_inspections"</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Guid(inspection.contoso_inspectionid), updateObject);
+  }
+</code></pre>
+  </li>
+</ul>
+
+<ol>
+  <li>Create two-digit random number.</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Add the code below to the Run method.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs cpp">  Random rnd = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Random();
+  <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> sequenceNumber = rnd.Next(<span class="hljs-number"><span class="hljs-number">10</span></span>, <span class="hljs-number"><span class="hljs-number">99</span></span>);
+</code></pre>
+  </li>
+</ul>
+
+<ol>
+  <li>Assign Inspections</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Go through the <strong>Inspections</strong> and call the <strong>RouteInspection</strong> method.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> currentUserIndex = <span class="hljs-number"><span class="hljs-number">0</span></span>;
+  <span class="hljs-keyword"><span class="hljs-keyword">foreach</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">dynamic</span></span> inspection <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> inspections.List)
+  {
+  log.LogInformation(<span class="hljs-string"><span class="hljs-string">$"Routing inspection </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{inspection.contoso_name}</span></span></span><span class="hljs-string">"</span></span>);
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> inspectionResult = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> CRMUpdateResult();
+  <span class="hljs-comment"><span class="hljs-comment">//Your record assignment would like this. We will not assign records to different users in this lab</span></span>
+  <span class="hljs-comment"><span class="hljs-comment">// if (users.List.Count &gt; (currentUserIndex))</span></span>
+  <span class="hljs-comment"><span class="hljs-comment">//{</span></span>
+  <span class="hljs-comment"><span class="hljs-comment">// dynamic currentUser = users.List[currentUserIndex];</span></span>
+  <span class="hljs-comment"><span class="hljs-comment">// inspectionResult = RouteInspection(api, inspection, currentUser.systemuserid.ToString(), sequenceNumber).Result;</span></span>
+  <span class="hljs-comment"><span class="hljs-comment">//currentUserIndex++;</span></span>
+  <span class="hljs-comment"><span class="hljs-comment">//}</span></span>
+  }
+</code></pre>
+  </li>
+  <li>
+    <p>We will not assign inspection records to other users in this lab. <strong>Comment</strong> out the <strong>if</strong> statement you just added, and we will be replacing it with logic to do the routing to our user only.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image60.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image60.png" alt="Comment out code - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Assign inspections to the Inspection Router. Add the code below inside <strong>foreach</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="hljs cpp">  <span class="hljs-comment"><span class="hljs-comment">//We will instead assign inspections to the user you are currently logged in as</span></span>
+  inspectionResult = RouteInspection(api, inspection, whoami.UserId.ToString(), sequenceNumber).Result;
+</code></pre>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image61.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image61.png" alt="Assign inspections - screenshot"></a></p>
+
+<p>Build the project and make sure that the build succeeds.</p>
+
+<p>‎</p>
+
+<h1 id="exercise-3-publish-and-test">Exercise #3: Publish and Test</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will publish the Azure function to Azure, update the app settings, and test the function.</p>
+
+<h2 id="task-1-publish-to-azure">Task #1: Publish to Azure</h2>
+
+<ol>
+  <li>Publish the function</li>
+</ol>
+
+<ul>
+  <li>Right click on the project and select <strong>Publish</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image62.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image62.png" alt="Publish project - screenshot"></a></p>
+
+<ul>
+  <li>Select <strong>Create New</strong> and click <strong>Create Profile</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image63.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image63.png" alt="Create profile - screenshot"></a></p>
+
+<ul>
+  <li>Make sure you are logged in to your correct <strong>Azure</strong> account, enter a unique name for <strong>App Name</strong>, create <strong>New Resource Group</strong>, create <strong>New</strong> <strong>Azure Storage</strong>, and click <strong>Create</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image64.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image64.png" alt="Create profile - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>Publish</strong>.</p>
+  </li>
+  <li>
+    <p>Wait for the function application to be configured and published.</p>
+  </li>
+</ul>
+
+<ol>
+  <li>Open the function application settings</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Go back to you <strong>Azure</strong> portal.</p>
+  </li>
+  <li>
+    <p>Select <strong>All Resources</strong>, search for <strong>InspectionManagement</strong>, and click to open the function you published.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image65.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image65.png" alt="Open azure fi=unction application - screenshot"></a></p>
+
+<ul>
+  <li>Click scroll down to <strong>Settings</strong> and select <strong>Configuration</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image66.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image66.png" alt="Configuration - screenshot"></a></p>
+
+<ol>
+  <li>Update App Settings</li>
+</ol>
+
+<ul>
+  <li>Click <strong>Advanced Edit</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image67.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image67.png" alt="Advanced edit - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Paste the json below at the top of the settings.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs bash">  {
+
+  <span class="hljs-string"><span class="hljs-string">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"cdsclientid"</span></span>,
+
+  <span class="hljs-string"><span class="hljs-string">"value"</span></span>: <span class="hljs-string"><span class="hljs-string">"[clientid]"</span></span>,
+
+  <span class="hljs-string"><span class="hljs-string">"slotSetting"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>
+
+  },
+
+  {
+
+  <span class="hljs-string"><span class="hljs-string">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"cdsclientsecret"</span></span>,
+
+  <span class="hljs-string"><span class="hljs-string">"value"</span></span>: <span class="hljs-string"><span class="hljs-string">"[clientsecret]"</span></span>,
+
+  <span class="hljs-string"><span class="hljs-string">"slotSetting"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>
+
+  },
+
+  {
+
+  <span class="hljs-string"><span class="hljs-string">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"cdsurl"</span></span>,
+
+  <span class="hljs-string"><span class="hljs-string">"value"</span></span>: <span class="hljs-string"><span class="hljs-string">"[cdsurl]"</span></span>,
+
+  <span class="hljs-string"><span class="hljs-string">"slotSetting"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>
+
+  },
+</code></pre>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image68.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image68.png" alt="Edit settings - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Go back to <strong>Visual Studio</strong> and open the <strong>local.settings.json</strong> file.</p>
+  </li>
+  <li>
+    <p>You will copy the <strong>cdsurl</strong>, <strong>cdsclientid</strong>, and <strong>cdsclientsecret</strong>. Copy the <strong>cdsurl</strong> value.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image69.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image69.png" alt="Copy URL - screenshot "></a></p>
+
+<ul>
+  <li>Go back to <strong>Azure</strong> and replace <strong>[cdsurl]</strong> with the URL you copied.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image70.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image70.png" alt="Paste URL - screenshot"></a></p>
+
+<ul>
+  <li>Copy the <strong>cdsclientid</strong> and <strong>cdsclientsecret</strong> values from the <strong>local.settings.json</strong> file and replace [<strong>cdsclientid</strong>] and [<strong>cdsclientsecret</strong>].</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image71.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image71.png" alt="Paste id and secret - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Save</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image72.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image72.png" alt="Save changes - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>Continue</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Functions</strong> and click to open the function you published.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image73.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image73.png" alt="Open function - screenshot"></a></p>
+
+<ul>
+  <li>Select <strong>Code + Test.</strong></li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image74.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image74.png" alt="Code + Test - screenshot"></a></p>
+
+<ol>
+  <li>Prepare test record</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Start a new browser window and sign in to <a href="https://make.powerapps.com/">Power Apps maker portal</a></p>
+  </li>
+  <li>
+    <p>Make sure you are in the <strong>Dev</strong> environment.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image75.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image75.png" alt="Current environment - screenshot"></a></p>
+
+<ul>
+  <li>Select <strong>Apps</strong> and click to open the <strong>Permit Management</strong> application.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image76.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image76.png" alt="Start application - screenshot "></a></p>
+
+<ul>
+  <li>Click Settings and select <strong>Personalization and</strong> Settings.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image77.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image77.png" alt="Personal settings - screenshot"></a></p>
+
+<ul>
+  <li>Change the <strong>Time Zone</strong> to <strong>(GMT-11:00) Coordinated Universal Time-11</strong> and click <strong>OK</strong>. This will ensure the query results will produce the same results regardless of your time zone.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image78.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image78.png" alt="Change time zone - screenshot"></a></p>
+
+<ul>
+  <li>Select <strong>Inspections</strong> and click to open one of the <strong>Inspection</strong> records or create a new record.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image79.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image79.png" alt="Open inspection record - screenshot"></a></p>
+
+<ul>
+  <li>Set the <strong>Status Reason</strong> to <strong>New Request</strong> or <strong>Pending</strong>, change the <strong>Scheduled Date</strong> to today’s date, and make a note of the current <strong>Owner</strong> of the record.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image80.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image80.png" alt="Update record - screenshot"></a></p>
+
+<ul>
+  <li>Click <strong>Save</strong>.</li>
+</ul>
+
+<ol>
+  <li>Run the function</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Go to your <strong>Azure</strong> portal.</p>
+  </li>
+  <li>
+    <p>Click <strong>Test/Run.</strong></p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image81.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image81.png" alt="Run function - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>Run</strong>.</p>
+  </li>
+  <li>
+    <p>The function should run and succeed.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image82.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image82.png" alt="Run result - screenshot"></a></p>
+
+<ol>
+  <li>Confirm record assignment</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Go back to the <strong>Permit Management</strong> application.</p>
+  </li>
+  <li>
+    <p>Click <strong>Refresh</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image83.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image83.png" alt="Refresh record - screenshot"></a></p>
+
+<ul>
+  <li>The record <strong>Owner</strong> should now be the <strong>Inspection Router</strong>.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image84.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image84.png" alt="Routed record - screenshot"></a></p>
+
+<h1 id="exercise-4-promote-to-production">Exercise #4: Promote to production</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will export the Permit Management solution form your Dev environment and import it into your Production environment. In this lab, you have added a security role to the solution that must be promoted.</p>
+
+<h2 id="task-1-export-solution">Task #1: Export Solution</h2>
+
+<ol>
+  <li>Export Permit Management managed solution</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Sign in to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you are in the <strong>Dev</strong> environment.</p>
+  </li>
+  <li>
+    <p>Select <strong>Solution</strong>.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Permit Management</strong> solution and click <strong>Export</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image85.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image85.png" alt="Export solution - screenshot"></a></p>
+
+<ul>
+  <li>Click <strong>Publish</strong> and wait for the publishing to complete.</li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image86.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image86.png" alt="Publish solution - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Managed</strong> and click <strong>Export</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image87.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image87.png" alt="Export solution - screenshot"></a></p>
+
+<ul>
+  <li>Save the <strong>Exported</strong> solution on your machine.</li>
+</ul>
+
+<ol>
+  <li>Export Permit Management unmanaged solution</li>
+</ol>
+
+<ul>
+  <li>Select <strong>Solution</strong> again.</li>
+  <li>Select the <strong>Permit Management</strong> solution and click <strong>Export</strong>.</li>
+  <li>Click <strong>Next</strong>.</li>
+  <li>
+    <p>Select <strong>Unmanaged, edit the version number to match the Managed solution</strong> and click <strong>Export</strong>.</p>
+  </li>
+  <li>Save the <strong>Exported</strong> solution in your machine.</li>
+</ul>
+
+<h2 id="task-2-import-solution">Task #2: Import Solution</h2>
+
+<ol>
+  <li>Import Permit Management managed solution</li>
+</ol>
+
+<ul>
+  <li>
+    <p>Sign in to <a href="https://make.powerapps.com/">https://make.powerapps.com</a> and make sure you are in the <strong>Prod</strong> environment.</p>
+  </li>
+  <li>
+    <p>Select <strong>Solution</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Import</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image88.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image88.png" alt="Import solution - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>Choose file</strong>.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Managed</strong> solution you exported and click <strong>Open</strong>.</p>
+  </li>
+</ul>
+
+<p><a href="../L07/Static/Mod_02_Azure_Functions_image89.png" target="_blank"><img src="../L07/Static/Mod_02_Azure_Functions_image89.png" alt="Select managed solution - screenshot"></a></p>
+
+<ul>
+  <li>
+    <p>Click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next</strong> again.</p>
+  </li>
+  <li>
+    <p>Click <strong>Import</strong>.</p>
+  </li>
+  <li>
+    <p>Wait for the import to complete and click <strong>Close</strong>.</p>
+  </li>
+  <li>
+    <p>Review and test your production environment.</p>
+  </li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.js"></script>
+
+
+
+</body></html>

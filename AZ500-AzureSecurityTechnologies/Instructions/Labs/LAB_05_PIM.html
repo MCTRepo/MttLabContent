@@ -1,0 +1,666 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ500-AzureSecurityTechnologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ500-AzureSecurityTechnologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1---configure-pim-users-and-roles">Exercise 1 - Configure PIM users and roles</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2---activate-pim-roles-with-and-without-approval">Exercise 2 - Activate PIM roles with and without approval</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3---create-an-access-review-and-review-pim-auditing-features">Exercise 3 - Create an Access Review and review PIM auditing features</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-05-azure-ad-privileged-identity-management">Lab 05: Azure AD Privileged Identity Management</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>You have been asked to create a proof of concept that uses Azure Privileged Identity Management (PIM) to enable just-in-time administration and control the number of users who can perform privileged operations. The specific requirements are:</p>
+
+<ul>
+  <li>Create a permanent assignment of the aaduser2 Azure AD user to the Security Administrator role.</li>
+  <li>Configure the aaduser2 Azure AD user to be eligible for the Billing Administrator and Global Reader roles.</li>
+  <li>Configure the Global Reader role activation to require an approval of the aaduser3 Azure AD user</li>
+  <li>Configure an access review of the Global Reader role and review auditing capabilities.</li>
+</ul>
+
+<blockquote>
+  <p>For all the resources in this lab, we are using the <strong>East US</strong> region. Verify with your instructor this is the region to use for class.</p>
+</blockquote>
+
+<blockquote>
+  <p>Before you proceed, ensure that you have completed Lab 04: MFA, Conditional Access and AAD Identity Protection . You will need the Azure AD tenant, AdatumLab500-04, and the aaduser1, aaduser2, and aaduser3 user accounts.</p>
+</blockquote>
+
+<h2 id="lab-objectives">Lab objectives</h2>
+
+<p>In this lab, you will complete the following exercises:</p>
+
+<ul>
+  <li>Exercise 1: Configure PIM users and roles.</li>
+  <li>Exercise 2: Activate PIM roles with and without approval.</li>
+  <li>Exercise 3: Create an Access Review and review PIM auditing features.</li>
+</ul>
+
+<h3 id="exercise-1---configure-pim-users-and-roles">Exercise 1 - Configure PIM users and roles</h3>
+
+<h4 id="estimated-timing-15-minutes">Estimated timing: 15 minutes</h4>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: Make a user eligible for a role.</li>
+  <li>Task 2: Configure a role to require approval to activate and add an eligible member.</li>
+  <li>Task 3: Give a user permanent assignment to a role.</li>
+</ul>
+
+<h4 id="task-1-make-a-user-eligible-for-a-role">Task 1: Make a user eligible for a role</h4>
+
+<p>In this task, you will make a user eligible for an Azure AD directory role.</p>
+
+<ol>
+  <li>
+    <p>Sign-in to the Azure portal <strong><code>https://portal.azure.com/</code></strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Ensure that you are signed-in to the <strong>AdatumLab500-04</strong> Azure AD tenant. You can use the <strong>Directory + subscription</strong> filter to switch between Azure AD tenants. Ensure you are signed in as a user with the Global Administrator role.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you still don’t see the AdatumLab500-04 entry, click on the Switch Diretory link, select the AdatumLab500-04 line and click the Switch button.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Azure AD Privileged Identity Management</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Privileged Identity Management</strong> blade, in the <strong>Manage</strong> section, click <strong>Azure AD roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Quick start</strong> blade, in the <strong>Manage</strong> section, click <strong>Roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Roles</strong> blade, click <strong>+ Add assignments</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add assignments</strong> blade, in the <strong>Select role</strong> drop-down, select <strong>Billing Administrator</strong>.</p>
+  </li>
+  <li>
+    <p>Click the <strong>No member selected</strong> link, on the <strong>Select a member</strong> blade, click <strong>aaduser2</strong>, and then click <strong>Select</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>Add assignments</strong> blade, click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure the <strong>Assignment type</strong> is set to <strong>Eligible</strong> and click <strong>Assign</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>AdatumLab500-04 | Roles</strong> blade, in the <strong>Manage</strong> section, click <strong>Assignments</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>AdatumLab500-04 | Assignments</strong> blade, note the tabs for <strong>Eligible assignments</strong>, <strong>Active assignments</strong>, and <strong>Expired assignments</strong>.</p>
+  </li>
+  <li>
+    <p>Verify on the <strong>Eligible assignments</strong> tab that <strong>aaduser2</strong> is shown as a <strong>Billing administrator</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: During sign-in, aaduser2 will be eligible to use the Billing administrator role.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-a-role-to-require-approval-to-activate-and-add-an-eligible-member">Task 2: Configure a role to require approval to activate and add an eligible member</h4>
+
+<ol>
+  <li>
+    <p>In the Azure Portal, navigate back to the <strong>Privileged Identity Management</strong> blade and click <strong>Azure AD roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Quick start</strong> blade, in the <strong>Manage</strong> section, click <strong>Roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Roles</strong> blade, click the <strong>Global reader</strong> role entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>Global Reader | Assignments</strong> blade, click <strong>Settings</strong> icon in the toolbar of the blade and review configuration settings for the role, including Azure Multi-Factor Authentication requirements.</p>
+  </li>
+  <li>
+    <p>Click <strong>Edit</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Activation</strong> tab, enable the <strong>Require approval to activate</strong> check box.</p>
+  </li>
+  <li>
+    <p>Click <strong>Select approvers(s)</strong>, on the <strong>Select a member</strong> blade, click <strong>aaduser3</strong>, and then click <strong>Select</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next:Assignment</strong>.</p>
+  </li>
+  <li>
+    <p>Clear the <strong>Allow permanent eligible assignment</strong> check box, leaving all other settings with their default values.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next:Notification</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Edit role setting - Global Reader</strong> blade, review the settings and click <strong>Update</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Anyone trying to use the Global Reader role will now need approval from aaduser3.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Global Reader | Assignments</strong> blade, click <strong>+ Add assignments</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add assignments</strong> blade, click <strong>No member selected</strong>, on the <strong>Select a member</strong> blade, click <strong>aaduser2</strong>, and then click <strong>Select</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure the <strong>Assignment type</strong> is <strong>Eligible</strong> and review the eligible duration settings.</p>
+  </li>
+  <li>
+    <p>Click <strong>Assign</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: User aaduser2 is eligible for the Global Reader role.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-give-a-user-permanent-assignment-to-a-role">Task 3: Give a user permanent assignment to a role.</h4>
+
+<ol>
+  <li>
+    <p>In the Azure Portal, navigate back to the <strong>Privileged Identity Management</strong> blade and click <strong>Azure AD roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Quick start</strong> blade, in the <strong>Manage</strong> section, click <strong>Roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Roles</strong> blade, click <strong>+ Add assignments</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add assignments</strong> blade, in the <strong>Select role</strong> drop-down, select <strong>Security Administrator</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add assignments</strong> blade, click the <strong>No member selected</strong>, on the <strong>Select a member</strong> blade, click <strong>aaduser2</strong>, and then click <strong>Select</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>Review the <strong>Assignment type</strong> settings and click <strong>Assign</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: User aaduser2 is now permanently eligible for the Security Administrator role.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-2---activate-pim-roles-with-and-without-approval">Exercise 2 - Activate PIM roles with and without approval</h3>
+
+<h4 id="estimated-timing-15-minutes-1">Estimated timing: 15 minutes</h4>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: Activate a role that does not require approval.</li>
+  <li>Task 2: Activate a role that requires approval.</li>
+</ul>
+
+<h4 id="task-1-activate-a-role-that-does-not-require-approval">Task 1: Activate a role that does not require approval.</h4>
+
+<p>In this task, you will activate a role that does not require approval.</p>
+
+<ol>
+  <li>
+    <p>Open an InPrivate browser window.</p>
+  </li>
+  <li>
+    <p>In the InPrivate browser window, navigate to the Azure portal and sign in using the <strong>aaduser2</strong> user account.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: To sign in you will need to provide a fully qualified name of the <strong>aaduser2</strong> user account, including the Azure AD tenant DNS domain name, which you recorded earlier in this lab. This user name is in the format aaduser2@<code>&lt;your_tenant_name&gt;</code>.onmicrosoft.com, where <code>&lt;your_tenant_name&gt;</code> is the placeholder representing your unique Azure AD tenant name.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Azure AD Privileged Identity Management</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Privileged Identity Management</strong> blade, in the <strong>Tasks</strong> section, click <strong>My roles</strong>.</p>
+  </li>
+  <li>
+    <p>You should see three <strong>Eligible roles</strong> for <strong>aaduser2</strong>: <strong>Global Reader</strong>, <strong>Security Administrator</strong>, and <strong>Billing Administrator</strong>.</p>
+  </li>
+  <li>
+    <p>In the row displaying the <strong>Billing Administrator</strong> role entry, click <strong>Activate</strong>.</p>
+  </li>
+  <li>
+    <p>If needed, click the warning <strong>Additional verification required. Click to continue</strong> and follow the instructions to verify your identity.</p>
+  </li>
+  <li>
+    <p>On the <strong>Activate - Billing Administrator</strong> blade, in the <strong>Reason</strong> text box, type a text providing justification for the activation, and then click <strong>Activate</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: When you activate a role in PIM, it can take up to 10 minutes for the activation to take effect.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Once your role assignment is active, your browser will refresh (If anything goes wrong, simply sign out and sign back into the Azure portal by using the <strong>aaduser2</strong> user account).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Privileged Identity Management</strong> blade and, in the <strong>Tasks</strong> section, click <strong>My roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>My roles | Azure AD roles</strong> blade, switch to the <strong>Active assignments</strong> tab. Notice the <strong>Billing Administrator</strong> role is <strong>Activated</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Once a role has been activated, it automatically deactivates when its time limit under <strong>End time</strong>(eligible duration) is reached.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you complete your administrator tasks early, you can deactivate a role manually.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the list of <strong>Active Assignments</strong>, in the row representing the Billing Administrator role, click the <strong>Deactivate</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Deactivate - Billing Administrator</strong> blade, click <strong>Deactivate</strong> again to confirm.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-activate-a-role-that-requires-approval">Task 2: Activate a role that requires approval.</h4>
+
+<p>In this task, you will activate a role that requires approval.</p>
+
+<ol>
+  <li>
+    <p>In the InPrivate browser window, in the Azure portal, while signed in as the <strong>aaduser2</strong> user, navigate back to the <strong>Privileged Identity Management | Quick start</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>Privileged Identity Management | Quick start</strong> blade, in the <strong>Tasks</strong> section, click <strong>My roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>My roles | Azure AD roles</strong> blade, in the list of <strong>Eligible assignments</strong>, in the row displaying the <strong>Global Reader</strong> role, click <strong>Activate</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Activate - Global Reader</strong> blade, in the <strong>Reason</strong> text box, type a text providing justification for the activation, and then click <strong>Activate</strong>.</p>
+  </li>
+  <li>
+    <p>Click the <strong>Notifications</strong> icon in the toolbar of the Azure portal and view the notification informing that your request is pending approval.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: As the Privileged role administrator you can review and cancel requests at any time.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>My roles | Azure AD roles</strong> blade, locate the <strong>Security Administrator</strong> role, and click <strong>Activate</strong>.</p>
+  </li>
+  <li>
+    <p>Click the warning <strong>Additional verification required. Click to continue</strong>.</p>
+  </li>
+  <li>
+    <p>Follow the instructions to verify your identity.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You only have to authenticate once per session.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Once you are back in the Azure Portal interface, on the <strong>Activate - Security Administrator</strong> blade, in the <strong>Reason</strong> text box, type a text providing justification for the activation, and then click <strong>Activate</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The auto approval process should complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Back on the <strong>My roles | Azure AD roles</strong> blade, click the <strong>Active assignments</strong> tab and notice that the listing of <strong>active assignments</strong> includes <strong>Security Administrator</strong> but not the <strong>Global Reader</strong> role.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will now approve the Global Reader role.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Sign out of the Azure portal as <strong>aaduser2</strong>.</p>
+  </li>
+  <li>
+    <p>Sign into the Azure portal as <strong>aaduser3</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you run into problems with authenticating by using any of the user accounts, you can sign in to the Azure AD tenant by using your user account to reset their passwords or reconfigure their sign-in options.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to <strong>Azure AD Privileged Identity Management</strong> (In the Search resources, services, and docs text box at the top of the Azure portal page, type Azure AD Privileged Identity Management and press the Enter key).</p>
+  </li>
+  <li>
+    <p>On the <strong>Privileged Identity Management | Quick start</strong> blade, in the <strong>Tasks</strong> section, click <strong>Approve requests</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Approve requests | Azure AD roles</strong> blade, in the <strong>Requests for role activations</strong> section, select the checkbox for the entry representing the role activation request to the <strong>Global Reader</strong> role by <strong>aaduser2</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Approve</strong>. On the <strong>Approve Request</strong> blade, in the <strong>Justification</strong> text box, type a reason for activation, note the start and end times, and then click <strong>Confirm</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You also have the option of denying requests.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Sign out of the Azure portal as <strong>aaduser3</strong>.</p>
+  </li>
+  <li>
+    <p>Sign into the Azure portal as <strong>aaduser2</strong></p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to <strong>Azure AD Privileged Identity Management</strong> (In the Search resources, services, and docs text box at the top of the Azure portal page, type Azure AD Privileged Identity Management and press the Enter key).</p>
+  </li>
+  <li>
+    <p>On the <strong>Privileged Identity Management | Quick start</strong> blade, in the <strong>Tasks</strong> section, click <strong>My roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>My roles | Azure AD roles</strong> blade, click the <strong>Active Assignments</strong> tab and verify that the Global Reader role is now active.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might have to refresh the page to view the updated list of active assignments.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Sign out and close the InPrivate browser window.</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p>Result: You have practiced activating PIM roles with and without approval.</p>
+</blockquote>
+
+<h3 id="exercise-3---create-an-access-review-and-review-pim-auditing-features">Exercise 3 - Create an Access Review and review PIM auditing features</h3>
+
+<h4 id="estimated-timing-10-minutes">Estimated timing: 10 minutes</h4>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: Configure security alerts for Azure AD directory roles in PIM</li>
+  <li>Task 2: Review PIM alerts, summary information, and detailed audit information</li>
+</ul>
+
+<h4 id="task-1-configure-security-alerts-for-azure-ad-directory-roles-in-pim">Task 1: Configure security alerts for Azure AD directory roles in PIM</h4>
+
+<p>In this task, you will reduce the risk associated with “stale” role assignments. You will do this by creating a PIM access review to ensure that assigned roles are still valid. Specifically, you will review the Global Reader role.</p>
+
+<ol>
+  <li>
+    <p>Sign-in to the Azure portal <strong><code>https://portal.azure.com/</code></strong> using your account.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Ensure that you are signed-in to the <strong>AdatumLab500-04</strong> Azure AD tenant. You can use the <strong>Directory + subscription</strong> filter to switch between Azure AD tenants. Ensure you are signed in as a user with the Global Administrator role.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you still don’t see the AdatumLab500-04 entry, click on the Switch Diretory link, select the AdatumLab500-04 line and click the Switch button.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Azure AD Privileged Identity Management</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>Privileged Identity Management</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>Privileged Identity Management | Quick start</strong> blade, in the <strong>Manage</strong> section, click <strong>Azure AD Roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Quick start</strong> blade, in the <strong>Manage</strong> section, click <strong>Access reviews</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Access reviews</strong> blade, click <strong>New</strong>:</p>
+  </li>
+  <li>
+    <p>On the <strong>Create an access review</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Review name</td>
+          <td><strong>Global Reader Review</strong></td>
+        </tr>
+        <tr>
+          <td>Start Date</td>
+          <td>today’s date</td>
+        </tr>
+        <tr>
+          <td>Frequency</td>
+          <td><strong>One time</strong></td>
+        </tr>
+        <tr>
+          <td>End Date</td>
+          <td>end of the current month</td>
+        </tr>
+        <tr>
+          <td>Review role membership</td>
+          <td><strong>Global Reader</strong></td>
+        </tr>
+        <tr>
+          <td>Reviewers</td>
+          <td><strong>Selected users</strong></td>
+        </tr>
+        <tr>
+          <td>Select reviewers</td>
+          <td>your account</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Create an access review</strong> blade, click <strong>Start</strong>:</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: It will take about a minute for the review to deploy and appear on the <strong>AdatumLab500-04 | Access reviews</strong> blade. You might have to refresh the web page. The review status will be <strong>Active</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Access reviews</strong> blade, under the <strong>Global Reader Review</strong> header, click the <strong>Global Reader</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>Global Reader Review</strong> blade, examine the <strong>Overview</strong> page and note that the <strong>Progress</strong> charts shows a single users in the <strong>Not reviewed</strong> category.</p>
+  </li>
+  <li>
+    <p>On the <strong>Global Reader Review</strong> blade, in the <strong>Manage</strong> section, click <strong>Results</strong>. Note that aaduser2 is listed as having access to this role.</p>
+  </li>
+  <li>
+    <p>Click <strong>view</strong> on <strong>aaduser2</strong> line to view a detailed audit log with entries representing PIM activities that involve that user.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>AdatumLab500-04 | Access reviews</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the the <strong>AdatumLab500-04 | Access reviews</strong> blade, in the <strong>Tasks</strong> section, click <strong>Review access</strong> and then, click the <strong>Global Reader Review</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>Global Reader Review</strong> blade, click the <strong>aaduser2</strong> entry.</p>
+  </li>
+  <li>
+    <p>In the <strong>Reason</strong> text box, type a rationale for approval and then click either <strong>Approve</strong> to maintain the current role membership or <strong>Deny</strong> to revoke it.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Privileged Identity Management</strong> blade and, in the <strong>Manage</strong> section, click <strong>Azure AD roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Quick start</strong> blade, in the <strong>Manage</strong> section, click <strong>Access reviews</strong>.</p>
+  </li>
+  <li>
+    <p>Select the entry representing the <strong>Global Reader</strong> review. Note that the <strong>Progress</strong> chart has been updated to show your review.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-review-pim-alerts-summary-information-and-detailed-audit-information">Task 2: Review PIM alerts, summary information, and detailed audit information.</h4>
+
+<p>In this task, you will review PIM alerts, summary information, and detailed audit information.</p>
+
+<ol>
+  <li>
+    <p>Navigate back to the <strong>Privileged Identity Management</strong> blade and, in the <strong>Manage</strong> section, click <strong>Azure AD roles</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Quick start</strong> blade, in the <strong>Manage</strong> section, click <strong>Alerts</strong>, and then click <strong>Setting</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Alert settings</strong> blade, review the preconfigured alerts and risk levels. Click on any of them for more detailed information.</p>
+  </li>
+  <li>
+    <p>Return to the <strong>AdatumLab500-04 | Quick start</strong> blade and click <strong>Overview</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Overview</strong> blade, review summary information about role activations, PIM activities, alerts, and role assignments.</p>
+  </li>
+  <li>
+    <p>On the <strong>AdatumLab500-04 | Overview</strong> blade, in the <strong>Activity</strong> section, click <strong>Resource audit</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Audit history is available for all privileged role assignments and activations within the past 30 days.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Notice you can retrieve detailed information, including <strong>Time</strong>, <strong>Requestor</strong>, <strong>Action</strong>, <strong>Resource name</strong>, <strong>Scope</strong>, <strong>Primary Target</strong> and <strong>Subject</strong>.</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p>Result: You have configured an access review and reviewed audit information.</p>
+</blockquote>
+
+<p><strong>Clean up resources</strong></p>
+
+<blockquote>
+  <p>Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not incur unexpected costs.</p>
+</blockquote>
+
+<ol>
+  <li>In the Azure portal, set the <strong>Directory + subscription</strong> filter to the the Azure AD tenant associated with the Azure subscription into which you deployed the <strong>az500-04-vm1</strong> Azure VM.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: If you don’t see your main Azure AD tenant entry, click on the Switch Diretory link, select your main tenant line and click the Switch button.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the Cloud Shell by clicking the first icon in the top right of the Azure Portal. If prompted, click <strong>PowerShell</strong> and <strong>Create storage</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>PowerShell</strong> is selected in the drop-down menu in the upper-left corner of the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to remove the resource group you created in the previous lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell"> Remove-AzResourceGroup -Name "AZ500LAB04" -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>Back in the Azure portal, use the <strong>Directory + subscription</strong> filter to switch to the <strong>AdatumLab500-04</strong> Azure Active Directory tenant.</p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>AdatumLab500-04 Azure Active Directory</strong> blade and, in the <strong>Manage</strong> section, click <strong>Licenses</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the <strong>Licenses</strong></td>
+          <td>Overview blade, click <strong>All products</strong>, select the checkbox of <strong>Azure Active Directory Premium P2</strong> and click it to open.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<p>(<strong>Note:</strong> In the Lab 4 - Exercise 2 - Task 4 <strong>Assign Azure AD Premium P2 licenses to Azure AD users</strong> was to assign the Premium Licenses to the users <strong>aaduser1, aaduser2, and aaduser3</strong>, make sure we remove those licenses from the assigned users)</p>
+
+<ol>
+  <li>
+    <p>On the <strong>Azure Active Directory Premium P2 - Licensed users</strong> blade, select the checkboxes of the user accounts to which you assigned <strong>Azure Active Directory Premium P2</strong> licenses. Click <strong>Remove license</strong> from the top pane and when prompted to confirm, select <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>Users - All users (Preview)</strong> blade, click the entry representing the <strong>aaduser1</strong> user account, on the <strong>aaduser1 - Profile</strong> blade click <strong>Delete</strong>, and, when prompted to confirm, select <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>Repeat the same sequence of steps to delete the remaining user accounts you created.</p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>AdatumLab500-04 - Overview</strong> blade of the Azure AD tenant, click <strong>Manage tenant</strong> and then on the next screen, click <strong>Delete tenant</strong>, on the <strong>Delete directory ‘AdatumLab500-04’</strong> blade, click the <strong>Get permission to delete Azure resources</strong> link, on the <strong>Properties</strong> blade of Azure Active Directory, set <strong>Access management for Azure resources</strong> to <strong>Yes</strong> and click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Sign out from the Azure portal and sign in back.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Delete directory ‘AdatumLab500-04’</strong> blade and click <strong>Delete</strong>.</p>
+  </li>
+</ol>
+
+<p><strong>Note:</strong> Still not able to delete the tenant and throwing an error <strong>Delete all license-based and subscriptions</strong>, then it might be due to any subscriptions that have been linked to the tenant. Here <strong>Free Premium P2 license</strong> could be throwing the validation error. Deleting the trial subscription of the Premium P2 License using the Global admin id from the M365 admin» <strong>Your Products</strong> and from the <strong>Business Store</strong> portal would solve this issue. Also note that deleting the tenant takes more time. Check the End date of the subscription, once after the end of the trial period, revisit the Azure Active directory and then try to delete the tenant.</p>
+
+<blockquote>
+  <p>For any additional  information regarding this task, refer to <a href="https://docs.microsoft.com/en-us/azure/active-directory/users-groups-roles/directory-delete-howto">https://docs.microsoft.com/en-us/azure/active-directory/users-groups-roles/directory-delete-howto</a></p>
+</blockquote>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ500-AzureSecurityTechnologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

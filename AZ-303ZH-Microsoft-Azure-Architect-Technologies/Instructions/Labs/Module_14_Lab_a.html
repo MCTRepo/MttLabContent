@@ -1,0 +1,454 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-303ZH-Microsoft-Azure-Architect-Technologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-303ZH-Microsoft-Azure-Architect-Technologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1实现-azure-应用服务-web-应用">练习 1：实现 Azure 应用服务 Web 应用</a></li><li class="nav-item"><a class="nav-link active" href="#练习-2管理应用服务-web-应用部署槽位">练习 2：管理应用服务 Web 应用部署槽位</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室借助暂存槽位实现-azure-应用服务-web-应用">实验室：借助暂存槽位实现 Azure 应用服务 Web 应用</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>Adatum Corporation 有许多 Web 应用的更新频率相对较高。尽管 Adatum 尚未完全接受 DevOps 原则，但却依赖 Git 进行版本控制，并且正在探索简化应用更新的选项。随着 Adatum 将一些工作负载转换到 Azure，Adatum 企业体系结构团队决定评估 Azure 应用服务及其部署槽位的使用，从而实现此目标。</p>
+
+<p>部署槽位是具有自身主机名的动态应用。应用内容与配置元素可以在两个部署槽（包括生产槽）之间交换。将应用部署到非生产槽具有以下优势：</p>
+
+<ul>
+  <li>
+    <p>可以在将应用交换到生产槽位之前验证暂存部署槽位中的应用更改。</p>
+  </li>
+  <li>
+    <p>首先将应用部署到一个槽，然后将其交换到生产，这确保该槽的所有实例都已准备好，然后交换到生产。这消除了应用部署期间的停机时间。流量重定向是无缝的，且不会因为交换操作而丢弃任何请求。通过将不需要预交换验证的情况配置为自动交换，可以自动完成整个工作流。</p>
+  </li>
+  <li>
+    <p>交换后，带有先前暂存的应用的槽位具有以前的生产应用。如果需要撤销交换到生产槽位的更改，只需立即进行另一次交换以返回到上一个已知的良好状态即可。</p>
+  </li>
+</ul>
+
+<p>部署槽位可促进两种常见的部署模式：蓝/绿和 A/B 测试。蓝绿部署涉及将更新部署到与实时应用程序分离的生产环境中。在验证部署之后，流量路由将切换到更新后的版本。A/B 测试涉及将一些流量逐步路由到暂存站点，以测试新版本的应用。</p>
+
+<p>Adatum 体系结构团队希望将 Azure 应用服务 Web 应用与部署槽位一起使用，以测试以下两种部署模式：</p>
+
+<ul>
+  <li>
+    <p>蓝/绿部署</p>
+  </li>
+  <li>
+    <p>A/B 测试</p>
+  </li>
+</ul>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>
+    <p>通过使用 Azure 应用服务 Web 应用的部署槽位实现蓝/绿部署模式</p>
+  </li>
+  <li>
+    <p>通过使用 Azure 应用服务 Web 应用的部署槽位执行 A/B 测试</p>
+  </li>
+</ul>
+
+<h2 id="实验室环境">实验室环境</h2>
+
+<p>预计用时：60 分钟</p>
+
+<h2 id="实验室文件">实验室文件</h2>
+
+<p>无</p>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="练习-1实现-azure-应用服务-web-应用">练习 1：实现 Azure 应用服务 Web 应用</h3>
+
+<ol>
+  <li>
+    <p>部署 Azure 应用服务 Web 应用</p>
+  </li>
+  <li>
+    <p>创建应用服务 Web 应用部署槽位</p>
+  </li>
+</ol>
+
+<h4 id="任务-1部署-azure-应用服务-web-应用">任务 1：部署 Azure 应用服务 Web 应用</h4>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器，导航至 <a href="https://portal.azure.com">“Azure 门户”</a>，然后通过提供要在本实验中使用的订阅中的所有者角色的用户帐户凭据来登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，通过直接选择搜索文本框右侧的工具栏图标打开 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>提示你选择 <strong>“Bash”</strong>  还是 <strong>“PowerShell”</strong> 时，请选择 <strong>“Bash”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>：如果这是你第一次打开 <strong>“Cloud Shell”</strong>，会看到 <strong>“未装载任何存储”</strong> 消息，请选择你在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以新建名为 <strong>az30314a1</strong> 的目录，并将其设置为当前目录：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-sh hljs bash">mkdir az30314a1
+<span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> ~/az30314a1/
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，将示例应用存储库克隆到 <strong>az30314a1</strong> 目录：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-sh hljs bash">REPO=https://github.com/Azure-Samples/html-docs-hello-world.git
+git <span class="hljs-built_in"><span class="hljs-built_in">clone</span></span> <span class="hljs-variable"><span class="hljs-variable">$REPO</span></span>
+<span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> html-docs-hello-world
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以配置部署用户：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-sh hljs bash">USERNAME=az30314user<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+PASSWORD=az30314pass<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+az webapp deployment user <span class="hljs-built_in"><span class="hljs-built_in">set</span></span> --user-name <span class="hljs-variable"><span class="hljs-variable">$USERNAME</span></span> --password <span class="hljs-variable"><span class="hljs-variable">$PASSWORD</span></span> 
+<span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> <span class="hljs-variable"><span class="hljs-variable">$USERNAME</span></span>
+<span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> <span class="hljs-variable"><span class="hljs-variable">$PASSWORD</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>验证部署用户是否已成功创建。如果收到指示冲突的错误消息，请重复上一步。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>：确保记录用户名和相应密码的值。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以创建托管应用服务 Web 应用的资源组（将 <code>&lt;location&gt;</code> 占位符替换为订阅中可用的且最接近实验室计算机位置的 Azure 区域名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sh hljs bash">LOCATION=<span class="hljs-string"><span class="hljs-string">'&lt;location&gt;'</span></span>
+RGNAME=<span class="hljs-string"><span class="hljs-string">'az30314a-labRG'</span></span>
+az group create --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中，运行以下命令以新建应用服务计划：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">SPNAME=az30314asp<span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+az appservice plan create --name <span class="hljs-variable"><span class="hljs-variable">$SPNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --sku S1
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行下列命令，以新建启用了 Git 的应用服务 Web 应用：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sh hljs bash">WEBAPPNAME=az30314<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+az webapp create --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --plan <span class="hljs-variable"><span class="hljs-variable">$SPNAME</span></span> --deployment-local-git
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 等待部署完成。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行下列命令，以检索新建应用服务 Web 应用的发布 URL：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-sh hljs bash">URL=$(az webapp deployment list-publishing-credentials --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query scmUri --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以设置代表启用了 Git 的 Azure 应用服务 Web应用的 git 远程别名：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-sh hljs bash">git remote add azure <span class="hljs-variable"><span class="hljs-variable">$URL</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以使用 git push azure master 推送到 Azure 远程：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-sh hljs bash">git push azure master
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 等待部署完成。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以确定新部署的应用服务 Web 应用的 FQDN。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-sh hljs bash">az webapp show --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query defaultHostName --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>关闭“Cloud Shell”窗格。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2创建应用服务-web-应用部署槽位">任务 2：创建应用服务 Web 应用部署槽位</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中搜索并选择 <strong>“应用服务”</strong>，然后在 <strong>“应用服务”</strong> 边栏选项卡中选择新建的应用服务 Web 应用。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到显示新部署的应用服务 Web 应用的“边栏选项卡”，选择 <strong>“URL”</strong> 链接，并验证它是否显示 <strong>Azure 应用服务 - 示例静态 HTML 站点</strong>。让“浏览器”选项卡处于打开状态。</p>
+  </li>
+  <li>
+    <p>在“应用服务 Web 应用”边栏选项卡的 <strong>“部署”</strong> 部分，选择 <strong>“部署槽位”</strong>，然后选择 <strong>“+ 添加槽位”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加槽位”</strong> 边栏选项卡中指定以下设置，选择 <strong>“添加”</strong>，然后选择 <strong>“关闭”</strong>。</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>数值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>暂存</strong></td>
+        </tr>
+        <tr>
+          <td>克隆设置来源</td>
+          <td>Web 应用的名称</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h3 id="练习-2管理应用服务-web-应用部署槽位">练习 2：管理应用服务 Web 应用部署槽位</h3>
+
+<p>本次练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>将 Web 内容部署到应用服务 Web 应用暂存槽位</p>
+  </li>
+  <li>
+    <p>交换应用服务 Web 应用过渡槽位</p>
+  </li>
+  <li>
+    <p>配置 A/B 测试</p>
+  </li>
+  <li>
+    <p>删除实验室中部署的 Azure 资源</p>
+  </li>
+</ol>
+
+<h4 id="任务-1将-web-内容部署到应用服务-web-应用暂存槽位">任务 1：将 Web 内容部署到应用服务 Web 应用暂存槽位</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，通过直接选择搜索文本框右侧的工具栏图标打开 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以确保当前设置 <strong>az30314a1/html-docs-hello-world</strong> 作为当前目录：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> ~/az30314a1/html-docs-hello-world
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中，运行以下命令以启动内置编辑器：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-sh hljs bash">code index.html
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的代码编辑器中，替换以下行：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-html hljs xml"><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>Azure App Service - Sample Static HTML Site<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>
+</code></pre>
+
+    <p>使用以下行：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-html hljs xml"><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>Azure App Service - Sample Static HTML Site v1.0.1<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>保存更改并关闭编辑器窗口。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行下列命令，以指定必需的全局 git 配置设置：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-sh hljs bash">git config --global user.email <span class="hljs-string"><span class="hljs-string">"user@az30314.com"</span></span>
+git config --global user.name <span class="hljs-string"><span class="hljs-string">"user az30314"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，将本地应用的更改提交到主分支：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-sh hljs bash">git add index.html
+git commit -m <span class="hljs-string"><span class="hljs-string">'v1.0.1'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以检索应用服务 Web 应用新建的暂存槽位的发布 URL：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-sh hljs bash">RGNAME=<span class="hljs-string"><span class="hljs-string">'az30314a-labRG'</span></span>
+WEBAPPNAME=$(az webapp list --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv)
+SLOTNAME=<span class="hljs-string"><span class="hljs-string">'staging'</span></span>
+URLSTAGING=$(az webapp deployment list-publishing-credentials --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> --slot <span class="hljs-variable"><span class="hljs-variable">$SLOTNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query scmUri --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以设置 git 远程别名，该别名表示启用了 Git 的 Azure 应用服务 Web 应用的暂存槽位：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-sh hljs bash">git remote add azure-staging <span class="hljs-variable"><span class="hljs-variable">$URLSTAGING</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以使用 git push azure master 推送到 Azure 远程：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-sh hljs bash">git push azure-staging master
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 等待部署完成。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭“Cloud Shell”窗格。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到显示应用服务 Web 应用部署槽位的边栏选项卡，然后选择“暂存槽位”。</p>
+  </li>
+  <li>
+    <p>在显示暂存槽位概述的边栏选项卡上，选择 <strong>“URL”</strong> 链接。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2交换应用服务-web-应用过渡槽位">任务 2：交换应用服务 Web 应用过渡槽位</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航回到显示应用服务 Web 应用的边栏选项卡，并选择 <strong>“部署槽位”</strong>。</p>
+  </li>
+  <li>
+    <p>在“部署槽位”边栏选项卡上，选择 <strong>“交换”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“交换”</strong> 边栏选项卡中选择 <strong>“交换”</strong>，然后选择 <strong>“关闭“</strong>。</p>
+  </li>
+  <li>
+    <p>切换到显示应用服务 Web 应用的“浏览器”选项卡，然后刷新“浏览器窗口”。验证它是否显示对暂存槽位所部署的更改。</p>
+  </li>
+  <li>
+    <p>切换到显示应用服务 Web 应用暂存槽位的“浏览器”选项卡，然后刷新“浏览器窗口”。验证它是否显示原始部署中包含的原始网页。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3配置-ab-测试">任务 3：配置 A/B 测试</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航回到显示应用服务 Web 应用部署槽位的“边栏选项卡”。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中显示“应用服务 Web 应用部署槽位”的边栏选项卡上，在显示暂存槽位的行中，将 <strong>“流量 %”</strong> 列的值设置为“50”。这将自动将代表生产槽位的行中的<strong>流量 ％</strong> 值设置为 50。</p>
+  </li>
+  <li>
+    <p>在显示“应用服务 Web 应用部署槽位”的边栏选项卡上，选择 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，通过直接选择搜索文本框右侧的工具栏图标打开 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以验证设置代表目标 Web 应用及其通讯组名称的变量：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-sh hljs bash">RGNAME=<span class="hljs-string"><span class="hljs-string">'az30314a-labRG'</span></span>
+WEBAPPNAME=$(az webapp list --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中数次运行以下命令，以确定两个槽位之间的流量分配情况。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-sh hljs bash">curl -H <span class="hljs-string"><span class="hljs-string">'Cache-Control: no-cache'</span></span> https://<span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span>.azurewebsites.net --stderr - | grep <span class="hljs-string"><span class="hljs-string">'&lt;h1&gt;Azure App Service - Sample Static HTML Site'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>：流量分配不完全是确定性的，但是应该可以看到来自每个目标站点的多个响应。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4删除实验室中部署的-azure-资源">任务 4：删除实验室中部署的 Azure 资源</h4>
+
+<ol>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以列出你在本练习中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>：验证输出结果是否仅包含你在本实验室中创建的资源组。在本任务中将删除这个组。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以删除在本实验室中创建的资源组</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中，运行下列命令以删除 <strong>“az30314a1”</strong> 目录：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-sh hljs bash">rm -r -f ~/az30314a1
+</code></pre>
+  </li>
+  <li>
+    <p>关闭“Cloud Shell”窗格。</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

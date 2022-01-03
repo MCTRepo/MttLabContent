@@ -1,0 +1,917 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-204: Developing solutions for Microsoft Azure
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-204: Developing solutions for Microsoft Azure
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link active" href="#exercise-1-configure-a-single-tenant-azure-ad-environment">Exercise 1: Configure a single-tenant Azure AD environment</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-create-a-single-tenant-aspnet-core-web-app">Exercise 2: Create a single-tenant ASP.NET Core web app</a></li><li class="nav-item"><a class="nav-link" href="#task-2-test-the-single-tenant-web-app-in-a-single-tenant-scenario">Task 2: Test the single-tenant web app in a single-tenant scenario</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-configure-a-multitenant-azure-ad-environment">Exercise 3: Configure a multitenant Azure AD environment</a></li><li class="nav-item"><a class="nav-link" href="#task-3-test-the-single-tenant-web-app-in-a-multitenant-scenario">Task 3: Test the single-tenant web app in a multitenant scenario</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-configure-a-multitenant-aspnet-core-web-app">Exercise 4: Configure a multitenant ASP.NET Core web app</a></li><li class="nav-item"><a class="nav-link" href="#task-3-test-the-multitenant-web-app-in-a-multitenant-scenario">Task 3: Test the multitenant web app in a multitenant scenario</a></li><li class="nav-item"><a class="nav-link" href="#exercise-5-clean-up-your-subscription">Exercise 5: Clean up your subscription</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-06-authenticate-by-using-openid-connect-msal-and-net-sdks">Lab 06: Authenticate by using OpenID Connect, MSAL, and .NET SDKs</h1>
+
+<h2 id="microsoft-azure-user-interface">Microsoft Azure user interface</h2>
+
+<p>Given the dynamic nature of Microsoft cloud tools, you might experience Azure UI changes that occur after the development of this training content. As a result, the lab instructions and lab steps might not align correctly.</p>
+
+<p>Microsoft updates this training course when the community alerts us to needed changes. However, cloud updates occur frequently, so you might encounter UI changes before this training content updates. <strong>If this occurs, adapt to the changes, and then work through them in the labs as needed.</strong></p>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-environment">Sign in to the lab environment</h4>
+
+<p>Sign in to your Windows 10 virtual machine (VM) by using the following credentials:</p>
+
+<ul>
+  <li>
+    <p>Username: <strong>Admin</strong></p>
+  </li>
+  <li>
+    <p>Password: <strong>Pa55w.rd</strong></p>
+  </li>
+</ul>
+
+<blockquote>
+  <p><strong>Note</strong>: Your instructor will provide instructions to connect to the virtual lab environment.</p>
+</blockquote>
+
+<h4 id="review-the-installed-applications">Review the installed applications</h4>
+
+<p>Find the taskbar on your Windows 10 desktop. The taskbar contains the icons for the applications that you’ll use in this lab, including:</p>
+
+<ul>
+  <li>
+    <p>Microsoft Edge</p>
+  </li>
+  <li>
+    <p>Visual Studio Code</p>
+  </li>
+</ul>
+
+<h2 id="architecture-diagram">Architecture diagram</h2>
+
+<p><a href="media/Lab06-Diagram.png" target="_blank"><img src="media/Lab06-Diagram.png" alt="Architecture diagram depicting a user authenticating by using OpenID Connect, MSAL, and .NET SDKs."></a></p>
+
+<h3 id="exercise-1-configure-a-single-tenant-azure-ad-environment">Exercise 1: Configure a single-tenant Azure AD environment</h3>
+
+<h4 id="task-1-open-the-azure-portal">Task 1: Open the Azure portal</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Microsoft Edge</strong> icon.</p>
+  </li>
+  <li>
+    <p>In the open browser window, browse to the Azure portal (<a href="https://portal.azure.com">portal.azure.com</a>), and then sign in with the account you’ll use for this lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is your first time signing in to the Azure portal, you’ll be offered a tour of the portal. Select <strong>Get Started</strong> to skip the tour and begin using the portal.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-register-an-application-in-azure-ad">Task 2: Register an application in Azure AD</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, use the <strong>Search resources, services, and docs</strong> text box to search for <strong>Azure Active Directory</strong> and, in the list of results, select <strong>Azure Active Directory</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This redirects your browser session to the blade of the Azure Active Directory (Azure AD) tenant associated with your Azure subscription.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Azure Active Directory</strong>&nbsp;blade, select <strong>App registrations</strong> in the <strong>Manage</strong> section.</p>
+  </li>
+  <li>
+    <p>In the <strong>App registrations</strong> section, select <strong>+ New registration</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Register an application</strong> section, perform the following actions, and then select <strong>Register</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Name</strong> text box</td>
+          <td>Enter <strong>webappoidc</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Supported account types</strong> list</td>
+          <td>Select <strong>Accounts in this organizational directory only (Default Directory only - Single tenant)</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings in the <strong>Register an application</strong> section.</p>
+
+    <p><a href="media/l06_aad_register_st_webapp.png" target="_blank"><img src="media/l06_aad_register_st_webapp.png" alt="Screenshot displaying the options configured to register an application."></a></p>
+  </li>
+</ol>
+
+<h4 id="task-3-record-unique-identifiers">Task 3: Record unique identifiers</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>webappoidc</strong> application registration blade, select <strong>Overview</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Overview</strong> section, find and record the value of the <strong>Application (client) ID</strong> text box. You’ll use this value later in the lab.</p>
+  </li>
+  <li>
+    <p>In the <strong>Overview</strong> section, find and record the value of the <strong>Directory (tenant) ID</strong> text box. You’ll use this value later in the lab.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-configure-the-application-authentication-settings">Task 4: Configure the application authentication settings</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>webappoidc</strong> application registration blade, select <strong>Authentication</strong> in the <strong>Manage</strong> section.</p>
+  </li>
+  <li>
+    <p>In the <strong>Authentication</strong> section, perform the following actions, and select <strong>Configure</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Platform configurations</strong> section</td>
+          <td>Select <strong>+ Add a platform</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Configure platforms</strong> blade</td>
+          <td>Select <strong>Web</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Redirect URIs</strong> text box</td>
+          <td>Enter <code>https://localhost:44321/</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>Front-channel logout URL</strong> text box</td>
+          <td>Enter  <code>https://localhost:44321/signout-oidc</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Back in the <strong>Platform configurations</strong> section, select <strong>Add URI</strong>, and then enter <code>https://localhost:44321/signin-oidc</code>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Implicit grant and hybrid flows</strong> section, select <strong>ID tokens (used for implicit and hybrid  flows)</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+
+    <p>The following screenshot displays the configured settings on the <strong>Authentication</strong> blade.</p>
+
+    <p><a href="media/l06_aad_autentication_webapp.png" target="_blank"><img src="media/l06_aad_autentication_webapp.png" alt="Screenshot displaying the options configured on the Authentication blade."></a></p>
+  </li>
+</ol>
+
+<h4 id="task-5-create-an-azure-ad-user">Task 5: Create an Azure AD user</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, select the <strong>Cloud Shell</strong> icon <a href="media/az204_lab_CloudShell.png" target="_blank"><img src="media/az204_lab_CloudShell.png" alt="Cloud Shell icon"></a> to open a new PowerShell session. If Cloud Shell defaults to a Bash session, select <strong>Bash</strong> and then, in the drop down menu, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you’re starting <strong>Cloud Shell</strong>, when prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>. When the <strong>You have no storage mounted</strong> message appears, select the subscription you’re using in this lab, and then select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Cloud Shell</strong> pane, run the following command to sign in to the Azure AD tenant associated with your Azure subscription:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">   Connect-AzureAD
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to retrieve and display the primary Domain Name System (DNS) domain name of the Azure AD tenant:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">   $aadDomainName = ((Get-AzureAdTenantDetail).VerifiedDomains)[0].Name
+   $aadDomainName
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the value of the DNS domain name. You’ll use this value later in the lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following commands to create Azure AD users that you’ll use to test Azure AD authentication:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">   $passwordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
+   $passwordProfile.Password = 'Pa55w.rd1234'
+   $passwordProfile.ForceChangePasswordNextLogin = $false
+   New-AzureADUser -AccountEnabled $true -DisplayName 'aad_lab_user1' -PasswordProfile $passwordProfile -MailNickName 'aad_lab_user1' -UserPrincipalName "aad_lab_user1@$aadDomainName" 
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to identify the user principal name (UPN) of the newly created Azure AD user:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">   (Get-AzureADUser -Filter "MailNickName eq 'aad_lab_user1'").UserPrincipalName
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the UPN. You’ll use this value later in the lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this exercise, you registered a single-tenant Azure AD application and created an Azure AD user account.</p>
+
+<h3 id="exercise-2-create-a-single-tenant-aspnet-core-web-app">Exercise 2: Create a single-tenant ASP.NET Core web app</h3>
+
+<h4 id="task-1-create-an-aspnet-core-web-app-project">Task 1: Create an ASP.NET Core web app project</h4>
+
+<ol>
+  <li>
+    <p>On the lab computer, start <strong>Command Prompt</strong>.</p>
+  </li>
+  <li>
+    <p>From the command prompt, run the following commands to create and set the working directory to <strong>Allfiles (F):\Allfiles\Labs\06\Starter\OIDCClientST</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">F:
+md "F:\Allfiles\Labs\06\Starter\OIDCClient"
+cd F:\Allfiles\Labs\06\Starter\OIDCClient
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following commands to create a new .NET Core web app based on the Model View Controller (MVC) template (replace the placeholders <code>&lt;application_ID&gt;</code>, <code>&lt;tenant_ID&gt;</code>, and <code>&lt;domain_Name&gt;</code> with the corresponding values you recorded earlier in this lab):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">dotnet new mvc --auth SingleOrg --client-id &lt;application_ID&gt; --tenant-id &lt;tenant_ID&gt; --domain &lt;domain_Name&gt;
+rmdir .\obj /S /Q
+</code></pre>
+  </li>
+  <li>
+    <p>On the lab computer, start Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>In the <strong>File</strong> menu, select <strong>Open Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>File Explorer</strong> window, browse to <strong>Allfiles (F):\Allfiles\Labs\06\Starter\OIDCClient</strong>, and then select <strong>Select Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the Visual Studio Code <strong>Explorer</strong> pane, review the autogenerated folder structure that represents an MVC web app.</p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>Properties</strong> folder, open the <strong>launchSettings.json</strong> file, and then apply the following changes:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Section</th>
+          <th>Property</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>iisSettings</strong></td>
+          <td><strong>sslPort</strong></td>
+          <td><strong>44321</strong></td>
+        </tr>
+        <tr>
+          <td><strong>OIDCClient</strong></td>
+          <td><strong>applicationUrl</strong></td>
+          <td><code>https://localhost:44321</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: The port numbers must match the value you specified when creating the Azure AD app registration.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Save and close the file.</p>
+  </li>
+  <li>
+    <p>In the Visual Studio Code <strong>Explorer</strong> pane, select <strong>OIDCClient.csproj</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure that the value of <code>&lt;TargetFramework&gt;</code> element is set to <strong>netcoreapp3.1</strong>.</p>
+  </li>
+  <li>
+    <p>Set the version of the <code>Microsoft.AspNetCore.Authentication.JwtBearer</code> and <code>Microsoft.AspNetCore.Authentication.OpenIdConnect</code> NuGet packages to <strong>3.1.18</strong>.</p>
+  </li>
+  <li>
+    <p>Set the version of the <code>Microsoft.Identity.Web</code> and <code>Microsoft.Identity.Web.UI</code> NuGet packages to <strong>0.3.1-preview</strong>.</p>
+  </li>
+  <li>
+    <p>Remove the <code>&lt;WebProject_DirectoryAccessLevelKey&gt;0&lt;/WebProject_DirectoryAccessLevelKey&gt;</code> entry.</p>
+  </li>
+  <li>
+    <p>Remove the <code>&lt;PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="3.1.7" /&gt;</code> entry.</p>
+  </li>
+  <li>
+    <p>Verify that the content of the <strong>OIDCClient.csproj</strong> file resembles the following listing (the value of the <code>UserSecretsId</code>will differ) and save the changes.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-csharp hljs">&lt;Project Sdk=<span class="hljs-string"><span class="hljs-string">"Microsoft.NET.Sdk.Web"</span></span>&gt;
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;netcoreapp3<span class="hljs-number"><span class="hljs-number">.1</span></span>&lt;/TargetFramework&gt;
+    &lt;UserSecretsId&gt;aspnet-OIDCClient<span class="hljs-number"><span class="hljs-number">-737</span></span>DEB13<span class="hljs-number"><span class="hljs-number">-25</span></span>D4<span class="hljs-number"><span class="hljs-number">-4</span></span>C52<span class="hljs-number"><span class="hljs-number">-93</span></span>C5-F485367E3C8C&lt;/UserSecretsId&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include=<span class="hljs-string"><span class="hljs-string">"Microsoft.AspNetCore.Authentication.JwtBearer"</span></span> Version=<span class="hljs-string"><span class="hljs-string">"3.1.18"</span></span> NoWarn=<span class="hljs-string"><span class="hljs-string">"NU1605"</span></span> /&gt;
+    &lt;PackageReference Include=<span class="hljs-string"><span class="hljs-string">"Microsoft.AspNetCore.Authentication.OpenIdConnect"</span></span> Version=<span class="hljs-string"><span class="hljs-string">"3.1.18"</span></span> NoWarn=<span class="hljs-string"><span class="hljs-string">"NU1605"</span></span> /&gt;
+    &lt;PackageReference Include=<span class="hljs-string"><span class="hljs-string">"Microsoft.Identity.Web"</span></span> Version=<span class="hljs-string"><span class="hljs-string">"0.3.1-preview"</span></span> /&gt;
+    &lt;PackageReference Include=<span class="hljs-string"><span class="hljs-string">"Microsoft.Identity.Web.UI"</span></span> Version=<span class="hljs-string"><span class="hljs-string">"0.3.1-preview"</span></span> /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;
+</code></pre>
+  </li>
+  <li>
+    <p>Close the <strong>OIDCClient.csproj</strong> file.</p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>Views\Shared</strong> folder, and then open the <strong>_LoginPartial.cshtml</strong> file.</p>
+  </li>
+  <li>
+    <p>Replace <code>AzureAD</code> with <code>MicrosoftIdentity</code> in the following line:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-csharp hljs">&lt;a <span class="hljs-keyword"><span class="hljs-keyword">class</span></span>=<span class="hljs-string"><span class="hljs-string">"nav-link text-dark"</span></span> asp-area=<span class="hljs-string"><span class="hljs-string">"AzureAD"</span></span> asp-controller=<span class="hljs-string"><span class="hljs-string">"Account"</span></span> asp-action=<span class="hljs-string"><span class="hljs-string">"SignOut"</span></span>&gt;Sign <span class="hljs-keyword"><span class="hljs-keyword">out</span></span>&lt;/a&gt;`
+</code></pre>
+  </li>
+  <li>
+    <p>Replace <code>AzureAD</code> with <code>MicrosoftIdentity</code> in the following line:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-csharp hljs">&lt;a <span class="hljs-keyword"><span class="hljs-keyword">class</span></span>=<span class="hljs-string"><span class="hljs-string">"nav-link text-dark"</span></span> asp-area=<span class="hljs-string"><span class="hljs-string">"AzureAD"</span></span> asp-controller=<span class="hljs-string"><span class="hljs-string">"Account"</span></span> asp-action=<span class="hljs-string"><span class="hljs-string">"SignIn"</span></span>&gt;Sign <span class="hljs-keyword"><span class="hljs-keyword">in</span></span>&lt;/a&gt;
+</code></pre>
+  </li>
+  <li>
+    <p>Save and close the file.</p>
+  </li>
+  <li>
+    <p>Open the file <strong>appsettings.json</strong> and review the content of the <strong>AzureAd</strong> object, including the following elements:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Element</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>Instance</code></td>
+          <td><code>https://login.microsoftonline.com/</code></td>
+        </tr>
+        <tr>
+          <td><code>Domain</code></td>
+          <td>Primary DNS domain of the Azure AD tenant associated with your Azure subscription.</td>
+        </tr>
+        <tr>
+          <td><code>TenantId</code></td>
+          <td>GUID of the Azure AD tenant.</td>
+        </tr>
+        <tr>
+          <td><code>ClientId</code></td>
+          <td>Application (client) ID of the application you registered in the Azure AD tenant.</td>
+        </tr>
+        <tr>
+          <td><code>CallbackPath</code></td>
+          <td><code>/signin-oidc</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Close the file without making any changes.</p>
+  </li>
+  <li>
+    <p>In the Visual Studio Code <strong>Explorer</strong> pane, select <strong>Startup.cs</strong>.</p>
+  </li>
+  <li>
+    <p>Remove the <code>using Microsoft.AspNetCore.Authentication.AzureAD.UI;</code> directive.</p>
+  </li>
+  <li>
+    <p>Add the following <strong>using</strong> directives directly after the entry that you removed in the previous step:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Authentication.OpenIdConnect;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Identity.Web;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Identity.Web.UI;
+</code></pre>
+  </li>
+  <li>
+    <p>Remove the following lines:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-csharp hljs">services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
+  .AddAzureAD(options =&gt; Configuration.Bind(<span class="hljs-string"><span class="hljs-string">"AzureAd"</span></span>, options));
+</code></pre>
+  </li>
+  <li>
+    <p>Replace the lines you removed in the last step with the following ones:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-csharp hljs">services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+  .AddMicrosoftIdentityWebApp(Configuration.GetSection(<span class="hljs-string"><span class="hljs-string">"AzureAd"</span></span>));
+</code></pre>
+  </li>
+  <li>
+    <p>Remove the following line:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-csharp hljs">services.AddRazorPages();
+</code></pre>
+  </li>
+  <li>
+    <p>Replace the line that you removed in the last step with the following ones:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-csharp hljs">services.AddRazorPages()
+  .AddMicrosoftIdentityUI();
+</code></pre>
+  </li>
+  <li>
+    <p>Save and close the file.</p>
+  </li>
+</ol>
+
+<h3 id="task-2-test-the-single-tenant-web-app-in-a-single-tenant-scenario">Task 2: Test the single-tenant web app in a single-tenant scenario</h3>
+
+<ol>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu of the <strong>Explorer</strong> pane, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>Run the following command to build the .NET web app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> build
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If there are any build errors, review the files in the <strong>Allfiles (F):\Allfiles\Labs\06\Solution\OIDCClient</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following command to generate a self-signed certificate and configure the local computer to trust it:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> dev-certs https --trust
+</code></pre>
+  </li>
+  <li>
+    <p>When prompted to install the autogenerated certificate, select <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>From the terminal prompt, run the following command to run the .NET web app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+  </li>
+  <li>
+    <p>Start the Microsoft Edge browser in the <strong>InPrivate</strong> mode, and then navigate to the <code>https://localhost:44321</code> URL.</p>
+  </li>
+  <li>
+    <p>If presented with the <strong>Your connection isn’t private</strong> message, select <strong>Advanced</strong>, and then select the <strong>Continue to localhost (unsafe)</strong> link.</p>
+  </li>
+  <li>
+    <p>In the open browser window, when prompted, authenticate by using the UPN of the <strong>aad_lab_user1</strong> Azure AD account you created earlier in this lab with <strong>Pa55w.rd1234</strong> as its password.</p>
+  </li>
+  <li>
+    <p>The browser window will automatically open the <strong>Permissions requested</strong> webpage.</p>
+  </li>
+  <li>
+    <p>Review the requested permissions, which include <strong>View your basic profile</strong> and <strong>Maintain access to data you have given it access to</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Accept</strong>.</p>
+  </li>
+  <li>
+    <p>Review the <strong>Welcome</strong> home page of the target site displayed by the browser and verify that the UPN of the <strong>aad_user1</strong> Azure AD account appears in the browser window.</p>
+  </li>
+  <li>
+    <p>On the <strong>Welcome</strong> page, select <strong>Sign out</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted to select the account to sign out, select the <strong>aad_lab_user1</strong> Azure AD account. You’ll be automatically redirected to the <strong>Signed out</strong> page.</p>
+  </li>
+  <li>
+    <p>Leave the Microsoft Edge browser open that displays the <strong>Signed out</strong> page.</p>
+  </li>
+</ol>
+
+<h4 id="review-1">Review</h4>
+
+<p>In this exercise, you implemented a single-tenant web app and tested it in a single-tenant Azure environment.</p>
+
+<h3 id="exercise-3-configure-a-multitenant-azure-ad-environment">Exercise 3: Configure a multitenant Azure AD environment</h3>
+
+<h4 id="task-1-create-an-azure-ad-tenant">Task 1: Create an Azure AD tenant</h4>
+
+<ol>
+  <li>
+    <p>Switch to the Microsoft Edge browser that displays the Azure portal.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the&nbsp;<strong>Azure Active Directory</strong>&nbsp;blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>Azure Active Directory</strong> blade, select <strong>Manage tenants</strong>, and then select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create a tenant</strong> blade, ensure that the <strong>Azure Active Directory</strong> option is selected, and then select <strong>Next: Configuration &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Configuration</strong> tab of the <strong>Create a tenant</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Organization name</td>
+          <td><strong>Contoso</strong></td>
+        </tr>
+        <tr>
+          <td>Initial domain name</td>
+          <td>Any valid DNS name consisting of lowercase letters and digits and starting with a letter.</td>
+        </tr>
+        <tr>
+          <td>Country/Region</td>
+          <td>The name of your country or region.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Review + create</strong>, and then select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>If prompted, on the <strong>Help us prove you’re not a robot</strong>, enter the provided code, and then select <strong>Submit</strong>.</p>
+  </li>
+  <li>
+    <p>Wait for the provisioning to complete, and then select the <strong>Contoso</strong> link to navigate to the blade that displays properties of the Contoso Azure AD tenant.</p>
+  </li>
+  <li>
+    <p>On the <strong>Overview</strong> blade of the Azure AD tenant, identify and record the value of its <strong>*Tenant ID</strong> property. You’ll use this value later in the lab.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-create-an-azure-ad-user">Task 2: Create an Azure AD user</h4>
+
+<ol>
+  <li>
+    <p>In the web browser window displaying the Azure portal, select the <strong>Directories + subscriptions</strong> toolbar icon.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **Portal settings</td>
+          <td>Directories + subscriptions** blade, select <strong>Switch</strong> next to the entry representing the Azure AD tenant associated with your subscription.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the Azure portal, select the <strong>Cloud Shell</strong> icon to open a new PowerShell session.</p>
+  </li>
+  <li>
+    <p>In the <strong>Cloud Shell</strong> pane, run the following command to sign in to the Contoso Azure AD tenant. Replace the <code>&lt;tenant_Id&gt;</code> placeholder with the value of the tenant ID property you identified in the previous task:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-powershell">   Import-Module AzureAD.Standard.Preview
+   AzureAD.Standard.Preview\Connect-AzureAD -TenantID '&lt;tenant_ID&gt;'
+</code></pre>
+  </li>
+  <li>
+    <p>Ctrl + Click the URL in the WARNING to open a browser window and follow the steps to authenticate.</p>
+  </li>
+  <li>
+    <p>Run the following command to retrieve the DNS domain name of the Azure AD tenant:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-powershell">   $aadDomainName = ((Get-AzureAdTenantDetail).VerifiedDomains)[0].Name
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following commands to create Azure AD users that you’ll use to test Azure AD authentication:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-powershell">   $passwordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
+   $passwordProfile.Password = 'Pa55w.rd1234'
+   $passwordProfile.ForceChangePasswordNextLogin = $false
+   New-AzureADUser -AccountEnabled $true -DisplayName 'aad_lab_user2' -PasswordProfile $passwordProfile -MailNickName 'aad_lab_user2' -UserPrincipalName "aad_lab_user2@$aadDomainName"
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to identify the UPN of the newly created Azure AD user:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-powershell">   (Get-AzureADUser -Filter "MailNickName eq 'aad_lab_user2'").UserPrincipalName
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the UPN. You’ll use this value later in the lab.</p>
+    </blockquote>
+  </li>
+  <li>Close the <strong>Cloud Shell</strong> pane.</li>
+</ol>
+
+<h3 id="task-3-test-the-single-tenant-web-app-in-a-multitenant-scenario">Task 3: Test the single-tenant web app in a multitenant scenario</h3>
+
+<ol>
+  <li>
+    <p>Switch back to the Microsoft Edge browser, in the <strong>InPrivate</strong> mode, that’s displaying the <strong>Signed out</strong> page, and then select <strong>Sign in</strong>.</p>
+  </li>
+  <li>
+    <p>In the open browser window, when prompted, authenticate by using the UPN of the <strong>aad_lab_user2</strong> Azure AD account you created earlier in this exercise with <strong>Pa55w.rd1234</strong> as its password.</p>
+  </li>
+  <li>
+    <p>Note the error message that indicates the user account you used doesn’t exist in the tenant where the <strong>webappoidc</strong> web app is registered.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: For the sign in to work in this scenario, you would need to first add this account as an external user to the tenant hosting the webappoidc web app registration.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the Microsoft Edge browser that’s displaying the error message, and then switch back to the <strong>Visual Studio Code</strong> window.</p>
+  </li>
+  <li>
+    <p>In the <strong>terminal</strong> pane, select <strong>Kill Terminal</strong> (the <strong>Recycle Bin</strong> icon) to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="review-2">Review</h4>
+
+<p>In this exercise, you configured a multitenant Azure environment and tested it with a single-tenant web app.</p>
+
+<h3 id="exercise-4-configure-a-multitenant-aspnet-core-web-app">Exercise 4: Configure a multitenant ASP.NET Core web app</h3>
+
+<h4 id="task-1-configure-the-application-registration-in-azure-ad">Task 1: Configure the application registration in Azure AD</h4>
+
+<ol>
+  <li>
+    <p>Switch to the Azure portal, and then select the <strong>Directories + subscriptions</strong> toolbar icon.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **Portal settings</td>
+          <td>Directories + subscriptions** blade, select <strong>Switch</strong> next to the entry representing the Azure AD tenant associated with your subscription.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Azure Active Directory</strong>&nbsp;blade, select <strong>App registrations</strong> in the <strong>Manage</strong> section.</p>
+  </li>
+  <li>
+    <p>In the list of app registrations, select <strong>webappoidc</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>webappoidc</strong> application registration blade, select <strong>Authentication</strong> in the <strong>Manage</strong> section.</p>
+  </li>
+  <li>
+    <p>In the <strong>Supported account types</strong> section, select <strong>Accounts in any organizational directory (Any Azure AD directory - Multitenant)</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+
+    <p>The following screenshot displays the configured settings on the <strong>App registration</strong> blade.</p>
+
+    <p><a href="media/l06_aad_register_mt_webapp.png" target="_blank"><img src="media/l06_aad_register_mt_webapp.png" alt="Screenshot displaying the options configured on the App registration blade."></a></p>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-multi-tenancy-support-of-the-aspnet-core-web-app">Task 2: Configure multi-tenancy support of the ASP.NET Core web app</h4>
+
+<ol>
+  <li>
+    <p>On the lab computer, start Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>Open the <strong>appsettings.json</strong> file.</p>
+  </li>
+  <li>
+    <p>Replace the line containing the <code>TenantId</code> element with the following one:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="hljs bash"><span class="hljs-string"><span class="hljs-string">"TenantId"</span></span>: <span class="hljs-string"><span class="hljs-string">"organizations"</span></span>, 
+</code></pre>
+  </li>
+  <li>
+    <p>Save and close the file.</p>
+  </li>
+</ol>
+
+<h3 id="task-3-test-the-multitenant-web-app-in-a-multitenant-scenario">Task 3: Test the multitenant web app in a multitenant scenario</h3>
+
+<ol>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu of the <strong>Explorer</strong> pane, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>From the terminal prompt, run the following command to run the .NET web app:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+  </li>
+  <li>
+    <p>Start the Microsoft Edge browser in the <strong>InPrivate</strong> mode, and then navigate to the <code>https://localhost:44321</code> URL.</p>
+  </li>
+  <li>
+    <p>If presented with the <strong>Your connection isn’t private</strong> message, select <strong>Advanced</strong>, and then select the <strong>Continue to localhost (unsafe)</strong> link.</p>
+  </li>
+  <li>
+    <p>In the open browser window, when prompted, authenticate by using the UPN of the <strong>aad_lab_user1</strong> Azure AD account you created earlier in this lab with <strong>Pa55w.rd1234</strong> as its password.</p>
+  </li>
+  <li>
+    <p>Review the <strong>Welcome</strong> home page of the target site that the browser displays, and then verify that the UPN of the <strong>aad_lab_user1</strong> Azure AD account appears in the browser window.</p>
+  </li>
+  <li>
+    <p>On the <strong>Welcome</strong> page, select <strong>Sign out</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted to select the account to sign out, select the <strong>aad_lab_user1</strong> Azure AD account. You’ll be automatically redirected to the <strong>Signed out</strong> page.</p>
+  </li>
+  <li>
+    <p>In the Microsoft Edge browser that displays the <strong>Signed out</strong> page, select <strong>Sign in</strong>.</p>
+  </li>
+  <li>
+    <p>In the open browser window, when prompted, authenticate by using the UPN of the <strong>aad_lab_user2</strong> Azure AD account you created earlier in this exercise with <strong>Pa55w.rd1234</strong> as its password.</p>
+  </li>
+  <li>
+    <p>The browser window will automatically open the <strong>Permissions requested</strong> webpage.</p>
+  </li>
+  <li>
+    <p>Review the requested permissions, which include <strong>View your basic profile</strong> and <strong>Maintain access to data you have given it access to</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Accept</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The application is listed as unverified. This is expected, because the sample app you’re using in this lab hasn’t undergone publisher verification. For more information, refer to Microsoft documentation describing <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/publisher-verification-overview">publisher verification</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Review the <strong>Welcome</strong> home page of the target site that the browser displays, and then verify that the UPN of the <strong>aad_lab_user2</strong> Azure AD account appears in the browser window.</p>
+  </li>
+  <li>
+    <p>On the <strong>Welcome</strong> page, select <strong>Sign out</strong>.</p>
+  </li>
+  <li>
+    <p>Close the Microsoft Edge browser in the <strong>InPrivate</strong> mode, and then switch back to the <strong>Visual Studio Code</strong> window.</p>
+  </li>
+  <li>
+    <p>In the <strong>terminal</strong> pane, select <strong>Kill Terminal</strong> (the <strong>Recycle Bin</strong> icon) to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="review-3">Review</h4>
+
+<p>In this exercise, you implemented a multitenant web app and tested in in a multitenant Azure environment.</p>
+
+<h3 id="exercise-5-clean-up-your-subscription">Exercise 5: Clean up your subscription</h3>
+
+<h4 id="task-1-delete-the-application-registration-in-azure-ad">Task 1: Delete the application registration in Azure AD</h4>
+
+<ol>
+  <li>
+    <p>Switch to the Microsoft Edge browser that is displaying the Azure portal.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the&nbsp;blade of the Contoso Azure AD tenant. This will display the <strong>Contoso | Overview</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Azure Active Directory</strong>&nbsp;blade, select <strong>Enterprise applications</strong> in the <strong>Manage</strong> section.</p>
+  </li>
+  <li>
+    <p>On the <strong>Enterprise applications | All applications</strong> blade, select <strong>webappoidc</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>webappoidc | Overview</strong> blade, select <strong>Properties</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>webappoidc | Properties</strong> blade, select <strong>Delete</strong> and, when prompted to confirm, select <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>Users | All users (Preview)</strong> blade of the Contoso Azure AD tenant.</p>
+  </li>
+  <li>
+    <p>In the list of users, select <strong>aad_lab_user2</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>aad_lab_user2 | Profile</strong> blade, select <strong>Delete</strong> and then, when prompted to confirm, select <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Contoso | Overview</strong> blade, and then select <strong>Manage tenants</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of tenants, select the checkbox next to the <strong>Contoso (Default)</strong> entry, and then select <strong>Delete</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Delete tenant ‘Contoso’?</strong> blade, select <strong>Delete</strong>.</p>
+  </li>
+  <li>
+    <p>If necessary, select <strong>Get permission to delete Azure resource</strong>, on the <strong>Properties</strong> blade of the Azure AD tenant, in the <strong>Access management for Azure resources</strong>, select <strong>Yes</strong>, and then select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Delete tenant ‘Contoso’?</strong> blade, refresh the browser page, select <strong>Delete</strong>, and then select <strong>Yes</strong> to confirm.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the&nbsp;blade of the Azure AD tenant associated with your Azure subscription.</p>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Azure Active Directory</strong>&nbsp;blade, select <strong>App registrations</strong> in the <strong>Manage</strong> section.</p>
+  </li>
+  <li>
+    <p>In the <strong>App registrations</strong> section, select the <strong>webappoidc</strong> Azure AD application registration that you created earlier in this lab.</p>
+  </li>
+  <li>
+    <p>In the <strong>webappoidc</strong> section, perform the following actions:</p>
+
+    <p>a.   Select <strong>Delete</strong>.</p>
+
+    <p>b.   On the <strong>Delete app registration</strong> blade, select <strong>I understand the implications of deleting this app registration</strong>, and then select <strong>Delete</strong>.</p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>Users | All users (Preview)</strong> blade.</p>
+  </li>
+  <li>
+    <p>In the list of users, select <strong>aad_lab_user1</strong></p>
+  </li>
+  <li>
+    <p>On the <strong>aad_lab_user1 | Profile</strong> blade, select <strong>Delete</strong> and, when prompted to confirm, select <strong>Yes</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-close-the-active-applications">Task 2: Close the active applications</h4>
+
+<ol>
+  <li>
+    <p>Close any open Microsoft Edge windows.</p>
+  </li>
+  <li>
+    <p>Close Visual Studio Code.</p>
+  </li>
+</ol>
+
+<h4 id="review-4">Review</h4>
+
+<p>In this exercise, you cleaned up your subscription by removing the application registration used in this lab.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-integrate-azure-key-vault-with-azure-devops">Exercise 1: Integrate Azure Key Vault with Azure DevOps</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-07-integrating-azure-key-vault-with-azure-devops">Lab 07: Integrating Azure Key Vault with Azure DevOps</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-overview">Lab overview</h2>
+
+<p>Azure Key Vault provides secure storage and management of sensitive data, such as keys, passwords, and certificates. Azure Key Vault includes supports for hardware security modules, as well as a range of encryption algorithms and key lengths. By using Azure Key Vault, you can minimize the possibility of disclosing sensitive data through source code, which is a common mistake made by developers. Access to Azure Key Vault requires proper authentication and authorization, supporting fine grained permissions to its content.</p>
+
+<p>In this lab, you will see how you can integrate Azure Key Vault with an Azure DevOps pipeline by using the following steps:</p>
+
+<ul>
+  <li>create an Azure Key vault to store a MySQL server password as a secret.</li>
+  <li>create an Azure service principal to provide access to secrets in the Azure Key vault.</li>
+  <li>configure permissions to allow the service principal to read the secret.</li>
+  <li>configure pipeline to retrieve the password from the Azure Key vault and pass it on to subsequent tasks.</li>
+</ul>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After you complete this lab, you will be able to:</p>
+
+<ul>
+  <li>Create an Azure Active Directory (Azure AD) service principal.</li>
+  <li>Create an Azure key vault.</li>
+  <li>Track pull requests through the Azure DevOps pipeline.</li>
+</ul>
+
+<h2 id="lab-duration">Lab duration</h2>
+
+<ul>
+  <li>Estimated time: <strong>40 minutes</strong></li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-virtual-machine">Sign in to the lab virtual machine</h4>
+
+<p>Ensure that you’re signed in to your Windows 10 virtual machine by using the following credentials:</p>
+
+<ul>
+  <li>Username: <strong>Student</strong></li>
+  <li>Password: <strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="review-applications-required-for-this-lab">Review applications required for this lab</h4>
+
+<p>Identify the applications that you’ll use in this lab:</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="prepare-an-azure-subscription">Prepare an Azure subscription</h4>
+
+<ul>
+  <li>Identify an existing Azure subscription or create a new one.</li>
+  <li>Verify that you have a Microsoft account or an Azure AD account with the Owner role in the Azure subscription and the Global Administrator role in the Azure AD tenant associated with the Azure subscription. For details, refer to <a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-list-portal">List Azure role assignments using the Azure portal</a> and <a href="https://docs.microsoft.com/en-us/azure/active-directory/roles/manage-roles-portal#view-my-roles">View and assign administrator roles in Azure Active Directory</a>.</li>
+</ul>
+
+<h4 id="set-up-an-azure-devops-organization">Set up an Azure DevOps organization</h4>
+
+<p>If you don’t already have an Azure DevOps organization that you can use for this lab, create one by following the instructions available at <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/create-organization?view=azure-devops">Create an organization or project collection</a>.</p>
+
+<h3 id="exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</h3>
+
+<p>In this exercise, you will set up the prerequisite for the lab, which consists of the preconfigured Parts Unlimited team project based on an Azure DevOps Demo Generator template.</p>
+
+<h4 id="task-1-configure-the-team-project">Task 1: Configure the team project</h4>
+
+<p>In this task, you will use Azure DevOps Demo Generator to generate a new project based on the <strong>Azure Key Vault</strong> template.</p>
+
+<ol>
+  <li>
+    <p>On your lab computer, start a web browser and navigate to <a href="https://azuredevopsdemogenerator.azurewebsites.net">Azure DevOps Demo Generator</a>. This utility site will automate the process of creating a new Azure DevOps project within your account that is prepopulated with content (work items, repos, etc.) required for the lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: For more information on the site, see https://docs.microsoft.com/en-us/azure/devops/demo-gen.</p>
+    </blockquote>
+  </li>
+  <li>Click <strong>Sign in</strong> and sign in using the Microsoft account associated with your Azure DevOps subscription.</li>
+  <li>If required, on the <strong>Azure DevOps Demo Generator</strong> page, click <strong>Accept</strong> to accept the permission requests for accessing your Azure DevOps subscription.</li>
+  <li>On the <strong>Create New Project</strong> page, in the <strong>New Project Name</strong> textbox, type <strong>Integrating Azure Key Vault with Azure DevOps</strong>, in the <strong>Select organization</strong> dropdown list, select your Azure DevOps organization, and then click <strong>Choose template</strong>.</li>
+  <li>On the <strong>Choose a template</strong> page, in the header menu, click <strong>DevOps Labs</strong>, in the list of templates, click the <strong>Azure Key Vault</strong> template, and then click <strong>Select Template</strong>.</li>
+  <li>
+    <p>Back on the <strong>Create New Project</strong> page, select the checkbox below the <strong>ARM Outputs</strong> label, and click <strong>Create Project</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the process to complete. This should take about 2 minutes. In case the process fails, navigate to your DevOps organization, delete the project, and try again.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Create New Project</strong> page, click <strong>Navigate to project</strong>.</li>
+</ol>
+
+<h3 id="exercise-1-integrate-azure-key-vault-with-azure-devops">Exercise 1: Integrate Azure Key Vault with Azure DevOps</h3>
+
+<ul>
+  <li>create an Azure service principal that will provide access to secrets in an Azure Key vault.</li>
+  <li>create the Azure Key vault to store a MySQL server password as a secret.</li>
+  <li>configure permissions to allow the service principal to read the secret.</li>
+  <li>configure pipeline to retrieve the password from the Azure Key vault and pass it on to subsequent tasks.</li>
+</ul>
+
+<h4 id="task-1-create-a-service-principal">Task 1: Create a service principal</h4>
+
+<p>In this task, you will create a service principal by using the Azure CLI.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: If you do already have a service principal, you can proceed directly to the next task.</p>
+</blockquote>
+
+<p>You will need a service principal to deploy an app to an Azure resource from Azure Pipelines. Since we are going to retrieve secrets in a pipeline, we will need to grant permission to the service when we create the Azure Key vault.</p>
+
+<p>A service principal is automatically created by Azure Pipeline when you connect to an Azure subscription from inside a pipeline definition or when you create a new service connection from the project settings page. You can also manually create the service principal from the portal or using Azure CLI and re-use it across projects. It is recommended that you use an existing service principal when you want to have a pre-defined set of permissions.</p>
+
+<ol>
+  <li>From the lab computer, start a web browser, navigate to the <a href="https://portal.azure.com"><strong>Azure Portal</strong></a>, and sign in with the user account that has the Owner role in the Azure subscription you will be using in this lab and has the role of the Global Administrator in the Azure AD tenant associated with this subscription.</li>
+  <li>In the Azure portal, click the <strong>Cloud Shell</strong> icon, located directly to the right of the search textbox at the top of the page.</li>
+  <li>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>Bash</strong>.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>From the <strong>Bash</strong> prompt, in the <strong>Cloud Shell</strong> pane, run the following command to create a service principal (replace the <code>&lt;service-principal-name&gt;</code> with any unique string of characters consisting of letters and digits):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql">az ad sp <span class="hljs-keyword"><span class="hljs-keyword">create</span></span>-<span class="hljs-keyword"><span class="hljs-keyword">for</span></span>-rbac <span class="hljs-comment"><span class="hljs-comment">--name &lt;service-principal-name&gt;</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command will generate a JSON output. Copy the output to text file. You will need it later in this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the <strong>Bash</strong> prompt, in the <strong>Cloud Shell</strong> pane, run the following commands to retrieve the values of the Azure subscription ID and subscription name attributes:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql">az account <span class="hljs-keyword"><span class="hljs-keyword">show</span></span> <span class="hljs-comment"><span class="hljs-comment">--query id --output tsv</span></span>
+az <span class="hljs-keyword"><span class="hljs-keyword">account</span></span> <span class="hljs-keyword"><span class="hljs-keyword">show</span></span> <span class="hljs-comment"><span class="hljs-comment">--query name --output tsv</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Copy both values to a text file. You will need them later in this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-create-an-azure-key-vault">Task 2: Create an Azure Key vault</h4>
+
+<p>In this task, you will create an Azure Key vault by using the Azure portal.</p>
+
+<p>For this lab scenario, we have an app that connects to a MySQL database. We intend to store the password for the MySQL database as a secret in the key vault.</p>
+
+<ol>
+  <li>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box, type <strong>Key vaults</strong> and press the <strong>Enter</strong> key.</li>
+  <li>On the <strong>Key vaults</strong> blade, click <strong>+ Add</strong>.</li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create key vault</strong> blade, specify the following settings and click <strong>Next: Access policy</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group <strong>az400m07l01-RG</strong></td>
+        </tr>
+        <tr>
+          <td>Key vault name</td>
+          <td>any unique valid name</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>an Azure region close to the location of your lab environment</td>
+        </tr>
+        <tr>
+          <td>Pricing tier</td>
+          <td><strong>Standard</strong></td>
+        </tr>
+        <tr>
+          <td>Days to retain deleted vaults</td>
+          <td><strong>7</strong></td>
+        </tr>
+        <tr>
+          <td>Purge protection</td>
+          <td><strong>Disable purge protection</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Access policy</strong> tab of the <strong>Create key vault</strong> blade, click <strong>+ Add Access Policy</strong> to setup a new policy.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You need to secure access to your key vaults by allowing only authorized applications and users. To access the data from the vault, you will need to provide read (Get) permissions to the service principal that you will be using for authentication in the pipeline.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Add access policy</strong> blade, click the <strong>None selected</strong> link directly under the <strong>Select principal</strong> label.</li>
+  <li>
+    <p>On the <strong>Principal</strong> blade, search for the security principal that you created in the previous exercise, select it, and then click <strong>Select</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can search by name or ID of the principal.</p>
+    </blockquote>
+  </li>
+  <li>Back on the <strong>Add access policy</strong> blade, in the <strong>Secret permissions</strong> drop down list, select checkboxes next to the <strong>Get</strong> and <strong>List</strong> permissions and then click <strong>Add</strong>.</li>
+  <li>
+    <p>Back on the <strong>Access policy</strong> tab of the <strong>Create key vault</strong> blade, click <strong>Review + create</strong> and, on the <strong>Review + create</strong> blade, click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the Azure Key vault to be provisioned. This should take less than 1 minute.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Your deployment is complete</strong> blade, click <strong>Go to resource</strong>.</li>
+  <li>On the Azure Key vault blade, in the vertical menu on the left side of the blade, in the <strong>Settings</strong> section, click <strong>Secrets</strong>.</li>
+  <li>On the <strong>Secrets</strong> blade, click <strong>Generate/Import</strong>.</li>
+  <li>
+    <p>On the <strong>Create a secret</strong> blade, specify the following settings and click <strong>Create</strong> (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Upload options</td>
+          <td><strong>Manual</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>sqldbpassword</strong></td>
+        </tr>
+        <tr>
+          <td>Value</td>
+          <td>any valid MySQL password value</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="task-3-check-the-azure-pipeline">Task 3: Check the Azure Pipeline</h4>
+
+<p>In this task, you will configure the Azure Pipeline to retrieve the secret from the Azure Key vault.</p>
+
+<ol>
+  <li>On your lab computer, start a web browser and navigate to the Azure DevOps project <strong>Integrating Azure Key Vault with Azure DevOps</strong> you created in the previous exercise.</li>
+  <li>In the vertical navigational pane of the of the Azure DevOps portal, select <strong>Pipelines</strong> and verify that the <strong>Pipelines</strong> pane is displayed.</li>
+  <li>On the <strong>Pipelines</strong> pane, click the entry representing the <strong>SmartHotel-CouponManagement-CI</strong> pipeline. Click on <strong>Edit</strong>.</li>
+  <li>On the pipeline definition, modify the <strong>Pipeline</strong> &gt; <strong>Agent Specification</strong> to <strong>ubuntu 18.04</strong>. Click <strong>Save and Queue</strong> &gt; <strong>Save and Run</strong> to trigger a build.</li>
+  <li>In the vertical navigational pane of the of the Azure DevOps portal, in the <strong>Pipelines</strong> section, select <strong>Releases</strong>.</li>
+  <li>On the <strong>SmartHotel-CouponManagement-CD</strong> pane, click <strong>Edit</strong> in the upper right corner.</li>
+  <li>
+    <p>On the <strong>All pipelines &gt; SmartHotel-CouponManagement-CD</strong> pane, select the <strong>Task</strong> tab and, in the dropdown menu, select <strong>Dev</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The release definition for <strong>Dev</strong> stage has an <strong>Azure Key Vault</strong> task. This task downloads <em>Secrets</em> from an Azure Key Vault. You will need to point to the subscription and the Azure Key Vault resource created earlier in the lab.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You need to authorize the pipeline to deploy to Azure. Azure pipelines can automatically create a service connection with a new service principal, <strong>but we want to use the one we created earlier</strong>, as it has been authorized to read the secret.</p>
+    </blockquote>
+  </li>
+  <li>Select <strong>Run on agent</strong> and modify <strong>Agent pool</strong> field to <strong>Azure Pipelines</strong> and agent specification <strong>ubuntu 18.04</strong>.</li>
+  <li>Select the <strong>Azure Key Vault</strong> task and, on the right side, in the <strong>Azure Key Vault</strong> task properties, next to the <strong>Azure subscription</strong> label, click <strong>Manage</strong>. 
+This will open another browser tab displaying the <strong>Service connections</strong> pane in the Azure DevOps portal.</li>
+  <li>On the <strong>Service connections</strong> pane, click <strong>New Service connection</strong>.</li>
+  <li>On the <strong>New service connection</strong> pane, select the <strong>Azure Resource Manager</strong> option, click <strong>Next</strong>, select <strong>Service Principal (manual)</strong>, and click <strong>Next</strong> again.</li>
+  <li>
+    <p>On the <strong>New service connection</strong> pane, specify the following settings, using the information you copied to a text file in the first task of this exercise following creation of the service principal by using Azure CLI:</p>
+
+    <ul>
+      <li>Subscription Id: the value you obtained by running <code>az account show --query id --output tsv</code></li>
+      <li>Subscription Name: the value you obtained by running <code>az account show --query name --output tsv</code></li>
+      <li>Service Principal Id: the value labeled <strong>appId</strong> in the output generated by running <code>az ad sp create-for-rbac --name &lt;service-principal-name&gt;</code></li>
+      <li>Service Principal key: the value labeled <strong>password</strong> in the output generated by running <code>az ad sp create-for-rbac --name &lt;service-principal-name&gt;</code></li>
+      <li>TenantId: the value labeled <strong>tenant</strong> in the output generated by running <code>az ad sp create-for-rbac --name &lt;service-principal-name&gt;</code></li>
+    </ul>
+  </li>
+  <li>On the <strong>New service connection</strong> pane, click <strong>Verify</strong> to determine whether the information you provided is valid.</li>
+  <li>Once you receive the <strong>Verification Succeeded</strong> response, in the <strong>Service connection name</strong> textbox, type <strong>kv-service-connection</strong> and click <strong>Verify and Save</strong>.</li>
+  <li>Switch back to the web browser  tab displaying the pipeline definition and the <strong>Azure Key Vault</strong> task.</li>
+  <li>
+    <p>With the <strong>Azure Key Vault</strong> task selected, on the <strong>Azure Key Vault</strong> pane, click the <strong>Refresh</strong> button, in the <strong>Azure subscription</strong> dropdown list, select the  <strong>kv-service-connection</strong> entry, in the <strong>Key vault</strong> dropdown list, select the entry representing the Azure Key vault you created in the first task, and, in the <strong>Secrets filter</strong> textbox, type <strong>sqldbpassword</strong>. Finally, expand the <strong>Output Variables</strong> section and, in the <strong>Reference name</strong> textbox, type <strong>sqldbpassword</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: At runtime, Azure Pipelines will fetch the latest value of the secret and set it as the task variable <strong>$(sqldbpassword)</strong>. The tasks can consumed by the subsequent tasks by referencing that variable.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To verify this, select the next task, <strong>Azure Deployment</strong>, which deploys an ARM template and review the content of the <strong>Override template parameters</strong> textbox.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs javascript">-webAppName $(webappName) -mySQLAdminLoginName <span class="hljs-string"><span class="hljs-string">"azureuser"</span></span> -mySQLAdminLoginPassword $(sqldbpassword)
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>Override template parameters</strong> content references the <strong>sqldbpassword</strong> variable to set the mySQL admin password. This will provision the MySQL database defined in the ARM template using the password that you have specified in the key vault.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>You may complete the pipeline definition by specifying the subscription (if new subscription is used in the project, click on <strong>Authorize</strong> )and location for the task. <strong>Repeat</strong> the same for the last task in the pipeline <strong>Azure App Service Deploy</strong> (choose the subscription from the <strong>Available Azure service connection</strong> section in the dropdown).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In the Azure subscription dropdown list, you will see <strong>Available Azure service connections</strong> for those susbcriptions that have already been authorized to be connected to Azure. If you select the authorized subscription again (from <strong>Available Azure subscriptions</strong> list) and try to <strong>Authorize</strong>, the process will fail.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Variables</strong> tab, change the <strong>resourcegroup</strong> variable to plain text (click on lock) and write <strong>az400m07l01-RG</strong> in the value field.</li>
+  <li>
+    <p>Finally, <strong>Save</strong> and click on <strong>Create a new release</strong> &gt; <strong>Create</strong> (leave defaults) to start the deployment.</p>
+  </li>
+  <li>Make sure your pipeline runs successfully and once finished, review the created resources by opening the resource group <strong>az400m07l01-RG</strong> in the Azure Portal . Open the <strong>App Service</strong> and browse it <strong>(Overview -&gt; Browse)</strong>, to see the published website.</li>
+</ol>
+
+<h3 id="exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</h3>
+
+<p>In this exercise, you will remove the Azure resources provisione in this lab to eliminate unexpected charges.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<h4 id="task-1-remove-the-azure-lab-resources">Task 1: Remove the Azure lab resources</h4>
+
+<p>In this task, you will use Azure Cloud Shell to remove the Azure resources provisioned in this lab to eliminate unnecessary charges.</p>
+
+<ol>
+  <li>In the Azure portal, open the <strong>Bash</strong> shell session within the <strong>Cloud Shell</strong> pane.</li>
+  <li>
+    <p>List all resource groups created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m07l01-RG')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m07l01-RG')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the –nowait parameter), so while you will be able to run another Azure CLI command immediately afterwards within the same Bash session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this lab, you integrated Azure Key Vault with an Azure DevOps pipeline by using the following steps:</p>
+
+<ul>
+  <li>created an Azure Key vault to store a MySQL server password as a secret.</li>
+  <li>created an Azure service principal to provide access to secrets in the Azure Key vault.</li>
+  <li>configured permissions to allow the service principal to read the secret.</li>
+  <li>configured pipeline to retrieve the password from the Azure Key vault and pass it on to subsequent tasks.</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.js"></script>
+
+
+
+</body></html>

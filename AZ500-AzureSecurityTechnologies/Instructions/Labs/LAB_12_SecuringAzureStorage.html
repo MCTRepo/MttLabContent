@@ -1,0 +1,1029 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ500-AzureSecurityTechnologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ500-AzureSecurityTechnologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-service-endpoints-and-security-storage">Exercise 1: Service endpoints and security storage</a></li><li class="nav-item"><a class="nav-link" href="#estimated-timing-45-minutes">Estimated timing: 45 minutes</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-12-service-endpoints-and-securing-storage">Lab 12: Service Endpoints and Securing Storage</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>You have been asked to create a proof of concept to demonstrate securing Azure file shares. Specifically, you want to:</p>
+
+<ul>
+  <li>Create a storage endpoint so traffic destined to Azure Storage always stays within the Azure backbone network.</li>
+  <li>Configure the storage endpoint so only resources from a specific subnet can access the storage.</li>
+  <li>Confirm that resources outside of the specific subnet cannot access the storage.</li>
+</ul>
+
+<blockquote>
+  <p>For all the resources in this lab, we are using the <strong>East US</strong> region. Verify with your instructor this is the region to use for class.</p>
+</blockquote>
+
+<h2 id="lab-objectives">Lab objectives</h2>
+
+<p>In this lab, you will complete the following exercise:</p>
+
+<ul>
+  <li>Exercise 1: Service endpoints and security storage</li>
+</ul>
+
+<h3 id="exercise-1-service-endpoints-and-security-storage">Exercise 1: Service endpoints and security storage</h3>
+
+<h3 id="estimated-timing-45-minutes">Estimated timing: 45 minutes</h3>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: Create a virtual network</li>
+  <li>Task 2: Add a subnet to the virtual network and configure a storage endpoint</li>
+  <li>Task 3: Configure a network security group to restrict access to the subnet</li>
+  <li>Task 4: Create a storage account with a file share</li>
+  <li>Task 5: Deploy virtual machines into the designated subnets</li>
+  <li>Task 6: Test the storage connection from the private subnet to confirm that access is allowed</li>
+  <li>Task 7: Test the storage connection from the public subnet to confirm that access is denied</li>
+</ul>
+
+<h4 id="task-1-create-a-virtual-network">Task 1: Create a virtual network</h4>
+
+<p>In this task, you will create a virtual network.</p>
+
+<ol>
+  <li>
+    <p>Sign-in to the Azure portal <strong><code>https://portal.azure.com/</code></strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Sign in to the Azure portal using an account that has the Owner or Contributor role in the Azure subscription you are using for this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Virtual networks</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual Networks</strong> blade, click&nbsp;<strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create virtual network</strong> blade, specify the following settings (leave others with their default values) and click <strong>Next: IP Addresses</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>click <strong>Create new</strong> and type the name <strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td><strong>(US) East US</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>IP addresses</strong> tab of the <strong>Create virtual network</strong> blade, set the <strong>IPv4 address space</strong> to <strong>10.0.0.0/16</strong>, in the <strong>Subnet name</strong> column, click <strong>default</strong> and, on the <strong>Edit subnet</strong> blade, specify the following settings and click <strong>Save</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subnet name</td>
+          <td><strong>Public</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet address range</td>
+          <td><strong>10.0.0.0/24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Back on the <strong>IP addresses</strong> tab of the <strong>Create virtual network</strong> blade, click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab of the <strong>Create virtual network</strong> blade, click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-add-a-subnet-to-the-virtual-network-and-configure-a-storage-endpoint">Task 2: Add a subnet to the virtual network and configure a storage endpoint</h4>
+
+<p>In this task, you will create another subnet and enable a service endpoint on that subnet. Service endpoints are enabled per service, per subnet.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>Virtual Networks</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual networks</strong> blade, click the <strong>myVirtualNetwork</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>myVirtualNetwork</strong> blade, in the <strong>Settings</strong> section, click <strong>Subnets</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>myVirtualNetwork | Subnets</strong> blade, click <strong>+ Subnet</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add subnet</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subnet name</td>
+          <td><strong>Private</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet address range</td>
+          <td><strong>10.0.1.0/24</strong></td>
+        </tr>
+        <tr>
+          <td>Service endpoints</td>
+          <td><strong>Microsoft.Storage</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Add subnet</strong> blade, click <strong>Save</strong> to add the new subnet.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The virtual network now has two subnets: Public and Private.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-configure-a-network-security-group-to-restrict-access-to-the-subnet">Task 3: Configure a network security group to restrict access to the subnet</h4>
+
+<p>In this task, you will create a network security group with two outbound security rules (Storage and internet) and one inbound security rule (RDP). You will also associate the network security group with the Private subnet. This will restrict outbound traffic from Azure VMs connected to that subnet.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Network security groups</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network security groups</strong> blade, click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create network security group</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>myNsgPrivate</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td><strong>East US</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong> and then click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In the next steps, you will create an outbound security rule that allows communication to the Azure Storage service.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>Network security groups</strong> blade and click the <strong>myNsgPrivate</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>myNsgPrivate</strong> blade, in the <strong>Settings</strong> section, click <strong>Outbound security rules</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>myNsgPrivate | Outbound security rules</strong> blade, click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add outbound security rule</strong> blade, specify the following settings to explicitly allow outbound traffic to Azure Storage (leave all other values with their default settings):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Source</td>
+          <td><strong>VirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>Source port ranges</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td>in the drop-down list, select <strong>Service Tag</strong> and then click <strong>Storage</strong></td>
+        </tr>
+        <tr>
+          <td>Destination port ranges</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>Any</strong></td>
+        </tr>
+        <tr>
+          <td>Action</td>
+          <td><strong>Allow</strong></td>
+        </tr>
+        <tr>
+          <td>Priority</td>
+          <td><strong>1000</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>Allow-Storage-All</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Add outbound security rule</strong> blade, click <strong>Add</strong> to create the new outbound rule.</p>
+  </li>
+  <li>
+    <p>On the <strong>myNsgPrivate</strong> blade, in the <strong>Settings</strong> section, click <strong>Outbound security rules</strong>, and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add outbound security rule</strong> blade, specify the following settings to explicitly deny outbound traffic to Internet (leave all other values with their default settings):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Source</td>
+          <td><strong>VirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>Source port ranges</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td>in the drop-down list, select <strong>Service Tag</strong> and then click <strong>Internet</strong></td>
+        </tr>
+        <tr>
+          <td>Destination port ranges</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>Any</strong></td>
+        </tr>
+        <tr>
+          <td>Action</td>
+          <td><strong>Deny</strong></td>
+        </tr>
+        <tr>
+          <td>Priority</td>
+          <td><strong>1100</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>Deny-Internet-All</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: This rule overrides a default rule in all network security groups that allows outbound internet communication.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: In the next steps, you will create an inbound security rule that allows Remote Desktop Protocol (RDP) traffic to the subnet. The rule overrides a default security rule that denies all inbound traffic from the internet. Remote Desktop connections are allowed to the subnet so that connectivity can be tested in a later step.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Add outbound security rule</strong> blade, click <strong>Add</strong> to create the new outbound rule.</p>
+  </li>
+  <li>
+    <p>On the <strong>myNsgPrivate | Outbound security rules</strong> blade, in the <strong>Settings</strong> section, click <strong>Inbound security rules</strong> and then click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add inbound security rule</strong> blade, specify the following settings (leave all other values with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Source</td>
+          <td><strong>Any</strong></td>
+        </tr>
+        <tr>
+          <td>Source port ranges</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td><strong>VirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>Destination port ranges</td>
+          <td><strong>3389</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Action</td>
+          <td><strong>Allow</strong></td>
+        </tr>
+        <tr>
+          <td>Priority</td>
+          <td><strong>1200</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>Allow-RDP-All</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Add inbound security rule</strong> blade, click <strong>Add</strong> to create the new inbound rule.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Now you will associate the network security group with the Private subnet.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Subnets</strong> blade, select <strong>+ Associate</strong> and specify the following settings in the <strong>Associate subnet</strong> section and then click <strong>OK</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>Private</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="task-4-create-a-storage-account-with-a-file-share">Task 4: Create a storage account with a file share</h4>
+
+<p>In this task, you will create a storage account with a file share and obtain the storage account key.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Storage accounts</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Storage accounts</strong> blade, click&nbsp;<strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create storage account</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>Storage account name</td>
+          <td>any globally unique name between 3 and 24 in length consisting of letters and digits</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td><strong>(US) EastUS</strong></td>
+        </tr>
+        <tr>
+          <td>Performance</td>
+          <td><strong>Standard</strong></td>
+        </tr>
+        <tr>
+          <td>Account kind</td>
+          <td><strong>StorageV2 (general purpose v2)</strong></td>
+        </tr>
+        <tr>
+          <td>Redundency</td>
+          <td><strong>Locally redundant storage (LRS)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create storage account</strong> blade, click <strong>Review + Create</strong>, wait for the validation process to complete, and click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the Storage account to be created. This should take about 2 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Resource groups</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, in the list of resource group, click the <strong>AZ500LAB12</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>AZ500LAB12</strong> resource group blade, in the list of resources, click the entry representing the newly created storage account.</p>
+  </li>
+  <li>
+    <p>On the storage account <strong>Overview</strong> blade, click <strong>File Shares</strong> under the <strong>Data storage</strong> tab, and then click <strong>+ File Share</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>New file share</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>my-file-share</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>New file share</strong> blade, click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Now, retrieve and record the PowerShell script that creates a drive mapping to the Azure file share.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the storage account blade, in the list of file shares, click <strong>my-file-share</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>my-file-share</strong> blade, click <strong>Connect</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Connect</strong> blade, on the <strong>Windows</strong> tab, copy the PowerShell script that creates a Z drive mapping to the file share.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record this script. You will need this in a later in this lab in order to map the file share from the Azure virtual machine on the <strong>Private</strong> subnet.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Navigate back to the storage account blade, then in the <strong>Security + networking</strong> section, click <strong>Networking</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Firewalls and virtual networks</strong> blade, select the <strong>Selected networks</strong> option and click the <strong>+ Add existing virtual network</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add networks</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Virtual networks</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>Subnets</td>
+          <td><strong>Private</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Add networks</strong> blade, click <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the storage account blade, click <strong>Save</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: At this point in the lab you have configured a virtual network, a network security group, and a storage account with a file share.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-5-deploy-virtual-machines-into-the-designated-subnets">Task 5: Deploy virtual machines into the designated subnets</h4>
+
+<p>In this task, you will create two virtual machines one in the Private subnet and one in the Public subnet.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: The first virtual machine will be connected to the Private subnet.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Virtual machines</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual machines</strong> blade, click <strong>+ Create</strong> and, in the dropdown list, click <strong>+ Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create a virtual machine</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you will be using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine name</td>
+          <td><strong>myVmPrivate</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td><strong>(US)East US</strong></td>
+        </tr>
+        <tr>
+          <td>Image</td>
+          <td><strong>Windows Server 2019 Datacenter - Gen 2</strong></td>
+        </tr>
+        <tr>
+          <td>Username</td>
+          <td><strong>localadmin</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+        <tr>
+          <td>Public inbound ports</td>
+          <td><strong>None</strong></td>
+        </tr>
+        <tr>
+          <td>Already have a Windows Server license</td>
+          <td><strong>No</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: For public inbound ports, we will rely on the precreated NSG.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Next: Disks &gt;</strong> and, on the <strong>Disks</strong> tab of the <strong>Create a virtual machine</strong> blade, set the <strong>OS disk type</strong> to <strong>Standard HDD</strong> and click <strong>Next: Networking &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next: Networking &gt;</strong>, on the <strong>Networking</strong> tab of the <strong>Create a virtual machine</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>Private (10.0.1.0/24)</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP</td>
+          <td><strong>(new)myVmPrivate-ip</strong></td>
+        </tr>
+        <tr>
+          <td>NIC network security group</td>
+          <td><strong>None</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next: Management &gt;</strong>, on the <strong>Management</strong> tab of the <strong>Create a virtual machine</strong> blade, accept the default settings and click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> blade, ensure that validation was successful and click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The second virtual machine will be connected to the Public subnet.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Virtual machines</strong> blade, click <strong>+ Add</strong> and, in the dropdown list, click <strong>+ Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create a virtual machine</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you will be using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine name</td>
+          <td><strong>myVmPublic</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td><strong>(US)East US</strong></td>
+        </tr>
+        <tr>
+          <td>Image</td>
+          <td><strong>Windows Server 2019 Datacenter - Gen 2</strong></td>
+        </tr>
+        <tr>
+          <td>Username</td>
+          <td><strong>localadmin</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+        <tr>
+          <td>Public inbound ports</td>
+          <td><strong>None</strong></td>
+        </tr>
+        <tr>
+          <td>Already have a Windows Server license</td>
+          <td><strong>No</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: For public inbound ports, we will rely on the precreated NSG.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Next: Disks &gt;</strong> and, on the <strong>Disks</strong> tab of the <strong>Create a virtual machine</strong> blade, set the <strong>OS disk type</strong> to <strong>Standard HDD</strong> and click <strong>Next: Networking &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next: Networking &gt;</strong>, on the <strong>Networking</strong> tab of the <strong>Create a virtual machine</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>Public (10.0.0.0/24)</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP</td>
+          <td><strong>(new)myVmPublic-ip</strong></td>
+        </tr>
+        <tr>
+          <td>NIC network security group</td>
+          <td><strong>None</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next: Management &gt;</strong>, on the <strong>Management</strong> tab of the <strong>Create a virtual machine</strong> blade, accept the default settings and click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> blade, ensure that validation was successful and click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can continue to the next task once the deployment of the <strong>myVMPrivate</strong> Azure VM is completed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-6-test-the-storage-connection-from-the-private-subnet-to-confirm-that-access-is-allowed">Task 6: Test the storage connection from the private subnet to confirm that access is allowed</h4>
+
+<p>In this task, you will connect to the myVMPrivate virtual machine via Remote Desktop and map a drive to the file share.</p>
+
+<ol>
+  <li>
+    <p>Navigate back to the <strong>Virtual machines</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual machines</strong> blade, click the <strong>myVMPrivate</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>myVMPrivate</strong> blade, click <strong>Connect</strong> and, in the drop down menu, click <strong>RDP</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Download RDP File</strong> and use it to connect to the <strong>myVMPrivate</strong> Azure VM via Remote Desktop. When prompted to authenticate, provide the following credntials:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>User name</td>
+          <td><strong>localadmin</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the Remote Desktop session to open and Server Manager to load.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will now map drive Z to an Azure File share within the Remote Desktop session to a Windows Server 2019 computer</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>myVMPrivate</strong>, click <strong>Start</strong> and then click <strong>Windows PowerShell ISE</strong>.</p>
+  </li>
+  <li>
+    <p>Within the <strong>Windows PowerShell ISE</strong> window, open the <strong>Script</strong> pane, then paste and run the PowerShell script that you recorded earlier in this lab. The script has the following format:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell"> $connectTestResult = Test-NetConnection -ComputerName &lt;storage_account_name&gt;.file.core.windows.net -Port 445
+ if ($connectTestResult.TcpTestSucceeded) {
+    # Save the password so the drive will persist on reboot
+    cmd.exe /C "cmdkey /add:`"&lt;storage_account_name&gt;.file.core.windows.net`" /user:`"Azure\&lt;storage_account_name&gt;`"  /pass:`"&lt;storage_account_key&gt;`""
+    # Mount the drive
+    New-PSDrive -Name Z -PSProvider FileSystem -Root "\\&lt;storage_account_name&gt;.file.core.windows.net\my-file-share" -Persist
+ } else {
+    Write-Error -Message "Unable to reach the Azure storage account via port 445. Check to make sure your organization or ISP is not blocking port 445, or use Azure P2S VPN, Azure S2S VPN, or Express Route to tunnel SMB traffic over a different port."
+ }
+</code></pre>
+    <blockquote>
+      <p><strong>Note</strong>: The <code>&lt;storage-account-name&gt;</code> placeholder represents the name of the storage account hosting the file share and <code>&lt;storage_account_name&gt;</code> one its primary key</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Start File Explorer and verify that the Z: drive mapping has been successfully created.</p>
+  </li>
+  <li>
+    <p>Next, from the console pane of the <strong>Windows PowerShell ISE</strong> console, run the following to verify that the virtual machine has no outbound connectivity to the internet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell"> Test-NetConnection -ComputerName www.bing.com -Port 80
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The test will fail because the network security group associated with the Private subnet does not allow outbound access to the internet.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Terminate the Remote Desktop session to the <strong>myVMPrivate</strong> Azure VM.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: At this point, you have confirmed that the virtual machine in the Private subnet can access the storage account.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-7-test-the-storage-connection-from-the-public-subnet-to-confirm-that-access-is-denied">Task 7: Test the storage connection from the public subnet to confirm that access is denied</h4>
+
+<ol>
+  <li>
+    <p>Navigate back to the <strong>Virtual machines</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual machines</strong> blade, click the <strong>myVMPublic</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>myVMPublic</strong> blade, click <strong>Connect</strong> and, in the drop down menu, click <strong>RDP</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Download RDP File</strong> and use it to connect to the <strong>myVMPublic</strong> Azure VM via Remote Desktop. When prompted to authenticate, provide the following credntials:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>User name</td>
+          <td><strong>localadmin</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the Remote Desktop session to open and Server Manager to load.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will now map drive Z to an Azure File share within the Remote Desktop session to a Windows Server 2019 computer</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>myVMPublic</strong>, click <strong>Start</strong> and then click <strong>Windows PowerShell ISE</strong>.</p>
+  </li>
+  <li>
+    <p>Within the <strong>Windows PowerShell ISE</strong> window, open the <strong>Script</strong> pane, then paste and run the same PowerShell script that you ran within the Remote Desktop session to the <strong>myVMPrivate</strong> Azure VM.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This time, you will receive the <strong>New-PSDrive : Access is denied</strong> error.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Access is denied because the <em>myVmPublic</em> virtual machine is deployed in the Public subnet. The Public subnet does not have a service endpoint enabled for the Azure Storage. The storage account only allows network access from the Private subnet.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Next, from the console pane of the <strong>Windows PowerShell ISE</strong> console, run the following to verify that the virtual machine has outbound connectivity to the internet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell"> Test-NetConnection -ComputerName www.bing.com -Port 80
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The test will succeed because there is no network security group associated with the Public subnet.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Terminate the Remote Desktop session to the <strong>myVMPublic</strong> Azure VM.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: At this point, you have confirmed that the virtual machine in the Public subnet cannot access the storage account, but has access to the internet.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<p><strong>Clean up resources</strong></p>
+
+<blockquote>
+  <p>Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not incur unexpected costs.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>Open the Cloud Shell by clicking the first icon in the top right of the Azure Portal. If prompted, select <strong>PowerShell</strong> and <strong>Create storage</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>PowerShell</strong> is selected in the drop-down menu in the upper-left corner of the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to remove the resource group you created in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell"> Remove-AzResourceGroup -Name "AZ500LAB12" -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+</ol>
+
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ500-AzureSecurityTechnologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

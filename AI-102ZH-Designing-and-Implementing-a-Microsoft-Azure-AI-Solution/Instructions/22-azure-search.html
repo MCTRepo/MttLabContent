@@ -1,0 +1,687 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#创建-azure-认知搜索资源">创建 Azure 认知搜索资源</a></li><li class="nav-item"><a class="nav-link" href="#创建认知服务资源">创建认知服务资源</a></li><li class="nav-item"><a class="nav-link active" href="#创建存储帐户">创建存储帐户</a></li><li class="nav-item"><a class="nav-link" href="#获取-azure-认知搜索资源的终结点和密钥">获取 Azure 认知搜索资源的终结点和密钥</a></li><li class="nav-item"><a class="nav-link" href="#评价和修改技能组">评价和修改技能组</a></li><li class="nav-item"><a class="nav-link" href="#查看并修改索引">查看并修改索引</a></li><li class="nav-item"><a class="nav-link" href="#查看并修改索引器">查看并修改索引器</a></li><li class="nav-item"><a class="nav-link" href="#使用-rest-api-更新搜索解决方案">使用 REST API 更新搜索解决方案</a></li><li class="nav-item"><a class="nav-link" href="#查询经修改的索引">查询经修改的索引</a></li><li class="nav-item"><a class="nav-link" href="#获取搜索资源的终结点和密钥">获取搜索资源的终结点和密钥</a></li><li class="nav-item"><a class="nav-link" href="#准备使用-azure-认知搜索-sdk">准备使用 Azure 认知搜索 SDK</a></li><li class="nav-item"><a class="nav-link" href="#浏览用于搜索索引的代码">浏览用于搜索索引的代码</a></li><li class="nav-item"><a class="nav-link" href="#浏览用于呈现搜索结果的代码">浏览用于呈现搜索结果的代码</a></li><li class="nav-item"><a class="nav-link" href="#运行-web-应用">运行 Web 应用</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="创建-azure-认知搜索解决方案">创建 Azure 认知搜索解决方案</h1>
+
+<p>所有组织都依赖于信息来制定决策、解答问题和高效运营。对大多数组织而言，问题不是缺乏信息，二十从大量的文档、数据库和存储着信息的其他来源中查找和提取信息。</p>
+
+<p>例如，假设 <em>Margie’s Travel</em> 这家旅行社专营组织消费者去世界各地的城市旅游。随着时间的推移，该公司积攒了大量的信息，存储在宣传手册以及消费者提交的酒店评论等文档中。在旅行社经理和消费者计划旅途时，他们可以由此数据得出有价值的见解，但大量的数据让人很难找到相关信息来解答消费者的特定问题。</p>
+
+<p>为解决这一挑战，Margie’s Travel 可以使用 Azure 认知搜索来实现解决方案，使用基于 AI 的认知技能来为文档编制索引并扩充文档，使其更易于搜索。</p>
+
+<h2 id="克隆本课程的存储库">克隆本课程的存储库</h2>
+
+<p>如果尚未将 <strong>AI-102-AIEngineer</strong> 代码存储库克隆到你要在此实验室中使用的环境，请按照以下步骤克隆它。否则，请在 Visual Studio Code 中打开克隆的文件夹。</p>
+
+<ol>
+  <li>启动 Visual Studio Code。</li>
+  <li>打开面板 (Shift+Ctrl+P) 并运行 <strong>Git: Clone</strong> 命令，将 <code>https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution</code> 存储库克隆到本地文件夹（具体克隆到哪个文件夹无关紧要）。</li>
+  <li>克隆存储库后，在 Visual Studio Code 中打开文件夹。</li>
+  <li>
+    <p>等待其他文件安装完毕，以支持存储库中的 C# 代码项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果系统提示你添加生成和调试所需的资产，请选择 <strong>“以后再说”</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="创建-azure-资源">创建 Azure 资源</h2>
+
+<p>你要为 Margie’s Travel 创建的解决方案要求你的 Azure 订阅中有以下资源：</p>
+
+<ul>
+  <li><strong>Azure 认知搜索</strong>资源，它管理索引编制和查询。</li>
+  <li><strong>认知服务</strong>资源，它提供 AI 服务，你的搜索解决方案可使用通过这些服务构建的技能，用 AI 生成的见解来扩充数据源中的数据。</li>
+  <li>有 blob 容器的<strong>存储帐户</strong>，其中存储了要搜索的文档。</li>
+</ul>
+
+<blockquote>
+  <p><strong>重要说明</strong>：你的 Azure 认知搜索和认知服务资源必须位于同一位置。</p>
+</blockquote>
+
+<h3 id="创建-azure-认知搜索资源">创建 Azure 认知搜索资源</h3>
+
+<ol>
+  <li>在 Web 浏览器中，打开 Azure 门户 (<code>https://portal.azure.com</code>)，并使用与你的 Azure 订阅关联的 Microsoft 帐户登录。</li>
+  <li>选择 <strong>“＋创建资源”</strong> 按钮，搜索“搜索”，并使用以下设置创建 <strong>“Azure 认知搜索”</strong> 资源：
+    <ul>
+      <li><strong>订阅</strong>：<em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>：<em>创建新资源组（如果使用受限制的订阅，你可能无权创建新的资源组 - 请使用提供的资源组）</em></li>
+      <li><strong>服务名称</strong>：<em>输入唯一名称</em></li>
+      <li><strong>位置</strong>：<em>选择位置 - 请记住，你的 Azure 认知搜索和认知服务资源必须位于同一位置</em></li>
+      <li><strong>定价层</strong>：基本</li>
+    </ul>
+  </li>
+  <li>等待部署完成，然后转到部署的资源。</li>
+  <li>在 Azure 门户中，在你的 Azure 认知搜索资源的边栏选项卡上，查看 <strong>“概述”</strong> 页面。在这里，你可以使用可视化界面来创建、测试、管理和监视搜索解决方案的各个组件，包括数据资源、索引、索引器和技能组。</li>
+</ol>
+
+<h3 id="创建认知服务资源">创建认知服务资源</h3>
+
+<p>如果你的订阅中还没有<strong>认知服务</strong>资源，需要预配一个。你的搜索解决方案将使用它，用 AI 生成的见解来扩充数据存储中的数据。</p>
+
+<ol>
+  <li>返回 Azure 门户的主页，然后选择 <strong>“＋创建认知服务资源”</strong> 按钮，搜索 <strong>“认知服务”</strong>，并使用以下设置创建认知服务资源：
+    <ul>
+      <li><strong>订阅</strong>：<em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>：<em>与你的 Azure 认知搜索资源相同的资源组</em></li>
+      <li><strong>区域</strong>：<em>与你的 Azure 认知搜索资源相同的位置</em></li>
+      <li><strong>名称</strong>：<em>输入唯一名称</em></li>
+      <li><strong>定价层</strong>：标准 S0</li>
+    </ul>
+  </li>
+  <li>选中所需复选框并创建资源。</li>
+  <li>等待部署完成，然后查看部署详细信息。</li>
+</ol>
+
+<h3 id="创建存储帐户">创建存储帐户</h3>
+
+<ol>
+  <li>返回 Azure 门户的主页，然后选择 <strong>“＋创建认知服务资源”</strong> 按钮，搜索 <strong>“存储帐户”</strong>，并使用以下设置创建存储帐户资源：
+    <ul>
+      <li><strong>订阅</strong>：<em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>：<em>与你的 Azure 认知搜索和认知服务资源相同的资源组</em></li>
+      <li><strong>存储帐户名称</strong>：<em>输入唯一名称</em></li>
+      <li><strong>区域</strong>：<em>选择任何可用区域</em></li>
+      <li><strong>性能</strong>：标准</li>
+      <li><strong>复制</strong>：本地冗余存储 (LRS)</li>
+    </ul>
+  </li>
+  <li>等待部署完成，然后转到部署的资源。</li>
+  <li>在 <strong>“概述”</strong> 页上，记下 <strong>“订阅 ID”</strong> - 它标识着预配了存储帐户的订阅。</li>
+  <li>
+    <p>在 <strong>“访问密钥”</strong> 页上，记下为你的存储帐户生成的两个密钥。然后选择 <strong>“显示密钥”</strong> 以查看密钥。</p>
+
+    <blockquote>
+      <p><strong>提示</strong>：使 <strong>“存储帐户”</strong> 边栏选项卡保持打开 - 下一节程序中需要订阅 ID 和其中一个密钥。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="将文档上传到-azure-存储">将文档上传到 Azure 存储</h2>
+
+<p>现在你已拥有必要的资源，可以向 Azure 存储帐户上传一些文档。</p>
+
+<ol>
+  <li>在 Visual Studio Code 中，在 <strong>Explorer</strong> 窗格中展开 <strong>“22-create-a-search-solution”</strong> 文件夹，然后选择 <strong>“UploadDocs.cmd”</strong>。</li>
+  <li>编辑批处理文件，将 <strong>YOUR_SUBSCRIPTION_ID</strong>、<strong>YOUR_AZURE_STORAGE_ACCOUNT_NAME</strong> 和 <strong>YOUR_AZURE_STORAGE_KEY</strong> 占位符替换为相应的订阅 Id、你之前创建的存储帐户的 Azure 存储帐户名称和 Azure 存储帐户密钥值。</li>
+  <li>保存更改，然后右键单击“<strong>22-create-a-search-solution</strong>”文件夹并打开集成终端。</li>
+  <li>
+    <p>使用 Azure CLI，输入以下命令以登录到你的 Azure 订阅。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute">az</span> login
+</code></pre>
+  </li>
+</ol>
+
+<p>Web 浏览器标签页随即打开，并提示你登录到 Azure。按照提示操作，然后关闭浏览器标签页并返回到 Visual Studio Code。</p>
+
+<ol>
+  <li>
+    <p>输入以下命令以运行批处理文件。这将在你的存储帐户中创建一个 blob 容器，并将 <strong>data</strong> 文件夹中的文档上传到该容器中。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute">UploadDocs</span>
+</code></pre>
+  </li>
+</ol>
+
+<h2 id="为文档编制索引">为文档编制索引</h2>
+
+<p>现在你已准备好文档，可以通过为文档编制索引来创建搜索解决方案。</p>
+
+<ol>
+  <li>在 Azure 门户中，浏览到 Azure 认知搜索资源。然后，在其 <strong>“概述”</strong> 页上选择 <strong>“导入数据”</strong>。</li>
+  <li>在 <strong>“连接到数据”</strong> 页上的 <strong>“数据源”</strong> 列表中，选择 <strong>“Azure Blob 存储”</strong>。然后使用以下值补全数据存储详细信息：
+    <ul>
+      <li><strong>数据源</strong>：Azure Blob 存储</li>
+      <li><strong>数据源名称</strong>：margies-data</li>
+      <li><strong>要提取的数据</strong>：内容和元数据</li>
+      <li><strong>分析模式</strong>：默认</li>
+      <li><strong>连接字符串</strong>：<em>选择 <strong>“选择现有连接”</strong>。然后选择存储帐户，最后选择 UploadDocs.cmd 脚本创建的 margies 容器。</em></li>
+      <li><strong>使用托管标识进行身份验证</strong>：未选择</li>
+      <li><strong>容器名称</strong>：margies</li>
+      <li><strong>Blob 文件夹</strong>：<em>将此项留空</em></li>
+      <li><strong>描述</strong>：Margie’s Travel 网站上的手册和评论。</li>
+    </ul>
+  </li>
+  <li>前进到下一步（<em>添加认知技能</em>）。</li>
+  <li>在 <strong>“附加认知服务”</strong> 部分，选择你的认知服务资源。</li>
+  <li>在 <strong>“添加扩充信息”</strong> 部分：
+    <ul>
+      <li><strong>将技能组名称</strong>改为 <strong>margies-skillset</strong>。</li>
+      <li>选择“启用 OCR 并将所有文本合并到 <strong>merged_content</strong> 字段”选项。</li>
+      <li>确保 <strong>“元数据字段”</strong> 设置为 <strong>“merged_content”</strong>。</li>
+      <li>将 <strong>“扩充信息粒度级别”</strong> 保留为 <strong>“源字段”</strong>，即将文档的全部内容设为可编制索引；但请注意，可将此项更改为在更精细的级别（例如页面或语句）提取信息。</li>
+      <li>
+        <p>选择以下经扩充的字段：</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>认知技能</th>
+              <th>参数</th>
+              <th>字段名称</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>提取位置名称</td>
+              <td>&nbsp;</td>
+              <td>locations</td>
+            </tr>
+            <tr>
+              <td>提取关键短语</td>
+              <td>&nbsp;</td>
+              <td>keyphrases</td>
+            </tr>
+            <tr>
+              <td>检测语言</td>
+              <td>&nbsp;</td>
+              <td>language</td>
+            </tr>
+            <tr>
+              <td>由图像生成标记</td>
+              <td>&nbsp;</td>
+              <td>imageTags</td>
+            </tr>
+            <tr>
+              <td>由图像生成描述</td>
+              <td>&nbsp;</td>
+              <td>imageCaption</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+  </li>
+  <li>再次检测你的选择（稍后可能很难更改这些选项）。然后前进到下一步（<em>自定义目标索引</em>）。</li>
+  <li><strong>将索引名称</strong>改为 <strong>margies-index</strong>。</li>
+  <li>确保将 <strong>“密钥”</strong> 设置为 <strong>metadata_storage_path</strong>，并将 <strong>“建议器名称”</strong> 和 <strong>“搜索模式”</strong> 留空。</li>
+  <li>
+    <p>对索引字段进行以下更改，并让其他所有字段保留其默认值（<strong>重要提示</strong>：可能需要向右滚动才能看到整张表）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>字段名称</th>
+          <th>可检索</th>
+          <th>可筛选</th>
+          <th>可排序</th>
+          <th>可分面</th>
+          <th>可搜索</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>metadata_storage_size</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>metadata_storage_last_modified</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>metadata_storage_name</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+        </tr>
+        <tr>
+          <td>metadata_author</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+        </tr>
+        <tr>
+          <td>locations</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+        </tr>
+        <tr>
+          <td>keyphrases</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+        </tr>
+        <tr>
+          <td>language</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✔</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>再次检查你的选择，特别注意确保为每个字段选择正确的 <strong>“可检索”</strong>、<strong>“可筛选”</strong>、<strong>“可排序”</strong>、<strong>“可分面”</strong> 和 <strong>“可搜索”</strong> 选项（稍后可能很难更改这些选项）。然后前进到下一步（<em>创建索引器</em>）。</li>
+  <li><strong>将索引器名称</strong>改为 <strong>margies-indexer</strong>。</li>
+  <li>保留 <strong>“计划”</strong> 设置为 <strong>“一次”</strong>。</li>
+  <li>展开 <strong>“高级”</strong> 选项，并确保选中 <strong>“Base-64 编码密钥”</strong> 选项（一般说来编码密钥可以提高索引效率）。</li>
+  <li>选择 <strong>“提交”</strong> 以创建数据源、技能组、索引和索引器。索引器将自动运行并运行索引管道，它将执行以下操作：
+    <ol>
+      <li>从数据源中提取文档元数据字段和内容</li>
+      <li>运行认知技能的技能组以生成经扩充的额外字段</li>
+      <li>将提取的字段映射到索引。</li>
+    </ol>
+  </li>
+  <li>在 Azure 认知搜索资源 <strong>“概述”</strong> 页的下半部分，查看 <strong>“索引器”</strong> 选项卡，其中应会显示新创建的 <strong>margies-indexer</strong>。等待几分钟，然后单击 <strong>“&amp;orarr; 刷新”</strong>，直到 <strong>“状态”</strong> 指示成功。</li>
+</ol>
+
+<h2 id="搜索索引">搜索索引</h2>
+
+<p>现在你已拥有索引，可以搜索它。</p>
+
+<ol>
+  <li>在 Azure 认知搜索资源 <strong>“概述”</strong> 页的顶部，选择 <strong>“搜索资源管理器”</strong>。</li>
+  <li>
+    <p>在搜索资源管理器中的 <strong>“查询字符串”</strong> 框中，输入 <code>*</code>（单个星号），然后选择 <strong>“搜索”</strong>。</p>
+
+    <p>此查询将以 JSON 格式检索索引中的所有文档。检查结果并记下每个文档的字段，其中包含由你选择的认知技能所提取的文档内容、元数据和经扩充的数据。</p>
+  </li>
+  <li>
+    <p>将查询字符串修改为 <code>search=*&amp;$count=true</code> 并提交搜索。</p>
+
+    <p>这一次，结果包含 <strong>@odata.count</strong> 字段，它显示结果顶部，表示搜索返回的文档数。</p>
+  </li>
+  <li>
+    <p>尝试以下查询字符串：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs bash"> search=*&amp;<span class="hljs-variable">$count</span>=<span class="hljs-literal">true</span>&amp;<span class="hljs-variable">$select</span>=metadata_storage_name,metadata_author,locations
+</code></pre>
+
+    <p>这一次，结果仅包含文件名、作者和文档内容中提及的任何位置。文件名和作者分别位于 <strong>metadata_storage_name</strong> 和 <strong>metadata_author</strong> 字段，这两个字段提取自源文档。<strong>locations</strong> 字段由认知技能生成。</p>
+  </li>
+  <li>
+    <p>现在尝试以下查询字符串：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs bash"> search=<span class="hljs-string">"New York"</span>&amp;<span class="hljs-variable">$count</span>=<span class="hljs-literal">true</span>&amp;<span class="hljs-variable">$select</span>=metadata_storage_name,keyphrases
+</code></pre>
+
+    <p>此搜索会查找任意可搜索字段中提及“New York”的文档，并返回文件名和文档中的关键短语。</p>
+  </li>
+  <li>
+    <p>让我们再试一个查询字符串：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs bash"> search=<span class="hljs-string">"New York"</span>&amp;<span class="hljs-variable">$count</span>=<span class="hljs-literal">true</span>&amp;<span class="hljs-variable">$select</span>=metadata_storage_name&amp;<span class="hljs-variable">$filter</span>=metadata_author eq <span class="hljs-string">'Reviewer'</span>
+</code></pre>
+
+    <p>此查询将返回作者为 <em>Reviewer</em> 且提及“New York”的任何文档的文件名。</p>
+  </li>
+</ol>
+
+<h2 id="浏览并修改搜索组件的定义">浏览并修改搜索组件的定义</h2>
+
+<p>搜索解决方案的组件基于 JSON 定义，你可以在 Azure 门户中查看和编辑它。</p>
+
+<p>你可以使用该门户创建和修改搜索解决方案，但理想的做法通常是用 JSON 定义搜索对象，并使用 Azure 认知服务 REST 接口来创建和修改它们。</p>
+
+<h3 id="获取-azure-认知搜索资源的终结点和密钥">获取 Azure 认知搜索资源的终结点和密钥</h3>
+
+<ol>
+  <li>在 Azure 门户中，返回到 Azure 认知搜索资源的 <strong>“概述”</strong> 页；在页面顶部找到资源的 Url 类似 <strong>https://resource_name.search.windows.net</strong> 并将其复制到剪贴板。</li>
+  <li>在 Visual Studio Code 中的 <strong>“Explorer”</strong> 窗格中，展开 <strong>“22-create-a-search-solution”</strong> 文件夹及其 <strong>“modify-search”</strong> 子文件夹，并选择 <strong>“modify-search.cmd”</strong> 来打开它。你将使用此脚本文件来运行 <em>cURL</em> 命令，将 JSON 提交给 Azure 认知服务 REST 接口。</li>
+  <li>在 <strong>modify-search.cmd</strong> 中，将 <strong>YOUR_SEARCH_URL</strong> 占位符替换为你复制到剪贴板的 URL。</li>
+  <li>在 Azure 门户中，查看你的 Azure 认知搜索资源的 <strong>“密钥”</strong> 页面，并将 <strong>“主管理密钥”</strong> 复制到剪贴板。</li>
+  <li>在 Visual Studio Code 中，将 <strong>YOUR_ADMIN_KEY</strong> 占位符替换为你复制到剪贴板的密钥。</li>
+  <li>将更高保存到 <strong>modify-search.cmd</strong> （但暂时不要运行它！）</li>
+</ol>
+
+<h3 id="评价和修改技能组">评价和修改技能组</h3>
+
+<ol>
+  <li>在 Visual studio Code 中，在 <strong>“modify-search”</strong> 文件夹中打开 <strong>“skillset.json”</strong>。这将显示 <strong>margies-skillset</strong> 的 JSON 定义。</li>
+  <li>在技能组定义的顶部，记下 <strong>cognitiveServices</strong> 对象，它用于将认知服务资源连接到技能组。</li>
+  <li>在 Azure 门户中，打开你的认知服务资源（<u>不是</u> Azure 认知搜索资源！）并查看其 <strong>“密钥”</strong> 页面。然后将 <strong>Key 1</strong> 粘贴到剪贴板。</li>
+  <li>在 Visual Studio Code 中，在 <strong>skillset.json</strong> 中将 <strong>YOUR_COGNITIVE_SERVICES_KEY</strong> 占位符替换为你复制到剪贴板的认知服务密钥。</li>
+  <li>
+    <p>滚动浏览 JSON 文件，注意它包含你在 Azure 门户中使用 Azure 认知搜索用户界面创建的技能的定义。在技能列表底部，以使用以下定义添加额外的技能：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs json"> {
+     <span class="hljs-attr">"@odata.type"</span>: <span class="hljs-string">"#Microsoft.Skills.Text.SentimentSkill"</span>,
+     <span class="hljs-attr">"defaultLanguageCode"</span>: <span class="hljs-string">"en"</span>,
+     <span class="hljs-attr">"name"</span>: <span class="hljs-string">"get-sentiment"</span>,
+     <span class="hljs-attr">"description"</span>: <span class="hljs-string">"New skill to evaluate sentiment"</span>,
+     <span class="hljs-attr">"context"</span>: <span class="hljs-string">"/document"</span>,
+     <span class="hljs-attr">"inputs"</span>: [
+         {
+             <span class="hljs-attr">"name"</span>: <span class="hljs-string">"text"</span>,
+             <span class="hljs-attr">"source"</span>: <span class="hljs-string">"/document/merged_content"</span>
+         },
+         {
+             <span class="hljs-attr">"name"</span>: <span class="hljs-string">"languageCode"</span>,
+             <span class="hljs-attr">"source"</span>: <span class="hljs-string">"/document/language"</span>
+         }
+     ],
+     <span class="hljs-attr">"outputs"</span>: [
+         {
+             <span class="hljs-attr">"name"</span>: <span class="hljs-string">"score"</span>,
+             <span class="hljs-attr">"targetName"</span>: <span class="hljs-string">"sentimentScore"</span>
+         }
+     ]
+ }
+</code></pre>
+  </li>
+</ol>
+
+<p>新技能名为 <strong>“get-sentiment”</strong>，对于文档中的每个<strong>document</strong> 级别，它将评估在被索引的文档的 <strong>merged_content</strong> 字段中找到的文字（包含源内容和从内容中的图像提取的任何文字）。它使用提取的文档<strong>语言</strong>（默认为英语），并评估内容情绪的分数。此分数随后作为名为 <strong>sentimentScore</strong> 的新字段输出。</p>
+
+<ol>
+  <li>保存对 <strong>skillset.json</strong> 的更改。</li>
+</ol>
+
+<h3 id="查看并修改索引">查看并修改索引</h3>
+
+<ol>
+  <li>在 Visual studio Code 中，在 <strong>“modify-search”</strong> 文件夹中打开 <strong>“index.json”</strong>。这将显示 <strong>margies-index</strong> 的 JSON 定义。</li>
+  <li>滚动浏览索引并查看字段定义。某些字段基于源文档中的元数据和内容，还有的来自于技能和技能组。</li>
+  <li>
+    <p>在你在 Azure 门户中定义的字段列表的末尾，注意添加了两个额外的字段：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs bash"> {
+     <span class="hljs-string">"name"</span>: <span class="hljs-string">"sentiment"</span>,
+     <span class="hljs-string">"type"</span>: <span class="hljs-string">"Edm.Double"</span>,
+     <span class="hljs-string">"facetable"</span>: <span class="hljs-literal">false</span>,
+     <span class="hljs-string">"filterable"</span>: <span class="hljs-literal">true</span>,
+     <span class="hljs-string">"retrievable"</span>: <span class="hljs-literal">true</span>,
+     <span class="hljs-string">"sortable"</span>: <span class="hljs-literal">true</span>
+ },
+ {
+     <span class="hljs-string">"name"</span>: <span class="hljs-string">"url"</span>,
+     <span class="hljs-string">"type"</span>: <span class="hljs-string">"Edm.String"</span>,
+     <span class="hljs-string">"facetable"</span>: <span class="hljs-literal">false</span>,
+     <span class="hljs-string">"filterable"</span>: <span class="hljs-literal">true</span>,
+     <span class="hljs-string">"retrievable"</span>: <span class="hljs-literal">true</span>,
+     <span class="hljs-string">"searchable"</span>: <span class="hljs-literal">false</span>,
+     <span class="hljs-string">"sortable"</span>: <span class="hljs-literal">false</span>
+ }
+</code></pre>
+  </li>
+  <li>将使用 <strong>sentiment</strong> 字段添加来自你添加到技能组的 <strong>get-sentiment</strong> 技能的输出。将根据从数据源提取的 <strong>metadata_storage_path</strong> 值，使用 <strong>url</strong> 字段将每个被索引的文档的 URL 添加到索引。注意，索引已包含 <strong>metadata_storage_path</strong> 字段，但它用作索引密钥并采用 Base-64 编码，因此它具有密钥的效率，但要求客户端应用程序在要使用实际 URL 值作为字段时对其进行解码。添加另一个字段以存储未编码的值可解决此问题。</li>
+</ol>
+
+<h3 id="查看并修改索引器">查看并修改索引器</h3>
+
+<ol>
+  <li>在 Visual studio Code 中，在 <strong>“modify-search”</strong> 文件夹中打开 <strong>“indexer.json”</strong>。这将显示 <strong>margies-indexer</strong> 的 JSON 定义，它将由文档内容和元数据提取的字段（位于 <strong>fieldMappings</strong> 部分）和由技能组中的技能提取到的值（位于 <strong>outputFieldMappings</strong> 部分）映射到索引中的字段。</li>
+  <li>
+    <p>在 <strong>fieldMappings</strong> 列表中，注意 <strong>metadata_storage_path</strong> 值到 base-64 编码密钥字段的映射。这是在你在 Azure 门户中将 <strong>metadata_storage_path</strong> 分配为密钥并选择编码选项时创建的。此外，新映射将相同的值显式映射到 <strong>url</strong> 字段，但没有 Base-64 编码：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs json"> {
+     <span class="hljs-attr">"sourceFieldName"</span> : <span class="hljs-string">"metadata_storage_path"</span>,
+     <span class="hljs-attr">"targetFieldName"</span> : <span class="hljs-string">"url"</span>
+ }
+    
+</code></pre>
+  </li>
+</ol>
+
+<p>源文档中的其他所有元数据和内容字段都隐式映射到索引中具有相同名称的字段。</p>
+
+<ol>
+  <li>
+    <p>查看 <strong>ouputFieldMappings</strong> 部分，它将技能组中技能的数据映射到索引字段。其中大部分结果都反映了你在用户界面中的选择，但还添加了以下映射，将由情绪识别技能提取的 <strong>sentimentScore</strong> 值映射到你添加到索引的 <strong>sentiment</strong> 字段：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs json"> {
+     <span class="hljs-attr">"sourceFieldName"</span>: <span class="hljs-string">"/document/sentimentScore"</span>,
+     <span class="hljs-attr">"targetFieldName"</span>: <span class="hljs-string">"sentiment"</span>
+ }
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="使用-rest-api-更新搜索解决方案">使用 REST API 更新搜索解决方案</h3>
+
+<ol>
+  <li>右键单击 <strong>modify-search</strong> 文件夹并打开集成终端。</li>
+  <li>
+    <p>在 <strong>modify-search</strong> 文件夹的终端窗格中，输入以下命令以运行 <strong>modify-search.cmd</strong> 脚本，它会将 JSON 定义提交到 REST 接口并启动索引编制。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs"> modify-search
+</code></pre>
+  </li>
+  <li>
+    <p>脚本结束后，在 Azure 门户中返回你的 Azure 认知搜索资源的 <strong>“概述”</strong> 页，并查看 <strong>“索引器”</strong> 页。然后定期选择 <strong>“刷新”</strong> 以跟踪索引编制操作的进度。可能需要一分钟左右的时间才能完成。</p>
+
+    <p><em>对于一些由于过大而无法评估情绪的文档，可能会生成警告。通常在页面或语句级别而不是整个文档级别执行情绪分析；但在本例中，大多数文档（尤其是酒店评论）很短，可以评估出有用的文档级情绪分数。</em></p>
+  </li>
+</ol>
+
+<h3 id="查询经修改的索引">查询经修改的索引</h3>
+
+<ol>
+  <li>在 Azure 认知搜索资源边栏选项卡的顶部，选择 <strong>“搜索资源管理器”</strong>。</li>
+  <li>
+    <p>在搜索资源管理器的 <strong>“查询字符串”</strong> 框中，输入以下查询字符串，然后选择 <strong>“搜索”</strong>。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs perl"> search=London&amp;$select=url,sentiment,keyphrases&amp;$filter=metadata_author eq <span class="hljs-string">'Reviewer'</span> <span class="hljs-keyword">and</span> sentiment <span class="hljs-keyword">gt</span> <span class="hljs-number">0</span>.<span class="hljs-number">5</span>
+</code></pre>
+
+    <p>该查询可检索评论家 (<strong>Reviewer</strong>) 撰写的所有提及伦敦 (<strong>London</strong>) 时情绪分数大于 <strong>0.5</strong>（换句话说，提及伦敦的正面评论）的文档的 <strong>url</strong>、情绪和关键词</p>
+  </li>
+  <li>关闭 <strong>“搜索资源管理器”</strong> 页并返回 <strong>“概述”</strong> 页。</li>
+</ol>
+
+<h2 id="创建搜索客户端应用程序">创建搜索客户端应用程序</h2>
+
+<p>现在你拥有了有用的索引，可从客户端应用程序使用它。可通过下列方式进行此操作：使用 REST 接口，通过 HTTP 以 JSON 提交请求并收取响应；使用你偏好的编程语言的软件开发工具包 (SDK)。在此练习中，我们将使用 SDK。</p>
+
+<blockquote>
+  <p><strong>备注</strong>：可选择将该 SDK 用于 <strong>C#</strong> 或 <strong>Python</strong>。在下面的步骤中，请执行适用于你的语言首选项的操作。</p>
+</blockquote>
+
+<h3 id="获取搜索资源的终结点和密钥">获取搜索资源的终结点和密钥</h3>
+
+<ol>
+  <li>在 Azure 门户中，在你的 Azure 认知搜索资源的 <strong>“概述”</strong> 页上，记下 <strong>“Url”</strong> 值，该值应类似 <strong>https://<em>your_resource_name</em>.search.windows.net</strong>。这是你的搜索资源的终结点。</li>
+  <li>
+    <p>在 <strong>“密钥”</strong> 页面上，注意有两个管理密钥和一个查询密钥。管理密钥用于创建和管理搜索资源；查询密钥由只需要执行搜索查询的客户端应用程序使用。</p>
+
+    <p><em>你需要客户端应用程序的终结点和查询密钥。</em></p>
+  </li>
+</ol>
+
+<h3 id="准备使用-azure-认知搜索-sdk">准备使用 Azure 认知搜索 SDK</h3>
+
+<ol>
+  <li>在 Visual Studio Code 中，在 <strong>“Explorer”</strong> 窗格中浏览到 <strong>22-create-a-search-solution</strong> 文件夹，并根据你的语言偏好展开 <strong>C-Sharp</strong> 或 <strong>Python</strong> 文件夹。</li>
+  <li>
+    <p>右键单击 <strong>margies-travel</strong> 文件夹并打开集成终端。然后运行符合你语言偏好的适当命令，安装 Azure 认知搜索 SDK 包。</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag">dotnet</span> <span class="hljs-selector-tag">add</span> <span class="hljs-selector-tag">package</span> <span class="hljs-selector-tag">Azure</span><span class="hljs-selector-class">.Search</span><span class="hljs-selector-class">.Documents</span> <span class="hljs-selector-tag">--version</span> 11<span class="hljs-selector-class">.1</span><span class="hljs-selector-class">.1</span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs sql"> pip <span class="hljs-keyword">install</span> azure-<span class="hljs-keyword">search</span>-documents==<span class="hljs-number">11.0</span><span class="hljs-number">.0</span>
+</code></pre>
+  </li>
+  <li>查看 <strong>margies-travel</strong> 文件夹的内容，注意它包含配置设置的文件：
+    <ul>
+      <li><strong>C#</strong>：appsettings.json</li>
+      <li><strong>Python</strong>：.env</li>
+    </ul>
+
+    <p>打开配置文件并更新它包含的配置值，以反映你的 Azure 认知搜索资源的<strong>终结点</strong>和<strong>查询密钥</strong>。保存更改。</p>
+  </li>
+</ol>
+
+<h3 id="浏览用于搜索索引的代码">浏览用于搜索索引的代码</h3>
+
+<p><strong>margies-travel</strong> 文件夹包含 web 应用程序（Microsoft C# <em>ASP.NET Razor</em> web 应用程序或 Python <em>Flask</em> 应用程序）的代码文件，该应用程序包含搜索功能。</p>
+
+<ol>
+  <li>根据你选择的编程语言，在该 web 应用程序中打开以下代码文件：
+    <ul>
+      <li><strong>C#</strong>：Pages/Index.cshtml.cs</li>
+      <li><strong>Python</strong>：app.py</li>
+    </ul>
+  </li>
+  <li>在代码文件顶部，找到注释 <strong>“Import search namespaces”</strong>，并注意已通过 Azure 认知搜索 SDK 导入工作的命名空间：</li>
+  <li>在 <strong>search_query</strong> 函数中，找到注释 <strong>“Create a search client”</strong>，并注意使用你的 Azure 认知搜索资源的终结点和查询密钥创建 <strong>SearchClient</strong> 对象的代码：</li>
+  <li>在 <strong>search_query</strong> 函数中，找到注释 <strong>“Submit search query”</strong>，并通过以下选项评审用于提交对指定文字的搜索的代码：
+    <ul>
+      <li>要求找到搜索文本中<em>所有</em>单词的<strong>搜索模式</strong>。</li>
+      <li>结果中包含搜索找到的文档总数。</li>
+      <li>结果经过筛选，仅包含与提供的筛选表达式匹配的文档。</li>
+      <li>结果按指定排列顺序排列。</li>
+      <li><strong>Metadata_author</strong> 字段的每个离散值都作为一个 <em>facet</em> 返回，facet 可用于显示要筛选的预定义的值。</li>
+      <li>结果中包含 <strong>merged_content</strong> 和 <strong>imageCaption</strong> 字段的最多三个提取项和突出显示的搜索词。</li>
+      <li>结果仅包含指定字段。</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="浏览用于呈现搜索结果的代码">浏览用于呈现搜索结果的代码</h3>
+
+<p>该 web 应用已包含用于处理和呈现搜索结果的代码。</p>
+
+<ol>
+  <li>根据你选择的编程语言，在该 web 应用程序中打开以下代码文件：
+    <ul>
+      <li><strong>C#</strong>：Pages/Index.cshtml</li>
+      <li><strong>Python</strong>：templates/search.html</li>
+    </ul>
+  </li>
+  <li>检查代码，它呈现了显示搜索结果的页面。观察以下情况：
+    <ul>
+      <li>页面从用户可用于提交新搜索的搜索表单开始（在 Python 版本的应用程序中，此表单在 <strong>base.html</strong> 模板中定义），页面顶部引用了该表单。</li>
+      <li>然后呈现搜索表单，让用户能够精炼搜索结果。此表单的代码：
+        <ul>
+          <li>检索并显示搜索结果中的文档数。</li>
+          <li>检索 <strong>metadata_author</strong> 字段的 facet 值，并将其显示为待筛选的选项列表。</li>
+          <li>创建用于显示结果排序选项的下拉列表。</li>
+        </ul>
+      </li>
+      <li>代码随后将迭代搜索结果，按以下方式呈现每个结果：
+        <ul>
+          <li>将 <strong>metadata_storage_name</strong> （文件名）字段显示为指向 <strong>url</strong> 字段中地址的链接。</li>
+          <li>突出显示在 <strong>merged_content</strong> 和 <strong>imageCaption</strong> 字段中找到的搜索词，以帮助在上下文中展现搜索词。</li>
+          <li>显示 <strong>metadata_author</strong>、<strong>metadata_storage_size</strong>、<strong>metadata_storage_last_modified</strong> 和 <strong>language</strong> 字段。</li>
+          <li>使用表情指示<strong>情绪</strong>（🙂 表示 0.5 或更高分数，🙁 表示低于 0.5 的分数）。</li>
+          <li>显示前五个 <strong>keyphrases</strong>（若有）。</li>
+          <li>显示前五个 <strong>locations</strong>（若有）。</li>
+          <li>显示前五个 <strong>imageTags</strong>（若有）。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="运行-web-应用">运行 Web 应用</h3>
+
+<ol>
+  <li>
+    <p>返回 <strong>margies-travel</strong> 文件夹的集成终端，并输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute">dotnet</span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute">flask</span> run
+</code></pre>
+  </li>
+  <li>应用成功启动时显示的消息，后跟正在运行的 web 应用程序的链接 <em>http://localhost:5000/</em> 或 <em>http://127.0.0.1:5000/</em> 用于在 web 浏览器中打开 Margies Travel 站点。</li>
+  <li>在 Margie’s Travel 网站上，在搜索框中输入 <strong>“London hotel”</strong> 并单击 <strong>“搜索”</strong>。</li>
+  <li>查看搜索结果。其中包含文件名（以及指向文件 URL 的超链接）、强调了搜索词（<em>London</em> 和 <em>hotel</em>）的文件内容提取项，以及来自索引字段的其他文件属性。</li>
+  <li>观察结果页包含某些可用于精炼结果的用户界面元素。这些格式包括：
+    <ul>
+      <li>基于 <strong>metadata_author</strong> 字段 <em>facet</em> 值的筛选器。这演示了如何使用可分片字段来返回 <strong>facets</strong> - 字段的列表以及可在用户界面中显示为潜在筛选器值的一组离散值。</li>
+      <li>根据特定字段和排列顺序（升序或降序）对结果进行排序的能力。默认顺序基于相关度，基于评分配置文件计算为 <strong>search.score()</strong> 值，评分配置文件评估索引字段中搜索词的频率和重要性。</li>
+    </ul>
+  </li>
+  <li>选择 <strong>“Reviewer”</strong> 筛选器和 <strong>“正面到负面”</strong> 排序选项，然后选择 <strong>“精炼结果”</strong>。</li>
+  <li>观察对结果进行了筛选，使其仅包含评论，并且按情绪积极程度降序排列。</li>
+  <li>在 <strong>“搜索”</strong> 框中，输入新搜索 <strong>“quiet hotel in New York”</strong> 并查看结果。</li>
+  <li>尝试使用以下搜索词：
+    <ul>
+      <li><strong>Tower of London</strong>（观察这个词在一些文档中被识别为关键短语）。</li>
+      <li><strong>skyscraper</strong>（观察这个词并未出现在任何文档的实际内容中，但在由某些文档中的图像生成的图像描述和图像标签中找到）。</li>
+      <li><strong>Mojave desert</strong>（观察这个词在一些文档中被识别为位置）。</li>
+    </ul>
+  </li>
+  <li>关闭包含 Margie’s Travel 网站的浏览器选项卡，并返回到 Visual Studio Code。然后在 <strong>margies-travel</strong> 文件夹中 Python 终端中（dotnet 或 flask 应用程序在其中运行），按 Ctrl+C 以停止运行应用。</li>
+</ol>
+
+<h2 id="更多信息">更多信息</h2>
+
+<p>有关 Azure 认知搜索的详细信息，请参阅 <a href="https://docs.microsoft.com/azure/search/search-what-is-azure-search">Azure 认知搜索文档</a>。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

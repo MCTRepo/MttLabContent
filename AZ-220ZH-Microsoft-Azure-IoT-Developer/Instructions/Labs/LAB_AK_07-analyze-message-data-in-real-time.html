@@ -1,0 +1,1103 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220ZH-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220ZH-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1验证实验室先决条件">练习 1：验证实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习-2编写代码来生成振动遥测数据">练习 2：编写代码来生成振动遥测数据</a></li><li class="nav-item"><a class="nav-link" href="#练习-3创建到-azure-blob-存储的消息路由">练习 3：创建到 Azure Blob 存储的消息路由</a></li><li class="nav-item"><a class="nav-link" href="#练习-4日志记录路由-azure-流分析作业">练习 4：日志记录路由 Azure 流分析作业</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="设备消息路由">设备消息路由</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你使用 DPS 来实现自动设备注册给 Contoso 管理层留下了深刻的印象。他们现在希望你开发一种与产品包装和运输有关的基于 IoT 的解决方案。</p>
+
+<p>打包和运输奶酪所产生的成本值得注意。为了最大程度地提高成本效率，Contoso 运营了一个本地包装设备。工作流程简单直接 - 奶酪切块打包、包裹组装到运输容器中，容器运输到与其目的地关联的特定运输箱中。传送带系统用于在此过程中传送产品。运输成功的衡量标准是在给定时间段（通常是工作班次）内离开传送带系统的包裹数量。</p>
+
+<p>传送带系统是此过程中的关键环节，它会被直观监控，确保工作流程以最高效率推进。该系统具有三种操作员可控速度：停止、慢速和快速。当然，以低速运输的包裹的数量比以更快速度运输的包裹数量要少。不过，需要考虑很多其他因素：</p>
+
+<ul>
+  <li>速度较慢时，传送带系统的振动水平要小得多</li>
+  <li>振动水平高可能导致包裹从传送带上掉落</li>
+  <li>振动水平高已知会加快系统的磨损</li>
+  <li>当振动水平超过阈值限制时，必须停止传送带来进行检查（目的是避免更严重的故障）。</li>
+</ul>
+
+<p>除了将吞吐量最大化，你的自动化 IoT 解决方案还将根据振动水平实施一种预防性维护，它将用于在出现严重系统损坏之前检测是否有早期警告迹象。</p>
+
+<blockquote>
+  <p><strong>备注：</strong> <strong>预防性维护</strong>有时称为防止性维护或预测性维护，它是一种设备维护程序，用于计划在设备正常运行时执行的维护活动。这种方法的目的是避免意外故障，这些故障通常会导致代价高昂的设备中断。</p>
+</blockquote>
+
+<p>操作员直观检测异常振动级别并不总是很容易。因此，你正在寻求一种 Azure IoT 解决方案，该解决方案将有助于测量振动水平和数据异常。振动传感器将连接到传送带的各个位置，你将使用 IoT 设备将遥测发送到 IoT 中心。IoT 中心将使用 Azure 流分析和内置的机器学习 (ML) 模型来实时提醒你提防振动异常。你还计划将所有遥测数据存档，以便将来可开发内部机器学习模型。</p>
+
+<p>你可以使用来自单个 IoT 设备的模拟遥测技术来进行解决方案的原型设计。</p>
+
+<p>为了以逼真的方式模拟振动数据，你可与一位运营部门的工程师一起工作，来稍微了解一下导致振动的原因。事实证明，有多种不同类型的振动会影响整体振动级别。例如，“强制振动”可能是由损坏的导轮或者传送带过载引起的。当超出系统设计限制（例如速度或重量）时，也会引入“持续增加的振动”。工程师团队同意帮助你为模拟的 IoT 设备开发代码，该设备将生成可接受的振动数据描述（包括异常）。</p>
+
+<p>将创建以下资源：</p>
+
+<p><a href="media/LAB_AK_07-architecture.png" target="_blank"><img src="media/LAB_AK_07-architecture.png" alt="实验室 7 基础结构"></a></p>
+
+<h2 id="本实验室概览">本实验室概览</h2>
+
+<p>在本实验室中，你首先将查看实验室先决条件，并根据需要运行脚本来确保你的 Azure 订阅包含所需的资源。然后，你将创建一个将振动遥测数据发送到 IoT 中心的模拟设备。在模拟设备到达 IoT 中心后，你将实施一项“IoT 中心消息路由和 Azure 流分析”作业，它可用于将数据存档。本实验室包括以下练习：</p>
+
+<ul>
+  <li>
+    <p>验证实验室先决条件</p>
+
+    <ul>
+      <li>将使用脚本来创建任何缺少的资源，并为此实验室创建一个新的设备标识 (sensor-v-3000)</li>
+    </ul>
+  </li>
+  <li>编写代码来生成振动遥测数据</li>
+  <li>创建到 Azure Blob 存储的消息路由</li>
+  <li>日志记录路由 Azure 流分析作业</li>
+</ul>
+
+<h2 id="实验室说明">实验室说明</h2>
+
+<h3 id="练习-1验证实验室先决条件">练习 1：验证实验室先决条件</h3>
+
+<p>本实验室假定以下 Azure 资源可用：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">资源类型</th>
+      <th style="text-align: left">资源名称</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">资源组</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT 中心</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">设备 ID</td>
+      <td style="text-align: left">sensor-v-3000</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>重要说明</strong>： 运行设置脚本以创建所需设备。</p>
+</blockquote>
+
+<p>若要创建任何缺少的资源和新设备，在开始练习 2 之前，需要先按照下面的说明运行 <strong>lab07-setup.azcli</strong> 脚本。脚本文件包含在本地克隆作为开发环境配置（实验室 3）的 GitHub 存储库中。</p>
+
+<p>写入 <strong>lab07-setup.azcli</strong> 脚本，并在 <strong>Bash</strong> shell 环境中运行，执行此操作最简便的方法是在 Azure Cloud Shell 中。</p>
+
+<ol>
+  <li>
+    <p>使用浏览器，打开 <a href="https://shell.azure.com/">Azure Cloud Shell</a>，并使用本课程使用的 Azure 订阅登录。</p>
+
+    <p>如果系统提示设置 Cloud Shell 的存储，请接受默认设置。</p>
+  </li>
+  <li>
+    <p>验证 Cloud Shell 是否在使用 <strong>Bash</strong>。</p>
+
+    <p>Azure Cloud Shell 页面左上角的下拉菜单用于选择环境。验证所选的下拉值是否为 <strong>Bash</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 工具栏上，单击 <strong>“上传/下载文件”</strong> （从右数第四个按钮）。</p>
+  </li>
+  <li>
+    <p>在下拉菜单中，单击 <strong>“上传”</strong>。</p>
+  </li>
+  <li>
+    <p>在“文件选择”对话框中，导航到配置开发环境时下载的 GitHub 实验室文件的文件夹位置。</p>
+
+    <p>在“实验室 3：<em>设置开发环境</em>，你可以通过下载 ZIP 文件并从本地提取内容来克隆包含实验室资源的 GitHub 存储库。提取的文件夹结构包括以下文件夹路径：</p>
+
+    <ul>
+      <li>Allfiles
+        <ul>
+          <li>实验室
+            <ul>
+              <li>07 - 设备消息路由
+                <ul>
+                  <li>设置</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>lab07-setup.azcli 脚本文件位于实验室 7 的 Setup 文件夹中。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“lab07-setup.azcli”</strong> 文件，然后单击 <strong>“打开”</strong>。</p>
+
+    <p>文件上传完成后，系统将显示一条通知。</p>
+  </li>
+  <li>
+    <p>若要验证在 Azure Cloud Shell 中已上传了正确文件，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs"> ls
+</code></pre>
+
+    <p>使用 <code>ls</code> 命令列出当前目录的内容。你应该会看到列出的 lab07-setup.azcli 文件。</p>
+  </li>
+  <li>
+    <p>若要为此实验室创建一个包含安装脚本的目录，然后移至该目录，请输入以下 Bash 命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs"> mkdir lab7
+ mv lab07-setup.azcli lab7
+ <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> lab7
+</code></pre>
+  </li>
+  <li>
+    <p>为了保证 <strong>lab07-setup.azcli</strong> 具有执行权限，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs"> chmod +x lab07-setup.azcli
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 工具栏上，请单击 <strong>“打开编辑器”</strong> （右侧的第二个按钮 - <strong>{ }</strong>）以启用对 lab07-setup.azcli 文件的访问。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 列表中，要展开“lab7”文件夹并打开脚本文件，请单击 <strong>“实验室 7”</strong>，然后单击 <strong>“lab07-setup.azcli”</strong>。</p>
+
+    <p>编辑器现在将显示 <strong>“lab07-setup.azcli”</strong> 文件的内容。</p>
+  </li>
+  <li>
+    <p>在编辑器中，更新 <code>{your-id}</code> 和 <code>{your-location}</code> 分配的值。</p>
+
+    <p>以下面的示例为例，需要将 <code>{your-id}</code> 设置为在本课程开始时创建的唯一 ID（即 <strong>cah191211</strong>），然后将 <code>{your-location}</code> 设置为对你的资源有意义的位置。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> <span class="hljs-comment"><span class="hljs-comment">#!/bin/bash</span></span>
+
+ <span class="hljs-comment"><span class="hljs-comment"># Change these values!</span></span>
+ YourID=<span class="hljs-string"><span class="hljs-string">"{your-id}"</span></span>
+ Location=<span class="hljs-string"><span class="hljs-string">"{your-location}"</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注：</strong>  应将 <code>{your-location}</code> 变量设置为要部署所有资源的区域的短名称。输入以下命令，可以看到可用位置及其短名称的列表（<strong>“名称”</strong> 列）：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs"> az account list-locations -o Table
+
+ DisplayName           Latitude    Longitude    Name
+ --------------------  ----------  -----------  ------------------
+ East Asia             22.267      114.188      eastasia
+ Southeast Asia        1.283       103.833      southeastasia
+ Central US            41.5908     -93.6208     centralus
+ East US               37.3719     -79.8164     eastus
+ East US 2             36.6681     -78.3889     eastus2
+</code></pre>
+  </li>
+  <li>
+    <p>要保存对文件所做的更改并关闭编辑器，请单击编辑器窗口右上角的“<strong>…</strong>”，然后单击 <strong>“关闭编辑器”</strong>。</p>
+
+    <p>如果提示保存，请单击 <strong>“保存”</strong>，编辑器将会关闭。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  可以使用 <strong>Ctrl+S</strong> 随时保存，使用 <strong>Ctrl+Q</strong> 关闭编辑器。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>要创建本实验室所需的资源，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs"> ./lab07-setup.azcli
+</code></pre>
+
+    <p>运行此脚本可能需要几分钟。每个步骤完成时，你都会看到输出。</p>
+
+    <p>该脚本将首先创建一个名为 <strong>rg-az220</strong> 的资源组和一个名为 <strong>iot-az220-training-{your-id}</strong> 的 IoT 中心。如果它们已经存在，将显示相应的消息。然后，脚本会将 ID 为 <strong>sensor-v-3000</strong> 的设备添加到 IoT 中心并显示设备连接字符串。</p>
+  </li>
+  <li>
+    <p>请注意，脚本完成后，将显示设备的连接字符串。</p>
+
+    <p>连接字符串以 “HostName=” 开头</p>
+  </li>
+  <li>
+    <p>将连接字符串复制到文本文档中，请注意，该字符串适用于 <strong>sensor-v-3000</strong> 设备。</p>
+
+    <p>将连接字符串保存到容易找到的位置后，就可以继续进行本实验室了。</p>
+  </li>
+</ol>
+
+<h3 id="练习-2编写代码来生成振动遥测数据">练习 2：编写代码来生成振动遥测数据</h3>
+
+<p>要自动监视 Contoso 的传送带系统并启用预防性维护，同时需要长期数据分析和实时数据分析。由于没有历史数据，因此首先将生成以逼真的方式模拟振动数据和数据异常的模拟数据。Contoso 工程师开发了一种算法来模拟一段时间内的振动情况，并将该算法嵌入到了你将实现的代码类中。工程师同意对调整该算法所需的任何未来更新提供支持。</p>
+
+<p>在初始原型阶段，你将实现单个 IoT 设备来生成遥测数据。除了振动数据，你的设备将创建一些额外的值（运输的包裹、环境温度和类似指标），它们将发送至 Blob 存储。此额外数据将模拟要用于为预防性维护开发机器学习模型的数据。</p>
+
+<p>在本练习中，你将：</p>
+
+<ul>
+  <li>加载模拟设备项目</li>
+  <li>为模拟设备上传连接字符串，并查看项目代码</li>
+  <li>测试模拟设备连接和遥测通信</li>
+  <li>确保遥测数据到达你的 IoT 中心</li>
+</ul>
+
+<h4 id="任务-1打开模拟设备项目">任务 1：打开模拟设备项目</h4>
+
+<ol>
+  <li>
+    <p>打开 <strong>Visual Studio Code</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 菜单上，单击 <strong>“打开文件夹”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“打开文件夹”</strong> 对话框中，导航到 <strong>07-Device Message Routing</strong> 文件夹。</p>
+
+    <p>在“实验室 3：<em>设置开发环境</em>，你可以通过下载 ZIP 文件并从本地提取内容来克隆包含实验室资源的 GitHub 存储库。提取的文件夹结构包括以下文件夹路径：</p>
+
+    <ul>
+      <li>Allfiles
+        <ul>
+          <li>实验室
+            <ul>
+              <li>07 - 设备消息路由
+                <ul>
+                  <li>入门
+                    <ul>
+                      <li>VibrationDevice</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>导航到实验室 7 的 <strong>Starter</strong> 文件夹。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“VibrationDevice”</strong>，然后单击 <strong>“选择文件夹”</strong>。</p>
+
+    <p>你应该会在 Visual Studio Code 的资源管理器窗格中看到以下文件：</p>
+
+    <ul>
+      <li>Program.cs</li>
+      <li>VibrationDevice.csproj</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>备注：</strong> 如果系统提示加载所需的资产，可现在进行加载。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“资源管理器”</strong> 窗格中，单击 <strong>“Program.cs”</strong>。</p>
+
+    <p>粗略地看一下就会发现，<strong>VibrationDevice</strong> 应用程序与前面的实验室中使用的应用程序非常相似。此版本的应用程序使用对称密钥身份验证，将遥测和日志记录消息发送到 IoT 中心，并且具有更复杂的传感器实现。</p>
+  </li>
+  <li>
+    <p>在 <strong>“终端”</strong> 菜单中，单击 <strong>“新建终端”</strong>。</p>
+
+    <p>检查指示为命令提示符一部分的目录路径，确保你在正确的位置。你无需在上一个实验室项目的文件夹结构中开始构建此项目。</p>
+  </li>
+  <li>
+    <p>在终端命令提示符下，请输入以下命令以验证应用程序版本没有错误：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-cmd"> dotnet build
+</code></pre>
+
+    <p>输出结果会类似于：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-text"> ❯ dotnet build
+ Microsoft (R) Build Engine version 16.5.0+d4cbfca49 for .NET Core
+ Copyright (C) Microsoft Corporation. All rights reserved.
+
+ Restore completed in 39.27 ms for D:\Az220-Code\AllFiles\Labs\07-Device Message Routing\Starter\VibrationDevice\VibrationDevice.csproj.
+ VibrationDevice -&gt; D:\Az220-Code\AllFiles\Labs\07-Device Message Routing\Starter\VibrationDevice\bin\Debug\netcoreapp3.1\VibrationDevice.dll
+
+ Build succeeded.
+     0 Warning(s)
+     0 Error(s)
+
+ Time Elapsed 00:00:01.16
+</code></pre>
+  </li>
+</ol>
+
+<p>在下一个任务中，你将配置连接字符串并查看应用程序。</p>
+
+<h4 id="任务-2配置连接并查看代码">任务 2：配置连接并查看代码</h4>
+
+<p>你在此任务中构建的模拟设备应用将模拟监视传送带的 IoT 设备。该应用将模拟传感器读数并每两秒钟报告一次振动传感器数据。</p>
+
+<ol>
+  <li>
+    <p>确保 <strong>Program.cs</strong> 文件已在 Visual Studio Code 中打开。</p>
+  </li>
+  <li>
+    <p>在 <strong>Program</strong> 类顶部附近，找到 <code>deviceConnectionString</code> 变量的声明：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> deviceConnectionString = <span class="hljs-string"><span class="hljs-string">"&lt;your device connection string&gt;"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>将 <code>&lt;your device connection string&gt;</code> 替换为你之前保存的设备连接字符串。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 这是你需要对此代码进行的唯一更改。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 菜单中，单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>花一分钟查看一下项目的结构。</p>
+
+    <p>请注意，该应用程序的结构与之前的模拟设备项目类似：</p>
+
+    <ul>
+      <li>使用语句</li>
+      <li>命名空间定义
+        <ul>
+          <li>Program 类 - 负责连接到 Azure IoT 并发送遥测</li>
+          <li>ConveyorBeltSimulator 类 -（取代 EnvironmentSensor）该类不仅会生成遥测数据，才会模拟正在运转的传送带。</li>
+          <li>ConsoleHelper - 将编写不同彩色文本封装到控制台的一个新类</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>花一分钟来查看 <strong>Main</strong> 方法。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+ </span></span>{
+     ConsoleHelper.WriteColorMessage(<span class="hljs-string"><span class="hljs-string">"Vibration sensor device app.\n"</span></span>, ConsoleColor.Yellow);
+
+     <span class="hljs-comment"><span class="hljs-comment">// Connect to the IoT hub using the MQTT protocol.</span></span>
+     deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, TransportType.Mqtt);
+
+     SendDeviceToCloudMessagesAsync();
+     Console.ReadLine();
+ }
+</code></pre>
+
+    <p>看看使用 <strong>deviceConnectionString</strong> 变量创建 <strong>DeviceClient</strong> 的实例是多么的简单。由于 <code>deviceClient</code> 对象是在 <strong>Main</strong> 之外声明的（在上述代码的项目级别），因此它是全局的，进而可在与 IoT 中心通信的方法内部使用。</p>
+  </li>
+  <li>
+    <p>花一分钟来查看 <strong>SendDeviceToCloudMessagesAsync</strong> 方法。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">SendDeviceToCloudMessagesAsync</span></span></span><span class="hljs-function">(</span><span class="hljs-params"></span><span class="hljs-function"><span class="hljs-params"></span>)
+ </span></span>{
+     <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> conveyor = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ConveyorBeltSimulator(intervalInMilliseconds);
+
+     <span class="hljs-comment"><span class="hljs-comment">// Simulate the vibration telemetry of a conveyor belt.</span></span>
+     <span class="hljs-keyword"><span class="hljs-keyword">while</span></span> (<span class="hljs-literal"><span class="hljs-literal">true</span></span>)
+     {
+         <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> vibration = conveyor.ReadVibration();
+
+         <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> CreateTelemetryMessage(conveyor, vibration);
+
+         <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> CreateLoggingMessage(conveyor, vibration);
+
+         <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Task.Delay(intervalInMilliseconds);
+     }
+ }
+</code></pre>
+
+    <p>首先，请注意该方法将用于建立无限程序循环，这先是获取振动读数，然后按定义的时间间隔发送消息。</p>
+
+    <p>更仔细查看可看出 ConveyorBeltSimulator 类用于创建一个名为 <code>conveyor</code> 的 ConveyorBeltSimulator 实例。<code>conveyor</code>对象先用于捕获振动读数（放置在本地变量<code>vibration</code>中），然后与在时间间隔开始时捕获的 <code>vibration</code> 值一起传递到两个“创建消息”方法中。</p>
+  </li>
+  <li>
+    <p>花一分钟来查看 <strong>CreateTelemetryMessage</strong> 方法。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">CreateTelemetryMessage</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">ConveyorBeltSimulator conveyor, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">double</span></span></span></span><span class="hljs-function"><span class="hljs-params"> vibration</span></span></span><span class="hljs-function">)
+ </span></span>{
+     <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> telemetryDataPoint = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span>
+     {
+         vibration = vibration,
+     };
+     <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> telemetryMessageString = JsonConvert.SerializeObject(telemetryDataPoint);
+     <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> telemetryMessage = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Message(Encoding.ASCII.GetBytes(telemetryMessageString));
+
+     <span class="hljs-comment"><span class="hljs-comment">// Add a custom application property to the message. This is used to route the message.</span></span>
+     telemetryMessage.Properties.Add(<span class="hljs-string"><span class="hljs-string">"sensorID"</span></span>, <span class="hljs-string"><span class="hljs-string">"VSTel"</span></span>);
+
+     <span class="hljs-comment"><span class="hljs-comment">// Send an alert if the belt has been stopped for more than five seconds.</span></span>
+     telemetryMessage.Properties.Add(<span class="hljs-string"><span class="hljs-string">"beltAlert"</span></span>, (conveyor.BeltStoppedSeconds &gt; <span class="hljs-number"><span class="hljs-number">5</span></span>) ? <span class="hljs-string"><span class="hljs-string">"true"</span></span> : <span class="hljs-string"><span class="hljs-string">"false"</span></span>);
+
+     Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"Telemetry data: </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{telemetryMessageString}</span></span></span><span class="hljs-string">"</span></span>);
+
+     <span class="hljs-comment"><span class="hljs-comment">// Send the telemetry message.</span></span>
+     <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> deviceClient.SendEventAsync(telemetryMessage);
+     ConsoleHelper.WriteGreenMessage(<span class="hljs-string"><span class="hljs-string">$"Telemetry sent </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{DateTime.Now.ToShortTimeString()}</span></span></span><span class="hljs-string">"</span></span>);
+ }
+</code></pre>
+
+    <p>在更早的实验室中，此方法会创建一个 JSON 消息字符串，并使用 <strong>Message</strong> 类将消息连同额外的属性一起发送。注意 <strong>sensorID</strong> 属性 - 这将用于在 IoT 中心适当地路由 <strong>VSTel</strong> 值。还要注意 <strong>beltAlert</strong> 属性 - 如果传送带已停止超过 5 分钟，则该属性设置为 true。</p>
+
+    <p>像往常一样，消息是通过设备客户端的 <strong>SendEventAsync</strong> 方法发送的。</p>
+  </li>
+  <li>
+    <p>花一分钟来查看 <strong>CreateLoggingMessage</strong> 方法。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">CreateLoggingMessage</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">ConveyorBeltSimulator conveyor, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">double</span></span></span></span><span class="hljs-function"><span class="hljs-params"> vibration</span></span></span><span class="hljs-function">)
+ </span></span>{
+     <span class="hljs-comment"><span class="hljs-comment">// Create the logging JSON message.</span></span>
+     <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> loggingDataPoint = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span>
+     {
+         vibration = Math.Round(vibration, <span class="hljs-number"><span class="hljs-number">2</span></span>),
+         packages = conveyor.PackageCount,
+         speed = conveyor.BeltSpeed.ToString(),
+         temp = Math.Round(conveyor.Temperature, <span class="hljs-number"><span class="hljs-number">2</span></span>),
+     };
+     <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> loggingMessageString = JsonConvert.SerializeObject(loggingDataPoint);
+     <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> loggingMessage = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Message(Encoding.ASCII.GetBytes(loggingMessageString));
+
+     <span class="hljs-comment"><span class="hljs-comment">// Add a custom application property to the message. This is used to route the message.</span></span>
+     loggingMessage.Properties.Add(<span class="hljs-string"><span class="hljs-string">"sensorID"</span></span>, <span class="hljs-string"><span class="hljs-string">"VSLog"</span></span>);
+
+     <span class="hljs-comment"><span class="hljs-comment">// Send an alert if the belt has been stopped for more than five seconds.</span></span>
+     loggingMessage.Properties.Add(<span class="hljs-string"><span class="hljs-string">"beltAlert"</span></span>, (conveyor.BeltStoppedSeconds &gt; <span class="hljs-number"><span class="hljs-number">5</span></span>) ? <span class="hljs-string"><span class="hljs-string">"true"</span></span> : <span class="hljs-string"><span class="hljs-string">"false"</span></span>);
+
+     Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"Log data: </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{loggingMessageString}</span></span></span><span class="hljs-string">"</span></span>);
+
+     <span class="hljs-comment"><span class="hljs-comment">// Send the logging message.</span></span>
+     <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> deviceClient.SendEventAsync(loggingMessage);
+     ConsoleHelper.WriteGreenMessage(<span class="hljs-string"><span class="hljs-string">"Log data sent\n"</span></span>);
+ }
+</code></pre>
+
+    <p>请注意，此方法与 <strong>CreateTelemetryMessage</strong> 方法很相似。需要注意下面几个要点：</p>
+
+    <ul>
+      <li><strong>loggingDataPoint</strong> 包含的信息比遥测对象的要多。它通常包含尽可能多的信息来进行日志记录，从而协助将来的任何故障诊断活动或更详细的分析。</li>
+      <li>日志记录消息包含 <strong>sensorID</strong> 属性，此时设置为 <strong>VSLog</strong>。同样如上所述，这将用于在 IoT 中心适当地路由 <strong>VSLog</strong> 值。</li>
+    </ul>
+  </li>
+  <li>
+    <p>（可选）花点时间查看一下 <strong>ConveyorBeltSimulator</strong> 类和 <strong>ConsoleHelper</strong> 类。</p>
+
+    <p>实际上，你不需要了解其中任一类如何发挥作用来实现本实验室的全部价值，它们都以自己的方式为结果提供支持。<strong>ConveyorBeltSimulator</strong> 类会模拟传送带的操作，从而对大量速度和相关状态建模来生成振动数据。 <strong>ConsoleHelper</strong> 用于将不同颜色的文本写入控制台来突出显示不同的数据和值。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3测试你的代码以发送遥测">任务 3：测试你的代码以发送遥测</h4>
+
+<ol>
+  <li>
+    <p>在终端命令提示符下，请输入以下命令运行该应用：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-bash hljs"> dotnet run
+</code></pre>
+
+    <p>此命令将在当前文件夹中运行 <strong>“Program.cs”</strong> 文件。</p>
+  </li>
+  <li>
+    <p>显示的控制台输出应类似于以下内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-text"> Vibration sensor device app.
+
+ Telemetry data: {"vibration":0.0}
+ Telemetry sent 10:29 AM
+ Log data: {"vibration":0.0,"packages":0,"speed":"stopped","temp":60.22}
+ Log data sent
+
+ Telemetry data: {"vibration":0.0}
+ Telemetry sent 10:29 AM
+ Log data: {"vibration":0.0,"packages":0,"speed":"stopped","temp":59.78}
+ Log data sent
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注：</strong>  在“终端”窗口中，绿色文本表示工作正常，红色文本表示工作异常。如果收到错误消息，请先检查设备连接字符串。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>让此应用继续运行下一个任务。</p>
+
+    <p>如果你不会继续执行下一个任务，则可以在终端窗口中输入 <strong>Ctrl-C</strong> 停止该应用。你可以稍后使用 <code>dotnet run</code> 命令再次启动它。</p>
+  </li>
+</ol>
+
+<h4 id="任务-4验证-iot-中心正在接收遥测">任务 4：验证 IoT 中心正在接收遥测</h4>
+
+<p>在本任务中，你将使用 Azure 门户来验证 IoT 中心是否在接收遥测数据。</p>
+
+<ol>
+  <li>
+    <p>打开 “Azure 门户”<a href="https://portal.azure.com"></a></p>
+  </li>
+  <li>
+    <p>在“资源”磁贴上，单击 <strong>“iot-az220-training-{your-id}”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“概述”</strong> 窗格中，向下滚动以查看指标磁贴。</p>
+  </li>
+  <li>
+    <p>毗邻 <strong>“显示最后的数据”</strong>，将时间范围更改为一小时。</p>
+
+    <p><strong>“设备到云消息”</strong> 磁贴应该正在绘制一些当前活动。如果未显示任何活动，请稍等片刻，因为存在一些延迟。</p>
+
+    <p>设备发出遥测数据且中心接收它后，下一步是将消息路由到正确的终结点。</p>
+  </li>
+</ol>
+
+<h3 id="练习-3创建到-azure-blob-存储的消息路由">练习 3：创建到 Azure Blob 存储的消息路由</h3>
+
+<p>IoT 解决方案通常要求传入的消息数据根据数据类型或出于业务理由被发送到多个终结点位置。Azure IoT 中心提供了消息路由__功能，它可用它来将传入的数据定向到你的解决方案所需的位置。</p>
+
+<p>我们的系统的体系结构要求将数据发送到两个目标：用于存档数据的存储位置和用于更直接分析的位置。</p>
+
+<p>Contoso 的振动监视方案要求你创建两条消息路由：</p>
+
+<ul>
+  <li>第一条路由将指向 Azure Blob 存储位置进行数据存档</li>
+  <li>第二条路由将指向 Azure 流分析作业进行实时分析</li>
+</ul>
+
+<p>一次应生成和测试一条消息路由，因此本练习将重点介绍存储路由。此路由将被称为“日志记录”路由，它涉及到较深入地了解如何创建 Azure 资源。</p>
+
+<p>消息路由的一个重要特征是能够在路由到终结点之前筛选传入的数据。仅当满足某些条件时，编写为 SQL 查询的筛选器才会沿路由定向输出。</p>
+
+<p>要筛选数据，最简单的方法之一是评估消息属性。你可能记得在上一练习中向你的设备消息添加了消息属性。你当时添加的代码如下所示：</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-csharp hljs">...
+telemetryMessage.Properties.Add(<span class="hljs-string"><span class="hljs-string">"sensorID"</span></span>, <span class="hljs-string"><span class="hljs-string">"VSTel"</span></span>);
+...
+loggingMessage.Properties.Add(<span class="hljs-string"><span class="hljs-string">"sensorID"</span></span>, <span class="hljs-string"><span class="hljs-string">"VSLog"</span></span>);
+</code></pre>
+
+<p>现在，你可在使用 <code>sensorID</code> 作为路由条件的消息路径中嵌入一个 SQL 查询。在本例中，当分配给 <code>sensorID</code> 的值为 <code>VSLog</code> （振动传感器日志），则消息用于存储存档。</p>
+
+<p>在本练习中，你将创建并测试日志记录路由。</p>
+
+<h4 id="任务-1定义消息路由终结点">任务 1：定义消息路由终结点</h4>
+
+<ol>
+  <li>
+    <p>在 <a href="https://portal.azure.com/">Azure 门户</a>中，确保 IoT 中心边栏选项卡已打开。</p>
+  </li>
+  <li>
+    <p>在左侧菜单上的 <strong>“消息传递”</strong> 下，单击 <strong>“消息路由”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“消息路由”</strong> 窗格中，确保选择 <strong>“路线”</strong> 选项卡。</p>
+  </li>
+  <li>
+    <p>若要添加新路由，请单击 <strong>“+ 添加”</strong>。</p>
+
+    <p>现在应会显示 <strong>“添加路由”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加路由”</strong> 边栏选项卡的 <strong>“名称”</strong> 下，输入 <strong>“vibrationLoggingRoute”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“终结点”</strong> 的右侧，单击 <strong>“+ 添加终结点”</strong>，然后在下拉列表中单击 <strong>“存储”</strong>。</p>
+
+    <p>现在应会显示 <strong>“添加存储终结点”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加存储终结点”</strong> 边栏选项卡的 <strong>“终结点名称”</strong> 下，输入 <strong>“vibrationLogEndpoint”</strong></p>
+  </li>
+  <li>
+    <p>若要显示与你的订阅关联的存储帐户列表，请单击 <strong>“选择容器”</strong>。</p>
+
+    <p>已列出 Azure 订阅中已存在的存储帐户列表。此时，你可以选择现有的存储帐户和容器，但对于本实验室，你将创建新的帐户和容器。</p>
+  </li>
+  <li>
+    <p>若要开始创建存储帐户，请单击 <strong>“+ 存储帐户”</strong>。</p>
+
+    <p>此时应会显示 <strong>“创建存储帐户”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“名称”</strong> 下，输入 <strong>“vibrationstore{your-id}”</strong></p>
+
+    <p>例如： <strong>vibrationstorecah191211</strong></p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  此字段只能包含小写字母和数字，必须介于 3-24 个字符之间，并且必须是唯一的。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“帐户类型”</strong> 下拉列表中，选择 <strong>“StorageV2 (常规用途 v2)”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“性能”</strong> 列表中选中 <strong>“标准”</strong>。</p>
+
+    <p>这样可以降低成本，但整体性能会减弱。</p>
+  </li>
+  <li>
+    <p>在 <strong>“复制”</strong> 选项下，确保 <strong>“本地 - 冗余存储 (LRS)”</strong> 已选定。</p>
+
+    <p>这样可以降低成本，但有降低缓解灾难恢复能力的风险。在生产中，你的解决方案可能需要更强大的复制策略。</p>
+  </li>
+  <li>
+    <p>在 <strong>“位置”</strong> 列表中，选择用于本课程中的实验的区域。</p>
+  </li>
+  <li>
+    <p>若要创建存储帐户终结点，请单击 <strong>“确定”</strong>。</p>
+  </li>
+  <li>
+    <p>等待直到请求通过验证并且存储帐户部署已完成。</p>
+
+    <p>验证和创建可能需要一两分钟。</p>
+
+    <p>完成后，<strong>“创建存储帐户”</strong> 边栏选项卡将关闭，并将显示 <strong>“存储帐户”</strong> 边栏选项卡。“存储帐户”边栏选项卡应该已自动更新为显示刚刚创建的存储帐户。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2定义存储帐户容器">任务 2：定义存储帐户容器</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“存储帐户”</strong> 边栏选项卡上，单击 <strong>“vibrationstore{your-id}”</strong>。</p>
+
+    <p>此时应会显示 <strong>“容器”</strong> 边栏选项卡。这是一个新的存储帐户，因此未列出任何容器。</p>
+  </li>
+  <li>
+    <p>要创建容器，请单击 <strong>“+ 容器”</strong>。</p>
+
+    <p>此时应会显示 <strong>“新建容器”</strong> 对话框。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建容器”</strong> 对话框的 <strong>“名称”</strong> 下，输入 <strong>vibrationcontainer</strong></p>
+
+    <p>同样，仅接受小写字母和数字。</p>
+  </li>
+  <li>
+    <p>在 <strong>“公共访问级别”</strong> 下，确保选择 <strong>“专用(不允许匿名访问)”</strong>。</p>
+  </li>
+  <li>
+    <p>要创建容器，请单击 <strong>“创建”</strong>。</p>
+
+    <p>稍后，容器的 <strong>“租用状态”</strong> 将更新显示 <strong>“可用”</strong>。</p>
+  </li>
+  <li>
+    <p>要为你的解决方案选择此容器，请单击 <strong>“vibrationcontainer”</strong>，然后单击 <strong>“选择”</strong>。</p>
+
+    <p>你应会返回到 <strong>“添加存储终结点”</strong> 边栏选项卡。请注意，<strong>Azure 存储容器</strong> 已设置为你刚刚创建的存储帐户和容器的 URL。</p>
+  </li>
+  <li>
+    <p>将 <strong>“批处理频率”</strong> 和 <strong>“块大小窗口”</strong> 字段保留为默认值 <strong>100</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“编码”</strong> 下，注意有两个选项，并且已选中 <strong>“AVRO”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  默认情况下，IoT 中心以 Avro 格式写入内容，该格式同时具有消息正文属性和消息属性。Avro 格式不用于任何其他终结点。尽管 Avro 格式可用于保存数据和消息，但将其用于查询数据将是一项挑战。比较而言，JSON 或 CSV 格式更容易用来查询数据。IoT 中心现在支持使用 JSON 和 AVRO 格式将数据写入 Blob 存储。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>花点时间检查一下 <strong>“文件名格式”</strong> 字段中指定的值。</p>
+
+    <p><strong>“文件名格式”</strong> 字段指定用于将数据写入存储中的文件中的模式。创建文件时，将各个令牌替换为值。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡的底部，单击 <strong>“创建”</strong> 可创建存储终结点。</p>
+
+    <p>验证和后续创建将需要一些时间。完成后，你应会回到 <strong>“添加路由”</strong> 边栏选项卡。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3定义路由查询">任务 3：定义路由查询</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“添加路由”</strong> 边栏选项卡的 <strong>“数据源”</strong> 下，确保选中 <strong>“设备遥测消息”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“启用路由”</strong> 选项下， 确保 <strong>“启用”</strong> 已选定。</p>
+  </li>
+  <li>
+    <p>在 <strong>“路由查询”</strong> 下，将 <strong>true</strong> 替换为以下查询：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-sql hljs"> sensorID = 'VSLog'
+</code></pre>
+
+    <p>此查询确保只有应用程序属性 <code>sensorID</code> 设置为 <code>VSLog</code> 的消息将路由到存储终结点。</p>
+  </li>
+  <li>
+    <p>要保存此路由，请单击 <strong>“保存”</strong>。</p>
+
+    <p>等待成功消息。完成后，<strong>“消息路由”</strong> 窗格上应会列出该路由。</p>
+  </li>
+  <li>
+    <p>导航回到 Azure 门户仪表板。</p>
+  </li>
+</ol>
+
+<h4 id="任务-4验证数据存档">任务 4：验证数据存档</h4>
+
+<ol>
+  <li>
+    <p>确保你在 Visual Studio Code 中创建的设备应用仍在运行。</p>
+
+    <p>如果未运行，请使用 <code>dotnet run</code> 在 Visual Studio Code 终端运行它。</p>
+  </li>
+  <li>
+    <p>在“资源”磁贴上，单击 <strong>vibrationstore{your-id}</strong> 打开存储帐户边栏选项卡。</p>
+
+    <p>如果“资源”磁贴没有列出你的存储帐户，请单击资源组磁贴顶部的 <strong>“刷新”</strong> 按钮，然后按照上述说明打开你的存储帐户。</p>
+  </li>
+  <li>
+    <p>在 <strong>vibrationstore{your-id}</strong> 边栏选项卡的左侧菜单中，单击 <strong>“存储资源管理器(预览版)”</strong>。</p>
+
+    <p>可使用存储资源管理器来验证数据是否正在添加到存储帐户。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  存储资源管理器当前处于预览模式，因此其确切的操作模式可能会更改。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“存储资源管理器(预览版)”</strong> 窗格中，展开 <strong>“BLOB 容器”</strong>，然后单击 <strong>“vibrationcontainer”</strong>。</p>
+
+    <p>要查看数据，你需要向下浏览文件夹的层次结构。第一个文件夹将针对 IoT 中心进行命名。</p>
+  </li>
+  <li>
+    <p>在右侧窗格的 <strong>“名称”</strong> 下，双击 <strong>iot-az220-training-{your-id}</strong>，然后双击向下导航到层次结构。</p>
+
+    <p>在“IoT 中心”文件夹下，你将看到关于分区的文件夹，再是关于年份、月份和日期数字值的文件夹。最后一个文件夹表示“小时”，它按 UTC 时间列出。“小时”文件夹中将有大量的块 Blob，其中包含日志记录消息数据。</p>
+  </li>
+  <li>
+    <p>双击块 Blob可查看具有最早时间戳的数据。</p>
+
+    <p>URL 链接将在新的浏览器标签页中打开。虽然数据的格式使得它不容易阅读，但你应能够将它识别为你的振动消息。</p>
+  </li>
+  <li>
+    <p>关闭包含你的数据的浏览器标签页，然后导航回到你的 Azure 门户仪表板。</p>
+  </li>
+</ol>
+
+<h3 id="练习-4日志记录路由-azure-流分析作业">练习 4：日志记录路由 Azure 流分析作业</h3>
+
+<p>在此练习中，你将创建一个流分析作业来将日志记录消息输出到 Blob 存储。然后，你将使用 Azure 门户中的存储资源管理器来查看存储的数据。</p>
+
+<p>这样，你将能够验证你的路由是否包括以下设置：</p>
+
+<ul>
+  <li><strong>名称</strong> - 振动日志记录路由</li>
+  <li><strong>数据源</strong> - 设备消息</li>
+  <li><strong>路由查询</strong> - sensorID = ‘VSLog’</li>
+  <li><strong>终结点</strong> - vibrationLogEndpoint</li>
+  <li><strong>已启用</strong> - true</li>
+</ul>
+
+<blockquote>
+  <p><strong>备注：</strong> 在本实验室中，你将数据路由到存储，然后再通过 Azure 流分析将数据发送到存储，这似乎很奇怪。在生产场景中，这两条路径不会长期存在。事实上，我们在此处创建的第二条路径很可能不存在。在实验室环境中，你将使用这种方法来验证你的路由是否正常工作，并展示 Azure 流分析的简单实现。</p>
+</blockquote>
+
+<h4 id="任务-1创建流分析作业">任务 1：创建流分析作业</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户菜单上，单击 <strong>“+ 创建资源”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建”</strong> 边栏选项卡上的 <strong>“搜索市场”</strong> 文本框中，键入 <strong>“流分析”</strong>，然后单击 <strong>“流分析作业”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“流分析作业”</strong> 边栏选项卡上，单击 <strong>“创建”</strong>。</p>
+
+    <p>显示 <strong>“新建流分析作业”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建流分析作业”</strong> 窗格的 <strong>“名称”</strong> 下，输入 <strong>“vibrationJob”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“订阅”</strong> 下，选择将在本实验室中使用的订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 下，选择 <strong>rg-az220</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“位置”</strong> 列表中，选择用于本课程中的实验的区域。</p>
+  </li>
+  <li>
+    <p>在 <strong>“托管环境”</strong> 下，确保选中 <strong>“云”</strong>。</p>
+
+    <p>Edge 托管将在本课程的后面部分讨论。</p>
+  </li>
+  <li>
+    <p>在 <strong>“流单元数”</strong> 下，将数量从 <strong>3</strong> 减少到 <strong>1</strong>。</p>
+
+    <p>本实验室不需要 3 个单元，此操作可降低成本。</p>
+  </li>
+  <li>
+    <p>要创建流分析作业，请单击 <strong>“创建”</strong>。</p>
+  </li>
+  <li>
+    <p>等待 <strong>“部署成功”</strong> 消息，然后打开新资源。</p>
+
+    <blockquote>
+      <p><strong>提示：</strong> 如果你错过了转到新资源的消息，或者需要随时查找资源，请选择 <strong>“主页/所有资源”</strong>。输入充分的资源名称，使其显示在资源列表中。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>花点时间检查新的流分析作业。</p>
+
+    <p>请注意，你有一个不显示任何输入或输出的空作业以及一个框架查询。下一步是填充这些条目。</p>
+  </li>
+  <li>
+    <p>在左侧菜单的 <strong>“作业拓扑”</strong> 下，单击 <strong>“输入”</strong>。</p>
+
+    <p>这将显示 <strong>“输入”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在 <strong>“输入”</strong> 窗格中，单击 <strong>“+ 添加流输入”</strong>，然后单击 <strong>“IoT 中心”</strong>。</p>
+
+    <p>这将显示 <strong>“IoT 中心 - 新输入”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 中心 - 新输入”</strong> 窗格的 <strong>“输入别名”</strong> 中输入 <code>vibrationInput</code>。</p>
+  </li>
+  <li>
+    <p>选中 <strong>“从你的订阅中选择 IoT 中心”</strong>。</p>
+  </li>
+  <li>
+    <p>请确保在 <strong>“订阅”</strong> 中选中你先前用于创建 IoT 中心的订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 中心”</strong> 下，确保已选择 IoT 中心 <strong>iot-az220-training-{your-id}</strong>。</p>
+  </li>
+  <li>
+    <p>在“<strong>使用者组</strong>”下，确保选择 <strong>$Default</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“共享访问策略名称”</strong> 中，确保选中 <strong>iothubowner</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> <strong>“共享访问策略密钥”</strong> 已填充且为只读。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“<strong>终结点</strong>”中选中“<strong>消息传送</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“事件序列化格式”</strong> 选项下， 确保 <strong>“JSON”</strong> 已选定。</p>
+  </li>
+  <li>
+    <p>在 <strong>“编码”</strong> 选项下， 确保 <strong>“UTF-8”</strong> 已选定。</p>
+
+    <p>你可能需要向下滚动才能看到某些字段。</p>
+  </li>
+  <li>
+    <p>在 <strong>“事件压缩类型”</strong> 下，确保选择 <strong>“无”</strong>。</p>
+  </li>
+  <li>
+    <p>要保存新输入，请单击 <strong>“保存”</strong>，然后等待输入创建完毕。</p>
+
+    <p><strong>“输入”</strong> 列表应更新为显示新输入。</p>
+  </li>
+  <li>
+    <p>要创建输出，请在左侧菜单的 <strong>“作业拓扑”</strong> 选项下，单击 <strong>“输出”</strong>。</p>
+
+    <p>将显示 <strong>“输出”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在“<strong>输出</strong>”窗格，单击“<strong>+ 添加</strong>”，然后单击“<strong>Blob 存储/ADLS Gen2</strong>”。</p>
+
+    <p>“<strong>Blob 存储/ADLS Gen2 - 新输出</strong>”窗格随即显示。</p>
+  </li>
+  <li>
+    <p>在“<strong>Blob 存储/ADLS Gen2 - 新输出</strong>”窗格上，在“<strong>输出别名</strong>”下输入 <code>vibrationOutput</code>。</p>
+  </li>
+  <li>
+    <p>确保已选择“<strong>从订阅中选择 Blob 存储/ADLS Gen2</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“订阅”</strong> 下，选择你为本实验室使用的订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“存储帐户”</strong> 下，单击 <strong>“vibrationstore{your-id}”</strong>。</p>
+  </li>
+  <li>
+    <p>在“<strong>容器</strong>”下，确保选择了“<strong>使用现有容器</strong>”，并从下拉列表中选择了“<strong>振动容器</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>身份验证模式</strong>”下，确保已选择“<strong>连接字符串</strong>”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：  “<strong>存储帐户密钥</strong>”将自动填充且为只读。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>将“<strong>路径模式</strong>”保留为空。</p>
+  </li>
+  <li>
+    <p>将“<strong>日期格式</strong>”和“<strong>时间格式</strong>”保留为各自的默认值。</p>
+  </li>
+  <li>
+    <p>在“<strong>事件序列化格式</strong>”选项下， 确保“<strong>JSON</strong>”已选定。</p>
+  </li>
+  <li>
+    <p>在 <strong>“格式”</strong> 下，确保选择 <strong>“按行分隔”</strong>。</p>
+  </li>
+  <li>
+    <p>在“<strong>编码</strong>”下，确保选择“<strong>UTF-8</strong>”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：  此设置将每条记录整体作为一个 JSON 对象存储在每行上，最终导致文件是一个无效的 JSON 记录。另一个选项“<strong>数组</strong>”可确保将整个文档格式化为 JSON 数组，其中每条记录都是数组中的一项。这样就可以将整个文件解析为有效的 JSON。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>将“<strong>最小行数</strong>”保留为空白。</p>
+  </li>
+  <li>
+    <p>将“<strong>最长时间</strong>”下的“<strong>小时</strong>”和“<strong>分钟</strong>”保留为空白。</p>
+  </li>
+  <li>
+    <p>要创建输出，请单击 <strong>“保存”</strong>，然后等待输出创建完毕。</p>
+
+    <p>使用新输出更新<strong>输出</strong>列表。</p>
+  </li>
+  <li>
+    <p>要编辑查询，请在左侧菜单的 <strong>“作业拓扑”</strong> 下，单击 <strong>“查询”</strong>。</p>
+  </li>
+  <li>
+    <p>在“查询编辑器”窗格中，将现有查询替换为以下查询：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span>
+     *
+ <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span>
+     vibrationOutput
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span>
+     vibrationInput
+</code></pre>
+  </li>
+  <li>
+    <p>直接在查询编辑器窗格上方，单击 <strong>“保存查询”</strong>。</p>
+  </li>
+  <li>
+    <p>在左侧菜单上，单击 <strong>“概述”</strong>。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2测试日记记录路线">任务 2：测试日记记录路线</h4>
+
+<p>现在这一部分非常有趣。你的设备应用抽取出的遥测数据是否会按照路由进行工作并发送到存储容器？</p>
+
+<ol>
+  <li>
+    <p>确保你在 Visual Studio Code 中创建的设备应用仍在运行。</p>
+
+    <p>如果未运行，请使用 <code>dotnet run</code> 在 Visual Studio Code 终端运行它。</p>
+  </li>
+  <li>
+    <p>在流分析作业的 <strong>“概述”</strong> 窗格中，单击 <strong>“开始”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“开始作业”</strong> 窗格中，将 <strong>“作业输出开始时间”</strong> 保留设置为 <strong>“立即”</strong>，然后单击 <strong>“开始”</strong>。</p>
+
+    <p>可能需要一些时间才能开始作业</p>
+  </li>
+  <li>
+    <p>在“Azure 门户中心”菜单上，单击 <strong>“仪表板”</strong>。</p>
+  </li>
+  <li>
+    <p>在“资源”磁贴上，单击 <strong>“vibrationstore{your-id}”</strong>。</p>
+
+    <p>如果看不到你的存储帐户，请使用资源组图块顶部的 <strong>“刷新”</strong> 按钮。</p>
+  </li>
+  <li>
+    <p>在存储帐户的 <strong>“概览”</strong> 窗格中，向下滚动直至看到 <strong>“监控”</strong> 部分。</p>
+  </li>
+  <li>
+    <p>在 <strong>“监控”</strong> 下的 <strong>“显示上次的数据”</strong> 旁边，将时间范围更改为 <strong>“1 小时”</strong>。</p>
+
+    <p>你应在图表中看到活动。</p>
+  </li>
+  <li>
+    <p>在左侧菜单上，单击 <strong>“存储资源管理器(预览版)”</strong>。</p>
+
+    <p>可使用存储资源管理器进一步确保你的所有数据都将进入存储帐户。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 存储资源管理器当前处于预览模式，因此其确切的操作模式可能会更改。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“存储资源管理器(预览版)”</strong> 的 <strong>“BLOB 容器”</strong> 下，单击  <strong>vibrationcontainer</strong>。</p>
+
+    <p>要查看数据，你需要向下浏览文件夹的层次结构。第一个文件夹将以 IoT 中心命名，下一个文件夹将是分区，然后是年、月、日，最后是小时。</p>
+  </li>
+  <li>
+    <p>在右侧窗格的 <strong>“名称”</strong> 下，双击 IoT 中心的文件夹，然后继续双击以向下导航到层次结构，直到打开最新的小时文件夹。</p>
+
+    <p>在小时文件夹中，你将看到以文件生成时的分钟命名的文件。这会验证你的数据是否按预期到达存储位置。</p>
+  </li>
+  <li>
+    <p>导航回到你的仪表板。</p>
+  </li>
+  <li>
+    <p>在“资源”磁贴上，单击 <strong>“vibrationJob”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“vibrationJob”</strong> 边栏选项卡中，依次单击 <strong>“停止”</strong> 和 <strong>“是”</strong>。</p>
+
+    <p>你已通过设备应用-中心-路由-存储容器跟踪活动。进展很大！在下一个模块（即快速查看数据可视化）中，你将继续此方案的流分析。</p>
+  </li>
+  <li>
+    <p>切换到 Visual Studio Code 窗口。</p>
+  </li>
+  <li>
+    <p>在终端命令提示符下，要退出设备模拟器应用，请按  <strong>CTRL-C</strong>。</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>重要说明</strong>： 在完成本课程的数据可视化模块之前，请勿删除这些资源。</p>
+</blockquote>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.js"></script>
+
+
+
+</body></html>

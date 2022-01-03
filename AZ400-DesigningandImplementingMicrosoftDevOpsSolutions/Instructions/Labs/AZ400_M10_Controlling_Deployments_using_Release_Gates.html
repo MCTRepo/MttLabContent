@@ -1,0 +1,587 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-configure-release-pipeline">Exercise 1: Configure release pipeline</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-configure-release-gates">Exercise 2: Configure release gates.</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-test-release-gates">Exercise 3: Test release gates</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-remove-the-azure-lab-resources">Exercise 4: Remove the Azure lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-10a-controlling-deployments-using-release-gates">Lab 10a: Controlling Deployments using Release Gates</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-overview">Lab overview</h2>
+
+<p>This lab covers the configuration of the deployment gates and details how to use them to control execution of Azure pipelines. To illustrate their implementation, you will configure a release definition with two environments for an Azure Web App. You will deploy to the Canary environment only when there are no blocking bugs for the app and mark the Canary environment complete only when there are no active alerts in Application Insights of Azure Monitor.</p>
+
+<p>A release pipeline specifies the end-to-end release process for an application to be deployed across a range of environments. Deployments to each environment are fully automated by using jobs and tasks. Ideally, you do not want new updates to the applications to be exposed to all the users at the same time. It is a best practice to expose updates in a phased manner i.e. expose to a subset of users, monitor their usage and expose to other users based on the experience of the initial set of users.</p>
+
+<p>Approvals and gates enable you to take control over the start and completion of the deployments in a release. With approvals, you can wait for users to manually approve or reject deployments. Using release gates, you can specify application health criteria that must be met before release is promoted to the next environment. Prior to or after any environment deployment, all the specified gates are automatically evaluated until they all pass or until they reach your defined timeout period and fail.</p>
+
+<p>Gates can be added to an environment in the release definition from the pre-deployment conditions or the post-deployment conditions panel. Multiple gates can be added to the environment conditions to ensure all the inputs are successful for the release.</p>
+
+<p>As an example:</p>
+
+<ul>
+  <li>Pre-deployment gates ensure there are no active issues in the work item or problem management system before deploying a build to an environment.</li>
+  <li>Post-deployment gates ensure there are no incidents from the monitoring or incident management system for the app after it’s been deployed, before promoting the release to the next environment.</li>
+</ul>
+
+<p>There are 4 types of gates included by default in every account.</p>
+
+<ul>
+  <li>Invoke Azure Function: Triggers execution of an Azure Function and ensures a successful completion.</li>
+  <li>Query Azure Monitor alerts: Observes the configured Azure Monitor alert rules for active alerts.</li>
+  <li>Invoke REST API: Makes a call to a REST API and continues if it returns a successful response.</li>
+  <li>Query work items: Ensures the number of matching work items returned from a query is within a threshold.</li>
+</ul>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After you complete this lab, you will be able to:</p>
+
+<ul>
+  <li>Configure release pipelines</li>
+  <li>Configure release gates</li>
+  <li>Test release gates</li>
+</ul>
+
+<h2 id="lab-duration">Lab duration</h2>
+
+<ul>
+  <li>Estimated time: <strong>75 minutes</strong></li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-virtual-machine">Sign in to the lab virtual machine</h4>
+
+<p>Ensure that you’re signed in to your Windows 10 virtual machine by using the following credentials:</p>
+
+<ul>
+  <li>Username: <strong>Student</strong></li>
+  <li>Password: <strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="review-applications-required-for-this-lab">Review applications required for this lab</h4>
+
+<p>Identify the applications that you’ll use in this lab:</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="set-up-an-azure-devops-organization">Set up an Azure DevOps organization.</h4>
+
+<p>If you don’t already have an Azure DevOps organization that you can use for this lab, create one by following the instructions available at <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/create-organization?view=azure-devops">Create an organization or project collection</a>.</p>
+
+<h4 id="prepare-an-azure-subscription">Prepare an Azure subscription</h4>
+
+<ul>
+  <li>Identify an existing Azure subscription or create a new one.</li>
+  <li>Verify that you have a Microsoft account or an Azure AD account with the Owner role in the Azure subscription and the Global Administrator role in the Azure AD tenant associated with the Azure subscription. For details, refer to <a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-list-portal">List Azure role assignments using the Azure portal</a> and <a href="https://docs.microsoft.com/en-us/azure/active-directory/roles/manage-roles-portal#view-my-roles">View and assign administrator roles in Azure Active Directory</a>.</li>
+</ul>
+
+<h3 id="exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</h3>
+
+<p>In this exercise, you will set up the prerequisites for the lab, which include the preconfigured Parts Unlimited team project based on an Azure DevOps Demo Generator template and two Azure web apps representing the <strong>Canary</strong> and <strong>Production</strong> environments, into which you’ll deploy the application via Azure Pipelines.</p>
+
+<h4 id="task-1-configure-the-team-project">Task 1: Configure the team project</h4>
+
+<p>In this task, you will use Azure DevOps Demo Generator to generate a new project based on the <strong>ReleaseGates</strong> template.</p>
+
+<ol>
+  <li>
+    <p>On your lab computer, start a web browser and navigate to <a href="https://azuredevopsdemogenerator.azurewebsites.net">Azure DevOps Demo Generator</a>. This utility site will automate the process of creating a new Azure DevOps project within your account that is prepopulated with content (work items, repos, etc.) required for the lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: For more information on the site, see https://docs.microsoft.com/en-us/azure/devops/demo-gen.</p>
+    </blockquote>
+  </li>
+  <li>Click <strong>Sign in</strong> and sign in using the Microsoft account associated with your Azure DevOps subscription.</li>
+  <li>If required, on the <strong>Azure DevOps Demo Generator</strong> page, click <strong>Accept</strong> to accept the permission requests for accessing your Azure DevOps subscription.</li>
+  <li>On the <strong>Create New Project</strong> page, in the <strong>New Project Name</strong> textbox, type <strong>Controlling Deployments using Release Gates</strong>, in the <strong>Select organization</strong> dropdown list, select your Azure DevOps organization, and then click <strong>Choose template</strong>.</li>
+  <li>In the list of templates, in the toolbar, click <strong>DevOps Labs</strong>, select the <strong>ReleaseGates</strong> template and click <strong>Select Template</strong>.</li>
+  <li>
+    <p>Back on the <strong>Create New Project</strong> page, click <strong>Create Project</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the process to complete. This should take about 2 minutes. In case the process fails, navigate to your DevOps organization, delete the project, and try again.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Create New Project</strong> page, click <strong>Navigate to project</strong>.</li>
+</ol>
+
+<h4 id="task-2-create-two-azure-web-apps">Task 2: Create two Azure web apps</h4>
+
+<p>In this task, you will create two Azure web apps representing the <strong>Canary</strong> and <strong>Production</strong> environments, into which you’ll deploy the application via Azure Pipelines.</p>
+
+<ol>
+  <li>From the lab computer, start a web browser, navigate to the <a href="https://portal.azure.com"><strong>Azure Portal</strong></a>, and sign in with the user account that has the Owner role in the Azure subscription you will be using in this lab and has the role of the Global Administrator in the Azure AD tenant associated with this subscription.</li>
+  <li>In the Azure portal, click the <strong>Cloud Shell</strong> icon, located directly to the right of the search textbox at the top of the page.</li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>Bash</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the <strong>Bash</strong> prompt, in the <strong>Cloud Shell</strong> pane, run the following command to create a resource group (replace the <code>&lt;region&gt;</code> placeholder with the name of the Azure region that will host the two Azure web apps, for example ‘westeurope’ or ‘eastus’):</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: possible locations can be found by running the following command, use the <strong>Name</strong> on <code>&lt;region&gt;</code> : <code>az account list-locations -o table</code></p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs">RESOURCEGROUPNAME=<span class="hljs-string"><span class="hljs-string">'az400m10l01-RG'</span></span>
+az group create -n <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> -l <span class="hljs-string"><span class="hljs-string">'&lt;region&gt;'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>To create an App service plan</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs">SERVICEPLANNAME=<span class="hljs-string"><span class="hljs-string">'az400m01l01-sp1'</span></span>
+az appservice plan create -g <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> -n <span class="hljs-variable"><span class="hljs-variable">$SERVICEPLANNAME</span></span> --sku S1
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the <code>az appservice plan create</code> command fails with an error message starting with <code>ModuleNotFoundError: No module named 'vsts_cd_manager'</code>, then run the following commands and then re-run the failed command.</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs">az extension remove -n appservice-kube
+az extension add --yes --<span class="hljs-built_in"><span class="hljs-built_in">source</span></span> <span class="hljs-string"><span class="hljs-string">"https://aka.ms/appsvc/appservice_kube-latest-py2.py3-none-any.whl"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Create two web apps with unique app names.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> SUFFIX=<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+ az webapp create -g <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> -p <span class="hljs-variable"><span class="hljs-variable">$SERVICEPLANNAME</span></span> -n PU<span class="hljs-variable"><span class="hljs-variable">$SUFFIX</span></span>-Canary
+ az webapp create -g <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> -p <span class="hljs-variable"><span class="hljs-variable">$SERVICEPLANNAME</span></span> -n PU<span class="hljs-variable"><span class="hljs-variable">$SUFFIX</span></span>-Prod
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the name of the Canary web app. You will need it later in this lab.</p>
+    </blockquote>
+  </li>
+  <li>Wait for the provisioning process to complete and close the <strong>Cloud Shell</strong> pane.</li>
+</ol>
+
+<h4 id="task-3-configure-an-application-insights-resource">Task 3: Configure an Application Insights resource</h4>
+
+<ol>
+  <li>In the Azure portal, use the <strong>Search resources, services, and docs</strong> text box at the top of the page to search for <strong>Application Insights</strong> and, in the list of results, select <strong>Application Insights</strong>.</li>
+  <li>On the <strong>Application Insights</strong> blade, select <strong>+ Create</strong>.</li>
+  <li>
+    <p>On the <strong>Application Insights</strong> blade, on the <strong>Basics</strong> tab, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az400m10l01-RG</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td>the name of the Canary web app you recorded in the previous task</td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the same Azure region to which you deployed the web apps earlier in the previous task</td>
+        </tr>
+        <tr>
+          <td>Resource Mode</td>
+          <td><strong>Classic</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Disregard the deprecation message. This is required in order to prevent failures of the Enable Continuous Integration DevOps task you will be using later in this lab.</p>
+    </blockquote>
+  </li>
+  <li>Click <strong>Review + create</strong> and then click <strong>Create</strong>.</li>
+  <li>Wait for the provisioning process to complete.</li>
+  <li>In the Azure portal, navigate to the resource group <strong>az400m10l01-RG</strong> you created in the previous task.</li>
+  <li>In the list of resources, click the <strong>Canary</strong> web app.</li>
+  <li>On the <strong>Canary</strong> web app page, in the vertical menu on the left, in the <strong>Settings</strong> section, click <strong>Application Insights</strong>.</li>
+  <li>On the <strong>Application Insights</strong> blade, click <strong>Turn on Application Insights</strong>.</li>
+  <li>In the <strong>Change your resource</strong> section, click the <strong>Select existing resource</strong> option, in the list of existing resources, select the newly created Application Insight resource, click <strong>Apply</strong> and, when prompted for confirmation, click <strong>Yes</strong>.</li>
+  <li>
+    <p>Wait until the change takes effect and, on the Application Insights blade, click the <strong>View Application Insights data</strong> link.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will create monitor alerts here, which you will use in later part of this lab.</p>
+    </blockquote>
+  </li>
+  <li>On the Application Insights resource blade, in the <strong>Monitoring</strong> section, click <strong>Alerts</strong> and then click <strong>+ New alert rule</strong>.</li>
+  <li>On the <strong>Create alert rule</strong> blade, in the <strong>Condition</strong> section, click the <strong>Add condition</strong> link.</li>
+  <li>On the <strong>Configure signal logic</strong> blade, in the <strong>Search by signal name</strong> textbox, type <strong>Failed Requests</strong> and select it.</li>
+  <li>
+    <p>On the <strong>Configure signal logic</strong> blade, in the <strong>Alert logic</strong> section, leave the <strong>Threshold</strong> set to <strong>Static</strong>, in the <strong>Threshold value</strong> textbox, type <strong>0</strong>, and click on <strong>Done</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The rule will generate an alert whenever the number of failed requests is greater than 0 within the last 5 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Back on the <strong>Create alert rule</strong> pane, in the <strong>Alert rule details</strong> specify the following settings and click <strong>Create alert rule</strong> (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Alert rule name</td>
+          <td><strong>PartsUnlimited_FailedRequests</strong></td>
+        </tr>
+        <tr>
+          <td>Severity</td>
+          <td><strong>Sev 2</strong></td>
+        </tr>
+        <tr>
+          <td>Automatically resolve alerts</td>
+          <td>cleared</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Metric alert rules might take up to 10 minutes to activate.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can create multiple alert rules on different metrics such as availability &lt; 99 percent, server response time &gt; 5 Seconds, or server exceptions &gt; 0</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-1-configure-release-pipeline">Exercise 1: Configure release pipeline</h3>
+
+<p>In this exercise, you will configure a release pipeline.</p>
+
+<h4 id="task-1-update-release-tasks">Task 1: Update release tasks</h4>
+
+<p>In this task, you will update release tasks.</p>
+
+<ol>
+  <li>On the lab computer, switch to the browser window displaying the <strong>Controlling Deployments using Release Gates</strong> project in the Azure DevOps portal, in the vertical navigational pane, select <strong>Pipelines</strong> and then, within the <strong>Pipelines</strong> section, click <strong>Releases</strong>.</li>
+  <li>
+    <p>Within the <strong>Releases</strong> view, on the <strong>PartsUnlimited-CD</strong> pane, click <strong>Edit</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The pipeline contains two stages named <strong>Canary Environment</strong> and <strong>Production</strong>.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Pipeline</strong> tab, in the <strong>Artifacts</strong> rectangle, click the <strong>Continuous deployment trigger</strong> button in the top right corner of the <strong>PartsUnlimited-CI</strong> build artifact.</li>
+  <li>If the continuous deployment trigger for the <strong>PartsUnlimited-CI</strong> build is disabled, toggle the switch to enable it. Leave all other settings at default and close the <strong>Continuous deployment trigger</strong> pane, by clicking the <strong>x</strong> mark in its upper right corner.</li>
+  <li>
+    <p>Within the <strong>Canary Environments</strong> stage, click the <strong>1 job, 2 tasks</strong> label and review the tasks within this stage.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The canary environment has 2 tasks which, respectively, publish the package to Azure Web App and enable continuous monitoring of the application after deployment.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>All pipelines &gt; PartsUnlimited-CD</strong> pane, ensure that the <strong>Canary Environment</strong> stage is selected. In the <strong>Azure subscription</strong> dropdown list, select your Azure subscription and click <strong>Authorize</strong>. If prompted, authenticate by using the user account with the Owner role in the Azure subscription.</li>
+  <li>
+    <p>In the <strong>App Service name</strong> dropdown list, select the name of the <strong>Canary</strong> web app.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to click the <strong>Refresh</strong> button.</p>
+    </blockquote>
+  </li>
+  <li>In the <strong>Resource Group and Application Insights</strong> dropdown list, select the <strong>az400m10l01-RG</strong> entry.</li>
+  <li>In the <strong>Application Insights resource name</strong> dropdown list, select the name of the <strong>Canary</strong> Application Insights resource, which should match the name of the <strong>Canary</strong> web app.</li>
+  <li>On the <strong>All pipelines &gt; PartsUnlimited-CD</strong> pane, click the <strong>Tasks</strong> tab and, in the dropdown list, select <strong>Production</strong>.</li>
+  <li>With the <strong>Production</strong> stage selected, in the <strong>Azure subscription</strong> dropdown list, select the Azure subscription you used for the <strong>Canary Environment</strong> stage, shown under <strong>Available Azure Service connections</strong>, as we already created the service connection before when authorizing the subscription use.</li>
+  <li>In the <strong>App Service name</strong> dropdown list, select the name of the <strong>Prod</strong> web app.</li>
+  <li>On the <strong>All pipelines &gt; PartsUnlimited-CD</strong> pane, click <strong>Save</strong> and, in the <strong>Save</strong> dialog box, click <strong>OK</strong>.</li>
+  <li>In the browser window displaying the <strong>Controlling Deployments using Release Gates</strong> project, in the vertical navigational pane, in the <strong>Pipelines</strong> section, click <strong>Pipelines</strong>.</li>
+  <li>On the <strong>Pipelines</strong> pane, click the entry representing <strong>PartsUnlimited-CI</strong> build pipeline and then, on the <strong>PartsUnlimited-CI</strong> pane, click on <strong>Run Pipeline</strong>.</li>
+  <li>
+    <p>On the <strong>Run pipeline</strong> pane, accept the default settings and click <strong>Run</strong> to trigger the pipeline. <strong>Wait for the build pipeline to finish</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: After the build succeeds, the release will be triggered automatically and the application will be deployed to both the environments.</p>
+    </blockquote>
+  </li>
+  <li>In the vertical navigational pane, in the <strong>Pipelines</strong> section, click <strong>Releases</strong> and, on the <strong>PartsUnlimited-CD</strong> pane, click the entry representing the most recent release.</li>
+  <li>On the <strong>PartsUnlimited-CD &gt; Release-1</strong> blade, track the progress of the release and verify that the deployment to both web apps completed successfully.</li>
+  <li>Switch to the Azure portal interface, navigate to the resource group <strong>az400m10l01-RG</strong>, in the list of resources, click the <strong>Canary</strong> web app, on the web app blade, click <strong>Browse</strong>, and verify that the web page loads successfully in a new web browser tab.</li>
+  <li>Close the web browser tab displaying the <strong>Parts Unlimited</strong> web site.</li>
+  <li>Switch to the Azure portal interface, navigate back to the resource group <strong>az400m10l01-RG</strong>, in the list of resources, click the <strong>Production</strong> web app, on the web app blade, click <strong>Browse</strong>, and verify that the web page loads successfully in a new web browser tab.</li>
+  <li>
+    <p>Close the web browser tab displaying the <strong>Parts Unlimited</strong> web site.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Now you have the application with CI/CD configured. In the next exercise we will set up Gates in the release pipeline.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-2-configure-release-gates">Exercise 2: Configure release gates.</h3>
+
+<p>In this exercise, you will set up Gates in the release pipeline.</p>
+
+<h4 id="task-1-configure-pre-deployment-gates">Task 1: Configure pre-deployment gates</h4>
+
+<p>In this task, you will configure pre-deployment gates.</p>
+
+<ol>
+  <li>Switch to the web browser window displaying the Azure DevOps portal, in the vertical navigational pane, in the <strong>Pipelines</strong> section, click <strong>Releases</strong> and, on the <strong>PartsUnlimited-CD</strong> pane, click <strong>Edit</strong>.</li>
+  <li>On the <strong>All pipelines &gt; PartsUnlimited-CD</strong> pane, on the left edge of the rectangle representing the <strong>Canary Environment</strong> stage, click the oval shape representing the <strong>Pre-deployment conditions</strong>.</li>
+  <li>On <strong>Pre-deployment conditions</strong> pane, set the <strong>Pre-deployment approvals</strong> slider to <strong>Enabled</strong> and, in the <strong>Approvers</strong> text box, type and select your Azure DevOps account name.</li>
+  <li>On <strong>Pre-deployment conditions</strong> pane, set the <strong>Gates</strong> slider to <strong>Enabled</strong>, click <strong>+ Add</strong>, and, in the pop-up menu, click <strong>Query Work Items</strong>.</li>
+  <li>
+    <p>On <strong>Pre-deployment conditions</strong> pane, in the <strong>Query Work Items</strong> section, in the <strong>Query</strong> dropdown list, select <strong>Bugs</strong> under <strong>Shared Queries</strong>, leave the value of <strong>Upper threshold</strong> set to <strong>0</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Based on the value of the <strong>Upper threshold</strong> setting, if this query returns any active bug work Item, the release gate will fail.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Pre-deployment conditions</strong> pane, leave the value of the <strong>Delay before evaluation</strong> setting at <strong>5 Minutes</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: <strong>Delay before evaluation</strong> represents the time before the added gates are evaluated for the first time. If no gates are added, then the deployments wait for the duration before proceeding. To allow gate functions to initialize and stabilize (it may take some time for it to begin returning accurate results), we configure a delay before the results are evaluated and used to determine if the deployment should be approved or rejected.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Pre-deployment conditions</strong> pane, expand the <strong>Evaluation options</strong> section and configure the following options:</p>
+
+    <ul>
+      <li>Set the value of <strong>Time between re-evaluation of gates</strong> to <strong>5 Minutes</strong>.</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: <strong>Time between re-evaluation of gates</strong> represents the time interval between each evaluation of all the gates. At each sampling interval, new requests are sent concurrently to each gate for fresh results. The sampling interval must be greater than the longest typical response time of any configured gate to allow time for all responses to be received.</p>
+    </blockquote>
+
+    <ul>
+      <li>Set the value of <strong>Timeout after which gates fail</strong> to <strong>8 Minutes</strong>.</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: <strong>Timeout after which gates fail</strong> represents the maximum evaluation period for all gates. The deployment will be rejected if the timeout is reached before all gates succeed during the same sampling interval. The minimum value we can specify for timeout is 6 minutes and 5 minutes for the sampling interval.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: In this case, when a release is triggered, the gate will validate the samples at <em>0<sup>th</sup></em> and <em>5<sup>th</sup></em> minutes. If the result is <strong>Pass</strong>, notification will be sent for approval. If the result is <strong>Fail</strong>, the release will time-out after <em>8<sup>th</sup></em> minute.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: In reality these values can span multiple hours.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Pre-deployment conditions</strong> pane, select <strong>On successful gates, ask for approvals</strong> radio button.</li>
+  <li>Close the <strong>Pre-deployment conditions</strong> pane, by clicking the <strong>x</strong> mark in its upper right corner. <strong>Save</strong> the changes in the release pipeline.</li>
+  <li>For the <strong>Query Work Items</strong> gate to work, the <strong>Project Build Service</strong> requires Read permission for the Azure Board queries.</li>
+  <li>In the Azure DevOps portal, in the vertical navigational pane, hover the mouse pointer over <strong>Boards</strong> hold down the <strong>Ctrl</strong> key and click <strong>Queries</strong> to open a separate browser tab with the <strong>Queries</strong> pane.</li>
+  <li>On the <strong>Queries</strong> pane of the <strong>Boards</strong> view, click <strong>All</strong> to get a list of all queries.</li>
+  <li>Right-click the folder <strong>Shared Queries</strong> and select <strong>Security…</strong> to open the pane <strong>Permissions for Shared Queries</strong>.</li>
+  <li>
+    <p>On the <strong>Permissions for Shared Queries</strong> pane, into the field <strong>Search for users or groups</strong>, type or paste <strong>Controlling Deployments using Release Gates Build Service</strong> ([Project Name] Build Service) and click the one found identity.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The user <strong>Controlling Deployments using Release Gates Build Service</strong> has to be searched for like described above, since it does not appear as a member of the <strong>Users</strong> list. Don’t confuse the user <strong>Project Collection Build Service</strong> with <strong>Project Build Service</strong>.</p>
+    </blockquote>
+  </li>
+  <li>Select the user <strong>Controlling Deployments using Release Gates Build Service</strong> in the <strong>Users</strong> list and on the right hand site set the <strong>Read</strong> permission to <strong>Allow</strong>.</li>
+  <li>Close the <strong>Permissions for Shared Queries</strong> pane, by clicking the <strong>x</strong> mark in its upper right corner.</li>
+  <li>Navigate back to the browser tab where the release pipeline is still open.</li>
+</ol>
+
+<h4 id="task-2-configure-post-deployment-gates">Task 2: Configure post-deployment gates</h4>
+
+<p>In this task, you will enable the post-deployment gate for the Canary Environment.</p>
+
+<ol>
+  <li>Back on the <strong>All pipelines &gt; PartsUnlimited-CD</strong> pane, on the right edge of the rectangle representing the <strong>Canary Environment</strong> stage, click the oval shape representing the <strong>Post-deployment conditions</strong>.</li>
+  <li>On <strong>Post-deployment conditions</strong> pane, set the <strong>Gates</strong> slider to <strong>Enabled</strong>, click <strong>+ Add</strong>, and, in the pop-up menu, click <strong>Query Azure Monitor Alerts</strong>.</li>
+  <li>On <strong>Post-deployment conditions</strong> pane, in the <strong>Query Azure Monitor Alerts</strong> section, in the <strong>Azure subscription</strong> dropdown list, select the entry representing the connection to your Azure subscription, and, in the <strong>Resource group</strong> dropdown list, select the <strong>az400m10l01-RG</strong> entry.</li>
+  <li>On <strong>Post-deployment conditions</strong> pane, expand the <strong>Evaluation options</strong> and configure the following options:</li>
+</ol>
+
+<ul>
+  <li>Set the value of <strong>Time between re-evaluation of gates</strong> to <strong>5 Minutes</strong>.</li>
+  <li>Set the value of <strong>Timeout after which gates fail</strong> to <strong>8 Minutes</strong>.</li>
+  <li>
+    <p>Select the <strong>On successful gates, ask for approvals</strong> option.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The sampling interval and timeout work together so that the gates will call their functions at suitable intervals and reject the deployment if they don’t succeed during the same sampling interval within the timeout period.</p>
+    </blockquote>
+  </li>
+</ul>
+
+<ol>
+  <li>Close the <strong>Post-deployment conditions</strong> pane, by clicking the <strong>x</strong> mark in its upper right corner.</li>
+  <li>Back on the <strong>PartsUnlimited-CD</strong> pane, click <strong>Save</strong>, and in the <strong>Save</strong> dialog box, click <strong>OK</strong>.</li>
+</ol>
+
+<h3 id="exercise-3-test-release-gates">Exercise 3: Test release gates</h3>
+
+<p>In this exercise, you will test the release gates by updating the application, which will trigger a deployment.</p>
+
+<h4 id="task-1-update-and-deploy-application-after-adding-release-gates">Task 1: Update and deploy application after adding release gates</h4>
+
+<p>In this task, you will track the release process with the release gates enabled.</p>
+
+<ol>
+  <li>In the browser window displaying the Azure DevOps portal, in the vertical navigational pane, select <strong>Releases</strong>.</li>
+  <li>Click on <strong>Create release</strong> and then, on the <strong>Create a new release</strong> pane, click <strong>Create</strong>.</li>
+  <li>In the Azure DevOps portal, in the vertical navigational pane, in the <strong>Pipelines</strong> section, click <strong>Releases</strong>.</li>
+  <li>On the <strong>Releases</strong> tab, click the <strong>PartsUnlimited-CD/Release-2</strong> entry and review the progress of the deployment to the <strong>Canary Environment</strong>.</li>
+  <li>Click the oval shape representing the <strong>Pre-deployment conditions</strong> on the left edge of the rectangle representing the <strong>Canary Environment</strong> stage, which, at this point, might be labeled either <strong>Evaluating gates</strong> or <strong>Pre-deployment gates failed</strong>.</li>
+  <li>
+    <p>On the <strong>Canary Environment</strong> pane, note that the <strong>Query Work Items</strong> gate failed.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This indicates that there are active work items. These work items need to be closed in order to proceed further. Next sampling time will be after 5 minutes.</p>
+    </blockquote>
+  </li>
+  <li>Open a new browser tab, navigate to the Azure DevOps portal, in the vertical navigational pane, select <strong>Boards</strong> and, in the <strong>Boards</strong> section, select <strong>Queries</strong>.</li>
+  <li>On the <strong>Queries</strong> pane of the <strong>Boards</strong> view, click the <strong>All</strong> tab.</li>
+  <li>On the <strong>All</strong> tab of the <strong>Queries</strong> pane, in the <strong>Shared Queries</strong> section, click the <strong>Bugs</strong> entry, on the <strong>Queries &gt; Shared Queries &gt; Bugs</strong> pane, and click <strong>Run query</strong>.</li>
+  <li>
+    <p>Verify that the query returns a work item titled <strong>Disk out of space in Canary Environment</strong> in the <strong>New</strong> state.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Let’s assume that the infrastructure team has fixed the disk space issue.</p>
+    </blockquote>
+  </li>
+  <li>Click the <strong>Disk out of space in Canary Environment</strong> entry.</li>
+  <li>On the <strong>Disk out of space in Canary Environment</strong> pane, in the upper left corner, next to the <strong>State</strong> label, click <strong>New</strong>, in the dropdown list, click <strong>Closed</strong> and then click <strong>Save</strong>.</li>
+  <li>
+    <p>Switch back to the <strong>Canary Environment</strong> pane and wait for the second evaluation to pass.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In case the second evaluation already failed, hover with the mouse pointer over the rectangle representing the <strong>Canary Environment</strong> stage to reveal the <strong>Redeploy</strong> option, click <strong>Redeploy</strong>, and, on the <strong>Canary Environment</strong> blade, click <strong>Deploy</strong> and monitor the status of processing the pre-deployment gates.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Once the evaluation is successful, you will see the request for pre-deployment approval.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Approvers</strong> and then click <strong>Approve</strong> to queue a deployment into the Canary environment</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Once the deployment to Canary environment is successful, we will see the post-deployment gates in action which uses Application Insights to detect presence of failed requests targeting the newly deployed application.</p>
+    </blockquote>
+  </li>
+  <li>To trigger a failed request, switch to the web browser window displaying the Azure portal, navigate to the <strong>Canary</strong> Azure web app blade, and click <strong>Browse</strong>. This will open a new browser tab displaying the PartsUnlimited web site.</li>
+  <li>
+    <p>On the PartsUnlimited web site, click <strong>More</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This part of web site is intentionally misconfigured, so it will trigger a failed request.</p>
+    </blockquote>
+  </li>
+  <li>Return to the home page of the PartsUnlimited web site, click <strong>More</strong> again, and repeat this step a few more times.</li>
+  <li>
+    <p>Validate that failed requests were detected by Application Insights by navigating to the Application Insights blade of the <strong>Canary</strong> web app page, and, on the Application Insights blade, click <strong>Alerts</strong>, and verify that the page lists one or more <strong>Sev 2</strong> alerts.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Since there is an alert triggered by the exception, <strong>Query Azure Monitor</strong> gate will fail. This, in turn, will prevent deployment to the <strong>Production</strong> environment.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-4-remove-the-azure-lab-resources">Exercise 4: Remove the Azure lab resources</h3>
+
+<p>In this exercise, you will remove the Azure resources provisioned in this lab to eliminate unexpected charges.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<h4 id="task-1-remove-the-azure-lab-resources">Task 1: Remove the Azure lab resources</h4>
+
+<p>In this task, you will use Azure Cloud Shell to remove the Azure resources provisione in this lab to eliminate unnecessary charges.</p>
+
+<ol>
+  <li>In the Azure portal, open the <strong>Bash</strong> shell session within the <strong>Cloud Shell</strong> pane.</li>
+  <li>
+    <p>List all resource groups created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m10l01-RG')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m10l01-RG')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the –nowait parameter), so while you will be able to run another Azure CLI command immediately afterwards within the same Bash session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="review">Review</h2>
+
+<p>In this lab, you configured release pipelines and then configured and tested release gates.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.js"></script>
+
+
+
+</body></html>

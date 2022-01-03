@@ -1,0 +1,574 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            SC-200T00CN-Microsoft-Security-Operations-Analyst
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                SC-200T00CN-Microsoft-Security-Operations-Analyst
+            </a>
+            <a href="https://github.com/MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#任务-1使用-sysmon-检测攻击-1">任务 1：使用 Sysmon 检测攻击 1</a></li><li class="nav-item"><a class="nav-link" href="#任务-2使用-defender-for-endpoint-检测攻击-1">任务 2：使用 Defender for Endpoint 检测攻击 1</a></li><li class="nav-item"><a class="nav-link" href="#任务-3使用-securityevent-检测攻击-2">任务 3：使用 SecurityEvent 检测攻击 2</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="模块-7---实验室-1---练习-6---创建检测">模块 7 - 实验室 1 - 练习 6 - 创建检测</h1>
+
+<h3 id="任务-1使用-sysmon-检测攻击-1">任务 1：使用 Sysmon 检测攻击 1</h3>
+
+<p>在此任务中，你将在安装了安全事件连接器和 Sysmon 的主机上创建针对<strong>攻击 1</strong> 的检测。</p>
+
+<ol>
+  <li>
+    <p>使用以下密码以管理员身份登录到 WIN1 虚拟机： <strong>Pa55w.rd</strong>。</p>
+  </li>
+  <li>
+    <p>在 Microsoft Edge 浏览器中，导航到 Azure 门户 (https://portal.azure.com)。</p>
+  </li>
+  <li>
+    <p>在“<strong>登录</strong>”对话框中，复制粘贴实验室托管提供者为管理员提供的租户电子<strong>邮件帐户</strong>，然后选择“<strong>下一步</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>输入密码</strong>”对话框中，复制粘贴实验室托管提供者为管理员提供的<strong>租户密码</strong>，然后选择“<strong>登录</strong>”。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户的搜索栏中，键入“<em>Sentinel</em>”，然后选择“<strong>Azure Sentinel</strong>”。</p>
+  </li>
+  <li>
+    <p>选择之前创建的 Azure Sentinel 工作区。</p>
+  </li>
+  <li>
+    <p>从“常规”部分选择“<strong>日志</strong>”。</p>
+  </li>
+  <li>
+    <p>首先需要查看存储数据的位置。原因是你刚刚执行了攻击。  将日志时间范围设置为“<strong>过去 24 小时</strong>”。</p>
+  </li>
+  <li>
+    <p>运行以下 KQL 语句</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-KQL">search "temp\\startup.bat"
+</code></pre>
+
+<ol>
+  <li>针对 3 个不同的表显示结果：
+    <ul>
+      <li>DeviceProcessEvents</li>
+      <li>DeviceRegistryEvents</li>
+      <li>Event</li>
+    </ul>
+
+    <p>“<em>设备</em>”表来自 Defender for Endpoint 连接器，“<em>事件</em>”表填充了通过代理配置连接的 Sysmon/Operational Windows 事件日志中的数据。</p>
+
+    <p>我们将接收来自两个不同源（Sysmon 和 Defender for Endpoint）的数据，因此需要生成两个之后可联合的 KQL 语句。初次调查时，你将分别查看每份数据。</p>
+
+    <p><strong>备注</strong>：在极少数情况下，数据加载过程可能耗时比平时的长。发生这种情况时，这些表可能在几个小时内都不会出现在查询中。如果只看到“<em>事件</em>”表，现在可以继续。</p>
+  </li>
+  <li>第一个数据源是 Windows 主机中的 Sysmon。  运行以下 KQL 语句。</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-KQL">search in (Event) "temp\\startup.bat"
+</code></pre>
+<p>现在仅显示 Event 表的结果。</p>
+
+<ol>
+  <li>
+    <p>展开各行可查看与记录相关的所有列。  一些字段（例如 EventData 和 ParameterXml）具有多个存储为结构化数据的数据项。  这使得很难对特定字段进行查询。</p>
+  </li>
+  <li>
+    <p>接下来，我们需要生成一个可分析每行中数据的 KQL 语句，从而得到有意义的字段。在 GitHub 上的 Azure Sentinel 社区中，“分析程序”文件夹中提供了很多分析程序示例。  在浏览器中打开另一个标签页，然后导航到： <strong>https://github.com/Azure/Azure-Sentinel</strong></p>
+  </li>
+  <li>
+    <p>选择“<strong>分析程序</strong>”文件夹，然后选择“<strong>Sysmon</strong>”文件夹。</p>
+  </li>
+  <li>
+    <p>选择要查看的 Sysmon-v12.0.txt 文件。</p>
+  </li>
+</ol>
+
+<p>在文件顶部，你会看到一个 Let 语句，它用于查询 Event 表并存储到名为 EventData 的变量中。
+<strong>提示</strong>：下面的代码片段便于你更好地了解步骤 16 中的查询，它不会被复制和执行。</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">let</span></span> EventData = Event
+| <span class="hljs-built_in"><span class="hljs-built_in">where</span></span> Source == <span class="hljs-string"><span class="hljs-string">"Microsoft-Windows-Sysmon"</span></span>
+| extend RenderedDescription = tostring(split(RenderedDescription, <span class="hljs-string"><span class="hljs-string">":"</span></span>)[0])
+| project TimeGenerated, Source, EventID, Computer, UserName, EventData, RenderedDescription
+| extend EvData = parse_xml(EventData)
+| extend EventDetail = EvData.DataItem.EventData.Data
+| project-away EventData, EvData  ;
+</code></pre>
+
+<p>在文件的稍后部分，你会再看到一个 Let 语句，它显示 EventID == 13 并将 EventData 变量用作输入。<br>
+<strong>提示</strong>：下面的代码片段便于你更好地了解步骤 16 中的查询，它不会被复制和执行。</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">let</span></span> SYSMON_REG_SETVALUE_13=()
+{
+    <span class="hljs-built_in"><span class="hljs-built_in">let</span></span> processEvents = EventData
+    | <span class="hljs-built_in"><span class="hljs-built_in">where</span></span> EventID == 13
+    | extend RuleName = EventDetail.[0].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], EventType = EventDetail.[1].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], UtcTime = EventDetail.[2].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], ProcessGuid = EventDetail.[3].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], 
+    ProcessId = EventDetail.[4].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], Image = EventDetail.[5].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], TargetObject = EventDetail.[6].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], Details = EventDetail.[7].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>]
+    | project-away EventDetail  ;
+    processEvents;
+    
+};
+</code></pre>
+<p>看起来开局不错。</p>
+
+<ol>
+  <li>通过上面的两个语句，你可创建自己的 KQL 语句，使用 Sysmon 在“事件”表中显示所有“注册表项设置值”行。运行以下 KQL 查询：</li>
+</ol>
+
+<p><strong>重要提示：</strong> 请先在<em>记事本</em>中粘贴任何 KQL 查询，然后从这里复制到“<em>新查询 1</em>”日志窗口，以避免出现任何错误。</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-KQL">Event
+| where Source == "Microsoft-Windows-Sysmon"
+| where EventID == 13
+| extend RenderedDescription = tostring(split(RenderedDescription, ":")[0])
+| project TimeGenerated, Source, EventID, Computer, UserName, EventData, RenderedDescription
+| extend EvData = parse_xml(EventData)
+| extend EventDetail = EvData.DataItem.EventData.Data
+| project-away EventData, EvData  
+| extend RuleName = EventDetail.[0].["#text"], EventType = EventDetail.[1].["#text"], UtcTime = EventDetail.[2].["#text"], ProcessGuid = EventDetail.[3].["#text"], 
+    ProcessId = EventDetail.[4].["#text"], Image = EventDetail.[5].["#text"], TargetObject = EventDetail.[6].["#text"], Details = EventDetail.[7].["#text"]
+    | project-away EventDetail 
+</code></pre>
+
+<p><a href="../Media/SC200_sysmon_query1.png" target="_blank"><img src="../Media/SC200_sysmon_query1.png" alt="屏幕截图"></a></p>
+
+<ol>
+  <li>
+    <p>可从这里继续生成检测规则，但该 KQL 语句似乎可在其他检测规则的 KQL 语句中重复使用。  在“日志”窗口中，选择“<strong>保存</strong>”，然后选择“<strong>保存为函数</strong>”。在“保存”飞出式窗格中，输入以下信息并保存函数：</p>
+
+    <p>函数名称：Event_Reg_SetValue 
+类别：Sysmon</p>
+  </li>
+  <li>
+    <p>选择“<strong>保存</strong>”，再选择“+”符号打开新的“日志查询”选项卡。然后运行以下 KQL 语句：</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-KQL">Event_Reg_SetValue
+</code></pre>
+<p>根据当前的数据集合，你可接收多个行。  这在预料之中。  下一个任务是筛选特定方案。</p>
+
+<ol>
+  <li>运行以下 KQL 语句：</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-KQL">Event_Reg_SetValue | search "startup.bat"
+</code></pre>
+<p>这将返回特定记录，我们现可查看数据，了解我们可更改哪些内容来标识行。</p>
+
+<ol>
+  <li>通过威胁情报，我们了解到威胁参与者正在使用 reg.exe 添加注册表项。  目录为 c:\temp。可将 startup.bat 改为其他名称。运行以下脚本</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-KQL">Event_Reg_SetValue 
+| where Image contains "reg.exe"
+
+</code></pre>
+<p>这是一个不错的开始。  接下来，你需要仅根据 c:\temp 目录的内容返回结果。</p>
+
+<ol>
+  <li>然后输入以下 KQL 语句：</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-KQL">Event_Reg_SetValue 
+| where Image contains "reg.exe"
+| where Details startswith "C:\\TEMP"
+</code></pre>
+
+<p>这个检测规则看起来不错。</p>
+
+<ol>
+  <li>请务必尽可能多地提供关于警报的上下文，为安全运营分析师提供帮助。这包括投影在调查关系图中使用的实体。  运行以下查询：</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-KQL">Event_Reg_SetValue 
+| where Image contains "reg.exe"
+| where Details startswith "C:\\TEMP"
+| extend timestamp = TimeGenerated, HostCustomEntity = Computer, AccountCustomEntity = UserName
+
+</code></pre>
+
+<ol>
+  <li>
+    <p>现在已准备好了检测规则，在包含查询的日志窗口中，选择命令栏中的“<strong>+ 新建警报规则</strong>”，然后选择“<strong>创建 Azure Sentinel 警报</strong>”。</p>
+  </li>
+  <li>
+    <p>这会启动分析规则向导。  在“常规”选项卡中，输入：</p>
+
+    <p>名称：Sysmon Startup RegKey
+描述：c:\temp 中的 Sysmon Startup Regkey
+策略：永久性
+严重性：高</p>
+  </li>
+</ol>
+
+<p>选择“<strong>下一步: 设置规则逻辑 &gt;</strong>”。</p>
+
+<ol>
+  <li>
+    <p>在“<strong>设置规则逻辑</strong>”选项卡上，应该已填充了“<strong>规则查询</strong>”。选择“<strong>-&gt;使用当前数据测试</strong>”，检查按照当前配置每天可收到的警报数量。</p>
+  </li>
+  <li>
+    <p>对于“查询计划”，设置如下：</p>
+  </li>
+</ol>
+
+<ul>
+  <li>运行查询的时间间隔：5 分钟</li>
+  <li>查看最近多久的数据：1 天</li>
+</ul>
+
+<p><strong>备注</strong>：我们特意针对同一数据生成了多个事件。这样，实验室就可使用这些警报。由于此配置更改，收到的警报数量可能会更改。  选择“<strong>-&gt;使用当前数据测试</strong>”，检查按照更改后的配置每天可收到的警报数量。</p>
+
+<ol>
+  <li>
+    <p>将其余选项保留为默认值。  选择“<strong>下一步: 事件设置 &gt;</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>对于“<em>事件设置(预览)</em>”选项卡，确保这些配置设置如下：</p>
+  </li>
+</ol>
+
+<ul>
+  <li>事件设置：已启用</li>
+  <li>警报分组：已禁用</li>
+</ul>
+
+<p>选择“<strong>下一步: 自动响应 &gt;</strong>”按钮。</p>
+
+<ol>
+  <li>对于“自动响应”选项卡，设置如下：</li>
+</ol>
+
+<ul>
+  <li>选择“<em>PostMessageTeams-OnAlert</em>”</li>
+</ul>
+
+<p>选择“<strong>下一步: 查看</strong>”按钮。</p>
+
+<ol>
+  <li>在“查看”选项卡中，选择“<strong>创建</strong>”按钮。</li>
+</ol>
+
+<h3 id="任务-2使用-defender-for-endpoint-检测攻击-1">任务 2：使用 Defender for Endpoint 检测攻击 1</h3>
+
+<p>在此任务中，你将在配置了 Microsoft Defender for Endpoint 的主机上创建针对<strong>攻击 1</strong> 的检测。</p>
+
+<ol>
+  <li>
+    <p>在 Azure Sentinel 门户中，从“常规”部分选择“<strong>日志</strong>”。</p>
+  </li>
+  <li>
+    <p>首先需要查看存储数据的位置。原因是你刚刚执行了攻击。</p>
+
+    <p>将日志时间范围设置为“过去 24 小时”。</p>
+  </li>
+  <li>
+    <p>运行以下 KQL 语句：</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-KQL">search "temp\\startup.bat"
+</code></pre>
+
+<ol>
+  <li>
+    <p>针对 3 个不同的表显示结果：
+ DeviceProcessEvents
+ DeviceRegistryEvents
+ Event</p>
+
+    <p>“设备”表来自 Defender for Endpoint 连接器，“<strong>事件</strong>”表填充了通过代理配置连接的 Sysmon/Operational Windows 事件日志中的数据。</p>
+
+    <p>我们将接收来自两个不同源（Sysmon 和 Defender for Endpoint）的数据，  因此我们需要生成两个之后可联合的 KQL 语句。但在初次调查时，你将分别查看每份数据。</p>
+
+    <p><strong>备注</strong>：在极少数情况下，数据加载过程可能耗时比平时的长。发生这种情况时，这些表可能在几个小时内都不会出现在查询中。如果在结果中没有看到“<em>设备</em>”表，请继续执行任务 3，稍后再回到此处。</p>
+  </li>
+  <li>
+    <p>此检测将重点关注来自 Defender for Endpoint 的数据。  运行以下 KQL 语句：</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-KQL">search in (Device*) "temp\\startup.bat"
+</code></pre>
+
+<ol>
+  <li>
+    <p>DeviceRegistryEvents 表中的数据已经规范化，便于进行查询。  展开各行可查看与记录相关的所有列。</p>
+  </li>
+  <li>
+    <p>通过威胁情报，我们了解到威胁参与者正在使用 reg.exe 添加注册表项。  目录为 c:\temp。可将 startup.bat 改为其他名称。  输入此 KQL 语句：</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-KQL">DeviceRegistryEvents
+| where ActionType == "RegistryValueSet"
+| where InitiatingProcessFileName == "reg.exe"
+| where RegistryValueData startswith "c:\\temp"
+</code></pre>
+
+<p>这个检测规则看起来不错。</p>
+
+<ol>
+  <li>请务必尽可能多地提供关于警报的上下文，为安全运营中心分析师提供帮助。这包括投影在调查关系图中使用的实体。运行以下查询：</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-KQL">DeviceRegistryEvents
+| where ActionType == "RegistryValueSet"
+| where InitiatingProcessFileName == "reg.exe"
+| where RegistryValueData startswith "c:\\temp"
+| extend timestamp = TimeGenerated, HostCustomEntity = DeviceName, AccountCustomEntity = InitiatingProcessAccountName
+</code></pre>
+
+<p><a href="../Media/SC200_sysmon_query2.png" target="_blank"><img src="../Media/SC200_sysmon_query2.png" alt="屏幕截图"></a></p>
+
+<ol>
+  <li>
+    <p>现在已准备好了检测规则，在包含查询的日志窗口中，选择命令栏中的“<strong>+ 新建警报规则</strong>”。  然后选择“<strong>创建 Azure Sentinel 警报</strong>”。</p>
+  </li>
+  <li>
+    <p>这会启动分析规则向导。  在“常规”选项卡中，输入：</p>
+
+    <p>名称：D4E Startup RegKey
+描述：c:\temp 中的 D4E Startup Regkey
+策略：永久性
+严重性：高</p>
+  </li>
+  <li>
+    <p>选择“<strong>下一步: 设置规则逻辑 &gt;</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>在“设置规则逻辑”选项卡上，应该已填充了“<strong>规则查询</strong>”。</p>
+  </li>
+  <li>
+    <p>对于“查询计划”，设置以下项：</p>
+  </li>
+</ol>
+
+<ul>
+  <li>运行查询的时间间隔：5 分钟</li>
+  <li>查看最近多久的数据：1 天</li>
+</ul>
+
+<p><strong>备注</strong>：我们特意针对同一数据生成了多个事件。  这样，实验室就可使用这些警报。</p>
+
+<ol>
+  <li>
+    <p>将其余选项保留为默认值。  选择“<strong>下一步: 事件设置 &gt;</strong>”：</p>
+  </li>
+  <li>
+    <p>对于“<em>事件设置(预览)</em>”，设置如下：</p>
+  </li>
+</ol>
+
+<ul>
+  <li>事件设置：已启用</li>
+  <li>警报分组：已禁用</li>
+</ul>
+
+<p>选择“<strong>下一步: 自动响应 &gt;</strong>”。</p>
+
+<ol>
+  <li>对于“自动响应”选项卡，设置以下项：</li>
+</ol>
+
+<ul>
+  <li>选择“<em>PostMessageTeams-OnAlert</em>”</li>
+</ul>
+
+<p>选择“<strong>下一步: 查看</strong>”。</p>
+
+<ol>
+  <li>在“查看 + 创建”选项卡上，选择“<strong>创建</strong>”。</li>
+</ol>
+
+<h3 id="任务-3使用-securityevent-检测攻击-2">任务 3：使用 SecurityEvent 检测攻击 2</h3>
+
+<p>在此任务中，你将在安装了安全事件连接器和 Sysmon 的主机上创建针对<em>攻击 2</em> 的检测。</p>
+
+<ol>
+  <li>
+    <p>从 Azure Sentinel 门户的“常规”部分选择“<strong>日志</strong>”。</p>
+  </li>
+  <li>
+    <p>首先需要查看存储数据的位置。原因是你刚刚执行了攻击。</p>
+
+    <p>将日志时间范围设置为“过去 24 小时”。</p>
+  </li>
+  <li>
+    <p>运行以下 KQL 语句：</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-KQL">search "administrators"
+</code></pre>
+
+<ol>
+  <li>
+    <p>结果显示以下表的内容：
+ Event
+ SecurityEvent</p>
+  </li>
+  <li>
+    <p>第一个数据源是 SecurityEvent。现在调查 Windows 使用哪个事件 ID 来确定正在向特权组添加成员。我们要查看的 EventID 和事件是“4732 - 一名成员被添加到启用了安全性的本地组”。执行以下脚本进行确认：</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-KQL">SecurityEvent
+| where EventID == "4732"
+| where TargetAccount == "Builtin\\Administrators"
+
+</code></pre>
+
+<ol>
+  <li>展开各行可查看与记录相关的所有列。  我们要查找的用户名未显示。  问题在于未存储该用户名，存储的是安全标识符 (SID)。  以下 KQL 将尝试匹配 SID，以填充已添加到管理员组的 TargetUserName。</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-KQL">SecurityEvent
+| where EventID == "4732"
+| where TargetAccount == "Builtin\\Administrators"
+| extend Acct = MemberSid, MachId = SourceComputerId 
+| join kind=leftouter (
+     SecurityEvent 
+     | summarize count() by TargetSid, SourceComputerId, TargetUserName
+     | project Acct1 = TargetSid, MachId1 = SourceComputerId, UserName1 = TargetUserName
+) on $left.MachId == $right.MachId1, $left.Acct == $right.Acct1 
+
+</code></pre>
+
+<p>这个检测规则看起来不错。</p>
+
+<p><a href="../Media/SC200_sysmon_attack3.png" target="_blank"><img src="../Media/SC200_sysmon_attack3.png" alt="屏幕截图"></a></p>
+
+<p><strong>备注</strong>：实验室使用的数据集较小，因此该 KQL 可能不会返回预期结果。</p>
+
+<ol>
+  <li>请务必尽可能多地提供关于警报的上下文，为安全运营分析师提供帮助。这包括投影在调查关系图中使用的实体。  运行以下查询：</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-KQL">SecurityEvent
+| where EventID == "4732"
+| where TargetAccount == "Builtin\\Administrators"
+| extend Acct = MemberSid, MachId = SourceComputerId 
+| join kind=leftouter (
+     SecurityEvent 
+     | summarize count() by TargetSid, SourceComputerId, TargetUserName
+     | project Acct1 = TargetSid, MachId1 = SourceComputerId, UserName1 = TargetUserName
+) on $left.MachId == $right.MachId1, $left.Acct == $right.Acct1 
+| extend timestamp = TimeGenerated, HostCustomEntity = Computer, AccountCustomEntity = UserName1
+</code></pre>
+
+<ol>
+  <li>
+    <p>现在已准备好了检测规则，在包含该查询的日志窗口中，选择命令栏中的“<strong>+ 新建警报规则</strong>”，然后选择“<strong>创建 Azure Sentinel 警报</strong>”。</p>
+  </li>
+  <li>
+    <p>这会启动分析规则向导。  在“常规”选项卡中，输入：</p>
+  </li>
+</ol>
+
+<ul>
+  <li>名称： SecurityEvents Local Administrators User Add</li>
+  <li>描述：SecurityEvents 本地管理员用户添加操作</li>
+  <li>策略：特权提升</li>
+  <li>严重性：高</li>
+</ul>
+
+<p>选择“<strong>下一步: 设置规则逻辑 &gt;</strong>”按钮。</p>
+
+<ol>
+  <li>
+    <p>在“设置规则逻辑”选项卡上，应该已填充了“规则查询和映射实体”。</p>
+  </li>
+  <li>
+    <p>对于“查询计划”，设置如下：</p>
+  </li>
+</ol>
+
+<ul>
+  <li>运行查询的时间间隔：5 分钟</li>
+  <li>查看最近多久的数据：1 天</li>
+</ul>
+
+<p><strong>备注</strong>：我们特意针对同一数据生成了多个事件。  这样，实验室就可使用这些警报。</p>
+
+<ol>
+  <li>
+    <p>将其余选项保留为默认值。  选择“<strong>下一步: 事件设置 &gt;</strong>”：</p>
+  </li>
+  <li>
+    <p>对于“<em>事件设置(预览)</em>”，设置如下：</p>
+  </li>
+</ol>
+
+<ul>
+  <li>事件设置：已启用</li>
+  <li>警报分组：已禁用</li>
+</ul>
+
+<p>选择“<strong>下一步: 自动响应 &gt;</strong>”</p>
+
+<ol>
+  <li>对于“自动响应”选项卡，设置以下项：</li>
+</ol>
+
+<ul>
+  <li>选择“<strong>PostMessageTeams-OnAlert</strong>”。</li>
+</ul>
+
+<p>选择“<strong>下一步: 查看 &gt;</strong>”按钮。</p>
+
+<ol>
+  <li>在“查看”选项卡中，选择“<strong>创建</strong>”。</li>
+</ol>
+
+<h2 id="转到练习-7">转到练习 7</h2>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst" target="_blank" class="ml-2">
+                    MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

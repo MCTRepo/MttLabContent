@@ -1,0 +1,593 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-500ZH-AzureSecurityTechnologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-500ZH-AzureSecurityTechnologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-500ZH-AzureSecurityTechnologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1配置-acr-和-aks-并对其进行保护">练习 1：配置 ACR 和 AKS 并对其进行保护</a></li><li class="nav-item"><a class="nav-link" href="#预计用时45-分钟">预计用时：45 分钟</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-09配置-acr-和-aks-并对其进行保护">实验室 09：配置 ACR 和 AKS 并对其进行保护</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>需要你使用 Azure 容器注册表和 Azure Kubernetes 服务部署概念证明。具体而言，概念证明应证明以下内容：</p>
+
+<ul>
+  <li>使用 Dockerfile 生成映像。</li>
+  <li>使用 Azure 容器注册表存储映像。</li>
+  <li>配置 Azure Kubernetes 服务。</li>
+  <li>在内部和外部保护和访问容器应用程序。</li>
+</ul>
+
+<blockquote>
+  <p>对于本实验室中的所有资源，我们使用 <strong>“美国东部”</strong> 区域。请与讲师确认这是课堂上所使用的区域。</p>
+</blockquote>
+
+<h2 id="实验室目标">实验室目标</h2>
+
+<p>在本实验室中，你将完成以下练习：</p>
+
+<ul>
+  <li>练习 1：配置 ACR 和 AKS 并对其进行保护</li>
+</ul>
+
+<h2 id="实验室文件">实验室文件：</h2>
+
+<ul>
+  <li><strong>\Allfiles\Labs\09\nginxexternal.yaml</strong></li>
+  <li><strong>\Allfiles\Labs\09\nginxinternal.yaml</strong></li>
+</ul>
+
+<h3 id="练习-1配置-acr-和-aks-并对其进行保护">练习 1：配置 ACR 和 AKS 并对其进行保护</h3>
+
+<h3 id="预计用时45-分钟">预计用时：45 分钟</h3>
+
+<blockquote>
+  <p>对于本实验室中的所有资源，我们使用 <strong>“美国东部”</strong> 区域。与你的教师确认这是你上课时使用的区域。</p>
+</blockquote>
+
+<p>在该练习中，你将完成以下任务：</p>
+
+<ul>
+  <li>任务 1：创建 Azure 容器注册表</li>
+  <li>任务 2：创建 Dockerfile、构建容器并将其推送到 Azure 容器注册表</li>
+  <li>任务 3：创建 Azure Kubernetes 服务群集</li>
+  <li>任务 4：授予 AKS 群集访问 ACR 的权限</li>
+  <li>任务 5：将外部服务部署到 AKS</li>
+  <li>任务 6：验证你是否可以访问外部 AKS 托管的服务</li>
+  <li>任务 7：将内部服务部署到 AKS</li>
+  <li>任务 8：验证你是否可以访问 AKS 托管的内部服务</li>
+</ul>
+
+<h4 id="任务-1创建-azure-容器注册表">任务 1：创建 Azure 容器注册表</h4>
+
+<p>在此任务中，你将为实验室创建资源组和 Azure 容器注册表。</p>
+
+<ol>
+  <li>
+    <p>登录 Azure 门户 <strong><code>https://portal.azure.com/</code></strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 使用帐户登录到 Azure 门户，该帐户在你用于此实验室的 Azure 订阅中具有所有者或参与者角色，并且在与该订阅关联的 Azure AD 租户中具有全局管理员角色。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，通过单击 Azure 门户右上角的第一个图标打开 Cloud Shell。出现提示时，单击 <strong>“Bash”</strong> 和 <strong>“创建存储”</strong>。</p>
+  </li>
+  <li>
+    <p>确保在“Cloud Shell”窗格左上角的下拉菜单中选中 <strong>“Bash”</strong>。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令为此实验室创建新的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-sh hljs bash"> az group create --name AZ500LAB09 --location eastus
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的 Bash 会话中，运行以下命令以验证资源组是否已创建：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs cpp"> az group <span class="hljs-built_in"><span class="hljs-built_in">list</span></span> --query <span class="hljs-string"><span class="hljs-string">"[?name=='AZ500LAB09']"</span></span> -o table
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令以创建新的 Azure 容器注册表 (ACR) 实例（ACR 的名称必须是全局唯一的）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-sh hljs bash"> az acr create --resource-group AZ500LAB09 --name az500<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span> --sku Basic
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的 Bash 会话中，运行以下命令以确认新的 ACR 已创建：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sh hljs bash"> az acr list --resource-group AZ500LAB09
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 记录 ACR 的名称。在下一个任务中需要使用它。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2创建-dockerfile构建容器并将其推送到-azure-容器注册表">任务 2：创建 Dockerfile、构建容器并将其推送到 Azure 容器注册表</h4>
+
+<p>在此任务中，你将创建 Dockerfile、从 Dockerfile 构建映像，以及将映像部署到 ACR。</p>
+
+<ol>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，通过运行以下命令创建 Dockerfile，以创建基于 Nginx 的映像：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash"> <span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> FROM nginx &gt; Dockerfile
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令以从 Dockerfile 生成映像，并将该映像推送到新的 ACR。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 命令行末尾的末尾句点是必需的。它将当前目录指定为 Dockerfile 的位置。</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sh hljs bash"> ACRNAME=$(az acr list --resource-group AZ500LAB09 --query <span class="hljs-string"><span class="hljs-string">'[].{Name:name}'</span></span> --output tsv)
+
+ az acr build --image sample/nginx:v1 --registry <span class="hljs-variable"><span class="hljs-variable">$ACRNAME</span></span> --file Dockerfile .
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等到命令成功完成。该操作需要约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>AZ500Lab09</strong> 资源组，然后在资源列表中，单击表示你在上一个任务中预配的 Azure 容器注册表实例的条目。</p>
+  </li>
+  <li>
+    <p>在“容器注册表”边栏选项卡的 <strong>“服务”</strong> 部分，单击 <strong>“存储库”</strong>。</p>
+  </li>
+  <li>
+    <p>验证存储库列表是否包含名为 <strong>sample/nginx</strong> 的新容器映像。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“sample/nginx”</strong> 条目并验证是否存在标识映像版本的 <strong>v1</strong> 标记。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“v1”</strong> 条目以查看映像清单。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 清单包括 sha256 摘要、清单创建日期和平台条目。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-3创建-azure-kubernetes-服务群集">任务 3：创建 Azure Kubernetes 服务群集</h4>
+
+<p>在此任务中，你将创建 Azure Kubernetes 服务并查看已部署的资源。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户页面顶部的 <strong>“搜索资源、服务和文档”</strong> 文本框中，键入 <strong>“Kubernetes 服务”</strong>，然后按 <strong>“Enter”</strong> 键。</p>
+  </li>
+  <li>
+    <p>在“<strong>Kubernetes 服务</strong>”边栏选项卡上，单击“<strong>+ 创建</strong>”，然后在下拉菜单中单击“<strong>+ 添加 Kubernetes 群集</strong>”</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建 Kubernetes 群集”</strong> 边栏选项卡的 <strong>“基本设置”</strong> 选项卡中，指定以下设置（将其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>AZ500LAB09</strong></td>
+        </tr>
+        <tr>
+          <td>Kubernetes 群集名称</td>
+          <td><strong>MyKubernetesCluster</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td><strong>（美国）美国东部</strong></td>
+        </tr>
+        <tr>
+          <td>可用性区域</td>
+          <td><strong>无</strong></td>
+        </tr>
+        <tr>
+          <td>节点计数</td>
+          <td>1</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 节点池 &gt;”</strong>，然后在 <strong>“创建 Kubernetes 群集”</strong> 边栏选项卡的 <strong>“节点池”</strong> 选项卡中，指定以下设置（将其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>启用虚拟节点</td>
+          <td>清除复选框</td>
+        </tr>
+        <tr>
+          <td>VM 规模集</td>
+          <td>清除复选框</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 身份验证 &gt;”</strong>，在 <strong>“创建 Kubernetes 群集”</strong> 边栏选项卡的 <strong>“身份验证”</strong> 选项卡中，接受默认设置，然后单击 <strong>“下一步: 网络 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建 Kubernetes 群集”</strong> 边栏选项卡的 <strong>“联网”</strong> 选项卡中，指定以下设置（将其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>网络配置</td>
+          <td><strong>Azure CNI</strong></td>
+        </tr>
+        <tr>
+          <td>DNS 名称前缀</td>
+          <td>任何有效且全球唯一的 DNS 主机名</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>注意</strong>： 可将 AKS 配置为专用群集。这会将专用 IP 分配给 API 服务器，以确保 API 服务器与节点池之间的网络流量仅保留在专用网络上。有关更多信息，请访问<a href="https://docs.microsoft.com/zh-cn/azure/aks/private-clusters">创建专用 Azure Kubernetes 服务群集</a>页。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 集成 &gt;”</strong>，然后在 <strong>“创建 Kubernetes 群集”</strong> 边栏选项卡的 <strong>“集成”</strong> 选项卡中，将 <strong>“容器监视”</strong> 设置为 <strong>“禁用”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在生产场景中，你需要启用监视。在本例中，由于实验室未涵盖监视，因此禁用了监视。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“查看 + 创建”</strong>，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待部署完成。该操作需要约 10 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>部署完成后，在 Azure 门户页面顶部的 <strong>“搜索资源、服务和文档”</strong> 文本框中，键入 <strong>“资源组”</strong>，然后按 <strong>Enter</strong> 键。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 边栏选项卡的资源组列表中，请注意一个名为 <strong>“MC_AZ500LAB09_MyKubernetesCluster_eastus”</strong> 的新资源组，它包含 AKS 节点的组件。查看此资源组中的资源。</p>
+  </li>
+  <li>
+    <p>导航回 <strong>“资源组”</strong> 边栏选项卡，然后单击 <strong>“AZ500LAB09”</strong> 条目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在资源列表中，记下 AKS 群集和相应的虚拟网络。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，在 Cloud Shell 中打开 Bash 会话。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 确保在“Cloud Shell”窗格左上角的下拉菜单中选中 <strong>“Bash”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令以连接到 Kubernetes 群集：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-sh hljs bash"> az aks get-credentials --resource-group AZ500LAB09 --name MyKubernetesCluster
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令以列出 Kubenetes 群集的节点：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-sh hljs bash"> kubectl get nodes
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 验证列出的群集节点状态是否为 <strong>“就绪”</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4授予-aks-群集访问-acr-和管理-acr-虚拟网络的权限">任务 4：授予 AKS 群集访问 ACR 和管理 ACR 虚拟网络的权限</h4>
+
+<p>在该任务中，你将授予 AKS 群集访问 ACR 和管理 ACR 虚拟网络的权限。</p>
+
+<ol>
+  <li>
+    <p>在“Cloud Shell”窗格的 Bash 会话中，运行以下命令以将 AKS 群集配置为使用在本实验室前面部分创建的 Azure 容器注册表实例。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-sh hljs bash"> ACRNAME=$(az acr list --resource-group AZ500LAB09 --query <span class="hljs-string"><span class="hljs-string">'[].{Name:name}'</span></span> --output tsv)
+
+ az aks update -n MyKubernetesCluster -g AZ500LAB09 --attach-acr <span class="hljs-variable"><span class="hljs-variable">$ACRNAME</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该命令将 ‘acrpull’ 角色分配给 ACR。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此命令需要几分钟时间才能完成操作。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令以授予 AKS 群集对其虚拟网络的“参与者”角色。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-sh hljs bash"> RG_AKS=AZ500LAB09
+    
+ AKS_VNET_NAME=AZ500LAB09-vnet
+    
+ AKS_CLUSTER_NAME=MyKubernetesCluster
+    
+ AKS_VNET_ID=$(az network vnet show --name <span class="hljs-variable"><span class="hljs-variable">$AKS_VNET_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_AKS</span></span> --query id -o tsv)
+    
+ AKS_MANAGED_ID=$(az aks show --name <span class="hljs-variable"><span class="hljs-variable">$AKS_CLUSTER_NAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG_AKS</span></span> --query identity.principalId -o tsv)
+    
+ az role assignment create --assignee <span class="hljs-variable"><span class="hljs-variable">$AKS_MANAGED_ID</span></span> --role <span class="hljs-string"><span class="hljs-string">"Contributor"</span></span> --scope <span class="hljs-variable"><span class="hljs-variable">$AKS_VNET_ID</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="任务-5将外部服务部署到-aks">任务 5：将外部服务部署到 AKS</h4>
+
+<p>在此任务中，你将下载清单文件、编辑 YAML 文件，并将更改应用到群集。</p>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中，单击 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中，单击 <strong>“上传”</strong>，在 <strong>“打开”</strong> 对话框中，导航到下载实验室文件的位置，选择 <strong>\Allfiles\Labs\09\nginxexternal.yaml</strong>，然后单击 <strong>“打开”</strong>。接下来，选择 <strong>\Allfiles\Labs\09\nginxinternal.yaml</strong>，然后单击 <strong>“打开”</strong>。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的 Bash 会话中，运行以下命令以标识 Azure 容器注册表实例的名称：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-sh hljs bash"> <span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> <span class="hljs-variable"><span class="hljs-variable">$ACRNAME</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：记录 Azure 容器注册表实例名称。稍后你将在此任务中使用它。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中，运行以下命令以打开 nginxexternal.yaml 文件，以便你可以编辑其内容。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-sh hljs bash"> code ./nginxexternal.yaml
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这<em>是外部</em> yaml 文件。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在编辑器窗格中，向下滚动到第 <strong>24 行</strong> 并将 <strong><code>&lt;ACRUniquename&gt;</code></strong> 占位符替换为 ACR 名称。</p>
+  </li>
+  <li>
+    <p>在编辑器窗格的右上角，单击<strong>省略号</strong>图标，单击 <strong>“保存”</strong>，然后单击 <strong>“关闭编辑器”</strong>。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令将更改应用于群集：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-sh hljs bash"> kubectl apply -f nginxexternal.yaml
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中，查看你在上一个任务中运行命令的输出，验证已创建的部署和相应的服务。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs"> deployment.apps/nginxexternal created
+ service/nginxexternal created
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="任务-6验证你是否可以访问外部-aks-托管的服务">任务 6：验证你是否可以访问外部 AKS 托管的服务</h4>
+
+<p>在此任务中，验证是否可以使用公共 IP 地址从外部访问容器。</p>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中，运行以下命令以检索有关 nginxexternal 服务的信息，包括名称、类型、IP 地址和端口。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-sh hljs bash"> kubectl get service nginxexternal
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中，查看输出并将值记录在外部 IP 列中。在下一个步骤中你将用到它。</p>
+  </li>
+  <li>
+    <p>打开 Internet Explorer 并浏览到你在上一步中标识的 IP 地址。</p>
+  </li>
+  <li>
+    <p>确保 <strong>“Welcome to nginx!”</strong> 页面显示。</p>
+  </li>
+</ol>
+
+<h4 id="任务-7将内部服务部署到-aks">任务 7：将内部服务部署到 AKS</h4>
+
+<p>在此任务中，你将在 AKS 上部署面向内部的服务。</p>
+
+<ol>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令以打开 nginxintenal.yaml 文件，以便编辑其内容。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-sh hljs bash"> code ./nginxinternal.yaml
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： <em>这是内部</em> yaml 文件。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在编辑器窗格中，向下滚动到包含对容器映像的引用的行并将 <strong><code>&lt;ACRUniquename&gt;</code></strong> 占位符替换为 ACR 名称。</p>
+  </li>
+  <li>
+    <p>在编辑器窗格的右上角，单击<strong>省略号</strong>图标，单击 <strong>“保存”</strong>，然后单击 <strong>“关闭编辑器”</strong>。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令将更改应用于群集：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-sh hljs bash"> kubectl apply -f nginxinternal.yaml
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，查看输出以验证是否已创建部署和服务：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs">deployment.apps/nginxinternal created
+service/nginxinternal created
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令以检索有关 nginxinternal 服务的信息，包括名称、类型、IP 地址和端口。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-sh hljs bash"> kubectl get service nginxinternal
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中查看输出。在这种情况下，外部 IP 是专用 IP 地址。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 记录此 IP 地址。在下一个任务中需要使用它。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 要访问内部服务终结点，需要以交互方式连接到群集中运行的其中一个 Pod。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 或者可以使用 CLUSTER-IP 地址。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-8验证你是否可以访问-aks-托管的内部服务">任务 8：验证你是否可以访问 AKS 托管的内部服务</h4>
+
+<p>在此任务中，你将使用在 AKS 群集上运行的 Pod 之一来访问内部服务。</p>
+
+<ol>
+  <li>
+    <p>在“Cloud Shell”窗格中的 Bash 会话中，运行以下命令以列出 AKS 群集上默认命名空间中的 Pod：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-sh hljs bash"> kubectl get pods
+</code></pre>
+  </li>
+  <li>
+    <p>在 Pod 列表中，复制 <strong>“名称”</strong> 列中的第一个条目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这是你在后续步骤中要使用的 Pod。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的 Bash 会话中，运行以下命令以交互式方式连接到第一个 Pod（将 <code>&lt;pod_name&gt;</code> 占位符替换为上一步中复制的名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-sh hljs bash"> kubectl <span class="hljs-built_in"><span class="hljs-built_in">exec</span></span> -it &lt;pod_name&gt; -- /bin/bash
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的 Bash 会话中，运行以下命令来验证 nginx 网站是否可通过服务的专用 IP 地址访问（将 <code>&lt;internal_IP&gt;</code> 占位符替换为上一个任务中记录的 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-sh hljs bash"> curl http://&lt;internal_IP&gt;
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p>结果：你已对 ACR 和 AKS 进行了配置和保护。</p>
+</blockquote>
+
+<p><strong>清理资源</strong></p>
+
+<blockquote>
+  <p>请记得删除任何新创建而不会再使用的 Azure 资源。删除未使用的资源，确保不产生意外成本。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，通过单击 Azure 门户右上角的第一个图标打开 Cloud Shell。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的左上下拉菜单中，选择 <strong>“PowerShell”</strong> 并在出现提示时单击 <strong>“确认”</strong>。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 PowerShell 会话中，运行以下命令以删除你在此实验室中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-powershell"> Remove-AzResourceGroup -Name "AZ500LAB09" -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 <strong>Cloud Shell</strong> 窗格。</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-500ZH-AzureSecurityTechnologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-500ZH-AzureSecurityTechnologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,888 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-204ZH-DevelopingSolutionsforMicrosoftAzure
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-204ZH-DevelopingSolutionsforMicrosoftAzure
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-204ZH-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#准备工作">准备工作</a></li><li class="nav-item"><a class="nav-link" href="#练习-1创建-azure-active-directory-azure-ad-应用程序注册">练习 1：创建 Azure Active Directory (Azure AD) 应用程序注册</a></li><li class="nav-item"><a class="nav-link" href="#练习-2使用-msalnet-库获取令牌">练习 2：使用 MSAL.NET 库获取令牌</a></li><li class="nav-item"><a class="nav-link" href="#练习-3使用-net-sdk-查询-microsoft-graph">练习 3：使用 .NET SDK 查询 Microsoft Graph</a></li><li class="nav-item"><a class="nav-link" href="#练习-4清理订阅">练习 4：清理订阅</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-06使用-msal-和-net-sdk-对-microsoft-graph-进行身份验证和查询">实验室 06：使用 MSAL 和 .NET SDK 对 Microsoft Graph 进行身份验证和查询</h1>
+
+<h2 id="microsoft-azure-用户界面">Microsoft Azure 用户界面</h2>
+
+<p>鉴于 Microsoft 云工具的动态特性，Azure UI 在此培训内容开发后可能会发生更改。这些更改可能会导致实验室说明和实验室步骤不匹配。</p>
+
+<p>当社区要求我们进行更改时，Microsoft 将更新此培训课程。但是，由于云更新频繁发生，因此在此培训内容更新之前，你可能会遇到 UI 更改情况。<strong>如果发生这种情况，请适应这些更改，并根据需要在实验室中熟悉这些更改。</strong></p>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="准备工作">准备工作</h3>
+
+<h4 id="登录到实验室虚拟机">登录到实验室虚拟机</h4>
+
+<p>使用以下凭据登录到 Windows 10 虚拟机 (VM)：</p>
+
+<ul>
+  <li>
+    <p>用户名： <strong>Admin</strong></p>
+  </li>
+  <li>
+    <p>密码： <strong>Pa55w.rd</strong></p>
+  </li>
+</ul>
+
+<blockquote>
+  <p><strong>备注</strong>： 你的讲师将提供连接到虚拟实验室环境的说明。</p>
+</blockquote>
+
+<h4 id="查看已安装的应用程序">查看已安装的应用程序</h4>
+
+<p>在你的 Windows 10 桌面上找到任务栏。任务栏里有本实验室中你将使用的应用程序的图标：</p>
+
+<ul>
+  <li>
+    <p>Microsoft Edge</p>
+  </li>
+  <li>
+    <p>Visual Studio Code</p>
+  </li>
+</ul>
+
+<h3 id="练习-1创建-azure-active-directory-azure-ad-应用程序注册">练习 1：创建 Azure Active Directory (Azure AD) 应用程序注册</h3>
+
+<h4 id="任务-1打开-azure-门户">任务 1：打开 Azure 门户</h4>
+
+<ol>
+  <li>
+    <p>在任务栏上，选择 <strong>“Microsoft Edge”</strong> 图标。</p>
+  </li>
+  <li>
+    <p>在打开的浏览器窗口中，转到 Azure 门户 (<a href="https://portal.azure.com">https://portal.azure.com</a>)。</p>
+  </li>
+  <li>
+    <p>输入你的 Microsoft 帐户的电子邮件地址，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>输入 Microsoft 帐户的密码，然后选择 <strong>“登录”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 第一次登录 Azure 门户时，你会看到一个门户教程。选择 <strong>“开始使用”</strong>，以跳过导览并开始使用门户。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2创建应用程序注册">任务 2：创建应用程序注册</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户导航窗格中，选择 <strong>“所有服务”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“所有服务”</strong> 边栏选项卡中，选择 <strong>“Azure Active Directory”</strong>。</p>
+  </li>
+  <li>
+    <p>从 <strong>“Azure Active Directory”</strong> 边栏选项卡，在 <strong>“管理”</strong> 部分中选择 <strong>“应用注册”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“应用注册”</strong> 部分，选择 <strong>“新注册”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“注册应用程序”</strong> 部分，执行以下操作：</p>
+
+    <ol>
+      <li>
+        <p>在 <strong>“名称”</strong> 文本框，输入 <strong>“graphapp”</strong>。</p>
+      </li>
+      <li>
+        <p>在 <strong>“受支持的帐户类型”</strong> 列表中，选中 <strong>“仅此组织目录中的帐户（仅默认目录 - 单个租户）”</strong> 复选框。</p>
+      </li>
+      <li>
+        <p>在 <strong>“重定向 URI”</strong> 下拉列表中，选择 <strong>“公共客户端/本机（移动和桌面）”</strong>。</p>
+      </li>
+      <li>
+        <p>在 <strong>“重定向 URI”</strong> 文本框中，输入 <strong>“http://localhost”</strong>。</p>
+      </li>
+      <li>
+        <p>选择 <strong>“注册”</strong>。</p>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<h4 id="任务-3启用默认客户端类型">任务 3：启用默认客户端类型</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“graphapp”</strong> 应用程序注册边栏选项卡中，在 <strong>“托管”</strong> 部分选择 <strong>“身份验证”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“身份验证”</strong> 部分，执行以下操作：</p>
+
+    <ol>
+      <li>
+        <p>在 <strong>“高级设置”</strong> 中的 <strong>“允许公共客户端流”</strong> 部分，选择 <strong>“是”</strong>。</p>
+      </li>
+      <li>
+        <p>选择 <strong>“保存”</strong>。</p>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<h4 id="任务-4记录唯一标识符">任务 4：记录唯一标识符</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“graphapp”</strong> 应用程序注册边栏选项卡上，选择 <strong>“概述”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“概述”</strong> 部分，找到并记录 <strong>“应用程序(客户端) ID”</strong> 文本框的值。你将在稍后的实验室中使用此值。</p>
+  </li>
+  <li>
+    <p>在 <strong>“概述”</strong> 部分，找到并记录 <strong>“目录（租户）ID”</strong> 文本框的值。你将在稍后的实验室中使用此值。</p>
+  </li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本练习中，你创建了一个新的应用程序注册，并记录了稍后在实验室中需要的重要值。</p>
+
+<h3 id="练习-2使用-msalnet-库获取令牌">练习 2：使用 MSAL.NET 库获取令牌</h3>
+
+<h4 id="任务-1创建-net-项目">任务 1：创建 .NET 项目</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“启动”</strong> 屏幕上，选择 <strong>“Visual Studio Code”</strong> 磁贴。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 菜单上，选择 <strong>“打开文件夹”</strong>。</p>
+  </li>
+  <li>
+    <p>在打开的 <strong>“文件资源管理器”</strong> 窗格中，前往 <strong>“Allfiles (F):\Allfiles\Labs\06\Starter\GraphClient”</strong>，然后选择 <strong>“选择文件夹”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Visual Studio Code”</strong> 窗口中，右键单击或激活“资源管理器”窗格的快捷菜单，然后选择 <strong>“在终端中打开”</strong>。</p>
+  </li>
+  <li>
+    <p>在打开的命令提示符处，输入以下命令，然后选择“Enter”，在当前文件夹中创建一个名为 <strong>“GraphClient”</strong> 的新 .NET 项目：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs coffeescript">dotnet <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> <span class="hljs-built_in"><span class="hljs-built_in">console</span></span> --name GraphClient --output .
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>dotnet new</strong> 命令将在与项目同名的文件夹中创建一个新的 <strong>“控制台”</strong> 项目。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在命令提示符处，输入以下命令然后按 Enter，以从 NuGet 导入 4.7.1 版本的 <strong>“Microsoft.Identity.Client”</strong>：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Identity</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Client</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 4<span class="hljs-selector-class"><span class="hljs-selector-class">.7</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.1</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>dotnet add package</strong> 命令将从 NuGet 添加 <strong>Microsoft.Identity.Client</strong> 包。有关详细信息，请转到 <a href="https://www.nuget.org/packages/Microsoft.Identity.Client/4.7.1">“Microsoft.Identity.Client”</a>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在命令提示符处，输入以下命令然后按 Enter，以生成 .NET Web 应用程序：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> build
+</code></pre>
+  </li>
+  <li>
+    <p>选择 <strong>“终止终端”</strong> 或者 <strong>“回收站”</strong> 图标以关闭当前打开的终端和所有关联的进程。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2修改程序类">任务 2：修改程序类</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“Visual Studio Code”</strong> 窗口的“资源管理器”窗格中，展开 <strong>“Program.cs”</strong> 文件。</p>
+  </li>
+  <li>
+    <p>在 <strong>Program.cs</strong> 文件的“代码编辑器”选项卡中，删除现有文件中的所有代码。</p>
+  </li>
+  <li>
+    <p>添加以下代码行，通过从 NuGet 导入的 <strong>“Microsoft.Identity.Client</strong>包导入 <strong>Microsoft.Identity.Client</strong> 命名空间：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Identity</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Client</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>添加以下代码行，为此文件将使用的内置命名空间添加 <strong>using</strong> 指令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span>;
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Collections</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Generic</span></span>;
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Threading</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Tasks</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>输入以下代码，创建一个新的 <strong>Program</strong> 类：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs cpp"><span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">Program</span></span></span><span class="hljs-class">
+{</span></span>
+}
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Program</strong> 类中，输入以下代码以创建新的异步 <strong>Main</strong> 方法：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs cs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+}
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Program</strong> 类中，输入以下代码行，创建一个名为 <strong>clientId</strong> 的新字符串常量：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs cpp"><span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> _clientId = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>通过将 <strong>“clientId”</strong> 字符串常数的值设置为之前在本实验室中记录的 <strong>“应用程序（客户端） ID”</strong> 来更新该字符串常量。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Program”</strong> 类中，输入以下代码行以创建一个名为 <strong>tenantId</strong> 的新字符串常量：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs cpp"><span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> _tenantId = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>通过将 <strong>“tenantId”</strong> 字符串常量的值设置为之前在本实验室中记录的 <strong>“目录(租户) ID”</strong> 来更新该字符串常量。</p>
+  </li>
+  <li>
+    <p>查看 <strong>“Program.cs”</strong> 文件，现在应包括：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs cs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Identity.Client;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Collections.Generic;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+
+<span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">Program</span></span>
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> _clientId = <span class="hljs-string"><span class="hljs-string">"&lt;app-reg-client-id&gt;"</span></span>;        
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> _tenantId = <span class="hljs-string"><span class="hljs-string">"&lt;aad-tenant-id&gt;"</span></span>;
+
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+    </span></span>{
+    }
+}
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="任务-3获取-microsoft-身份验证库-msal-令牌">任务 3：获取 Microsoft 身份验证库 (MSAL) 令牌</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，添加以下代码行以创建名为 <em>app</em> 的新变量，该变量的类型为 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.ipublicclientapplication">IPublicClientApplication</a></strong>：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">IPublicClientApplication</span></span> app;
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，通过使用静态 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.publicclientapplicationbuilder">PublicClientApplicationBuilder</a></strong> 类执行以下操作来构建公共客户端应用程序实例，然后将其存储在 app 变量中：</p>
+
+    <ol>
+      <li>
+        <p>添加以下代码行以访问静态 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.publicclientapplicationbuilder">PublicClientApplicationBuilder</a></strong> 类：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">PublicClientApplicationBuilder</span></span>
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加另一行代码来更新前一行代码，以使用 PublicClientApplicationBuilder 类的 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.publicclientapplicationbuilder.create">Create()</a></strong> 方法，从而以参数形式传入 <strong>clientId</strong> 变量：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">PublicClientApplicationBuilder</span></span>
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.Create</span></span>(_<span class="hljs-selector-tag"><span class="hljs-selector-tag">clientId</span></span>)
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加另一行代码来更新前一行代码，以使用基 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.abstractapplicationbuilder-1">AbstractApplicationBuilder&lt;&gt;</a></strong> 类的 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.abstractapplicationbuilder-1.withauthority">WithAuthority()</a></strong> 方法，从而以参数形式传入枚举值 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.azurecloudinstance">AzureCloudInstance.AzurePublic</a></strong> 和变量 <em>tenantId</em>：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">PublicClientApplicationBuilder</span></span>
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.Create</span></span>(_<span class="hljs-selector-tag"><span class="hljs-selector-tag">clientId</span></span>)
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.WithAuthority</span></span>(<span class="hljs-selector-tag"><span class="hljs-selector-tag">AzureCloudInstance</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.AzurePublic</span></span>, _<span class="hljs-selector-tag"><span class="hljs-selector-tag">tenantId</span></span>)
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加另一行代码来更新上一行代码，以使用基 AbstractApplicationBuilder&lt;&gt; 类的 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.abstractapplicationbuilder-1.withredirecturi">WithRedirectUri()</a></strong> 方法，从而传入 <strong>http://localhost</strong> 的字符串值：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">PublicClientApplicationBuilder</span></span>
+    .Create(_clientId)
+    .WithAuthority(AzureCloudInstance.AzurePublic, _tenantId)
+    .WithRedirectUri(<span class="hljs-string"><span class="hljs-string">"http://localhost"</span></span>)
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加另一行代码来更新上一行代码，以使用 <strong>PublicClientApplication</strong> 类的 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.publicclientapplicationbuilder.build">Build()</a></strong> 方法：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">PublicClientApplicationBuilder</span></span>
+    .Create(_clientId)
+    .WithAuthority(AzureCloudInstance.AzurePublic, _tenantId)
+    .WithRedirectUri(<span class="hljs-string"><span class="hljs-string">"http://localhost"</span></span>)
+    .Build();
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加更多代码来更新上一行代码，以将表达式的结果存储在 <em>app</em> 变量中：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs makefile">app = PublicClientApplicationBuilder
+    .Create(_clientId)
+    .WithAuthority(AzureCloudInstance.AzurePublic, _tenantId)
+    .WithRedirectUri(<span class="hljs-string"><span class="hljs-string">"http://localhost"</span></span>)
+    .Build();
+</code></pre>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，添加以下代码行以使用单个 <strong>user.read</strong> 值创建新的通用字符串 <strong><a href="https://docs.microsoft.com/dotnet/api/system.collections.generic.list-1">List&lt;&gt;</a></strong>：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs cpp">List&lt;<span class="hljs-built_in"><span class="hljs-built_in">string</span></span>&gt; scopes = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;<span class="hljs-built_in"><span class="hljs-built_in">string</span></span>&gt; 
+{ 
+    <span class="hljs-string"><span class="hljs-string">"user.read"</span></span> 
+};
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，添加以下代码行，以创建名为 <strong>result</strong> 且类型为 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.authenticationresult">AuthenticationResult</a></strong> 的新变量：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">AuthenticationResult</span></span> result;
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，执行以下操作以交互方式获取令牌并将输出存储在 <em>result</em> 变量中：</p>
+
+    <ol>
+      <li>
+        <p>添加以下代码行以访问 <em>app</em> 变量：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">app</span></span>
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加另一行代码来更新上一行代码以使用 <strong>IPublicClientApplicationBuilder</strong> 接口的 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.ipublicclientapplication.acquiretokeninteractive">AcquireTokenInteractive()</a></strong> 方法，从而以参数形式传入 <em>scopes</em> 变量：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">app</span></span>
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.AcquireTokenInteractive</span></span>(<span class="hljs-selector-tag"><span class="hljs-selector-tag">scopes</span></span>)
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加另一行代码来更新上一行代码，以使用 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.abstractacquiretokenparameterbuilder-1">AbstractAcquireTokenParameterBuilder</a></strong> 类的 <strong><a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.abstractacquiretokenparameterbuilder-1.executeasync">ExecuteAsync()</a></strong> 方法：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">app</span></span>
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.AcquireTokenInteractive</span></span>(<span class="hljs-selector-tag"><span class="hljs-selector-tag">scopes</span></span>)
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.ExecuteAsync</span></span>();
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加更多代码来更新上一行代码，以使用 <strong>await</strong> 关键字异步处理表达式：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">await</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">app</span></span>
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.AcquireTokenInteractive</span></span>(<span class="hljs-selector-tag"><span class="hljs-selector-tag">scopes</span></span>)
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.ExecuteAsync</span></span>();
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加更多代码来更新上一行代码，以将表达式的结果存储在 <em>result</em>变量中：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="hljs makefile">result = await app
+    .AcquireTokenInteractive(scopes)
+    .ExecuteAsync();
+</code></pre>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，添加以下代码行以使用 <strong>Console.WriteLine</strong> 方法将 <a href="https://docs.microsoft.com/dotnet/api/microsoft.identity.client.authenticationresult.accesstoken">AuthenticationResult.AccessToken</a> 成员的值呈现到控制台：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="hljs cs">Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"Token:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{result.AccessToken}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>查看 <strong>Main</strong> 方法，该方法现在应包括：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="hljs cs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+    IPublicClientApplication app;
+
+    app = PublicClientApplicationBuilder
+        .Create(_clientId)
+        .WithAuthority(AzureCloudInstance.AzurePublic, _tenantId)
+        .WithRedirectUri(<span class="hljs-string"><span class="hljs-string">"http://localhost"</span></span>)
+        .Build();
+
+    List&lt;<span class="hljs-keyword"><span class="hljs-keyword">string</span></span>&gt; scopes = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;<span class="hljs-keyword"><span class="hljs-keyword">string</span></span>&gt; 
+    { 
+        <span class="hljs-string"><span class="hljs-string">"user.read"</span></span>
+    };
+
+    AuthenticationResult result;
+        
+    result = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> app
+        .AcquireTokenInteractive(scopes)
+        .ExecuteAsync();
+
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"Token:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{result.AccessToken}</span></span></span><span class="hljs-string">"</span></span>);
+}
+</code></pre>
+  </li>
+  <li>
+    <p>保存 <strong>Program.cs</strong> 文件。</p>
+  </li>
+</ol>
+
+<h4 id="任务-4测试已更新的应用程序">任务 4：测试已更新的应用程序</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“Visual Studio Code”</strong> 窗口中，右键单击或激活“资源管理器”窗格的快捷菜单，然后选择 <strong>“在终端中打开”</strong>。</p>
+  </li>
+  <li>
+    <p>在打开的命令提示符处，输入以下命令然后按 Enter，以运行 .NET Web 应用程序：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果出现任何生成错误，请查看位于 <strong>Allfiles (F):\Allfiles\Labs\06\Solution\GraphClient</strong> 文件夹中的 <strong>Program.cs</strong> 文件。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>正在运行的控制台应用程序将自动打开默认浏览器的实例。</p>
+  </li>
+  <li>
+    <p>在“打开浏览器”窗口中，执行以下操作：</p>
+
+    <ol>
+      <li>
+        <p>输入你的 Microsoft 帐户的电子邮件地址，然后选择 <strong>“下一个”</strong>。</p>
+      </li>
+      <li>
+        <p>输入你的 Microsoft 帐户的密码，然后选择 <strong>“登录”</strong>。</p>
+      </li>
+    </ol>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可以利用选项选择现有的 Microsoft 帐户，而不是重新登录。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>浏览器窗口将自动打开 <strong>“请求的权限”</strong> 网页。在网页上，执行以下操作：</p>
+
+    <ol>
+      <li>
+        <p>查看请求的权限。</p>
+      </li>
+      <li>
+        <p>选择 <strong>“接受”</strong>。</p>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>返回到当前正在运行的 Visual Studio Code 应用程序。</p>
+  </li>
+  <li>
+    <p>观察当前运行的控制台应用程序在输出中呈现的预付码。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“终止终端”</strong> 或者 <strong>“回收站”</strong> 图标以关闭当前打开的终端和所有关联的进程。</p>
+  </li>
+</ol>
+
+<h4 id="回顾-1">回顾</h4>
+
+<p>在本练习中，你使用 MSAL.NET 库从 Microsoft 标识平台获取了令牌。</p>
+
+<h3 id="练习-3使用-net-sdk-查询-microsoft-graph">练习 3：使用 .NET SDK 查询 Microsoft Graph</h3>
+
+<h4 id="任务-1从-nuget-导入-microsoft-graph-sdk">任务 1：从 NuGet 导入 Microsoft Graph SDK</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“Visual Studio Code”</strong> 窗口中，右键单击或激活“资源管理器”窗格的快捷菜单，然后选择 <strong>“在终端中打开”</strong>。</p>
+  </li>
+  <li>
+    <p>在命令提示符中，输入以下命令并按“Enter”，从 NuGet 导入 1.21.0 版本的 <strong>“Microsoft.Graph”</strong> ：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Graph</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 1<span class="hljs-selector-class"><span class="hljs-selector-class">.21</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>dotnet add package</strong> 命令将从 NuGet 添加 <strong>Microsoft.Graph</strong> 包。有关详细信息，请转到 <a href="https://www.nuget.org/packages/Microsoft.Graph/1.21.0">“Microsoft.Graph”</a>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在命令提示符中输入以下命令，然后选择“Enter”从 NuGet 中导入 1.0.0-preview.2 版的 <strong>“Microsoft.Graph.Auth”</strong>：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Graph</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Auth</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 1<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0-preview</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.2</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>dotnet add package</strong> 命令将从 NuGet 添加 <strong>Microsoft.Graph.Auth</strong> 包。有关详细信息，请转到 <a href="https://www.nuget.org/packages/Microsoft.Graph.Auth/1.0.0-preview.2">“Microsoft.Graph.Auth”</a>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在命令提示符处，输入以下命令然后按 Enter，以生成 .NET Web 应用程序：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> build
+</code></pre>
+  </li>
+  <li>
+    <p>选择 <strong>“终止终端”</strong> 或者 <strong>“回收站”</strong> 图标以关闭当前打开的终端和所有关联的进程。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2修改程序类-1">任务 2：修改程序类</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“Visual Studio Code”</strong> 窗口的“资源管理器”窗格中，展开 <strong>“Program.cs”</strong> 文件。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Program.cs”</strong> 文件的代码编辑器选项卡中，添加以下代码行，以通过从 NuGet 导入的 <strong>“Microsoft.Graph”</strong> 包导入 <strong>“Microsoft.Graph”</strong> 命名空间：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="hljs cpp"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Graph;
+</code></pre>
+  </li>
+  <li>
+    <p>添加以下代码行，以通过从 NuGet 导入的 <strong>Microsoft.Graph.Aut</strong> 包导入 <strong>Microsoft.Graph.Aut</strong> 命名空间：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Graph</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Auth</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>查看 <strong>Program.cs</strong> 文件，该文件现在应包括以下 <strong>using</strong> 指令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Graph</span></span>;    
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Graph</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Auth</span></span>;
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Identity</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Client</span></span>;
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span>;
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Collections</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Generic</span></span>;
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Threading</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Tasks</span></span>;
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="任务-3使用-microsoft-graph-sdk-查询用户配置文件信息">任务 3：使用 Microsoft Graph SDK 查询用户配置文件信息</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“主要”</strong> 方法中，请执行以下操作以删除不必要的代码：</p>
+
+    <ol>
+      <li>
+        <p>删除以下代码行：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">AuthenticationResult</span></span> result;
+</code></pre>
+      </li>
+      <li>
+        <p>删除以下代码块：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="hljs makefile">result = await app
+        .AcquireTokenInteractive(scopes)
+        .ExecuteAsync();
+</code></pre>
+      </li>
+      <li>
+        <p>删除以下代码行：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="hljs cs">Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"Token:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{result.AccessToken}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>查看 <strong>Main</strong> 方法，该方法现在应包括：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock36" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock36" class="mt-0"><code class="hljs cs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+    IPublicClientApplication app;
+
+    app = PublicClientApplicationBuilder
+        .Create(_clientId)
+        .WithAuthority(AzureCloudInstance.AzurePublic, _tenantId)
+        .WithRedirectUri(<span class="hljs-string"><span class="hljs-string">"http://localhost"</span></span>)
+        .Build();
+
+    List&lt;<span class="hljs-keyword"><span class="hljs-keyword">string</span></span>&gt; scopes = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;<span class="hljs-keyword"><span class="hljs-keyword">string</span></span>&gt; 
+    { 
+        <span class="hljs-string"><span class="hljs-string">"user.read"</span></span>
+    };
+}
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，添加以下代码行以创建名为 <em>provider</em> 且类型为 <strong>DeviceCodeProvider</strong> 的新变量，该变量以构造参数的形式传入变量 <em>app</em> 和 <em>scope</em>：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock37" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock37" class="mt-0"><code class="hljs coffeescript">DeviceCodeProvider provider = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> DeviceCodeProvider(app, scopes);
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，添加以下代码行以创建名为 <em>client</em> 且类型为 <strong>GraphServiceClient</strong> 的新变量，该变量以构造函数的形式传入变量 <em>provider</em>：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock38" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock38" class="mt-0"><code class="hljs coffeescript">GraphServiceClient client = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> GraphServiceClient(provider);
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，执行以下操作以使用 <strong>GraphServiceClient</strong> 实例异步获取向 REST API 的相对 <strong>/Me</strong> 目录发出 HTTP 请求的响应：</p>
+
+    <ol>
+      <li>
+        <p>添加以下代码行以获取 <strong>client</strong> 变量的 <strong>Me</strong> 属性：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock39" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock39" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">client</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Me</span></span>
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加另一行代码来更新上一行代码，以便使用 <strong>Request()</strong> 方法获取表示 HTTP 请求的对象：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock40" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock40" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">client</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Me</span></span>
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.Request</span></span>()
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加另一行代码来更新上一行代码，以使用 <strong>GetAsync()</strong> 方法异步发出请求：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock41" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock41" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">client</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Me</span></span>
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.Request</span></span>()
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.GetAsync</span></span>()
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加更多代码来更新上一行代码，以使用 <strong>await</strong> 关键字异步处理表达式：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock42" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock42" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">await</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">client</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Me</span></span>
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.Request</span></span>()
+    <span class="hljs-selector-class"><span class="hljs-selector-class">.GetAsync</span></span>()
+</code></pre>
+      </li>
+      <li>
+        <p>通过添加更多代码来更新上一行代码，以将表达式的结果存储在名为 <strong>myProfile</strong> 且类型为 <strong>User</strong> 的新变量中：</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock43" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock43" class="mt-0"><code class="hljs coffeescript">User myProfile = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.Me
+    .Request()
+    .GetAsync();
+</code></pre>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，添加以下代码行以使用 <strong>Console.WriteLine</strong> 方法将 <strong>User.DisplayName</strong> 成员的值呈现到控制台：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock44" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock44" class="mt-0"><code class="hljs cs">Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"Name:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{myProfile.DisplayName}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 方法中，添加以下代码行以使用 <strong>Console.WriteLine</strong> 方法将 <strong>User.Id</strong> 成员的值呈现到控制台：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock45" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock45" class="mt-0"><code class="hljs cs">Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"AAD Id:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{myProfile.Id}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>查看 <strong>Main</strong> 方法，该方法现在应包括：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock46" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock46" class="mt-0"><code class="hljs cs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+    IPublicClientApplication app;
+
+    app = PublicClientApplicationBuilder
+        .Create(_clientId)
+        .WithAuthority(AzureCloudInstance.AzurePublic, _tenantId)
+        .WithRedirectUri(<span class="hljs-string"><span class="hljs-string">"http://localhost"</span></span>)
+        .Build();
+
+    List&lt;<span class="hljs-keyword"><span class="hljs-keyword">string</span></span>&gt; scopes = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;<span class="hljs-keyword"><span class="hljs-keyword">string</span></span>&gt; 
+    { 
+        <span class="hljs-string"><span class="hljs-string">"user.read"</span></span> 
+    };
+
+    DeviceCodeProvider provider = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> DeviceCodeProvider(app, scopes);
+
+    GraphServiceClient client = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> GraphServiceClient(provider);
+
+    User myProfile = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.Me
+        .Request()
+        .GetAsync();
+
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"Name:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{myProfile.DisplayName}</span></span></span><span class="hljs-string">"</span></span>);
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">$"AAD Id:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{myProfile.Id}</span></span></span><span class="hljs-string">"</span></span>);
+}
+</code></pre>
+  </li>
+  <li>
+    <p>保存 <strong>Program.cs</strong> 文件。</p>
+  </li>
+</ol>
+
+<h4 id="任务-4测试已更新的应用程序-1">任务 4：测试已更新的应用程序</h4>
+
+<ol>
+  <li>
+    <p>在 <strong>“Visual Studio Code”</strong> 窗口中，右键单击或激活“资源管理器”窗格的快捷菜单，然后选择 <strong>“在终端中打开”</strong>。</p>
+  </li>
+  <li>
+    <p>在打开的命令提示符处，输入以下命令然后按 Enter，以运行 .NET Web 应用程序：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock47" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock47" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果出现任何生成错误，请查看位于 <strong>Allfiles (F):\Allfiles\Labs\06\Solution\GraphClient</strong> 文件夹中的 <strong>Program.cs</strong> 文件。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>查看当前运行的控制台应用程序输出中的消息。在消息中记录代码的值。你将在稍后的实验室中使用此值。</p>
+  </li>
+  <li>
+    <p>在任务栏上，选择 <strong>“Microsoft Edge”</strong> 图标。</p>
+  </li>
+  <li>
+    <p>在打开的浏览器窗口中，转到 <a href="https://microsoft.com/devicelogin">https://microsoft.com/devicelogin</a>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“输入代码”</strong> 网页上，执行以下操作：</p>
+
+    <ol>
+      <li>
+        <p>在 <strong>“代码”</strong> 文本框中，输入你之前在本实验室中复制的代码值。</p>
+      </li>
+      <li>
+        <p>选择 <strong>“下一步”</strong>。</p>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>在“登录”网页上，执行以下操作：</p>
+
+    <ol>
+      <li>
+        <p>输入你的 Microsoft 帐户的电子邮件地址，然后选择 <strong>“下一个”</strong>。</p>
+      </li>
+      <li>
+        <p>输入你的 Microsoft 帐户的密码，然后选择 <strong>“登录”</strong>。</p>
+      </li>
+    </ol>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可以利用选项选择现有的 Microsoft 帐户，而不是重新登录。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>返回到当前正在运行的 Visual Studio Code 应用程序。</p>
+  </li>
+  <li>
+    <p>在当前运行的控制台应用程序中查看 Microsoft Graph 请求的输出。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“终止终端”</strong> 或者 <strong>“回收站”</strong> 图标以关闭当前打开的终端和所有关联的进程。</p>
+  </li>
+</ol>
+
+<h4 id="回顾-2">回顾</h4>
+
+<p>在本练习中，你使用 SDK 和基于 MSAL 的身份验证查询了 Microsoft Graph。</p>
+
+<h3 id="练习-4清理订阅">练习 4：清理订阅</h3>
+
+<h4 id="任务-1删除-azure-ad-中的应用程序注册">任务 1：删除 Azure AD 中的应用程序注册</h4>
+
+<ol>
+  <li>
+    <p>返回 Azure 门户的浏览器窗口。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户导航窗格中，选择 <strong>“所有服务”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“所有服务”</strong> 边栏选项卡中，选择 <strong>“Azure Active Directory”</strong>。</p>
+  </li>
+  <li>
+    <p>从 <strong>“Azure Active Directory”</strong> 边栏选项卡，在 <strong>“管理”</strong> 部分中选择 <strong>“应用注册”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“应用注册”</strong> 部分，选择你之前在本实验室中创建的 <strong>graphapp</strong> Azure AD 应用程序注册。</p>
+  </li>
+  <li>
+    <p>在 <strong>“graphapp”</strong> 部分，执行以下操作：</p>
+
+    <ol>
+      <li>
+        <p>选择 <strong>“删除”</strong>。</p>
+      </li>
+      <li>
+        <p>在“<strong>删除应用注册</strong>”边栏选项卡中，选择“<strong>我了解删除此应用注册的影响</strong>”，然后选择“<strong>删除</strong>”。</p>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<h4 id="任务-2关闭活动应用程序">任务 2：关闭活动应用程序</h4>
+
+<ol>
+  <li>
+    <p>关闭当前正在运行的 Microsoft Edge 应用程序。</p>
+  </li>
+  <li>
+    <p>关闭当前正在运行的“Visual Studio Code”应用程序。</p>
+  </li>
+</ol>
+
+<h4 id="回顾-3">回顾</h4>
+
+<p>在本练习中，你通过删除本实验室中使用的应用程序注册清理了订阅。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-204ZH-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-204ZH-DevelopingSolutionsforMicrosoftAzure
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

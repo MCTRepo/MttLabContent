@@ -1,0 +1,411 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="extract-data-from-forms">Extract Data from Forms</h1>
+
+<p>Suppose a company needs to automate a data entry process. Currently an employee might manually read a purchase order and enter the data into a database. You want to build a model that will use machine learning  to read the form and produce structured data that can be used to automatically update a database.</p>
+
+<p><strong>Form Recognizer</strong> is a cognitive service that enables users to build automated data processing software. This software can extract text, key/value pairs, and tables from form documents using optical character recognition (OCR). Form Recognizer has pre-built models for recognizing invoices, receipts, and business cards. The service also provides the capability to train custom models. In this exercise, we will focus on building custom models.</p>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have not already done so, you must clone the code repository for this course:</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="create-a-form-recognizer-resource">Create a Form Recognizer resource</h2>
+
+<p>To use the Form Recognizer service, you need a Form Recognizer resource in your Azure subscription. You’ll use the Azure portal to create a resource.</p>
+
+<ol>
+  <li>
+    <p>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</p>
+  </li>
+  <li>Select the <strong>＋Create a resource</strong> button, search for <em>Form Recognizer</em>, and create a <strong>Form Recognizer</strong> resource with the following settings:
+    <ul>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Region</strong>: <em>Choose any available region</em></li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Pricing tier</strong>: F0</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you already have an F0 form recognizer service in your subscription, select <strong>S0</strong> for this one.</p>
+    </blockquote>
+  </li>
+  <li>When the resource has been deployed, go to it and view its <strong>Keys and Endpoint</strong> page. You will need the <strong>endpoint</strong> and one of the <strong>keys</strong> from this page to manage access from your code later on.</li>
+</ol>
+
+<h2 id="gather-documents-for-training">Gather documents for training</h2>
+
+<p><a href="../21-custom-form/sample-forms/Form_1.jpg" target="_blank"><img src="../21-custom-form/sample-forms/Form_1.jpg" alt="An image of an invoice."></a></p>
+
+<p>You’ll use the sample forms from the <strong>21-custom-form/sample-forms</strong> folder in this repo, which contain all the files you’ll need to train a model without labels and another model with labels.</p>
+
+<ol>
+  <li>
+    <p>In Visual Studio Code, in the <strong>21-custom-form</strong> folder,  expand the <strong>sample-forms</strong> folder. Notice there are files ending in <strong>.json</strong> and <strong>.jpg</strong> in the folder.</p>
+
+    <p>You will use the <strong>.jpg</strong> files to train your first model <em>without</em> labels.</p>
+
+    <p>Later, you will use the files ending in <strong>.json</strong> and <strong>.jpg</strong> to train your second model <em>with</em> labels. The <strong>.json</strong> files have been generated for you and contain label information. To train with labels, you need to have the label information files in your blob storage container alongside the forms.</p>
+  </li>
+  <li>
+    <p>Return to the Azure portal at <a href="https://portal.azure.com">https://portal.azure.com</a>.</p>
+  </li>
+  <li>
+    <p>View the <strong>Resource group</strong> in which you created the Form Recognizer resource previously.</p>
+  </li>
+  <li>
+    <p>On the <strong>Overview</strong> page for your resource group, note the <strong>Subscription ID</strong> and <strong>Location</strong>. You will need these values, along with your <strong>resource group</strong> name in subsequent steps.</p>
+  </li>
+</ol>
+
+<p><a href="images/resource_group_variables.png" target="_blank"><img src="images/resource_group_variables.png" alt="An example of the resource group page."></a></p>
+
+<ol>
+  <li>
+    <p>In Visual Studio Code, in the Explorer pane, right-click the the <strong>21-custom-form</strong> folder and select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>In the terminal pane, enter the following command to establish an authenticated connection to your Azure subscription.</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">az</span></span> login --output <span class="hljs-literal"><span class="hljs-literal">none</span></span>
+</code></pre>
+
+<ol>
+  <li>
+    <p>When prompted, sign into your Azure subscription. Then return to Visual Studio Code and wait for the sign-in process to complete.</p>
+  </li>
+  <li>
+    <p>Run the following command to list Azure locations.</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs cpp">az account <span class="hljs-built_in"><span class="hljs-built_in">list</span></span>-locations -o table
+</code></pre>
+
+<ol>
+  <li>
+    <p>In the output, find the <strong>Name</strong> value that corresponds with the location of your resource group (for example, for <em>East US</em> the corresponding name is <em>eastus</em>).</p>
+
+    <blockquote>
+      <p><strong>Important</strong>: Record the <strong>Name</strong> value and use it in Step 12.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Explorer pane, in the <strong>21-custom-form</strong> folder, select <strong>setup.cmd</strong>. You will use this batch script to run the Azure command line interface (CLI) commands required to create the other Azure resources you need.</p>
+  </li>
+  <li>In the <strong>setup.cmd</strong> script, review the <strong>rem</strong> commands. These comments outline the program the script will run. The program will:
+    <ul>
+      <li>Create a storage account in your Azure resource group</li>
+      <li>Upload files from your local <em>sampleforms</em> folder to a container called <em>sampleforms</em> in the storage account</li>
+      <li>Print a Shared Access Signature URI</li>
+    </ul>
+  </li>
+  <li>
+    <p>Modify the <strong>subscription_id</strong>, <strong>resource_group</strong>, and <strong>location</strong> variable declarations with the appropriate values for the subscription, resource group, and location name where you deployed the Form Recognizer resource. 
+Then <strong>save</strong> your changes.</p>
+
+    <p>Leave the <strong>expiry_date</strong> variable as it is for the exercise. This variable is used when generating the Shared Access Signature (SAS) URI. In practice, you will want to set an appropriate expiry date for your SAS. You can learn more about SAS <a href="https://docs.microsoft.com/azure/storage/common/storage-sas-overview#how-a-shared-access-signature-works">here</a>.</p>
+  </li>
+  <li>In the terminal for the <strong>21-custom-form</strong> folder, enter the following command to run the script:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">setup</span></span>
+</code></pre>
+
+<ol>
+  <li>When the script completes, review the displayed output and note your Azure resource’s SAS URI.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Important</strong>: Before moving on, paste the SAS URI somewhere you will be able to retrieve it again later (for example, in a new text file in Visual Studio Code).</p>
+</blockquote>
+
+<ol>
+  <li>In the Azure portal, refresh the resource group and verify that it contains the Azure Storage account just created. Open the storage account and in the pane on the left, select <strong>Storage Browser (preview)</strong>. Then in Storage Browser, expand <strong>BLOB CONTAINERS</strong> and select the <strong>sampleforms</strong> container to verify that the files have been uploaded from your local <strong>21-custom-form/sample-forms</strong> folder.</li>
+</ol>
+
+<h2 id="train-a-model-without-labels">Train a model <em>without</em> labels</h2>
+
+<p>You will use the Form Recognizer SDK to train and test a custom model.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: In this exercise, you can choose to use the API from either the <strong>C#</strong> or <strong>Python</strong> SDK. In the steps below, perform the actions appropriate for your preferred language.</p>
+</blockquote>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>21-custom-form</strong> folder, expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>
+    <p>Right-click the <strong>train-model</strong> folder and open an integrated terminal.</p>
+  </li>
+  <li>Install the Form Recognizer package by running the appropriate command for your language preference:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.AI</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.FormRecognizer</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 3<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span> 
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-ai-formrecognizer==<span class="hljs-number"><span class="hljs-number">3</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+
+<ol>
+  <li>View the contents of the <strong>train-model</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+  </li>
+  <li>Edit the configuration file, modifying the settings to reflect:
+    <ul>
+      <li>The <strong>endpoint</strong> for your Form Recognizer resource.</li>
+      <li>A <strong>key</strong> for your Form Recognizer resource.</li>
+      <li>The <strong>SAS URI</strong> for your blob container.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Note that the <strong>train-model</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: train-model.py</li>
+    </ul>
+
+    <p>Open the code file and review the code it contains, noting the following details:</p>
+    <ul>
+      <li>Namespaces from the package you installed are imported</li>
+      <li>The <strong>Main</strong> function retrieves the configuration settings, and uses the key and endpoint to create an authenticated <strong>Client</strong>.</li>
+      <li>The code uses the the training client to train a model using the images in your blob storage container, which is acessed using the SAS URI you generated.</li>
+      <li>Training is performed with a parameter to indicate that training labels should <u>not</u> be used. Form Recognizer uses an <em>unsupervised</em> technique to extract the fields from the form images.</li>
+    </ul>
+  </li>
+  <li>Return the integrated terminal for the <strong>train-model</strong> folder, and enter the following command to run the program:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">train-model</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+
+<ol>
+  <li>Wait for the program to end. Then review the model output and locate the Model ID in the terminal. You will need this value in the next procedure, so do not close the terminal!</li>
+</ol>
+
+<h2 id="test-the-model-created-without-labels">Test the model created without labels</h2>
+
+<p>Now you’re ready use your trained model. Notice how you trained your model using files from a storage container URI. You could also have trained the model using local files. Similarly, you can test your model using forms from a URI or from local files. You will test the form model with a local file.</p>
+
+<p>Now that you’ve got the model ID, you can use it from a client application. Once again, you can choose to use <strong>C#</strong> or <strong>Python</strong>.</p>
+
+<ol>
+  <li>In the <strong>21-custom-form</strong> folder, in the subfolder for your preferred language (<strong>C-Sharp</strong> or <strong>Python</strong>), expand the <strong>test-model</strong> folder.</li>
+  <li>Right-click the <strong>test-model</strong> folder and open an integrated terminal. You now have (at least) two <strong>cmd</strong> terminals, and you can switch between them using the drop-down list in the Terminal pane.</li>
+  <li>In the terminal for the <strong>test-model</strong> folder, install the Form Recognizer package by running the appropriate command for your language preference:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.AI</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.FormRecognizer</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 3<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span> 
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-ai-formrecognizer==<span class="hljs-number"><span class="hljs-number">3</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+
+<p><em>This isn’t strictly necessary if you previously used pip to install the package into Python environment; but it does no harm to ensure it’s installed!</em></p>
+
+<ol>
+  <li>In the <strong>test-model</strong> folder, edit the configuration file (<strong>appsettings.json</strong> or <strong>.env</strong>, depending on your language preference) to add the following values:
+    <ul>
+      <li>Your Form Recognizer endpoint.</li>
+      <li>Your Form Recognizer key.</li>
+      <li>The Model ID generated when you trained the model (you can find this by switching the terminal back to the <strong>cmd</strong> console for the <strong>train-model</strong> folder).</li>
+    </ul>
+  </li>
+  <li>In the <strong>test-model</strong> folder, open the code file for your client application (<em>Program.cs</em> for C#, <em>test-model.py</em> for Python) and review the code it contains, noting the following details:
+    <ul>
+      <li>Namespaces from the package you installed are imported</li>
+      <li>The <strong>Main</strong> function retrieves the configuration settings, and uses the key and endpoint to create an authenticated <strong>Client</strong>.</li>
+      <li>The client is then used to extract form fields and values from the <strong>test1.jpg</strong> image.</li>
+    </ul>
+  </li>
+  <li>Return the integrated terminal for the <strong>test-model</strong> folder, and enter the following command to run the program:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs bash">python <span class="hljs-built_in"><span class="hljs-built_in">test</span></span>-model.py
+</code></pre>
+
+<ol>
+  <li>View the output and notice the prediction confidence scores. Notice how the output provides field names field-1, field-2 etc.</li>
+</ol>
+
+<h2 id="train-a-model-with-labels-using-the-client-library">Train a model <em>with</em> labels using the client library</h2>
+
+<p>Suppose after you trained a model with the invoice forms, you wanted to see how a model trained on labeled data performs. When you trained a model without labels you only used the <strong>.jpg</strong> forms from your Azure blob container. Now you will train a model using the <strong>.jpg</strong> and <strong>.json</strong> files.</p>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>21-custom-form/sample-forms</strong> folder, open <strong>fields.json</strong> and review the JSON document it contains. This file defines the fields that you will train a model to extract from the forms.</li>
+  <li>Open <strong>Form_1.jpg.labels.json</strong> and review the JSON it contains. This file identifies the location and values for named fields in the <strong>Form_1.jpg</strong> training document.</li>
+  <li>
+    <p>Open <strong>Form_1.jpg.ocr.json</strong> and review the JSON it contains. This file contains a JSOn representation of the text layout of <strong>Form_1.jpg</strong>, including the location of all text areas found in the form.</p>
+
+    <p><em>The field information files have been provided for you in this exercise. For your own projects, you can create these files using the <a href="https://docs.microsoft.com/azure/cognitive-services/form-recognizer/label-tool">sample labeling tool</a>. As you use the tool, your field information files are automatically created and stored in your connected storage account.</em></p>
+  </li>
+  <li>
+    <p>In the <strong>train-model</strong> folder, open the code file for the training application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: train-model.py</li>
+    </ul>
+  </li>
+  <li>In the <strong>Main</strong> function, find the comment <strong>Train model</strong>, and modify it as shown to change the training process so that labels are used:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-C# hljs"><span class="hljs-comment"><span class="hljs-comment">// Train model </span></span>
+CustomFormModel model = await trainingClient
+.StartTrainingAsync(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Uri(trainingStorageUri), useTrainingLabels: <span class="hljs-literal"><span class="hljs-literal">true</span></span>)
+.WaitForCompletionAsync();
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Train model </span></span>
+poller = form_training_client.begin_training(trainingDataUrl, use_training_labels=<span class="hljs-keyword"><span class="hljs-keyword">True</span></span>)
+model = poller.result()
+</code></pre>
+
+<ol>
+  <li>Return the integrated terminal for the <strong>train-model</strong> folder, and enter the following command to run the program:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">train-model</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+
+<ol>
+  <li>Wait for the program to end, then review the model output.</li>
+  <li>Note the new the Model ID in the terminal output.</li>
+</ol>
+
+<h2 id="test-the-model-created-with-labels">Test the model created with labels</h2>
+
+<ol>
+  <li>In the <strong>test-model</strong> folder, edit the configuration file (<strong>appsettings.json</strong> or <strong>.env</strong>, depending on your language preference) and update it to reflect the new model ID. Save your changes.</li>
+  <li>Return the integrated terminal for the <strong>test-model</strong> folder, and enter the following command to run the program:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs bash">python <span class="hljs-built_in"><span class="hljs-built_in">test</span></span>-model.py
+</code></pre>
+
+<ol>
+  <li>View the output and observe how the output for the model trained <strong>with</strong> labels provides field names like “CompanyPhoneNumber” and “DatedAs” unlike the output from the model trained <strong>without</strong> labels, which produced an output of field-1, field-2 etc.</li>
+</ol>
+
+<p>While the program code for training a model <em>with</em> labels may not differ greatly from the code for training <em>without</em> labels, choosing one versus the other <em>does</em> change project planning needs. To train with labels, you will need to <a href="https://docs.microsoft.com/azure/cognitive-services/form-recognizer/quickstarts/label-tool?tabs=v2-0">create the labeled files</a>. The choice of training process can also produce different models, which can in turn affect downstream processes based on what fields the model returns and how confident you are with the returned values.</p>
+
+<h2 id="more-information">More information</h2>
+
+<p>For more information about the Form Recognizer service, see the <a href="https://docs.microsoft.com/azure/cognitive-services/form-recognizer/">Form Recognizer documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

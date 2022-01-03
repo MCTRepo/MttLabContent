@@ -1,0 +1,501 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            WS-013T00-Azure-Stack-HCI
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                WS-013T00-Azure-Stack-HCI
+            </a>
+            <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#scenario-1">Scenario</a></li><li class="nav-item"><a class="nav-link" href="#task-1-review-sdn-virtual-ip-logical-network-configuration">Task 1: Review SDN virtual IP logical network configuration</a></li><li class="nav-item"><a class="nav-link" href="#task-2-install-the-web-server-role-on-vms-in-a-virtual-network">Task 2: Install the Web Server role on VMs in a virtual network</a></li><li class="nav-item"><a class="nav-link" href="#task-3-configure-an-slb-private-virtual-ip-address">Task 3: Configure an SLB private virtual IP address</a></li><li class="nav-item"><a class="nav-link" href="#task-4-verify-the-configuration-of-the-sdn-software-load-balancing-with-private-virtual-ip">Task 4: Verify the configuration of the SDN Software Load Balancing with private virtual IP</a></li><li class="nav-item"><a class="nav-link" href="#task-5-configure-outbound-nat-by-using-slb">Task 5: Configure outbound NAT by using SLB</a></li><li class="nav-item"><a class="nav-link" href="#task-6-verify-the-configuration-of-the-sdn-software-load-balancing-outbound-nat">Task 6: Verify the configuration of the SDN Software Load Balancing outbound NAT</a></li><li class="nav-item"><a class="nav-link" href="#task-7-configure-slb-based-traffic-forwarding-to-a-vm-in-a-virtual-network">Task 7: Configure SLB-based traffic forwarding to a VM in a virtual network</a></li><li class="nav-item"><a class="nav-link" href="#task-8-verify-connectivity-to-the-vm-in-a-virtual-network-via-a-public-virtual-ip">Task 8: Verify connectivity to the VM in a virtual network via a public virtual IP</a></li><li class="nav-item"><a class="nav-link" href="#task-9-deprovision-the-lab-resources">Task 9: Deprovision the lab resources</a></li><li class="nav-item"><a class="nav-link" href="#results">Results</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-d-implementing-sdn-software-load-balancing-with-private-virtual-ip-by-using-powershell">Lab D: Implementing SDN Software Load Balancing with private virtual IP by using PowerShell</h1>
+
+<h2 id="scenario">Scenario</h2>
+
+<p>You need to configure virtual machines (VMs) on virtual networks that will serve load-balanced workloads accessible from within the datacenter hosting your Software-Defined Networking (SDN) infrastructure. In addition, you need to ensure that you will be able to configure VMs on virtual networks to connect to the internet and to accept inbound connectivity from your datacenter servers. Rather than relying on third-party load balancers, you intend to use SDN software load balancer for this purpose.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After completing this lab, you’ll be able to implement SDN Software Load Balancing by using Windows Admin Center and Windows PowerShell.</p>
+
+<h2 id="estimated-time-120-minutes">Estimated time: 120 minutes</h2>
+
+<h2 id="lab-setup">Lab setup</h2>
+
+<p>To connect to the lab VM, follow the steps the lab hosting provider provides you.</p>
+
+<h2 id="exercise-1-implementing-sdn-software-load-balancing-by-using-windows-admin-center-and-windows-powershell">Exercise 1: Implementing SDN Software Load Balancing by using Windows Admin Center and Windows PowerShell</h2>
+
+<h3 id="scenario-1">Scenario</h3>
+<p>To meet the requirements of load-balanced workloads, you’ll implement SDN Software Load Balancing by using Windows Admin Center and Windows PowerShell.</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>Review SDN virtual IP logical network configuration.</li>
+  <li>Install the Web Server role on VMs in a virtual network.</li>
+  <li>Configure an SLB private virtual IP address.</li>
+  <li>Verify the configuration of the SDN Software Load Balancing with private virtual IP address.</li>
+  <li>Configure outbound network address translation (NAT) by using SLB.</li>
+  <li>Verify the configuration of the SDN SLB outbound NAT.</li>
+  <li>Configure SLB-based traffic forwarding to a VM in a virtual network.</li>
+  <li>Verify connectivity to the VM in a virtual network via a public virtual IP address.</li>
+</ol>
+
+<h3 id="task-1-review-sdn-virtual-ip-logical-network-configuration">Task 1: Review SDN virtual IP logical network configuration</h3>
+
+<ol>
+  <li>Within the <strong>SDNExpress2019-Management</strong> VM, in the Windows Admin Center, from the <code>sddc01.corp.contoso.com</code> page, display the logical network inventory.</li>
+  <li>In the logical network inventory, display the settings for the <strong>PrivateVIP</strong> logical network.</li>
+  <li>Review the logical network settings and note that it contains a single subnet with the IP address space of <strong>10.20.0.0/24</strong>.</li>
+  <li>
+    <p>Review the configuration of the subnet and note that it currently has <strong>1</strong> allocated IP address.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You’ll use an IP address from that range as a private virtual IP for connection to load balanced VMs on one of the virtual networks you created earlier in this lab.</p>
+    </blockquote>
+  </li>
+  <li>In the logical network inventory, display the settings or the <strong>PublicVIP</strong> logical network.</li>
+  <li>Review the logical network settings and note that it contains a single subnet with the IP address space of <strong>10.10.0.0/24</strong>.</li>
+  <li>
+    <p>Review the configuration of the subnet and note that it currently has <strong>1</strong> allocated IP address.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You’ll use an IP address from that range as a public virtual IP for outbound connectivity to the internet and for inbound connectivity from your datacenter.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-2-install-the-web-server-role-on-vms-in-a-virtual-network">Task 2: Install the Web Server role on VMs in a virtual network</h3>
+
+<ol>
+  <li>
+    <p>Switch to the <strong>Virtual Machine Connection</strong> to <strong>vm-000</strong>. From the Command Prompt, run the following command to install the Web Server role.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">powershell Install-WindowsFeature -Name Web-Server
+</code></pre>
+  </li>
+  <li>
+    <p>Use the procedure described in the previous step to install the Web server role on <strong>vm-001</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for both installations to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Switch to the <strong>Virtual Machine Connection</strong> to <strong>vm-100</strong>. From the Command Prompt, run the following to verify that the installation was successful.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">powershell Invoke-WebRequest -Uri 192.168.0.100 -UseBasicParsing
+powershell Invoke-WebRequest -Uri 192.168.1.100 -UseBasicParsing
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that in both cases you are receiving a response including <strong>HTTP/1.1 200 OK</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-3-configure-an-slb-private-virtual-ip-address">Task 3: Configure an SLB private virtual IP address</h3>
+
+<ol>
+  <li>
+    <p>Switch to the console session to the <strong>SDNExpress2019-Management</strong> VM, from the Windows PowerShell Integrated Scripting Environment (ISE) window, run the following to create a load balancer object:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Import-Module NetworkController
+$uri = 'https://NCCLUSTER.corp.contoso.com'
+$LBResourceId = 'lb-000'
+$LoadBalancerProperties = New-Object Microsoft.Windows.NetworkController.LoadBalancerProperties
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following script to configure the private virtual IP:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">$vipIP = '10.20.0.100'
+$VIPLogicalNetwork = Get-NetworkControllerLogicalNetwork -ConnectionUri $uri -ResourceId 'PrivateVIP' -PassInnerException
+$FrontEndIPConfig = New-Object Microsoft.Windows.NetworkController.LoadBalancerFrontendIpConfiguration
+$FrontEndIPConfig.ResourceId = 'lb-000-fe-1'
+$FrontEndIPConfig.ResourceRef = "/loadBalancers/$LBResourceId/frontendIPConfigurations/$($FrontEndIPConfig.ResourceId)"
+
+$FrontEndIPConfig.Properties = New-Object Microsoft.Windows.NetworkController.LoadBalancerFrontendIpConfigurationProperties
+$FrontEndIPConfig.Properties.Subnet = New-Object Microsoft.Windows.NetworkController.Subnet
+$FrontEndIPConfig.Properties.Subnet.ResourceRef = $VIPLogicalNetwork.Properties.Subnets[0].ResourceRef
+$FrontEndIPConfig.Properties.PrivateIPAddress = $vipIP
+$FrontEndIPConfig.Properties.PrivateIPAllocationMethod = 'Static'
+$LoadBalancerProperties.FrontEndIPConfigurations += $FrontEndIPConfig
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The virtual IP belongs to the IP address range of the subnet of the logical network you identified in the first task of this exercise.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following to configure the back-end address pool, which contains the Dynamic IPs assigned to the load-balanced set of VMs:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">$BackEndAddressPool = New-Object Microsoft.Windows.NetworkController.LoadBalancerBackendAddressPool
+$BackEndAddressPool.ResourceId = 'lb-000-be-1'
+$BackEndAddressPool.ResourceRef = "/loadBalancers/$LBResourceId/backendAddressPools/$($BackEndAddressPool.ResourceId)"
+$BackEndAddressPool.Properties = New-Object Microsoft.Windows.NetworkController.LoadBalancerBackendAddressPoolProperties
+$LoadBalancerProperties.backendAddressPools += $BackEndAddressPool
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following script to define a health probe that the load balancer will use to determine the health state of the back-end pool members:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">$Probe = New-Object Microsoft.Windows.NetworkController.LoadBalancerProbe
+$Probe.ResourceId = 'lb-000-hp-1'
+$Probe.ResourceRef = "/loadBalancers/$LBResourceId/Probes/$($Probe.ResourceId)"
+$Probe.properties = New-Object Microsoft.Windows.NetworkController.LoadBalancerProbeProperties
+$Probe.properties.Protocol = 'HTTP'
+$Probe.properties.Port = '80'
+$Probe.properties.RequestPath = '/'
+$Probe.properties.IntervalInSeconds = 5
+$Probe.properties.NumberOfProbes = 5
+$LoadBalancerProperties.Probes += $Probe
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following script to define a load balancing rule to distribute traffic that arrives at the front-end IP to back-end IPs. In this case, the back-end pool receives Transmission Control Protocol (TCP) traffic to port <strong>80</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">$Rule = New-Object Microsoft.Windows.NetworkController.LoadBalancingRule
+$Rule.ResourceId = 'web-000'
+$Rule.Properties = New-Object Microsoft.Windows.NetworkController.LoadBalancingRuleProperties
+$Rule.Properties.FrontEndIPConfigurations += $FrontEndIPConfig
+$Rule.Properties.backendaddresspool = $BackEndAddressPool
+$Rule.Properties.protocol = 'TCP'
+$Rule.Properties.FrontEndPort = 80
+$Rule.Properties.BackEndPort = 80
+$Rule.Properties.IdleTimeoutInMinutes = 4
+$Rule.Properties.Probe = $Probe
+$LoadBalancerProperties.loadbalancingRules += $Rule
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following command to apply the change by adding the load balancer configuration to Network Controller:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">$LoadBalancerResource = New-NetworkControllerLoadBalancer -ConnectionUri $URI -ResourceId $LBResourceId -Properties $LoadBalancerProperties -Force -PassInnerException
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following commands to retrieve the reference to the load balancer object:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">$lbresourceid = 'lb-000'
+$lb = Get-NetworkControllerLoadBalancer -ConnectionUri $uri -ResourceID $LBResourceId -PassInnerException
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following command to identify values of the <strong>ResourceId</strong> property of network interfaces assigned to the VMs you created earlier in the lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">Get-NetworkControllerNetworkInterface -ConnectionUri $uri | Select-Object ResourceId
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following script to add the network interface of <strong>vm-000</strong> to the back-end pool of the load balancer <strong>lb-000</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-powershell">$nic1 = Get-NetworkControllerNetworkInterface -ConnectionUri $uri -ResourceId 'vm-000_Net_Adapter_0' -PassInnerException
+$nic1.properties.IpConfigurations[0].properties.LoadBalancerBackendAddressPools += $lb.properties.backendaddresspools[0]
+New-NetworkControllerNetworkInterface -ConnectionUri $uri -ResourceId 'vm-000_Net_Adapter_0' -properties $nic1.properties -Force -PassInnerException
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following script to add the network interface of <strong>vm-001</strong> to the back-end pool of the load balancer <strong>lb-000</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-powershell">$nic2 = Get-NetworkControllerNetworkInterface -ConnectionUri $uri -ResourceId vm-001_Net_Adapter_0 -PassInnerException
+$nic2.properties.IpConfigurations[0].properties.LoadBalancerBackendAddressPools += $lb.properties.backendaddresspools[0]
+New-NetworkControllerNetworkInterface -ConnectionUri $uri -ResourceId 'vm-001_Net_Adapter_0' -properties $nic2.properties -Force -PassInnerException
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="task-4-verify-the-configuration-of-the-sdn-software-load-balancing-with-private-virtual-ip">Task 4: Verify the configuration of the SDN Software Load Balancing with private virtual IP</h3>
+
+<ol>
+  <li>Within the <strong>SDNExpress2019-Management</strong> VM, switch to the browser window displaying the <strong>Logical subnet &gt; 10.20.0.0_24</strong> panel within the Windows Admin Center interface.</li>
+  <li>Refresh the browser page, review the updated configuration, and note that it currently has <strong>2</strong> allocated IP addresses.</li>
+  <li>In the console session to the <strong>SDNExpress2019-Management</strong> VM, open a new browser window.</li>
+  <li>In the browser window, navigate to <code>http://10.20.0.100</code> and verify that you can access the default Microsoft Internet Information Services (IIS) home page.</li>
+  <li>
+    <p>Within the console session to the <strong>SDNExpress2019-Management</strong> VM, switch to the Windows PowerShell ISE window, and run the following command from the <strong>console</strong> pane to identify the Border Gateway Patrol (BGP) router information, which is hosted on the <strong>SDNExpress2019-DC</strong> VM:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-powershell">Invoke-Command -ComputerName DC -ScriptBlock {Get-BgpRouter}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Note that the BGP peers include two Gateway VMs and the two multiplexer (MUX) VMs.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Windows PowerShell ISE window, and run the following from the <strong>console</strong> pane to identify the BGP route information, (with the router hosted on the <strong>SDNExpress2019-DC</strong> VM):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-powershell">Invoke-Command -ComputerName DC -ScriptBlock {Get-BgpRouteInformation}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Note that the output includes two routes to the private virtual IP you configured in this exercise (one per MUX) and that each route was learned from the corresponding MUX VM.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-5-configure-outbound-nat-by-using-slb">Task 5: Configure outbound NAT by using SLB</h3>
+
+<ol>
+  <li>
+    <p>In the console session to the <strong>SDNExpress2019-Management</strong> VM, from the Windows PowerShell ISE window, run the following to create a load balancer object:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-powershell">Import-Module NetworkController
+$uri = 'https://NCCLUSTER.corp.contoso.com'
+$LBResourceId = 'lb-nat-outbound-100'
+$LoadBalancerProperties = New-Object Microsoft.Windows.NetworkController.LoadBalancerProperties
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following to create the load balancer, its front-end IP, and the back-end pool:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-powershell">$vipIP = '10.10.0.100'
+$vipLogicalNetwork = Get-NetworkControllerLogicalNetwork -ConnectionUri $uri -resourceid 'PublicVIP' -PassInnerException
+
+$FrontEndIPConfig = new-object Microsoft.Windows.NetworkController.LoadBalancerFrontendIpConfiguration
+$FrontEndIPConfig.ResourceId = 'fe-100'
+$FrontEndIPConfig.ResourceRef = "/loadBalancers/$LBResourceId/frontendIPConfigurations/$($FrontEndIPConfig.ResourceId)"
+$FrontEndIPConfig.Properties = new-object Microsoft.Windows.NetworkController.LoadBalancerFrontendIpConfigurationProperties
+$FrontEndIPConfig.Properties.Subnet = new-object Microsoft.Windows.NetworkController.Subnet
+$FrontEndIPConfig.Properties.Subnet.ResourceRef = $vipLogicalNetwork.Properties.Subnets[0].ResourceRef
+$FrontEndIPConfig.Properties.PrivateIPAddress = $vipIP
+$FrontEndIPConfig.Properties.PrivateIPAllocationMethod = 'Static'
+$LoadBalancerProperties.FrontEndIPConfigurations += $FrontEndIPConfig
+
+$BackEndAddressPool = new-object Microsoft.Windows.NetworkController.LoadBalancerBackendAddressPool
+$BackEndAddressPool.ResourceId = 'bepool-100'
+$BackEndAddressPool.ResourceRef = "/loadBalancers/$LBResourceId/backendAddressPools/$($BackEndAddressPool.ResourceId)"
+$BackEndAddressPool.Properties = new-object Microsoft.Windows.NetworkController.LoadBalancerBackendAddressPoolProperties
+
+$LoadBalancerProperties.backendAddressPools += $BackEndAddressPool
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The virtual IP belongs to the IP address range of the subnet of the logical network you identified in the first task of this exercise.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following to define the outbound NAT rule:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-powershell">$OutboundNAT = new-object Microsoft.Windows.NetworkController.LoadBalancerOutboundNatRule
+$OutboundNAT.ResourceId = 'outbound-nat-100'
+
+$OutboundNAT.properties = new-object Microsoft.Windows.NetworkController.LoadBalancerOutboundNatRuleProperties
+$OutboundNAT.properties.frontendipconfigurations += $FrontEndIPConfig
+$OutboundNAT.properties.backendaddresspool = $BackEndAddressPool
+$OutboundNAT.properties.protocol = 'ALL'
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following command to apply the change by adding the load balancer configuration to Network Controller:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-powershell">$LoadBalancerResource = New-NetworkControllerLoadBalancer -ConnectionUri $uri -ResourceId $LBResourceId -Properties $LoadBalancerProperties -Force -PassInnerException
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following command to retrieve the reference to the load balancer object:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-powershell">$lbresourceid = 'lb-nat-outbound-100'
+$lb = Get-NetworkControllerLoadBalancer -ConnectionUri $uri -ResourceID $LBResourceId -PassInnerException
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following command to identify values of the <strong>ResourceId</strong> properties of network interfaces assigned to the VMs you previously created in the lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-powershell">Get-NetworkControllerNetworkInterface -ConnectionUri $uri | Select-Object ResourceId
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following script to add the network interface of <strong>vm-100</strong> to the back-end pool of the load balancer <strong>lb-nat-outbound-100</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-powershell">$nic1 = Get-NetworkControllerNetworkInterface -ConnectionUri $uri -ResourceId 'vm-100_Net_Adapter_0' -PassInnerException
+$nic1.properties.IpConfigurations[0].properties.LoadBalancerBackendAddressPools += $lb.properties.backendaddresspools[0]
+New-NetworkControllerNetworkInterface -ConnectionUri $uri -ResourceId 'vm-100_Net_Adapter_0' -properties $nic1.properties -Force -PassInnerException
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="task-6-verify-the-configuration-of-the-sdn-software-load-balancing-outbound-nat">Task 6: Verify the configuration of the SDN Software Load Balancing outbound NAT</h3>
+
+<ol>
+  <li>
+    <p>Within the console session to the <strong>SDNExpress2019-Management</strong> VM, switch to the browser window displaying within Windows Admin Center, and navigate to the <strong>Logical subnet &gt; 10.10.0.0_24</strong> panel in the <strong>PublicVIP</strong> section.</p>
+  </li>
+  <li>
+    <p>Refresh the browser page, review the updated configuration, and note that it currently has <strong>2</strong> allocated IP addresses.</p>
+  </li>
+  <li>
+    <p>Switch to the lab VM and, from the console pane of the Administrator: Windows PowerShell ISE window, run the following to install the Web Server role:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-powershell">Install-WindowsFeature -Name Web-Server
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the lab VM, from the console pane of the Administrator: Windows PowerShell ISE window, run the following to identify the local IP configuration:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-powershell">Get-NetIPConfiguration
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Review the output of the cmdlet you ran in the previous step and identify the IP address of its network interace which is <strong>NOT</strong> used for internal NAT. You will need it in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the lab VM, open a new browser window and navigate to the IP address you identified in the previous step and verify that you can access the default IIS home page.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is the default web site installed on the lab VM, accessible via its private IP address. Verify that the Windows Firewall on the lab VM is allowing inbound traffic on port 80 for all network profiles.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Record the IP address and switch back to the console session to the <strong>SDNExpress2019-Management</strong> VM.</p>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>SDNExpress2019-Management</strong> VM, switch to the <strong>Virtual Machine Connection</strong> window to <strong>vm-100</strong>, and from the Command Prompt, run the following command to test connectivity to the public IP address you identified in the previous step. Replace the <code>[ip_address]</code> placeholder with the IP address you recorded in the previous step:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-powershell">powershell Invoke-WebRequest -Uri [ip_address] -UseBasicParsing
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that you receive a response with the <strong>Status Code</strong> of <strong>200</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Windows PowerShell ISE window, run the following from the <strong>console</strong> pane to identify the BGP route information (with the router hosted on the <strong>SDNExpress2019-DC</strong> VM):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-powershell">Invoke-Command -ComputerName DC -ScriptBlock {Get-BgpRouteInformation}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Note that the output includes two routes to the public virtual IP you configured in this exercise (one per MUX) and that each route was learned from the corresponding MUX VM.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-7-configure-slb-based-traffic-forwarding-to-a-vm-in-a-virtual-network">Task 7: Configure SLB-based traffic forwarding to a VM in a virtual network</h3>
+
+<ol>
+  <li>
+    <p>Within the console session to the <strong>SDNExpress2019-Management</strong> VM, switch to the Windows PowerShell ISE window, and run the following commands to create a public IP address object referencing a public virtual IP:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-powershell">$publicIPProperties = new-object Microsoft.Windows.NetworkController.PublicIpAddressProperties
+$publicIPProperties.ipaddress = '10.10.0.200'
+$publicIPProperties.PublicIPAllocationMethod = 'static'
+$publicIPProperties.IdleTimeoutInMinutes = 4
+$publicIP = New-NetworkControllerPublicIpAddress -ResourceId 'vm-100-pip' -Properties $publicIPProperties -ConnectionUri $uri -Force -PassInnerException
+</code></pre>
+  </li>
+  <li>
+    <p>From the same Windows PowerShell ISE window, run the following commands to assign the newly created public IP address object to the network interface of the <strong>vm-100</strong> VM:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-powershell">$nic = Get-NetworkControllerNetworkInterface  -connectionuri $uri -resourceid 'vm-100_Net_Adapter_0'
+$nic.properties.IpConfigurations[0].Properties.PublicIPAddress = $publicIP
+New-NetworkControllerNetworkInterface -ConnectionUri $uri -ResourceId $nic.ResourceId -Properties $nic.properties -PassInnerException -Force
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="task-8-verify-connectivity-to-the-vm-in-a-virtual-network-via-a-public-virtual-ip">Task 8: Verify connectivity to the VM in a virtual network via a public virtual IP</h3>
+
+<ol>
+  <li>
+    <p>In the Windows PowerShell ISE window, and run the following command from the <strong>console</strong> pane to identify the BGP route information, with the router hosted on the <strong>SDNExpress2019-DC</strong> VM:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="language-powershell">Invoke-Command -ComputerName DC -ScriptBlock {Get-BgpRouteInformation}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Note that the output includes two routes to the public virtual IP you configured in this exercise (one per MUX) and that each route was learned from the corresponding MUX VM.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the routes are not displayed yet, you might need to wait a few minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Within the console session to the <strong>SDNExpress2019-Management</strong> VM, the Windows PowerShell ISE window, from the <strong>console</strong> pane, run the following to determine whether you have connectivity to the <strong>vm-100</strong> via the IP address allocated from the <strong>PublicVIP</strong> subnet.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-powershell">Test-NetConnection -ComputerName 10.10.0.200 -Port 5985 -InformationLevel Detailed
+</code></pre>
+  </li>
+  <li>Verify that the connection attempt was successful.</li>
+  <li>
+    <p>Within the console session to the <strong>SDNExpress2019-Management</strong> VM, in the Windows PowerShell ISE window, from the <strong>console</strong> pane, run the following to establish a PowerShell Remoting session to the <strong>vm-100</strong> VM via the IP address allocated from the <strong>PublicVIP</strong> subnet.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-powershell">$username = 'Administrator'
+$password = ConvertTo-SecureString -String 'Pa55w.rd' -AsPlainText -Force
+$creds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $username,$password
+Enter-PSSession -ComputerName 10.10.0.200 -Credential $creds
+</code></pre>
+  </li>
+  <li>After the session is established, from the <strong>console</strong> pane in the Windows PowerShell ISE window, from the <code>[10.10.0.200]: PS C:\Users\Administrator\Documents&gt;</code> prompt, run <code>ipconfig</code> and verify that the output displays the IP configuration of the <strong>vm-100</strong> VM, with the IP address of <strong>192.168.100.100</strong>.</li>
+</ol>
+
+<h3 id="task-9-deprovision-the-lab-resources">Task 9: Deprovision the lab resources</h3>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to lab VM, start Windows PowerShell ISE as Administrator.</p>
+  </li>
+  <li>
+    <p>From the Windows PowerShell ISE window, run the <strong>F:\WSLab-master\Scripts\Cleanup.ps1</strong> script to remove all VMs provisioned in this lab.</p>
+  </li>
+</ol>
+
+<h3 id="results">Results</h3>
+
+<p>After completing this lab, you would have deployed SDN by using PowerShell, configured routing and management for the SDN lab environment, managed virtual networks by using Windows Admin Center and PowerShell, implemented SDN Access Control List by using Windows Admin Center, implemented SDN Software Load Balancing with private virtual IP by using PowerShell, and deprovisioned the lab environment.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="ml-2">
+                    MicrosoftLearning/WS-013T00-Azure-Stack-HCI
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.js"></script>
+
+
+
+</body></html>

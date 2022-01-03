@@ -1,0 +1,455 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            WS-013T00-Azure-Stack-HCI
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                WS-013T00-Azure-Stack-HCI
+            </a>
+            <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#scenario-1">Scenario</a></li><li class="nav-item"><a class="nav-link" href="#task-1-provision-the-lab-environment-vms">Task 1: Provision the lab environment VMs</a></li><li class="nav-item"><a class="nav-link" href="#task-2-configure-the-management-server">Task 2: Configure the management server</a></li><li class="nav-item"><a class="nav-link" href="#task-3-deploy-storage-spaces-direct-clusters">Task 3: Deploy Storage Spaces Direct clusters</a></li><li class="nav-item"><a class="nav-link" href="#task-4-configure-storage-spaces-direct-cluster-tiers">Task 4: Configure Storage Spaces Direct cluster tiers</a></li><li class="nav-item"><a class="nav-link" href="#task-5-provision-nested-tier-volumes">Task 5: Provision nested tier volumes</a></li><li class="nav-item"><a class="nav-link" href="#task-6-deprovision-the-lab-resources">Task 6: Deprovision the lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-d-managing-storage-spaces-direct-cluster-tiers">Lab D: Managing Storage Spaces Direct cluster tiers</h1>
+
+<h2 id="scenario">Scenario</h2>
+
+<p>Now that you know more about cluster resiliency, you want to explore additional provisions that could help you optimize storage capacity and performance. To accomplish this, you will configure and evaluate storage tiers, including tiers that involve nested resiliency.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After completing this lab, you’ll be able to manage Storage Spaces Direct cluster tiers.</p>
+
+<h2 id="estimated-time-70-minutes">Estimated time: 70 minutes</h2>
+
+<h2 id="lab-setup">Lab setup</h2>
+
+<p>To connect to the VM for the lab, follow the steps provided to you by the lab hosting provider.</p>
+
+<h2 id="exercise-1-managing-storage-spaces-direct-cluster-tiers">Exercise 1: Managing Storage Spaces Direct cluster tiers</h2>
+
+<h3 id="scenario-1">Scenario</h3>
+
+<p>You want to explore additional provisions that could help you optimize storage capacity and performance by exploring storage tiers, including configuring nested resiliency.</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>Provision the lab environment VMs.</li>
+  <li>Deploy Storage Spaces Direct clusters.</li>
+  <li>Configure the management server.</li>
+  <li>Configure Storage Spaces Direct cluster tiers.</li>
+  <li>Provision nested tier volumes.</li>
+  <li>Deprovision the lab resources.</li>
+</ol>
+
+<h3 id="task-1-provision-the-lab-environment-vms">Task 1: Provision the lab environment VMs</h3>
+
+<ol>
+  <li>
+    <p>From the lab VM and, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to rename <strong>LabConfig.ps1</strong> and <strong>Scenario.ps1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Set-Location -Path 'F:\WSLab-master\Scripts'
+Move-Item -Path '.\LabConfig.ps1' -Destination '.\LabConfig.m3l5.ps1' -Force -ErrorAction SilentlyContinue
+Move-Item -Path '.\Scenario.ps1' -Destination '.\Scenario.m3l5.ps1' -Force -ErrorAction SilentlyContinue
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, from the <strong>script</strong> pane, save the following command as <strong>F:\WSLab-master\Scripts\LabConfig.ps1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">$LabConfig=@{ DomainAdminName='LabAdmin'; AdminPassword='LS1setup!'; Prefix = 'WSLab-'; SwitchName = 'LabSwitch'; DCEdition='4' ; Internet=$true ;AdditionalNetworksConfig=@(); VMs=@()}
+1..2 | % {$VMNames="2T2node"; $LABConfig.VMs += @{ VMName = "$VMNames$_" ; Configuration = 'S2D' ; ParentVHD = 'Win2019Core_G2.vhdx'; SSDNumber = 0; SSDSize=800GB ; HDDNumber = 4; HDDSize= 4TB ; MemoryStartupBytes= 1GB ; MemoryMinimumBytes=512MB }}
+1..3 | % {$VMNames="2T3node"; $LABConfig.VMs += @{ VMName = "$VMNames$_" ; Configuration = 'S2D' ; ParentVHD = 'Win2019Core_G2.vhdx'; SSDNumber = 0; SSDSize=800GB ; HDDNumber = 4; HDDSize= 4TB ; MemoryStartupBytes= 1GB ; MemoryMinimumBytes=512MB }}
+1..4 | % {$VMNames="2T4node"; $LABConfig.VMs += @{ VMName = "$VMNames$_" ; Configuration = 'S2D' ; ParentVHD = 'Win2019Core_G2.vhdx'; SSDNumber = 0; SSDSize=800GB ; HDDNumber = 4; HDDSize= 4TB ; MemoryStartupBytes= 1GB ; MemoryMinimumBytes=512MB }}
+1..2 | % {$VMNames="3T2node"; $LABConfig.VMs += @{ VMName = "$VMNames$_" ; Configuration = 'S2D' ; ParentVHD = 'Win2019Core_G2.vhdx'; SSDNumber = 4; SSDSize=800GB ; HDDNumber = 4; HDDSize= 4TB ; MemoryStartupBytes= 1GB ; MemoryMinimumBytes=512MB }}
+1..3 | % {$VMNames="3T3node"; $LABConfig.VMs += @{ VMName = "$VMNames$_" ; Configuration = 'S2D' ; ParentVHD = 'Win2019Core_G2.vhdx'; SSDNumber = 4; SSDSize=800GB ; HDDNumber = 4; HDDSize= 4TB ; MemoryStartupBytes= 1GB ; MemoryMinimumBytes=512MB }}
+1..4 | % {$VMNames="3T4node"; $LABConfig.VMs += @{ VMName = "$VMNames$_" ; Configuration = 'S2D' ; ParentVHD = 'Win2019Core_G2.vhdx'; SSDNumber = 4; SSDSize=800GB ; HDDNumber = 4; HDDSize= 4TB ; MemoryStartupBytes= 1GB ; MemoryMinimumBytes=512MB }}
+
+$LABConfig.VMs += @{
+     VMName = "Management" ;
+     Configuration = 'S2D' ;
+     ParentVHD = 'Win2019_G2.vhdx';
+     SSDNumber = 1;
+     SSDSize=50GB ;
+     MemoryStartupBytes= 4GB;
+     NestedVirt=$false;
+     StaticMemory=$false;
+     VMProcessorCount = 2
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, open and run the <strong>F:\WSLab-master\Scripts\3_Deploy.ps1</strong> script to provision VMs for the Storage Spaces Direct environment.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> Select <strong>None</strong> at the Telemetry prompt. The script should complete in about 15 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>When the script completes, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to start the newly provisioned VMs that will host the Storage Spaces Direct environment:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Get-VM -Name 'WSLab-Management' | Start-VM
+Start-Sleep 150
+Get-VM | Where-Object Name -like 'WSLab-*node*' | Start-VM -AsJob
+</code></pre>
+  </li>
+  <li>On the lab VM, start <strong>Hyper-V Manager</strong> and connect via a console session to <strong>WSLab-DC</strong>. When prompted to sign in, provide the username <strong>CORP\LabAdmin</strong> and the password <strong>LS1setup!</strong>.</li>
+  <li>In the <strong>WSLab-DC</strong> VM console session, start <strong>Windows PowerShell ISE</strong> as an administrator.</li>
+  <li>From the <strong>Administrator: Windows PowerShell ISE</strong> window, run <code>slmgr -rearm</code> and then select <strong>OK</strong>.</li>
+  <li>From the <strong>Administrator: Windows PowerShell ISE</strong> window, run <code>Restart-Computer -Force</code>.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: Make sure that the <strong>WSLab-DC VM</strong> is running before you proceed to the next task.</p>
+</blockquote>
+
+<h3 id="task-2-configure-the-management-server">Task 2: Configure the management server</h3>
+
+<ol>
+  <li>
+    <p>On the lab VM, from <strong>Hyper-V Manager</strong>, connect via a console session to <strong>WSLab-Management</strong>. When prompted to sign in, provide the <strong>CORP\LabAdmin</strong> username and the password <strong>LS1setup!</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, start <strong>Windows PowerShell ISE</strong> as <strong>Administrator</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to install RSAT:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">Install-WindowsFeature -Name RSAT-Clustering,RSAT-Clustering-Mgmt,RSAT-Clustering-PowerShell,RSAT-Hyper-V-Tools,RSAT-AD-PowerShell,RSAT-ADDS
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Proceed to the next step without waiting for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, start another instance of <strong>Windows PowerShell ISE</strong> as <strong>Administrator</strong>.</p>
+  </li>
+  <li>
+    <p>From the newly started <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to download and install Windows Admin Center:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">Invoke-WebRequest -UseBasicParsing -Uri https://aka.ms/WACDownload -OutFile "$env:USERPROFILE\Downloads\WindowsAdminCenter.msi"
+Start-Process msiexec.exe -Wait -ArgumentList "/i $env:USERPROFILE\Downloads\WindowsAdminCenter.msi /qn /L*v waclog.txt REGISTRY_REDIRECT_PORT_80=1 SME_PORT=443 SSL_CERTIFICATE_OPTION=generate"
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Proceed to the next step without waiting for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, start another instance of <strong>Windows PowerShell ISE</strong> as <strong>Administrator</strong>.</p>
+  </li>
+  <li>
+    <p>From the newly started <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to download and install the Microsoft Edge (Chromium) browser:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">$progressPreference='SilentlyContinue'
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2069324&amp;language=en-us&amp;Consent=1" -UseBasicParsing -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
+Start-Process -FilePath "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe" -Wait
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Proceed to the next step without waiting for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To configure Kerberos-constrained delegation to minimize prompts for credentials when using Windows Admin Center, switch back to the first <strong>Administrator: Windows PowerShell ISE</strong> window where you initiated installation of RSAT.</p>
+  </li>
+  <li>
+    <p>Wait for the installation to complete, and then from the <strong>script</strong> pane, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">$gateway = "Management"
+$nodes = Get-ADComputer -Filter * -SearchBase "ou=workshop,DC=corp,dc=contoso,DC=com"
+$gatewayObject = Get-ADComputer -Identity $gateway
+foreach ($node in $nodes){
+ Set-ADComputer -Identity $node -PrincipalsAllowedToDelegateToAccount $gatewayObject
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Before you proceed to the next step, verify that the Microsoft Edge and Windows Admin Center installations completed.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the other two instances of the <strong>Administrator: Windows PowerShell ISE</strong> window you opened earlier in this task.</p>
+  </li>
+</ol>
+
+<h3 id="task-3-deploy-storage-spaces-direct-clusters">Task 3: Deploy Storage Spaces Direct clusters</h3>
+
+<ol>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to provision Storage Spaces Direct clusters:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">$clusters=@()
+$clusters+=@{Nodes=1..2 | % {"2T2node$_"} ; Name="2T2nodeClus" ; IP="10.0.0.112" }
+$clusters+=@{Nodes=1..3 | % {"2T3node$_"} ; Name="2T3nodeClus" ; IP="10.0.0.113" }
+$clusters+=@{Nodes=1..2 | % {"3T2node$_"} ; Name="3T2nodeClus" ; IP="10.0.0.115" }
+$clusters+=@{Nodes=1..3 | % {"3T3node$_"} ; Name="3T3nodeClus" ; IP="10.0.0.116" }
+
+# Install features on servers
+Invoke-Command -computername $clusters.nodes -ScriptBlock {
+  Install-WindowsFeature -Name "Failover-Clustering","Hyper-V-PowerShell","RSAT-Clustering-PowerShell" #RSAT is needed for Windows Admin Center
+}
+
+# Restart servers since failover clustering in Windows Server 2019 requires reboot
+Restart-Computer -ComputerName $clusters.nodes -Protocol WSMan -Wait -For PowerShell
+
+# Create clusters
+foreach ($cluster in $clusters){
+  New-Cluster -Name $cluster.Name -Node $cluster.Nodes -StaticAddress $cluster.IP
+  Start-Sleep 5
+  Clear-DNSClientCache
+}
+
+# Add file share witness
+foreach ($cluster in $clusters){
+  $clusterName = $cluster.Name
+  # Create new directory
+  $WitnessName = $clusterName+"Witness"
+  Invoke-Command -ComputerName DC -ScriptBlock {New-Item -Path c:\Shares -Name $using:WitnessName -ItemType Directory}
+  $accounts = @()
+  $accounts += "CORP\$($clusterName)$"
+  $accounts += "CORP\Domain Admins"
+  New-SmbShare -Name $WitnessName -Path "c:\Shares\$WitnessName" -FullAccess $accounts -CimSession DC
+  # Set NTFS permissions
+  Invoke-Command -ComputerName DC -ScriptBlock {(Get-SmbShare $using:WitnessName).PresetPathAcl | Set-Acl}
+  # Set Quorum
+  Set-ClusterQuorum -Cluster $clusterName -FileShareWitness "\\DC\$WitnessName"
+}
+
+# Enable Storage Spaces Direct and configure mediatype to simulate 3 tier system with SCM (all 800GB disks are SCM, all 4T are SSDs)
+foreach ($cluster in $clusters.Name){
+  Enable-ClusterS2D -CimSession $cluster -Verbose -Confirm:0
+  if ($cluster -like "3T*"){
+    invoke-command -computername $cluster -scriptblock {
+      Get-PhysicalDisk | Where-Object size -eq 800GB | Set-PhysicalDisk -MediaType SCM
+      Get-PhysicalDisk | Where-Object size -eq 4TB | Set-PhysicalDisk -MediaType SSD
+    }
+  }
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Wait for the script to complete before you proceed to the next task. The script should take about 10 minutes to complete. Disregard any errors or warnings.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To generate a text file, you will use to import the list of Storage Spaces Direct clusters into Windows Admin Center, In the <strong>WSLab-Management</strong> VM console session, from the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">(Get-Cluster -Domain $env:userdomain | Where-Object S2DEnabled -eq 1).Name | Out-File c:\s2dclusters.txt
+</code></pre>
+  </li>
+  <li>Switch to the Microsoft Edge browser window, select <strong>Get started</strong>, accept the default tab page settings, and then select the <strong>Continue without Signing-in</strong> link.</li>
+  <li>Use the Microsoft Edge browser to navigate to <code>https://management.corp.contoso.com</code>, and then when prompted to authenticate, sign in as <strong>CORP\LabAdmin</strong> with the password <strong>LS1setup!</strong>.</li>
+  <li>In the <strong>WSLab-Management</strong> VM console session, within the browser window displaying the Windows Admin Center interface, connect to all Storage Spaces Direct clusters you deployed earlier in this exercise by importing their names from the <strong>c:\s2dclusters.txt</strong> file.</li>
+</ol>
+
+<h3 id="task-4-configure-storage-spaces-direct-cluster-tiers">Task 4: Configure Storage Spaces Direct cluster tiers</h3>
+
+<ol>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to identify the tiers on a two-node cluster with HDDs only:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">Get-StorageTier -CimSession 2T2NodeClus |
+  ft FriendlyName,MediaType,ResiliencySettingName,NumberOfDataCopies,PhysicalDiskRedundancy,FaultDomainAwareness,ColumnIsolation,NumberOfGroups,NumberOfColumns
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> On a two-node Storage Spaces Direct cluster with HDDs only, there are 2 tiers: one is Capacity, created to provide compatibility with Windows Server 2016 naming convention; the other is MirrorOnHDD, which follows the new naming convention in Windows Server 2019. The value of <strong>NumberOfDataCopies</strong> represents the <strong>2way mirror</strong> configuration, and <strong>PhysicalDiskRedundancy</strong> reflects the ability to tolerate a single fault. The value of <strong>FaultDomainAwareness</strong> indicates that the two copies are distributed across instances of <strong>StorageScaleUnit</strong>. The number of columns is automatically calculated, depending on the number of nodes and disks in each node, and is assigned during creation of virtual disks. The value of <strong>NumberOfGroups</strong> indicates the parity setting, which in this case, is set to <strong>1</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to identify all of the tiers on all of the Storage Spaces Direct clusters in the lab environment:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-powershell">$clusters=(Get-Cluster -Domain $env:userdomain | Where-Object S2DEnabled -eq 1).Name
+Get-StorageTier -CimSession $clusters |
+  Sort-Object PSComputerName |
+  ft PSComputerName,FriendlyName,MediaType,ResiliencySettingName,NumberOfDataCopies,PhysicalDiskRedundancy,FaultDomainAwareness,ColumnIsolation,NumberOfGroups,NumberOfColumns
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> The tiers are generated automatically when you invoke the <strong>Enable-ClusterS2D</strong> PowerShell cmdlet. Tiers reflect the media type present in cluster nodes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to identify the Windows Server 2019-specific mirror tiers on all the Storage Spaces Direct clusters in the lab environment. (These are tiers that reference <strong>MirrorOnHDD</strong>, <strong>MirrorOnSSD</strong>, and <strong>MirrorOnSCM</strong>, where <em>SCM</em> designates Storage Class Memory):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-powershell">$clusters=(Get-Cluster -Domain $env:userdomain | Where-Object S2DEnabled -eq 1).Name
+Get-StorageTier -CimSession $clusters |
+  Where-Object friendlyname -like mirror* |
+  Sort-Object PSComputerName |
+  ft PSComputerName,FriendlyName,MediaType,ResiliencySettingName,NumberOfDataCopies,PhysicalDiskRedundancy,FaultDomainAwareness,ColumnIsolation,NumberOfGroups,NumberOfColumns
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> The values of <strong>NumberOfCopies</strong> and <strong>PhysicalDiskRedundancy</strong> is <strong>2</strong> on two-node clusters, and <strong>3</strong> for clusters with three or more nodes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to identify the Windows Server 2019-specific parity tiers on all of the Storage Spaces Direct clusters in the lab environment. (These are the tiers that reference <strong>ParityOnHDD</strong>, <strong>ParityOnSSD</strong>, and <strong>ParityOnSCM</strong>, where <em>SCM</em> designates Storage Class Memory*):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-powershell">$clusters=(Get-Cluster -Domain $env:userdomain | Where-Object S2DEnabled -eq 1).Name
+Get-StorageTier -CimSession $clusters |
+  Where-Object friendlyname -like parity* |
+  Sort-Object PSComputerName |
+  ft PSComputerName,FriendlyName,MediaType,ResiliencySettingName,NumberOfDataCopies,PhysicalDiskRedundancy,FaultDomainAwareness,ColumnIsolation,NumberOfGroups,NumberOfColumns
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> The script doesn’t return any results because by default, parity tiers are created only on Storage Spaces Direct clusters with four or more nodes. With Windows Server 2019-based Storage Spaces Direct clusters, you have the option to create parity tiers by implementing nested resiliency on two-node clusters.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to create nested resiliency tiers:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-powershell">#Select clusters to fix tiers
+$clusterNames=(Get-Cluster -Domain $env:userdomain | Where-Object S2DEnabled -eq 1 | Out-GridView -OutputMode Multiple -Title "Select Clusters to Check on tiers").Name
+
+foreach ($clusterName in $clusterNames){
+   $storageTiers=Get-StorageTier -CimSession $clusterName
+   $numberOfNodes=(Get-ClusterNode -Cluster $clusterName).Count
+   $MediaTypes=(Get-PhysicalDisk -CimSession $clusterName |where mediatype -ne Unspecified | Where-Object usage -ne Journal).MediaType | Select-Object -Unique
+   $clusterFunctionalLevel=(Get-Cluster -Name $clusterName).ClusterFunctionalLevel
+
+   foreach ($mediaType in $mediaTypes){
+      if ($numberOfNodes -eq 2) {
+         # Create Mirror Tiers
+         if (-not ($storageTiers | Where-Object FriendlyName -eq "MirrorOn$mediaType")){
+            New-StorageTier -CimSession $clusterName -StoragePoolFriendlyName "S2D on $clusterName" -FriendlyName "MirrorOn$mediaType" -MediaType $mediaType -ResiliencySettingName Mirror -NumberOfDataCopies 2
+         }
+         if ($clusterFunctionalLevel -ge 10){
+            # Create NestedMirror Tiers
+            if (-not ($storageTiers | Where-Object FriendlyName -eq "NestedMirrorOn$mediaType")){
+               New-StorageTier -CimSession $clusterName -StoragePoolFriendlyName "S2D on $clusterName" -FriendlyName "NestedMirrorOn$mediaType" -MediaType $mediaType -ResiliencySettingName Mirror -NumberOfDataCopies 4
+            }
+            #Create NestedParity Tiers
+            if (-not ($storageTiers | Where-Object FriendlyName -eq "NestedParityOn$mediaType")){
+               New-StorageTier -CimSession $clusterName -StoragePoolFriendlyName "S2D on $clusterName" -FriendlyName "NestedParityOn$mediaType" -MediaType $mediaType -ResiliencySettingName Parity -NumberOfDataCopies 2 -PhysicalDiskRedundancy 1 -NumberOfGroups 1 -ColumnIsolation PhysicalDisk
+            }
+         }
+      } elseif ($numberOfNodes -eq 3) {
+         #Create Mirror Tiers
+         if (-not ($storageTiers | Where-Object FriendlyName -eq "MirrorOn$mediaType")){
+            New-StorageTier -CimSession $clusterName -StoragePoolFriendlyName "S2D on $clusterName" -FriendlyName "MirrorOn$mediaType" -MediaType $mediaType -ResiliencySettingName Mirror -NumberOfDataCopies 3
+         }
+      } elseif ($numberOfNodes -ge 4) {
+         #Create Mirror Tiers
+         if (-not ($storageTiers | Where-Object FriendlyName -eq "MirrorOn$mediaType")){
+           New-StorageTier -CimSession $clusterName -StoragePoolFriendlyName "S2D on $clusterName" -FriendlyName "MirrorOn$mediaType" -MediaType $mediaType -ResiliencySettingName Mirror -NumberOfDataCopies 3
+         }
+         #Create Parity Tiers
+         if (-not ($storageTiers | Where-Object FriendlyName -eq "ParityOn$mediaType")){
+           New-StorageTier -CimSession $clusterName -StoragePoolFriendlyName "S2D on $clusterName" -FriendlyName "ParityOn$mediaType" -MediaType $mediaType -ResiliencySettingName Parity
+         }
+      }
+   }
+}
+
+</code></pre>
+  </li>
+  <li>
+    <p>When prompted, in the <strong>Select Clusters to Check on tiers</strong> window, select both the <strong>2T2nodeClus</strong> and <strong>3T2nodeClus</strong> entries, and then select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to identify the Windows Server 2019-specific nested tiers on two-node Storage Spaces Direct clusters in the lab environment:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-powershell">$clusters=(Get-Cluster -Domain $env:userdomain | Where-Object S2DEnabled -eq 1).Name
+Get-StorageTier -CimSession $clusters |
+  Where-Object friendlyname -like nested* |
+  Sort-Object PSComputerName |
+  ft PSComputerName,FriendlyName,MediaType,ResiliencySettingName,NumberOfDataCopies,PhysicalDiskRedundancy,FaultDomainAwareness,ColumnIsolation,NumberOfGroups,NumberOfColumns
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> By default, parity tiers are created only on Storage Spaces Direct clusters with four or more nodes. With Windows Server 2019-based Storage Spaces Direct clusters, you have the option to create parity tiers by implementing nested resiliency on two-node clusters.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-5-provision-nested-tier-volumes">Task 5: Provision nested tier volumes</h3>
+
+<ol>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following commands to provision a volume on the Storage Spaces Direct cluster <strong>2T2nodeClus</strong>, based on the <strong>NestedMirrorOnHDD</strong> nested resiliency tier:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-powershell">$clusterName = '2T2nodeClus'
+New-Volume -StoragePoolFriendlyName s2d* -FriendlyName NestedMirroronHDDVolume -FileSystem CSVFS_ReFS -StorageTierFriendlyNames NestedMirrorOnHDD -StorageTierSizes 128GB -CimSession $clusterName
+</code></pre>
+  </li>
+  <li>In the <strong>WSLab-Management</strong> VM console session, within the Windows Admin Center browser window, connect to the <strong>2T2nodeClus</strong> cluster.</li>
+  <li>In the Windows Admin Center, navigate to the volume inventory of the <strong>2T2nodeClus</strong> cluster.</li>
+  <li>In the list of volumes, note that the <strong>NestedMirroronHDDVolume</strong> has resiliency set to <strong>Nested two-way mirror</strong>.</li>
+  <li>Within the Windows Admin Center, navigate back to drive inventory of the <strong>2T2nodeClus</strong> cluster.</li>
+  <li>In the list of drives, review the list of drive types.</li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to provision a volume on the Storage Spaces Direct cluster <strong>3T2nodeClus</strong>, based on the <strong>NestedMirrorOnSSD</strong> nested resiliency tier:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-powershell">$clusterName = '3T2nodeClus'
+New-Volume -StoragePoolFriendlyName s2d* -FriendlyName NestedMirroronSSDVolume -FileSystem CSVFS_ReFS -StorageTierFriendlyNames NestedMirrorOnSSD -StorageTierSizes 128GB -CimSession $clusterName
+</code></pre>
+  </li>
+  <li>In the <strong>WSLab-Management</strong> VM console session, within the Windows Admin Center browser window, connect to the <strong>3T2nodeClus</strong> cluster.</li>
+  <li>In the Windows Admin Center, navigate to the volume inventory of the <strong>3T2nodeClus</strong> cluster.</li>
+  <li>In the list of volumes, note that the <strong>NestedMirroronSSDVolume</strong> has resiliency set to <strong>Nested two-way mirror</strong>.</li>
+  <li>In the Windows Admin Center, navigate back to the drive inventory of the <strong>3T2nodeClus</strong> cluster.</li>
+  <li>In the list of drives, review the list of drive types.</li>
+</ol>
+
+<h3 id="task-6-deprovision-the-lab-resources">Task 6: Deprovision the lab resources</h3>
+
+<ol>
+  <li>Switch to the lab VM.</li>
+  <li>On the lab VM, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the <strong>F:\WSLab-master\Scripts\Cleanup.ps1</strong> script to remove all VMs provisioned in this lab.</li>
+  <li>In the <strong>Administrator: Windows PowerShell ISE</strong> window, close the tab displaying the <strong>F:\WSLab-master\Scripts\Cleanup.ps1</strong> script.</li>
+</ol>
+
+<h2 id="results">Results</h2>
+
+<p>After completing this lab, you will have managed Storage Spaces Direct cluster tiers.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="ml-2">
+                    MicrosoftLearning/WS-013T00-Azure-Stack-HCI
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.js"></script>
+
+
+
+</body></html>

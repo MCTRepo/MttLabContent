@@ -1,0 +1,687 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#c">C#</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="create-a-custom-skill-for-azure-cognitive-search">Create a Custom Skill for Azure Cognitive Search</h1>
+
+<p>Azure Cognitive Search uses an enrichment pipeline of cognitive skills to extract AI-generated fields from documents and include them in a search index. There’s a comprehensive set of built-in skills that you can use, but if you have a specific requirement that isn’t met by these skills, you can create a custom skill.</p>
+
+<p>In this exercise, you’ll create a custom skill that tabulates the frequency of individual words in a document to generate a list of the top five most used words, and add it to a search solution for Margie’s Travel - a fictitious travel agency.</p>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have already cloned <strong>AI-102-AIEngineer</strong> code repository to the environment where you’re working on this lab, open it in Visual Studio Code; otherwise, follow these steps to clone it now.</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="create-azure-resources">Create Azure resources</h2>
+
+<blockquote>
+  <p><strong>Note</strong>: If you have previously completed the <strong><a href="22-azure-search.html">Create an Azure Cognitive Search solution</a></strong> exercise, and still have these Azure resources in your subscription, you can skip this section and start at the <strong>Create a search solution</strong> section. Otherwise, follow the steps below to provision the required Azure resources.</p>
+</blockquote>
+
+<ol>
+  <li>In a web browser, open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>View the <strong>Resource groups</strong> in your subscription.</li>
+  <li>If you are using a restricted subscription in which a resource group has been provided for you, select the resource group to view its properties. Otherwise, create a new resource group with a name of your choice, and go to it when it has been created.</li>
+  <li>On the <strong>Overview</strong> page for your resource group, note the <strong>Subscription ID</strong> and <strong>Location</strong>. You will need these values, along with the name of the resource group in subsequent steps.</li>
+  <li>In Visual Studio Code, expand the <strong>23-custom-search-skill</strong> folder and select <strong>setup.cmd</strong>. You will use this batch script to run the Azure command line interface (CLI) commands required to create the Azure resources you need.</li>
+  <li>Right-click the the <strong>23-custom-search-skill</strong> folder and select <strong>Open in Integrated Terminal</strong>.</li>
+  <li>
+    <p>In the terminal pane, enter the following command to establish an authenticated connection to your Azure subscription.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">az</span></span> login --output <span class="hljs-literal"><span class="hljs-literal">none</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, sign into your Azure subscription. Then return to Visual Studio Code and wait for the sign-in process to complete.</li>
+  <li>
+    <p>Run the following command to list Azure locations.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs cpp"> az account <span class="hljs-built_in"><span class="hljs-built_in">list</span></span>-locations -o table
+</code></pre>
+  </li>
+  <li>In the output, find the <strong>Name</strong> value that corresponds with the location of your resource group (for example, for <em>East US</em> the corresponding name is <em>eastus</em>).</li>
+  <li>In the <strong>setup.cmd</strong> script, modify the <strong>subscription_id</strong>, <strong>resource_group</strong>, and <strong>location</strong> variable declarations with the appropriate values for your subscription ID, resource group name, and location name. Then save your changes.</li>
+  <li>
+    <p>In the terminal for the <strong>23-custom-search-skill</strong> folder, enter the following command to run the script:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">setup</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The Search CLI module is in preview, and may get stuck in the <em>- Running ..</em> process. If this happens for over 2 minutes, press CTRL+C to cancel the long-running operation, and then select <strong>N</strong> when asked if you want to terminate the script. It should then complete successfully.</p>
+
+      <p>If the script fails, ensure you saved it with the correct variable names and try again.</p>
+    </blockquote>
+  </li>
+  <li>When the script completes, review the output it displays and note the following information about your Azure resources (you will need these values later):
+    <ul>
+      <li>Storage account name</li>
+      <li>Storage connection string</li>
+      <li>Cognitive Services account</li>
+      <li>Cognitive Services key</li>
+      <li>Search service endpoint</li>
+      <li>Search service admin key</li>
+      <li>Search service query key</li>
+    </ul>
+  </li>
+  <li>In the Azure portal, refresh the resource group and verify that it contains the Azure Storage account, Azure Cognitive Services resource, and Azure Cognitive Search resource.</li>
+</ol>
+
+<h2 id="create-a-search-solution">Create a search solution</h2>
+
+<p>Now that you have the necessary Azure resources, you can create a search solution that consists of the following components:</p>
+
+<ul>
+  <li>A <strong>data source</strong> that references the documents in your Azure storage container.</li>
+  <li>A <strong>skillset</strong> that defines an enrichment pipeline of skills to extract AI-generated fields from the documents.</li>
+  <li>An <strong>index</strong> that defines a searchable set of document records.</li>
+  <li>An <strong>indexer</strong> that extracts the documents from the data source, applies the skillset, and populates the index.</li>
+</ul>
+
+<p>In this exercise, you’ll use the Azure Cognitive Search REST interface to create these components by submitting JSON requests.</p>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>23-custom-search-skill</strong> folder, expand the <strong>create-search</strong> folder and select <strong>data_source.json</strong>. This file contains a JSON definition for a data source named <strong>margies-custom-data</strong>.</li>
+  <li>
+    <p>Replace the <strong>YOUR_CONNECTION_STRING</strong> placeholder with the connection string for your Azure storage account, which should resemble the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs"> DefaultEndpointsProtocol=https;AccountName=ai102str123;AccountKey=12345abcdefg...==;EndpointSuffix=core.windows.net
+</code></pre>
+
+    <p><em>You can find the connection string on the <strong>Access keys</strong> page for your storage account in the Azure portal.</em></p>
+  </li>
+  <li>Save and close the updated JSON file.</li>
+  <li>In the <strong>create-search</strong> folder, open <strong>skillset.json</strong>. This file contains a JSON definition for a skillset named <strong>margies-custom-skillset</strong>.</li>
+  <li>
+    <p>At the top of the skillset definition, in the <strong>cognitiveServices</strong> element, replace the <strong>YOUR_COGNITIVE_SERVICES_KEY</strong> placeholder with either of the keys for your cognitive services resources.</p>
+
+    <p><em>You can find the keys on the <strong>Keys and Endpoint</strong> page for your cognitive services resource in the Azure portal.</em></p>
+  </li>
+  <li>Save and close the updated JSON file.</li>
+  <li>In the <strong>create-search</strong> folder, open <strong>index.json</strong>. This file contains a JSON definition for an index named <strong>margies-custom-index</strong>.</li>
+  <li>Review the JSON for the index, then close the file without making any changes.</li>
+  <li>In the <strong>create-search</strong> folder, open <strong>indexer.json</strong>. This file contains a JSON definition for an indexer named <strong>margies-custom-indexer</strong>.</li>
+  <li>Review the JSON for the indexer, then close the file without making any changes.</li>
+  <li>In the <strong>create-search</strong> folder, open <strong>create-search.cmd</strong>. This batch script uses the cURL utility to submit the JSON definitions to the REST interface for your Azure Cognitive Search resource.</li>
+  <li>
+    <p>Replace the <strong>YOUR_SEARCH_URL</strong> and <strong>YOUR_ADMIN_KEY</strong> variable placeholders with the <strong>Url</strong> and one of the <strong>admin keys</strong> for your Azure Cognitive Search resource.</p>
+
+    <p><em>You can find these values on the <strong>Overview</strong> and <strong>Keys</strong> pages for your Azure Cognitive Search resource in the Azure portal.</em></p>
+  </li>
+  <li>Save the updated batch file.</li>
+  <li>Right-click the the <strong>create-search</strong> folder and select <strong>Open in Integrated Terminal</strong>.</li>
+  <li>
+    <p>In the terminal pane for the <strong>create-search</strong> folder, enter the following command run the batch script.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">create</span></span>-<span class="hljs-keyword"><span class="hljs-keyword">search</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>When the script completes, in the Azure portal, on the page for your Azure Cognitive Search resource, select the <strong>Indexers</strong> page and wait for the indexing process to complete.</p>
+
+    <p><em>You can select <strong>Refresh</strong> to track the progress of the indexing operation. It may take a minute or so to complete.</em></p>
+  </li>
+</ol>
+
+<h2 id="search-the-index">Search the index</h2>
+
+<p>Now that you have an index, you can search it.</p>
+
+<ol>
+  <li>At the top of the blade for your Azure Cognitive Search resource, select <strong>Search explorer</strong>.</li>
+  <li>
+    <p>In Search explorer, in the <strong>Query string</strong> box, enter the following query string, and then select <strong>Search</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs perl"> search=London&amp;$select=url,sentiment,keyphrases&amp;$filter=metadata_author eq <span class="hljs-string"><span class="hljs-string">'Reviewer'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">and</span></span> sentiment <span class="hljs-keyword"><span class="hljs-keyword">gt</span></span> <span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">5</span></span>
+</code></pre>
+
+    <p>This query retrieves the <strong>url</strong>, <strong>sentiment</strong>, and <strong>keyphrases</strong> for all documents that mention <em>London</em> authored by <em>Reviewer</em> that have a <strong>sentiment</strong> score greater than <em>0.5</em> (in other words, positive reviews that mention London)</p>
+  </li>
+</ol>
+
+<h2 id="create-an-azure-function-for-a-custom-skill">Create an Azure Function for a custom skill</h2>
+
+<p>The search solution includes a number of built-in cognitive skills that enrich the index with information from the documents, such as the sentiment scores and lists of key phrases seen in the previous task.</p>
+
+<p>You can enhance the index further by creating custom skills. For example, it might be useful to identify the words that are used most frequently in each document, but no built-in skill offers this functionality.</p>
+
+<p>To implement the word count functionality as a custom skill, you’ll create an Azure Function in your preferred language.</p>
+
+<ol>
+  <li>In Visual Studio Code, view the Azure Extensions tab (<strong>&amp;boxplus;</strong>), and verify that the <strong>Azure Functions</strong> extension is installed. This extension enables you to create and deploy Azure Functions from Visual Studio Code.</li>
+  <li>
+    <p>On Azure tab (<strong>Δ</strong>), in the <strong>Azure Functions</strong> pane, create a new project (📂) with the following settings, depending on your preferred language:</p>
+
+    <p>### <strong>C#</strong></p>
+
+    <ul>
+      <li><strong>Folder</strong>: Browse to <strong>23-custom-search-skill/C-Sharp/wordcount</strong></li>
+      <li><strong>Language</strong>: C#</li>
+      <li><strong>Template</strong>: HTTP trigger</li>
+      <li><strong>Function name</strong>: wordcount</li>
+      <li><strong>Namespace</strong>: margies.search</li>
+      <li><strong>Authorization level</strong>: Function</li>
+    </ul>
+
+    <p>### <strong>Python</strong></p>
+
+    <ul>
+      <li><strong>Folder</strong>: Browse to <strong>23-custom-search-skill/Python/wordcount</strong></li>
+      <li><strong>Language</strong>: Python</li>
+      <li><strong>Virtual environment</strong>: Skip virtual environment</li>
+      <li><strong>Template</strong>: HTTP trigger</li>
+      <li><strong>Function name</strong>: wordcount</li>
+      <li><strong>Authorization level</strong>: Function</li>
+    </ul>
+
+    <p><em>If you are prompted to overwrite <strong>launch.json</strong>, do so!</em></p>
+  </li>
+  <li>
+    <p>Switch back to the <strong>Explorer</strong> (<strong>🗍</strong>) tab and verify that the <strong>wordcount</strong> folder now contains the code files for your Azure Function.</p>
+
+    <p><em>If you chose Python, the code files may be in a subfolder, also named <strong>wordcount</strong></em></p>
+  </li>
+  <li>The main code file for your function should have been opened automatically. If not, open the appropriate file for your chosen language:
+    <ul>
+      <li><strong>C#</strong>: wordcount.cs</li>
+      <li><strong>Python</strong>: __init__.py</li>
+    </ul>
+  </li>
+  <li>Replace the entire contents of the file with the following code for your chosen language:</li>
+</ol>
+
+<h3 id="c"><strong>C#</strong></h3>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-C# hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.IO;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Mvc;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs.Extensions.Http;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Http;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Newtonsoft.Json;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Collections.Generic;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Extensions.Logging;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Text.RegularExpressions;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Linq;
+
+<span class="hljs-keyword"><span class="hljs-keyword">namespace</span></span> margies.search
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">wordcount</span></span></span><span class="hljs-class">
+    {</span></span>
+
+        <span class="hljs-comment"><span class="hljs-comment">//define classes for responses</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">WebApiResponseError</span></span></span><span class="hljs-class">
+        {</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> message { get; <span class="hljs-built_in"><span class="hljs-built_in">set</span></span>; }
+        }
+
+        <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">WebApiResponseWarning</span></span></span><span class="hljs-class">
+        {</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> message { get; <span class="hljs-built_in"><span class="hljs-built_in">set</span></span>; }
+        }
+
+        <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">WebApiResponseRecord</span></span></span><span class="hljs-class">
+        {</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> recordId { get; <span class="hljs-built_in"><span class="hljs-built_in">set</span></span>; }
+            <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> Dictionary&lt;<span class="hljs-built_in"><span class="hljs-built_in">string</span></span>, object&gt; data { get; <span class="hljs-built_in"><span class="hljs-built_in">set</span></span>; }
+            <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> List&lt;WebApiResponseError&gt; errors { get; <span class="hljs-built_in"><span class="hljs-built_in">set</span></span>; }
+            <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> List&lt;WebApiResponseWarning&gt; warnings { get; <span class="hljs-built_in"><span class="hljs-built_in">set</span></span>; }
+        }
+
+        <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">WebApiEnricherResponse</span></span></span><span class="hljs-class">
+        {</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> List&lt;WebApiResponseRecord&gt; values { get; <span class="hljs-built_in"><span class="hljs-built_in">set</span></span>; }
+        }
+
+        <span class="hljs-comment"><span class="hljs-comment">//function for custom skill</span></span>
+        [FunctionName(<span class="hljs-string"><span class="hljs-string">"wordcount"</span></span>)]
+        <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> IActionResult </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(
+            [HttpTrigger(AuthorizationLevel.Function, </span></span><span class="hljs-string"><span class="hljs-function"><span class="hljs-params"><span class="hljs-string">"post"</span></span></span></span><span class="hljs-function"><span class="hljs-params">, Route = null)</span></span></span><span class="hljs-function">]HttpRequest req, ILogger </span><span class="hljs-built_in"><span class="hljs-function"><span class="hljs-built_in">log</span></span></span><span class="hljs-function">)
+        </span></span>{
+            <span class="hljs-built_in"><span class="hljs-built_in">log</span></span>.LogInformation(<span class="hljs-string"><span class="hljs-string">"Function initiated."</span></span>);
+
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> recordId = null;
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> originalText = null;
+
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> requestBody = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> StreamReader(req.Body).ReadToEnd();
+            dynamic data = JsonConvert.DeserializeObject(requestBody);
+
+            <span class="hljs-comment"><span class="hljs-comment">// Validation</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (data?.values == null)
+            {
+                <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> BadRequestObjectResult(<span class="hljs-string"><span class="hljs-string">" Could not find values array"</span></span>);
+            }
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (data?.values.HasValues == <span class="hljs-literal"><span class="hljs-literal">false</span></span> || data?.values.First.HasValues == <span class="hljs-literal"><span class="hljs-literal">false</span></span>)
+            {
+                <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> BadRequestObjectResult(<span class="hljs-string"><span class="hljs-string">"Could not find valid records in values array"</span></span>);
+            }
+
+            WebApiEnricherResponse response = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> WebApiEnricherResponse();
+            response.values = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;WebApiResponseRecord&gt;();
+            foreach (var record in data?.values)
+            {
+                recordId = record.recordId?.Value as <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>;
+                originalText = record.data?.text?.Value as <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>;
+
+                <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (recordId == null)
+                {
+                    <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> BadRequestObjectResult(<span class="hljs-string"><span class="hljs-string">"recordId cannot be null"</span></span>);
+                }
+
+                <span class="hljs-comment"><span class="hljs-comment">// Put together response.</span></span>
+                WebApiResponseRecord responseRecord = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> WebApiResponseRecord();
+                responseRecord.data = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Dictionary&lt;<span class="hljs-built_in"><span class="hljs-built_in">string</span></span>, object&gt;();
+                responseRecord.recordId = recordId;
+                responseRecord.data.Add(<span class="hljs-string"><span class="hljs-string">"text"</span></span>, Count(originalText));
+
+                response.values.Add(responseRecord);
+            }
+
+            <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> (ActionResult)<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> OkObjectResult(response); 
+        }
+
+
+            <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-built_in"><span class="hljs-function"><span class="hljs-built_in">string</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">RemoveHtmlTags</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-built_in"><span class="hljs-function"><span class="hljs-params"><span class="hljs-built_in">string</span></span></span></span><span class="hljs-function"><span class="hljs-params"> html)</span></span></span><span class="hljs-function">
+        </span></span>{
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> htmlRemoved = Regex.Replace(html, @<span class="hljs-string"><span class="hljs-string">"&lt;script[^&gt;]*&gt;[\s\S]*?&lt;/script&gt;|&lt;[^&gt;]+&gt;|&nbsp;"</span></span>, <span class="hljs-string"><span class="hljs-string">" "</span></span>).Trim();
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> normalised = Regex.Replace(htmlRemoved, @<span class="hljs-string"><span class="hljs-string">"\s{2,}"</span></span>, <span class="hljs-string"><span class="hljs-string">" "</span></span>);
+            <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> normalised;
+        }
+
+        <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> List&lt;<span class="hljs-built_in"><span class="hljs-built_in">string</span></span>&gt; Count(<span class="hljs-built_in"><span class="hljs-built_in">string</span></span> text)
+        {
+            
+            <span class="hljs-comment"><span class="hljs-comment">//remove html elements</span></span>
+            text=text.ToLowerInvariant();
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> html = RemoveHtmlTags(text);
+            
+            <span class="hljs-comment"><span class="hljs-comment">//split into list of words</span></span>
+            List&lt;<span class="hljs-built_in"><span class="hljs-built_in">string</span></span>&gt; <span class="hljs-built_in"><span class="hljs-built_in">list</span></span> = html.Split(<span class="hljs-string"><span class="hljs-string">" "</span></span>).ToList();
+            
+            <span class="hljs-comment"><span class="hljs-comment">//remove any non alphabet characters</span></span>
+            var onlyAlphabetRegEx = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Regex(@<span class="hljs-string"><span class="hljs-string">"^[A-z]+$"</span></span>);
+            <span class="hljs-built_in"><span class="hljs-built_in">list</span></span> = <span class="hljs-built_in"><span class="hljs-built_in">list</span></span>.Where(f =&gt; onlyAlphabetRegEx.IsMatch(f)).ToList();
+
+            <span class="hljs-comment"><span class="hljs-comment">//remove stop words</span></span>
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>[] stopwords = { <span class="hljs-string"><span class="hljs-string">""</span></span>, <span class="hljs-string"><span class="hljs-string">"i"</span></span>, <span class="hljs-string"><span class="hljs-string">"me"</span></span>, <span class="hljs-string"><span class="hljs-string">"my"</span></span>, <span class="hljs-string"><span class="hljs-string">"myself"</span></span>, <span class="hljs-string"><span class="hljs-string">"we"</span></span>, <span class="hljs-string"><span class="hljs-string">"our"</span></span>, <span class="hljs-string"><span class="hljs-string">"ours"</span></span>, <span class="hljs-string"><span class="hljs-string">"ourselves"</span></span>, <span class="hljs-string"><span class="hljs-string">"you"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"you're"</span></span>, <span class="hljs-string"><span class="hljs-string">"you've"</span></span>, <span class="hljs-string"><span class="hljs-string">"you'll"</span></span>, <span class="hljs-string"><span class="hljs-string">"you'd"</span></span>, <span class="hljs-string"><span class="hljs-string">"your"</span></span>, <span class="hljs-string"><span class="hljs-string">"yours"</span></span>, <span class="hljs-string"><span class="hljs-string">"yourself"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"yourselves"</span></span>, <span class="hljs-string"><span class="hljs-string">"he"</span></span>, <span class="hljs-string"><span class="hljs-string">"him"</span></span>, <span class="hljs-string"><span class="hljs-string">"his"</span></span>, <span class="hljs-string"><span class="hljs-string">"himself"</span></span>, <span class="hljs-string"><span class="hljs-string">"she"</span></span>, <span class="hljs-string"><span class="hljs-string">"she's"</span></span>, <span class="hljs-string"><span class="hljs-string">"her"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"hers"</span></span>, <span class="hljs-string"><span class="hljs-string">"herself"</span></span>, <span class="hljs-string"><span class="hljs-string">"it"</span></span>, <span class="hljs-string"><span class="hljs-string">"it's"</span></span>, <span class="hljs-string"><span class="hljs-string">"its"</span></span>, <span class="hljs-string"><span class="hljs-string">"itself"</span></span>, <span class="hljs-string"><span class="hljs-string">"they"</span></span>, <span class="hljs-string"><span class="hljs-string">"them"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"their"</span></span>, <span class="hljs-string"><span class="hljs-string">"theirs"</span></span>, <span class="hljs-string"><span class="hljs-string">"themselves"</span></span>, <span class="hljs-string"><span class="hljs-string">"what"</span></span>, <span class="hljs-string"><span class="hljs-string">"which"</span></span>, <span class="hljs-string"><span class="hljs-string">"who"</span></span>, <span class="hljs-string"><span class="hljs-string">"whom"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"this"</span></span>, <span class="hljs-string"><span class="hljs-string">"that"</span></span>, <span class="hljs-string"><span class="hljs-string">"that'll"</span></span>, <span class="hljs-string"><span class="hljs-string">"these"</span></span>, <span class="hljs-string"><span class="hljs-string">"those"</span></span>, <span class="hljs-string"><span class="hljs-string">"am"</span></span>, <span class="hljs-string"><span class="hljs-string">"is"</span></span>, <span class="hljs-string"><span class="hljs-string">"are"</span></span>, <span class="hljs-string"><span class="hljs-string">"was"</span></span>,
+                    <span class="hljs-string"><span class="hljs-string">"were"</span></span>, <span class="hljs-string"><span class="hljs-string">"be"</span></span>, <span class="hljs-string"><span class="hljs-string">"been"</span></span>, <span class="hljs-string"><span class="hljs-string">"being"</span></span>, <span class="hljs-string"><span class="hljs-string">"have"</span></span>, <span class="hljs-string"><span class="hljs-string">"has"</span></span>, <span class="hljs-string"><span class="hljs-string">"had"</span></span>, <span class="hljs-string"><span class="hljs-string">"having"</span></span>, <span class="hljs-string"><span class="hljs-string">"do"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"does"</span></span>, <span class="hljs-string"><span class="hljs-string">"did"</span></span>, <span class="hljs-string"><span class="hljs-string">"doing"</span></span>, <span class="hljs-string"><span class="hljs-string">"a"</span></span>, <span class="hljs-string"><span class="hljs-string">"an"</span></span>, <span class="hljs-string"><span class="hljs-string">"the"</span></span>, <span class="hljs-string"><span class="hljs-string">"and"</span></span>, <span class="hljs-string"><span class="hljs-string">"but"</span></span>, <span class="hljs-string"><span class="hljs-string">"if"</span></span>, <span class="hljs-string"><span class="hljs-string">"or"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"because"</span></span>, <span class="hljs-string"><span class="hljs-string">"as"</span></span>, <span class="hljs-string"><span class="hljs-string">"until"</span></span>, <span class="hljs-string"><span class="hljs-string">"while"</span></span>, <span class="hljs-string"><span class="hljs-string">"of"</span></span>, <span class="hljs-string"><span class="hljs-string">"at"</span></span>, <span class="hljs-string"><span class="hljs-string">"by"</span></span>, <span class="hljs-string"><span class="hljs-string">"for"</span></span>, <span class="hljs-string"><span class="hljs-string">"with"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"about"</span></span>, <span class="hljs-string"><span class="hljs-string">"against"</span></span>, <span class="hljs-string"><span class="hljs-string">"between"</span></span>, <span class="hljs-string"><span class="hljs-string">"into"</span></span>, <span class="hljs-string"><span class="hljs-string">"through"</span></span>, <span class="hljs-string"><span class="hljs-string">"during"</span></span>, <span class="hljs-string"><span class="hljs-string">"before"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"after"</span></span>, <span class="hljs-string"><span class="hljs-string">"above"</span></span>, <span class="hljs-string"><span class="hljs-string">"below"</span></span>, <span class="hljs-string"><span class="hljs-string">"to"</span></span>, <span class="hljs-string"><span class="hljs-string">"from"</span></span>, <span class="hljs-string"><span class="hljs-string">"up"</span></span>, <span class="hljs-string"><span class="hljs-string">"down"</span></span>, <span class="hljs-string"><span class="hljs-string">"in"</span></span>, <span class="hljs-string"><span class="hljs-string">"out"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"on"</span></span>, <span class="hljs-string"><span class="hljs-string">"off"</span></span>, <span class="hljs-string"><span class="hljs-string">"over"</span></span>, <span class="hljs-string"><span class="hljs-string">"under"</span></span>, <span class="hljs-string"><span class="hljs-string">"again"</span></span>, <span class="hljs-string"><span class="hljs-string">"further"</span></span>, <span class="hljs-string"><span class="hljs-string">"then"</span></span>, <span class="hljs-string"><span class="hljs-string">"once"</span></span>, <span class="hljs-string"><span class="hljs-string">"here"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"there"</span></span>, <span class="hljs-string"><span class="hljs-string">"when"</span></span>, <span class="hljs-string"><span class="hljs-string">"where"</span></span>, <span class="hljs-string"><span class="hljs-string">"why"</span></span>, <span class="hljs-string"><span class="hljs-string">"how"</span></span>, <span class="hljs-string"><span class="hljs-string">"all"</span></span>, <span class="hljs-string"><span class="hljs-string">"any"</span></span>, <span class="hljs-string"><span class="hljs-string">"both"</span></span>, <span class="hljs-string"><span class="hljs-string">"each"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"few"</span></span>, <span class="hljs-string"><span class="hljs-string">"more"</span></span>, <span class="hljs-string"><span class="hljs-string">"most"</span></span>, <span class="hljs-string"><span class="hljs-string">"other"</span></span>, <span class="hljs-string"><span class="hljs-string">"some"</span></span>, <span class="hljs-string"><span class="hljs-string">"such"</span></span>, <span class="hljs-string"><span class="hljs-string">"no"</span></span>, <span class="hljs-string"><span class="hljs-string">"nor"</span></span>, <span class="hljs-string"><span class="hljs-string">"not"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"only"</span></span>, <span class="hljs-string"><span class="hljs-string">"own"</span></span>, <span class="hljs-string"><span class="hljs-string">"same"</span></span>, <span class="hljs-string"><span class="hljs-string">"so"</span></span>, <span class="hljs-string"><span class="hljs-string">"than"</span></span>, <span class="hljs-string"><span class="hljs-string">"too"</span></span>, <span class="hljs-string"><span class="hljs-string">"very"</span></span>, <span class="hljs-string"><span class="hljs-string">"s"</span></span>, <span class="hljs-string"><span class="hljs-string">"t"</span></span>, <span class="hljs-string"><span class="hljs-string">"can"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"will"</span></span>, <span class="hljs-string"><span class="hljs-string">"just"</span></span>, <span class="hljs-string"><span class="hljs-string">"don"</span></span>, <span class="hljs-string"><span class="hljs-string">"don't"</span></span>, <span class="hljs-string"><span class="hljs-string">"should"</span></span>, <span class="hljs-string"><span class="hljs-string">"should've"</span></span>, <span class="hljs-string"><span class="hljs-string">"now"</span></span>, <span class="hljs-string"><span class="hljs-string">"d"</span></span>, <span class="hljs-string"><span class="hljs-string">"ll"</span></span>,
+                    <span class="hljs-string"><span class="hljs-string">"m"</span></span>, <span class="hljs-string"><span class="hljs-string">"o"</span></span>, <span class="hljs-string"><span class="hljs-string">"re"</span></span>, <span class="hljs-string"><span class="hljs-string">"ve"</span></span>, <span class="hljs-string"><span class="hljs-string">"y"</span></span>, <span class="hljs-string"><span class="hljs-string">"ain"</span></span>, <span class="hljs-string"><span class="hljs-string">"aren"</span></span>, <span class="hljs-string"><span class="hljs-string">"aren't"</span></span>, <span class="hljs-string"><span class="hljs-string">"couldn"</span></span>, <span class="hljs-string"><span class="hljs-string">"couldn't"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"didn"</span></span>, <span class="hljs-string"><span class="hljs-string">"didn't"</span></span>, <span class="hljs-string"><span class="hljs-string">"doesn"</span></span>, <span class="hljs-string"><span class="hljs-string">"doesn't"</span></span>, <span class="hljs-string"><span class="hljs-string">"hadn"</span></span>, <span class="hljs-string"><span class="hljs-string">"hadn't"</span></span>, <span class="hljs-string"><span class="hljs-string">"hasn"</span></span>, <span class="hljs-string"><span class="hljs-string">"hasn't"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"haven"</span></span>, <span class="hljs-string"><span class="hljs-string">"haven't"</span></span>, <span class="hljs-string"><span class="hljs-string">"isn"</span></span>, <span class="hljs-string"><span class="hljs-string">"isn't"</span></span>, <span class="hljs-string"><span class="hljs-string">"ma"</span></span>, <span class="hljs-string"><span class="hljs-string">"mightn"</span></span>, <span class="hljs-string"><span class="hljs-string">"mightn't"</span></span>, <span class="hljs-string"><span class="hljs-string">"mustn"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"mustn't"</span></span>, <span class="hljs-string"><span class="hljs-string">"needn"</span></span>, <span class="hljs-string"><span class="hljs-string">"needn't"</span></span>, <span class="hljs-string"><span class="hljs-string">"shan"</span></span>, <span class="hljs-string"><span class="hljs-string">"shan't"</span></span>, <span class="hljs-string"><span class="hljs-string">"shouldn"</span></span>, <span class="hljs-string"><span class="hljs-string">"shouldn't"</span></span>, <span class="hljs-string"><span class="hljs-string">"wasn"</span></span>, 
+                    <span class="hljs-string"><span class="hljs-string">"wasn't"</span></span>, <span class="hljs-string"><span class="hljs-string">"weren"</span></span>, <span class="hljs-string"><span class="hljs-string">"weren't"</span></span>, <span class="hljs-string"><span class="hljs-string">"won"</span></span>, <span class="hljs-string"><span class="hljs-string">"won't"</span></span>, <span class="hljs-string"><span class="hljs-string">"wouldn"</span></span>, <span class="hljs-string"><span class="hljs-string">"wouldn't"</span></span>}; 
+            <span class="hljs-built_in"><span class="hljs-built_in">list</span></span> = <span class="hljs-built_in"><span class="hljs-built_in">list</span></span>.Where(x =&gt; x.Length &gt; <span class="hljs-number"><span class="hljs-number">2</span></span>).Where(x =&gt; !stopwords.Contains(x)).ToList();
+            
+            <span class="hljs-comment"><span class="hljs-comment">//get distict words by key and count, and then order by count.</span></span>
+            var keywords = <span class="hljs-built_in"><span class="hljs-built_in">list</span></span>.GroupBy(x =&gt; x).OrderByDescending(x =&gt; x.Count());
+            var klist = keywords.ToList();
+
+            <span class="hljs-comment"><span class="hljs-comment">// return the top 10 words</span></span>
+            var numofWords = <span class="hljs-number"><span class="hljs-number">10</span></span>;
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span>(klist.Count&lt;<span class="hljs-number"><span class="hljs-number">10</span></span>)
+                numofWords=klist.Count;
+            List&lt;<span class="hljs-built_in"><span class="hljs-built_in">string</span></span>&gt; resList = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;<span class="hljs-built_in"><span class="hljs-built_in">string</span></span>&gt;();
+            <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">int</span></span> i = <span class="hljs-number"><span class="hljs-number">0</span></span>; i &lt; numofWords; i++)
+            {
+                resList.Add(klist[i].Key);
+            }
+            <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> resList;
+        }
+    }
+}
+</code></pre>
+
+<h2 id="python"><strong>Python</strong></h2>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-Python hljs"><span class="hljs-keyword"><span class="hljs-keyword">import</span></span> logging
+<span class="hljs-keyword"><span class="hljs-keyword">import</span></span> os
+<span class="hljs-keyword"><span class="hljs-keyword">import</span></span> sys
+<span class="hljs-keyword"><span class="hljs-keyword">import</span></span> json
+<span class="hljs-keyword"><span class="hljs-keyword">from</span></span> string <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> punctuation
+<span class="hljs-keyword"><span class="hljs-keyword">from</span></span> collections <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> Counter
+<span class="hljs-keyword"><span class="hljs-keyword">import</span></span> azure.functions <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> func
+
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">def</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">main</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(req: func.HttpRequest)</span></span></span><span class="hljs-function"> -&gt; func.HttpResponse:</span></span>
+    logging.info(<span class="hljs-string"><span class="hljs-string">'Wordcount function initiated.'</span></span>)
+
+    <span class="hljs-comment"><span class="hljs-comment"># The result will be a "values" bag</span></span>
+    result = {
+        <span class="hljs-string"><span class="hljs-string">"values"</span></span>: []
+    }
+    statuscode = <span class="hljs-number"><span class="hljs-number">200</span></span>
+
+    <span class="hljs-comment"><span class="hljs-comment"># We're going to exclude words from this list in the word counts</span></span>
+    stopwords = [<span class="hljs-string"><span class="hljs-string">''</span></span>, <span class="hljs-string"><span class="hljs-string">'i'</span></span>, <span class="hljs-string"><span class="hljs-string">'me'</span></span>, <span class="hljs-string"><span class="hljs-string">'my'</span></span>, <span class="hljs-string"><span class="hljs-string">'myself'</span></span>, <span class="hljs-string"><span class="hljs-string">'we'</span></span>, <span class="hljs-string"><span class="hljs-string">'our'</span></span>, <span class="hljs-string"><span class="hljs-string">'ours'</span></span>, <span class="hljs-string"><span class="hljs-string">'ourselves'</span></span>, <span class="hljs-string"><span class="hljs-string">'you'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">"you're"</span></span>, <span class="hljs-string"><span class="hljs-string">"you've"</span></span>, <span class="hljs-string"><span class="hljs-string">"you'll"</span></span>, <span class="hljs-string"><span class="hljs-string">"you'd"</span></span>, <span class="hljs-string"><span class="hljs-string">'your'</span></span>, <span class="hljs-string"><span class="hljs-string">'yours'</span></span>, <span class="hljs-string"><span class="hljs-string">'yourself'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'yourselves'</span></span>, <span class="hljs-string"><span class="hljs-string">'he'</span></span>, <span class="hljs-string"><span class="hljs-string">'him'</span></span>, <span class="hljs-string"><span class="hljs-string">'his'</span></span>, <span class="hljs-string"><span class="hljs-string">'himself'</span></span>, <span class="hljs-string"><span class="hljs-string">'she'</span></span>, <span class="hljs-string"><span class="hljs-string">"she's"</span></span>, <span class="hljs-string"><span class="hljs-string">'her'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'hers'</span></span>, <span class="hljs-string"><span class="hljs-string">'herself'</span></span>, <span class="hljs-string"><span class="hljs-string">'it'</span></span>, <span class="hljs-string"><span class="hljs-string">"it's"</span></span>, <span class="hljs-string"><span class="hljs-string">'its'</span></span>, <span class="hljs-string"><span class="hljs-string">'itself'</span></span>, <span class="hljs-string"><span class="hljs-string">'they'</span></span>, <span class="hljs-string"><span class="hljs-string">'them'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'their'</span></span>, <span class="hljs-string"><span class="hljs-string">'theirs'</span></span>, <span class="hljs-string"><span class="hljs-string">'themselves'</span></span>, <span class="hljs-string"><span class="hljs-string">'what'</span></span>, <span class="hljs-string"><span class="hljs-string">'which'</span></span>, <span class="hljs-string"><span class="hljs-string">'who'</span></span>, <span class="hljs-string"><span class="hljs-string">'whom'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'this'</span></span>, <span class="hljs-string"><span class="hljs-string">'that'</span></span>, <span class="hljs-string"><span class="hljs-string">"that'll"</span></span>, <span class="hljs-string"><span class="hljs-string">'these'</span></span>, <span class="hljs-string"><span class="hljs-string">'those'</span></span>, <span class="hljs-string"><span class="hljs-string">'am'</span></span>, <span class="hljs-string"><span class="hljs-string">'is'</span></span>, <span class="hljs-string"><span class="hljs-string">'are'</span></span>, <span class="hljs-string"><span class="hljs-string">'was'</span></span>,
+                <span class="hljs-string"><span class="hljs-string">'were'</span></span>, <span class="hljs-string"><span class="hljs-string">'be'</span></span>, <span class="hljs-string"><span class="hljs-string">'been'</span></span>, <span class="hljs-string"><span class="hljs-string">'being'</span></span>, <span class="hljs-string"><span class="hljs-string">'have'</span></span>, <span class="hljs-string"><span class="hljs-string">'has'</span></span>, <span class="hljs-string"><span class="hljs-string">'had'</span></span>, <span class="hljs-string"><span class="hljs-string">'having'</span></span>, <span class="hljs-string"><span class="hljs-string">'do'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'does'</span></span>, <span class="hljs-string"><span class="hljs-string">'did'</span></span>, <span class="hljs-string"><span class="hljs-string">'doing'</span></span>, <span class="hljs-string"><span class="hljs-string">'a'</span></span>, <span class="hljs-string"><span class="hljs-string">'an'</span></span>, <span class="hljs-string"><span class="hljs-string">'the'</span></span>, <span class="hljs-string"><span class="hljs-string">'and'</span></span>, <span class="hljs-string"><span class="hljs-string">'but'</span></span>, <span class="hljs-string"><span class="hljs-string">'if'</span></span>, <span class="hljs-string"><span class="hljs-string">'or'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'because'</span></span>, <span class="hljs-string"><span class="hljs-string">'as'</span></span>, <span class="hljs-string"><span class="hljs-string">'until'</span></span>, <span class="hljs-string"><span class="hljs-string">'while'</span></span>, <span class="hljs-string"><span class="hljs-string">'of'</span></span>, <span class="hljs-string"><span class="hljs-string">'at'</span></span>, <span class="hljs-string"><span class="hljs-string">'by'</span></span>, <span class="hljs-string"><span class="hljs-string">'for'</span></span>, <span class="hljs-string"><span class="hljs-string">'with'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'about'</span></span>, <span class="hljs-string"><span class="hljs-string">'against'</span></span>, <span class="hljs-string"><span class="hljs-string">'between'</span></span>, <span class="hljs-string"><span class="hljs-string">'into'</span></span>, <span class="hljs-string"><span class="hljs-string">'through'</span></span>, <span class="hljs-string"><span class="hljs-string">'during'</span></span>, <span class="hljs-string"><span class="hljs-string">'before'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'after'</span></span>, <span class="hljs-string"><span class="hljs-string">'above'</span></span>, <span class="hljs-string"><span class="hljs-string">'below'</span></span>, <span class="hljs-string"><span class="hljs-string">'to'</span></span>, <span class="hljs-string"><span class="hljs-string">'from'</span></span>, <span class="hljs-string"><span class="hljs-string">'up'</span></span>, <span class="hljs-string"><span class="hljs-string">'down'</span></span>, <span class="hljs-string"><span class="hljs-string">'in'</span></span>, <span class="hljs-string"><span class="hljs-string">'out'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'on'</span></span>, <span class="hljs-string"><span class="hljs-string">'off'</span></span>, <span class="hljs-string"><span class="hljs-string">'over'</span></span>, <span class="hljs-string"><span class="hljs-string">'under'</span></span>, <span class="hljs-string"><span class="hljs-string">'again'</span></span>, <span class="hljs-string"><span class="hljs-string">'further'</span></span>, <span class="hljs-string"><span class="hljs-string">'then'</span></span>, <span class="hljs-string"><span class="hljs-string">'once'</span></span>, <span class="hljs-string"><span class="hljs-string">'here'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'there'</span></span>, <span class="hljs-string"><span class="hljs-string">'when'</span></span>, <span class="hljs-string"><span class="hljs-string">'where'</span></span>, <span class="hljs-string"><span class="hljs-string">'why'</span></span>, <span class="hljs-string"><span class="hljs-string">'how'</span></span>, <span class="hljs-string"><span class="hljs-string">'all'</span></span>, <span class="hljs-string"><span class="hljs-string">'any'</span></span>, <span class="hljs-string"><span class="hljs-string">'both'</span></span>, <span class="hljs-string"><span class="hljs-string">'each'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'few'</span></span>, <span class="hljs-string"><span class="hljs-string">'more'</span></span>, <span class="hljs-string"><span class="hljs-string">'most'</span></span>, <span class="hljs-string"><span class="hljs-string">'other'</span></span>, <span class="hljs-string"><span class="hljs-string">'some'</span></span>, <span class="hljs-string"><span class="hljs-string">'such'</span></span>, <span class="hljs-string"><span class="hljs-string">'no'</span></span>, <span class="hljs-string"><span class="hljs-string">'nor'</span></span>, <span class="hljs-string"><span class="hljs-string">'not'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'only'</span></span>, <span class="hljs-string"><span class="hljs-string">'own'</span></span>, <span class="hljs-string"><span class="hljs-string">'same'</span></span>, <span class="hljs-string"><span class="hljs-string">'so'</span></span>, <span class="hljs-string"><span class="hljs-string">'than'</span></span>, <span class="hljs-string"><span class="hljs-string">'too'</span></span>, <span class="hljs-string"><span class="hljs-string">'very'</span></span>, <span class="hljs-string"><span class="hljs-string">'s'</span></span>, <span class="hljs-string"><span class="hljs-string">'t'</span></span>, <span class="hljs-string"><span class="hljs-string">'can'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'will'</span></span>, <span class="hljs-string"><span class="hljs-string">'just'</span></span>, <span class="hljs-string"><span class="hljs-string">'don'</span></span>, <span class="hljs-string"><span class="hljs-string">"don't"</span></span>, <span class="hljs-string"><span class="hljs-string">'should'</span></span>, <span class="hljs-string"><span class="hljs-string">"should've"</span></span>, <span class="hljs-string"><span class="hljs-string">'now'</span></span>, <span class="hljs-string"><span class="hljs-string">'d'</span></span>, <span class="hljs-string"><span class="hljs-string">'ll'</span></span>,
+                <span class="hljs-string"><span class="hljs-string">'m'</span></span>, <span class="hljs-string"><span class="hljs-string">'o'</span></span>, <span class="hljs-string"><span class="hljs-string">'re'</span></span>, <span class="hljs-string"><span class="hljs-string">'ve'</span></span>, <span class="hljs-string"><span class="hljs-string">'y'</span></span>, <span class="hljs-string"><span class="hljs-string">'ain'</span></span>, <span class="hljs-string"><span class="hljs-string">'aren'</span></span>, <span class="hljs-string"><span class="hljs-string">"aren't"</span></span>, <span class="hljs-string"><span class="hljs-string">'couldn'</span></span>, <span class="hljs-string"><span class="hljs-string">"couldn't"</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'didn'</span></span>, <span class="hljs-string"><span class="hljs-string">"didn't"</span></span>, <span class="hljs-string"><span class="hljs-string">'doesn'</span></span>, <span class="hljs-string"><span class="hljs-string">"doesn't"</span></span>, <span class="hljs-string"><span class="hljs-string">'hadn'</span></span>, <span class="hljs-string"><span class="hljs-string">"hadn't"</span></span>, <span class="hljs-string"><span class="hljs-string">'hasn'</span></span>, <span class="hljs-string"><span class="hljs-string">"hasn't"</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">'haven'</span></span>, <span class="hljs-string"><span class="hljs-string">"haven't"</span></span>, <span class="hljs-string"><span class="hljs-string">'isn'</span></span>, <span class="hljs-string"><span class="hljs-string">"isn't"</span></span>, <span class="hljs-string"><span class="hljs-string">'ma'</span></span>, <span class="hljs-string"><span class="hljs-string">'mightn'</span></span>, <span class="hljs-string"><span class="hljs-string">"mightn't"</span></span>, <span class="hljs-string"><span class="hljs-string">'mustn'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">"mustn't"</span></span>, <span class="hljs-string"><span class="hljs-string">'needn'</span></span>, <span class="hljs-string"><span class="hljs-string">"needn't"</span></span>, <span class="hljs-string"><span class="hljs-string">'shan'</span></span>, <span class="hljs-string"><span class="hljs-string">"shan't"</span></span>, <span class="hljs-string"><span class="hljs-string">'shouldn'</span></span>, <span class="hljs-string"><span class="hljs-string">"shouldn't"</span></span>, <span class="hljs-string"><span class="hljs-string">'wasn'</span></span>, 
+                <span class="hljs-string"><span class="hljs-string">"wasn't"</span></span>, <span class="hljs-string"><span class="hljs-string">'weren'</span></span>, <span class="hljs-string"><span class="hljs-string">"weren't"</span></span>, <span class="hljs-string"><span class="hljs-string">'won'</span></span>, <span class="hljs-string"><span class="hljs-string">"won't"</span></span>, <span class="hljs-string"><span class="hljs-string">'wouldn'</span></span>, <span class="hljs-string"><span class="hljs-string">"wouldn't"</span></span>]
+
+    <span class="hljs-keyword"><span class="hljs-keyword">try</span></span>:
+        values = req.get_json().get(<span class="hljs-string"><span class="hljs-string">'values'</span></span>)
+        logging.info(values)
+
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> rec <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> values:
+            <span class="hljs-comment"><span class="hljs-comment"># Construct the basic JSON response for this record</span></span>
+            val = {
+                    <span class="hljs-string"><span class="hljs-string">"recordId"</span></span>: rec[<span class="hljs-string"><span class="hljs-string">'recordId'</span></span>],
+                    <span class="hljs-string"><span class="hljs-string">"data"</span></span>: {
+                        <span class="hljs-string"><span class="hljs-string">"text"</span></span>:<span class="hljs-keyword"><span class="hljs-keyword">None</span></span>
+                    },
+                    <span class="hljs-string"><span class="hljs-string">"errors"</span></span>: <span class="hljs-keyword"><span class="hljs-keyword">None</span></span>,
+                    <span class="hljs-string"><span class="hljs-string">"warnings"</span></span>: <span class="hljs-keyword"><span class="hljs-keyword">None</span></span>
+                }
+            <span class="hljs-keyword"><span class="hljs-keyword">try</span></span>:
+                <span class="hljs-comment"><span class="hljs-comment"># get the text to be processed from the input record</span></span>
+                txt = rec[<span class="hljs-string"><span class="hljs-string">'data'</span></span>][<span class="hljs-string"><span class="hljs-string">'text'</span></span>]
+                <span class="hljs-comment"><span class="hljs-comment"># remove numeric digits</span></span>
+                txt = <span class="hljs-string"><span class="hljs-string">''</span></span>.join(c <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> c <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> txt <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> <span class="hljs-keyword"><span class="hljs-keyword">not</span></span> c.isdigit())
+                <span class="hljs-comment"><span class="hljs-comment"># remove punctuation and make lower case</span></span>
+                txt = <span class="hljs-string"><span class="hljs-string">''</span></span>.join(c <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> c <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> txt <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> c <span class="hljs-keyword"><span class="hljs-keyword">not</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> punctuation).lower()
+                <span class="hljs-comment"><span class="hljs-comment"># remove stopwords</span></span>
+                txt = <span class="hljs-string"><span class="hljs-string">' '</span></span>.join(w <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> w <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> txt.split() <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> w <span class="hljs-keyword"><span class="hljs-keyword">not</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> stopwords)
+                <span class="hljs-comment"><span class="hljs-comment"># Count the words and get the most common 10</span></span>
+                wordcount = Counter(txt.split()).most_common(<span class="hljs-number"><span class="hljs-number">10</span></span>)
+                words = [w[<span class="hljs-number"><span class="hljs-number">0</span></span>] <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> w <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> wordcount]
+                <span class="hljs-comment"><span class="hljs-comment"># Add the top 10 words to the output for this text record</span></span>
+                val[<span class="hljs-string"><span class="hljs-string">"data"</span></span>][<span class="hljs-string"><span class="hljs-string">"text"</span></span>] = words
+            <span class="hljs-keyword"><span class="hljs-keyword">except</span></span>:
+                <span class="hljs-comment"><span class="hljs-comment"># An error occured for this text record, so add lists of errors and warning</span></span>
+                val[<span class="hljs-string"><span class="hljs-string">"errors"</span></span>] =[{<span class="hljs-string"><span class="hljs-string">"message"</span></span>: <span class="hljs-string"><span class="hljs-string">"An error occurred processing the text."</span></span>}]
+                val[<span class="hljs-string"><span class="hljs-string">"warnings"</span></span>] = [{<span class="hljs-string"><span class="hljs-string">"message"</span></span>: <span class="hljs-string"><span class="hljs-string">"One or more inputs failed to process."</span></span>}]
+            <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span>:
+                <span class="hljs-comment"><span class="hljs-comment"># Add the value for this record to the response</span></span>
+                result[<span class="hljs-string"><span class="hljs-string">"values"</span></span>].append(val)
+    <span class="hljs-keyword"><span class="hljs-keyword">except</span></span> Exception <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> ex:
+        statuscode = <span class="hljs-number"><span class="hljs-number">500</span></span>
+        <span class="hljs-comment"><span class="hljs-comment"># A global error occurred, so return an error response</span></span>
+        val = {
+                <span class="hljs-string"><span class="hljs-string">"recordId"</span></span>: <span class="hljs-keyword"><span class="hljs-keyword">None</span></span>,
+                <span class="hljs-string"><span class="hljs-string">"data"</span></span>: {
+                    <span class="hljs-string"><span class="hljs-string">"text"</span></span>:<span class="hljs-keyword"><span class="hljs-keyword">None</span></span>
+                },
+                <span class="hljs-string"><span class="hljs-string">"errors"</span></span>: [{<span class="hljs-string"><span class="hljs-string">"message"</span></span>: ex.args}],
+                <span class="hljs-string"><span class="hljs-string">"warnings"</span></span>: [{<span class="hljs-string"><span class="hljs-string">"message"</span></span>: <span class="hljs-string"><span class="hljs-string">"The request failed to process."</span></span>}]
+            }
+        result[<span class="hljs-string"><span class="hljs-string">"values"</span></span>].append(val)
+    <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span>:
+        <span class="hljs-comment"><span class="hljs-comment"># Return the response</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> func.HttpResponse(body=json.dumps(result), mimetype=<span class="hljs-string"><span class="hljs-string">"application/json"</span></span>, status_code=statuscode)
+</code></pre>
+
+<ol>
+  <li>Save the updated file.</li>
+  <li>
+    <p>Right-click the <strong>wordcount</strong> folder containing your code files and select <strong>Deploy to Function App</strong>. Then deploy the function with the following language-specific settings (signing into Azure if prompted):</p>
+
+    <p>### <strong>C#</strong></p>
+
+    <ul>
+      <li><strong>Subscription</strong> (if prompted): Select your Azure subscription.</li>
+      <li><strong>Function</strong>: Create a new Function App in Azure (Advanced)</li>
+      <li><strong>Function App Name</strong>: Enter a globally unique name.</li>
+      <li><strong>Runtime</strong>: .NET Core 3.1</li>
+      <li><strong>OS</strong>: Linux</li>
+      <li><strong>Hosting plan</strong>: Consumption</li>
+      <li><strong>Resource group</strong>: The resource group containing your Azure Cognitive Search resource.
+        <ul>
+          <li>Note: If this resource group already contains a Windows-based web app, you will not be able to deploy a Linux-based function there. Either delete the existing web app or deploy the function to a different resource group.</li>
+        </ul>
+      </li>
+      <li><strong>Storage account</strong>: The storage count where the Margie’s Travel docs are stored.</li>
+      <li><strong>Application Insights</strong>: Skip for now</li>
+    </ul>
+
+    <p><em>Visual Studio Code will deploy the compiled version of the function (in the <strong>bin</strong> subfolder) based on the configuration settings in the <strong>.vscode</strong> folder that were saved when you created the function project.</em></p>
+
+    <p>### <strong>Python</strong></p>
+
+    <ul>
+      <li><strong>Subscription</strong> (if prompted): Select your Azure subscription.</li>
+      <li><strong>Function</strong>: Create a new Function App in Azure (Advanced)</li>
+      <li><strong>Function App Name</strong>: Enter a globally unique name.</li>
+      <li><strong>Runtime</strong>: Python 3.8</li>
+      <li><strong>Hosting plan</strong>: Consumption</li>
+      <li><strong>Resource group</strong>: The resource group containing your Azure Cognitive Search resource.
+        <ul>
+          <li>Note: If this resource group already contains a Windows-based web app, you will not be able to deploy a Linux-based function there. Either delete the existing web app or deploy the function to a different resource group.</li>
+        </ul>
+      </li>
+      <li><strong>Storage account</strong>: The storage count where the Margie’s Travel docs are stored.</li>
+      <li><strong>Application Insights</strong>: Skip for now</li>
+    </ul>
+  </li>
+  <li>Wait for Visual Studio Code to deploy the function. A notification will appear when deployment is complete.</li>
+</ol>
+
+<h2 id="test-the-function">Test the function</h2>
+
+<p>Now that you’ve deployed the function to Azure, you can test it in the Azure portal.</p>
+
+<ol>
+  <li>Open the <a href="https://portal.azure.com">Azure portal</a>, and browse to the resource group where you created the function app. Then open the app service for your function app.</li>
+  <li>In the blade for your app service, on the <strong>Functions</strong> page, open the <strong>wordcount</strong> function.</li>
+  <li>On the <strong>wordcount</strong> function blade, view the <strong>Code + Test</strong> page and open the <strong>Test/Run</strong> pane.</li>
+  <li>
+    <p>In the <strong>Test/Run</strong> pane, replace the existing <strong>Body</strong> with the following JSON, which reflects the schema expected by an Azure Cognitive Search skill in which records containing data for one or more documents are submitted for processing:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs json"> {
+     <span class="hljs-attr"><span class="hljs-attr">"values"</span></span>: [
+         {
+             <span class="hljs-attr"><span class="hljs-attr">"recordId"</span></span>: <span class="hljs-string"><span class="hljs-string">"a1"</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"data"</span></span>:
+             {
+             <span class="hljs-attr"><span class="hljs-attr">"text"</span></span>:  <span class="hljs-string"><span class="hljs-string">"Tiger, tiger burning bright in the darkness of the night."</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"language"</span></span>: <span class="hljs-string"><span class="hljs-string">"en"</span></span>
+             }
+         },
+         {
+             <span class="hljs-attr"><span class="hljs-attr">"recordId"</span></span>: <span class="hljs-string"><span class="hljs-string">"a2"</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"data"</span></span>:
+             {
+             <span class="hljs-attr"><span class="hljs-attr">"text"</span></span>:  <span class="hljs-string"><span class="hljs-string">"The rain in spain stays mainly in the plains! That's where you'll find the rain!"</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"language"</span></span>: <span class="hljs-string"><span class="hljs-string">"en"</span></span>
+             }
+         }
+     ]
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>Click <strong>Run</strong> and view the HTTP response content that is returned by your function. This reflects the schema expected by Azure Cognitive Search when consuming a skill, in which a response for each document is returned. In this case, the response consists of up to 10 terms in each document in descending order of how frequently they appear:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs json"> {
+ <span class="hljs-attr"><span class="hljs-attr">"values"</span></span>: [
+     {
+     <span class="hljs-attr"><span class="hljs-attr">"recordId"</span></span>: <span class="hljs-string"><span class="hljs-string">"a1"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"data"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"text"</span></span>: [
+         <span class="hljs-string"><span class="hljs-string">"tiger"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"burning"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"bright"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"darkness"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"night"</span></span>
+         ]
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"errors"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"warnings"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+     },
+     {
+     <span class="hljs-attr"><span class="hljs-attr">"recordId"</span></span>: <span class="hljs-string"><span class="hljs-string">"a2"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"data"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"text"</span></span>: [
+         <span class="hljs-string"><span class="hljs-string">"rain"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"spain"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"stays"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"mainly"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"plains"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"thats"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"youll"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"find"</span></span>
+         ]
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"errors"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"warnings"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+     }
+ ]
+ }
+</code></pre>
+  </li>
+  <li>Close the <strong>Test/Run</strong> pane and in the <strong>wordcount</strong> function blade, click <strong>Get function URL</strong>. Then copy the URL for the default key to the clipboard. You’ll need this in the next procedure.</li>
+</ol>
+
+<h2 id="add-the-custom-skill-to-the-search-solution">Add the custom skill to the search solution</h2>
+
+<p>Now you need to include your function as a custom skill in the search solution skillset, and map the results it produces to a field in the index.</p>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>23-custom-search-skill/update-search</strong> folder, open the <strong>update-skillset.json</strong> file. This contains the JSON definition of a skillset.</li>
+  <li>Review the skillset definition. It includes the same skills as before, as well as a new <strong>WebApiSkill</strong> skill named <strong>get-top-words</strong>.</li>
+  <li>Edit the <strong>get-top-words</strong> skill definition to set the <strong>uri</strong> value to the URL for your Azure function (which you copied to the clipboard in the previous procedure), replacing <strong>YOUR-FUNCTION-APP-URL</strong>.</li>
+  <li>
+    <p>At the top of the skillset definition, in the <strong>cognitiveServices</strong> element, replace the <strong>YOUR_COGNITIVE_SERVICES_KEY</strong> placeholder with either of the keys for your cognitive services resources.</p>
+
+    <p><em>You can find the keys on the <strong>Keys and Endpoint</strong> page for your cognitive services resource in the Azure portal.</em></p>
+  </li>
+  <li>Save and close the updated JSON file.</li>
+  <li>In the <strong>update-search</strong> folder, open <strong>update-index.json</strong>. This file contains the JSON definition for the <strong>margies-custom-index</strong> index, with an additional field named <strong>top_words</strong> at the bottom of the index definition.</li>
+  <li>Review the JSON for the index, then close the file without making any changes.</li>
+  <li>In the <strong>update-search</strong> folder, open <strong>update-indexer.json</strong>. This file contains a JSON definition for the <strong>margies-custom-indexer</strong>, with an additional mapping for the <strong>top_words</strong> field.</li>
+  <li>Review the JSON for the indexer, then close the file without making any changes.</li>
+  <li>In the <strong>update-search</strong> folder, open <strong>update-search.cmd</strong>. This batch script uses the cURL utility to submit the updated JSON definitions to the REST interface for your Azure Cognitive Search resource.</li>
+  <li>
+    <p>Replace the <strong>YOUR_SEARCH_URL</strong> and <strong>YOUR_ADMIN_KEY</strong> variable placeholders with the <strong>Url</strong> and one of the <strong>admin keys</strong> for your Azure Cognitive Search resource.</p>
+
+    <p><em>You can find these values on the <strong>Overview</strong> and <strong>Keys</strong> pages for your Azure Cognitive Search resource in the Azure portal.</em></p>
+  </li>
+  <li>Save the updated batch file.</li>
+  <li>Right-click the the <strong>update-search</strong> folder and select <strong>Open in Integrated Terminal</strong>.</li>
+  <li>
+    <p>In the terminal pane for the <strong>update-search</strong> folder, enter the following command run the batch script.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">update</span></span>-<span class="hljs-keyword"><span class="hljs-keyword">search</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>When the script completes, in the Azure portal, on the page for your Azure Cognitive Search resource, select the <strong>Indexers</strong> page and wait for the indexing process to complete.</p>
+
+    <p><em>You can select <strong>Refresh</strong> to track the progress of the indexing operation. It may take a minute or so to complete.</em></p>
+  </li>
+</ol>
+
+<h2 id="search-the-index-1">Search the index</h2>
+
+<p>Now that you have an index, you can search it.</p>
+
+<ol>
+  <li>At the top of the blade for your Azure Cognitive Search resource, select <strong>Search explorer</strong>.</li>
+  <li>
+    <p>In Search explorer, in the <strong>Query string</strong> box, enter the following query string, and then select <strong>Search</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs sql"> search=Las Vegas&amp;$<span class="hljs-keyword"><span class="hljs-keyword">select</span></span>=<span class="hljs-keyword"><span class="hljs-keyword">url</span></span>,top_words
+</code></pre>
+
+    <p>This query retrieves the <strong>url</strong> and <strong>top_words</strong> fields for all documents that mention <em>Las Vegas</em>.</p>
+  </li>
+</ol>
+
+<h2 id="more-information">More information</h2>
+
+<p>To learn more about creating custom skills for Azure Cognitive Search, see the <a href="https://docs.microsoft.com/azure/search/cognitive-search-custom-skill-interface">Azure Cognitive Search documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

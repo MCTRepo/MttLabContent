@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="get-started-with-cognitive-services">Get Started with Cognitive Services</h1>
+
+<p>In this exercise, you’ll get started with Cognitive Services by creating a <strong>Cognitive Services</strong> resource in your Azure subscription and using it from a client application. The goal of the exercise is not to gain expertise in any particular service, but rather to become familiar with a general pattern for provisioning and working with cognitive services as a developer.</p>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have not already cloned <strong>AI-102-AIEngineer</strong> code repository to the environment where you’re working on this lab, follow these steps to do so. Otherwise, open the cloned folder in Visual Studio Code.</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="provision-a-cognitive-services-resource">Provision a Cognitive Services resource</h2>
+
+<p>Azure Cognitive Services are cloud-based services that encapsulate artificial intelligence capabilities you can incorporate into your applications. You can provision individual cognitive services resources for specific APIs (for example, <strong>Language</strong> or <strong>Computer Vision</strong>), or you can provision a general <strong>Cognitive Services</strong> resource that provides access to multiple cognitive services APIs through a single endpoint and key. In this case, you’ll use a single <strong>Cognitive Services</strong> resource.</p>
+
+<ol>
+  <li>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>Select the <strong>＋Create a resource</strong> button, search for <em>cognitive services</em>, and create a <strong>Cognitive Services</strong> resource with the following settings:
+    <ul>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Region</strong>: <em>Choose any available region</em></li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Pricing tier</strong>: Standard S0</li>
+    </ul>
+  </li>
+  <li>Select the required checkboxes and create the resource.</li>
+  <li>Wait for deployment to complete, and then view the deployment details.</li>
+  <li>Go to the resource and view its <strong>Keys and Endpoint</strong> page. This page contains the information that you will need to connect to your resource and use it from applications you develop. Specifically:
+    <ul>
+      <li>An HTTP <em>endpoint</em> to which client applications can send requests.</li>
+      <li>Two <em>keys</em> that can be used for authentication (client applications can use either key to authenticate).</li>
+      <li>The <em>location</em> where the resource is hosted. This is required for requests to some (but not all) APIs.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="use-a-rest-interface">Use a REST Interface</h2>
+
+<p>The cognitive services APIs are REST-based, so you can consume them by submitting JSON requests over HTTP. In this example, you’ll explore a console application that uses the <strong>Language</strong> REST API to perform language detection; but the basic principle is the same for all of the APIs supported by the Cognitive Services resource.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: In this exercise, you can choose to use the REST API from either <strong>C#</strong> or <strong>Python</strong>. In the steps below, perform the actions appropriate for your preferred language.</p>
+</blockquote>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>Explorer</strong> pane, browse to the <strong>01-getting-started</strong> folder and expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>View the contents of the <strong>rest-client</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+
+    <p>Open the configuration file and update the configuration values it contains to reflect the <strong>endpoint</strong> and an authentication <strong>key</strong> for your cognitive services resource. Save your changes.</p>
+  </li>
+  <li>
+    <p>Note that the <strong>rest-client</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: rest-client.py</li>
+    </ul>
+
+    <p>Open the code file and review the code it contains, noting the following details:</p>
+    <ul>
+      <li>Various namespaces are imported to enable HTTP communication</li>
+      <li>Code in the <strong>Main</strong> function retrieves the endpoint and key for your cognitive services resource - these will be used to send REST requests to the Text Analytics service.</li>
+      <li>The program accepts user input, and uses the <strong>GetLanguage</strong> function to call the Text Analytics language detection REST API for your cognitive services endpoint to detect the language of the text that was entered.</li>
+      <li>The request sent to the API consists of a JSON object containing the input data - in this case, a collection of <strong>document</strong> objects, each of which has an <strong>id</strong> and <strong>text</strong>.</li>
+      <li>The key for your service is included in the request header to authenticate your client application.</li>
+      <li>The response from the service is a JSON object, which the client application can parse.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Right-click the <strong>rest-client</strong> folder and open an integrated terminal. Then enter the following language-specific command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">rest-client</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, enter some text and review the language that is detected by the service, which is returned in the JSON response. For example, try entering “Hello”, “Bonjour”, and “Hola”.</li>
+  <li>When you have finished testing the application, enter “quit” to stop the program.</li>
+</ol>
+
+<h2 id="use-an-sdk">Use an SDK</h2>
+
+<p>You can write code that consumes cognitive services REST APIs directly, but there are software development kits (SDKs) for many popular programming languages, including Microsoft C#, Python, and Node.js. Using an SDK can greatly simplify development of applications that consume cognitive services.</p>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>Explorer</strong> pane, in the <strong>01-getting-started</strong> folder, expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>
+    <p>Right-click the <strong>sdk-client</strong> folder and open an integrated terminal. Then install the Text Analytics SDK package by running the appropriate command for your language preference:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.AI</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.TextAnalytics</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 5<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-ai-textanalytics==<span class="hljs-number"><span class="hljs-number">5</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+  </li>
+  <li>View the contents of the <strong>sdk-client</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+
+    <p>Open the configuration file and update the configuration values it contains to reflect the <strong>endpoint</strong> and an authentication <strong>key</strong> for your cognitive services resource. Save your changes.</p>
+  </li>
+  <li>
+    <p>Note that the <strong>sdk-client</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: sdk-client.py</li>
+    </ul>
+
+    <p>Open the code file and review the code it contains, noting the following details:</p>
+    <ul>
+      <li>The namespace for the SDK you installed is imported</li>
+      <li>Code in the <strong>Main</strong> function retrieves the endpoint and key for your cognitive services resource - these will be used with the SDK to create a client for the Text Analytics service.</li>
+      <li>The <strong>GetLanguage</strong> function uses the SDK to create a client for the service, and then uses the client to detect the language of the text that was entered.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Return to the integrated terminal for the <strong>sdk-client</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">sdk-client</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, enter some text and review the language that is detected by the service. For example, try entering “Goodbye”, “Au revoir”, and “Hasta la vista”.</li>
+  <li>When you have finished testing the application, enter “quit” to stop the program.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: Some languages that require Unicode character sets may not be recognized in this simple console application.</p>
+</blockquote>
+
+<h2 id="more-information">More information</h2>
+
+<p>For more information about Azure Cognitive Services, see the <a href="https://docs.microsoft.com/azure/cognitive-services/what-are-cognitive-services">Cognitive Services documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,587 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#准备工作">准备工作</a></li><li class="nav-item"><a class="nav-link active" href="#练习-0配置实验室先决条件">练习 0：配置实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习-1配置发布管道">练习 1：配置发布管道</a></li><li class="nav-item"><a class="nav-link" href="#练习-2配置发布入口">练习 2：配置发布入口。</a></li><li class="nav-item"><a class="nav-link" href="#练习-3测试发布入口">练习 3：测试发布入口</a></li><li class="nav-item"><a class="nav-link" href="#练习-4删除-azure-实验室资源">练习 4：删除 Azure 实验室资源</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-10a使用发布入口控制部署">实验室 10a：使用发布入口控制部署</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室概述">实验室概述</h2>
+
+<p>本实验室涵盖部署入口的配置，并详细介绍如何使用这些配置来控制 Azure Pipelines 的执行。为说明其实现，你将为 Azure Web 应用配置两个环境下的发布定义。只有当应用没有阻碍性 bug 时，才会部署到 Canary 环境，只有当 Azure Monitor 的 Application Insights 中没有活动警报时，才会标记 Canary 环境完成。</p>
+
+<p>发布管道指定了在一系列环境中部署应用程序时的端到端发布过程。通过使用作业和任务，可以完全自动化到各种环境的部署。理想情况下，你不希望同时向所有用户公开应用程序的新更新。最佳做法是分阶段公开更新，即向部分用户公开，监视其使用情况，并根据最初的一组用户的体验向其他用户公开。</p>
+
+<p>通过审批和入口，你能够在发布中控制部署的开始和完成。通过审批，你可以等待用户手动批准或拒绝部署。使用发布入口，你可以指定版本提升到下一个环境前应用程序必须满足的运行状况标准。在任何环境部署之前或之后，将自动评估所有这些已指定的入口，直到通过全部入口或到了你所定义的超时时间并失败。</p>
+
+<p>入口可以从部署前条件或部署后条件面板添加到发布定义的环境中。可以在环境条件中添加多个入口，以确保发布的所有输入都符合标准。</p>
+
+<p>示例：</p>
+
+<ul>
+  <li>部署前入口确保在将生成部署到环境之前，工作项或问题管理系统中没有活动问题。</li>
+  <li>部署后入口确保在将已部署的应用发布到下一个环境之前，没有来自该应用的监视或事件管理系统的事件。</li>
+</ul>
+
+<p>默认情况下，每个帐户包含 4 种类型的入口。</p>
+
+<ul>
+  <li>调用 Azure 函数：触发执行 Azure 函数并确保成功完成。</li>
+  <li>查询 Azure Monitor 警报：观察为活动警报配置的 Azure Monitor 警报规则。</li>
+  <li>调用 REST API：调用 REST API 并在返回成功响应后继续。</li>
+  <li>查询工作项：确保查询返回的匹配工作项数量在阈值内。</li>
+</ul>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>配置发布管道</li>
+  <li>配置发布入口</li>
+  <li>测试发布入口</li>
+</ul>
+
+<h2 id="实验室持续时间">实验室持续时间</h2>
+
+<ul>
+  <li>预计用时：<strong>75 分钟</strong></li>
+</ul>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="准备工作">准备工作</h3>
+
+<h4 id="登录到实验室虚拟机">登录到实验室虚拟机</h4>
+
+<p>请确保已使用以下凭据登录到 Windows 10 虚拟机：</p>
+
+<ul>
+  <li>用户名：<strong>Student</strong></li>
+  <li>密码：<strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="查看本实验室所需的应用程序">查看本实验室所需的应用程序</h4>
+
+<p>确定你将在本实验室中使用的应用程序：</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="设置-azure-devops-组织">设置 Azure DevOps 组织。</h4>
+
+<p>如果还没有可用于本实验室的 Azure DevOps 组织，请按照<a href="https://docs.microsoft.com/zh-cn/azure/devops/organizations/accounts/create-organization?view=azure-devops">创建组织或项目集合</a>中的说明创建一个。</p>
+
+<h4 id="准备-azure-订阅">准备 Azure 订阅</h4>
+
+<ul>
+  <li>标识现有的 Azure 订阅或创建一个新的 Azure 订阅。</li>
+  <li>验证你拥有 Microsoft 帐户或 Azure AD 帐户，该帐户在 Azure 订阅中具有所有者角色并且在与 Azure 订阅关联的 Azure AD 租户中具有全局管理员角色。有关详细信息，请参阅<a href="https://docs.microsoft.com/zh-cn/azure/role-based-access-control/role-assignments-list-portal">使用 Azure 门户列出 Azure 角色分配</a>和<a href="https://docs.microsoft.com/zh-cn/azure/active-directory/roles/manage-roles-portal#view-my-roles">在 Azure Active Directory 中查看和分配管理员角色</a>。</li>
+</ul>
+
+<h3 id="练习-0配置实验室先决条件">练习 0：配置实验室先决条件</h3>
+
+<p>在本练习中，你将设置实验室先决条件，其中包括基于 Azure DevOps 演示生成器模板预配置的 Parts Unlimited 团队项目和两个分别代表 <strong>Canary</strong> 和 <strong>“生产”</strong> 环境的 Azure Web 应用，你将通过 Azure Pipelines 将应用程序部署到其中。</p>
+
+<h4 id="任务-1配置团队项目">任务 1：配置团队项目</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 演示生成器基于 <strong>ReleaseGates</strong> 模板生成一个新项目。</p>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器并导航到 <a href="https://azuredevopsdemogenerator.azurewebsites.net">Azure DevOps 演示生成器</a>。此实用工具将对以下过程进行自动化：在你的帐户中创建预填充了实验室所需内容（工作项、存储库等）的 Azure DevOps 项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 有关该站点的详细信息，请参阅 https://docs.microsoft.com/zh-cn/azure/devops/demo-gen。</p>
+    </blockquote>
+  </li>
+  <li>单击 <strong>“登录”</strong>，并使用与你的 Azure DevOps 订阅相关联的 Microsoft 帐户登录。</li>
+  <li>如果需要，在 <strong>“Azure DevOps 演示生成器”</strong> 页面上，单击 <strong>“接受”</strong> 以接受访问 Azure DevOps 订阅的权限请求。</li>
+  <li>在 <strong>“新建项目”</strong> 页面上的页面上的 <strong>“新建项目名称”</strong> 文本框中，键入 <strong>“使用发布入口控制部署”</strong>，在 <strong>“选择组织”</strong> 下拉列表中选择你的 Azure DevOps 组织，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>在模板列表中，在工具栏中，单击 <strong>“DevOps 实验室”</strong>，选择 <strong>ReleaseGates</strong> 模板，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>
+    <p>返回 <strong>“新建项目”</strong> 页面，单击 <strong>“创建项目”</strong></p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待此过程完成。该过程大约需要 2 分钟。如果该过程失败，请导航到你的 DevOps 组织，删除项目并重试。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“新建项目”</strong> 页面上，单击 <strong>“导航到项目”</strong>。</li>
+</ol>
+
+<h4 id="任务-2创建两个-azure-web-应用">任务 2：创建两个 Azure Web 应用</h4>
+
+<p>在此任务中，你将创建两个分别代表 <strong>Canary</strong> 和 <strong>“生产”</strong> 环境的 Azure Web 应用，你将通过 Azure Pipelines 将应用程序部署到其中。</p>
+
+<ol>
+  <li>从实验室计算机启动 Web 浏览器，导航到 <a href="https://portal.azure.com"><strong>Azure 门户</strong></a>，并使用用户帐户登录，该帐户在本实验室中将使用的 Azure 订阅中具有所有者角色，并在与此订阅关联的 Azure AD 租户中具有全局管理员角色。</li>
+  <li>在 Azure 门户中，单击页面顶部搜索文本框右侧的 <strong>Cloud Shell</strong> 图标。</li>
+  <li>
+    <p>如果提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong>，请选择 <strong>“Bash”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果这是第一次启动 <strong>Cloud Shell</strong>，并显示消息 <strong>“未装载任何存储”</strong>，请选择你将在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>Cloud Shell</strong> 窗格中的 <strong>Bash</strong> 提示符下，运行以下命令以创建资源组（将 <code>&lt;region&gt;</code> 占位符替换为将托管两个 Azure Web 应用的 Azure 区域的名称，例如“westeurope”或“eastus”）：</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可以通过运行以下命令找到可能的位置，使用 <code>&lt;region&gt;</code> 上的 <strong>“Name”</strong>： <code>az account list-locations -o table</code></p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs">RESOURCEGROUPNAME=<span class="hljs-string"><span class="hljs-string">'az400m10l01-RG'</span></span>
+az group create -n <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> -l <span class="hljs-string"><span class="hljs-string">'&lt;region&gt;'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>创建应用服务计划</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs">SERVICEPLANNAME=<span class="hljs-string"><span class="hljs-string">'az400m01l01-sp1'</span></span>
+az appservice plan create -g <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> -n <span class="hljs-variable"><span class="hljs-variable">$SERVICEPLANNAME</span></span> --sku S1
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果 <code>az appservice plan create</code> 命令失败并显示以 <code>ModuleNotFoundError: No module named 'vsts_cd_manager'</code>开头的错误消息，那么请运行以下命令，然后重新运行失败的命令。</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs">az extension remove -n appservice-kube
+az extension add --yes --<span class="hljs-built_in"><span class="hljs-built_in">source</span></span> <span class="hljs-string"><span class="hljs-string">"https://aka.ms/appsvc/appservice_kube-latest-py2.py3-none-any.whl"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>使用唯一的应用名称创建两个 Web 应用。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> SUFFIX=<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+ az webapp create -g <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> -p <span class="hljs-variable"><span class="hljs-variable">$SERVICEPLANNAME</span></span> -n PU<span class="hljs-variable"><span class="hljs-variable">$SUFFIX</span></span>-Canary
+ az webapp create -g <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> -p <span class="hljs-variable"><span class="hljs-variable">$SERVICEPLANNAME</span></span> -n PU<span class="hljs-variable"><span class="hljs-variable">$SUFFIX</span></span>-Prod
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：记录 Canary Web 应用的名称。稍后将在本实验室用到它。</p>
+    </blockquote>
+  </li>
+  <li>请等待预配过程完成，然后关闭 <strong>Cloud Shell</strong> 窗格。</li>
+</ol>
+
+<h4 id="任务-3配置-application-insights-资源">任务 3：配置 Application Insights 资源</h4>
+
+<ol>
+  <li>在 Azure 门户中，使用页面顶部的“<strong>搜索资源、服务和文档</strong>”文本框搜索“<strong>Application Insights</strong>”，然后在结果列表中选择“<strong>Application Insights</strong>”。</li>
+  <li>在“<strong>Application Insights</strong>”边栏选项卡上，选择“<strong>+ 创建</strong>”。</li>
+  <li>
+    <p>在“<strong>Application Insights</strong>”边栏选项卡上的“<strong>基本设置</strong>”选项卡上，指定以下设置（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az400m10l01-RG</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td>在上一个任务中记录的 Canary Web 应用的名称</td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>之前在上一个任务中部署 Web 应用的同一 Azure 区域</td>
+        </tr>
+        <tr>
+          <td>资源模式</td>
+          <td><strong>经典</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>：请忽略弃用消息。这是必要操作，可防止“启用持续集成 DevOps”任务失败，本实验室稍后会用到该任务。</p>
+    </blockquote>
+  </li>
+  <li>单击“<strong>查看 + 创建</strong>”，然后单击“<strong>创建</strong>”。</li>
+  <li>请等待预配过程完成。</li>
+  <li>在 Azure 门户中，导航到你在上一任务中创建的资源组“<strong>az400m10l01-RG</strong>”。</li>
+  <li>在资源列表中，单击 <strong>Canary</strong> Web 应用。</li>
+  <li>在 <strong>Canary</strong> Web 应用页面左侧垂直菜单中的 <strong>“设置”</strong> 部分，单击 <strong>Application Insights</strong>。</li>
+  <li>在“<strong>Application Insights</strong>”边栏选项卡上，单击“<strong>打开 Application Insights</strong>”。</li>
+  <li>在“<strong>更改资源</strong>”部分中，单击“<strong>选择现有资源</strong>”选项，在现有资源列表中，选择新创建的 Application Insight 资源，单击“<strong>应用</strong>”，提示确认后单击“<strong>是</strong>”。</li>
+  <li>
+    <p>等待更改生效，然后在“Application Insights”边栏选项卡上单击“<strong>查看 Application Insights 数据</strong>”链接。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你将在此处创建监视器警报，并将在本实验室的后续部分使用。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>Application Insights 资源</strong>边栏选项卡上的“<strong>监视</strong>”部分中，单击“<strong>警报</strong>”，然后单击“<strong>+ 新建警报规则</strong>”。</li>
+  <li>在 <strong>“创建警报规则”</strong> 边栏选项卡上的 <strong>“条件”</strong> 部分，单击 <strong>“添加条件”</strong> 链接。</li>
+  <li>在 <strong>“配置信号逻辑”</strong> 边栏选项卡上的 <strong>“按信号名称搜索”</strong> 文本框中，键入 <strong>“失败的请求”</strong> 并选择它。</li>
+  <li>
+    <p>在 <strong>“配置信号逻辑”</strong> 边栏选项卡上的 <strong>“警报逻辑”</strong> 部分中，将 <strong>“阈值”</strong> 保留设置为 <strong>“静态”</strong>，在 <strong>“阈值”</strong> 文本框中，键入 0，然后单击 <strong>“完成”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 每当最近 5 分钟内失败的请求数大于 0 时，该规则将生成警报。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>返回 <strong>“创建警报规则”</strong> 窗格，在 <strong>“警报规则详细信息”</strong> 中指定以下设置，然后单击 <strong>“创建警报规则”</strong> （其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>警报规则名称</td>
+          <td><strong>PartsUnlimited_FailedRequests</strong></td>
+        </tr>
+        <tr>
+          <td>严重性</td>
+          <td><strong>严重性级别 2</strong></td>
+        </tr>
+        <tr>
+          <td>自动解决警报</td>
+          <td>已清除</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 指标警报规则最多可能需要 10 分钟才能激活。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你可以根据不同的指标创建多个警报规则，例如可用性小于 99%、服务器响应时间大于 5 秒或服务器异常大于 0 个</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-1配置发布管道">练习 1：配置发布管道</h3>
+
+<p>在本练习中，你将配置发布管道。</p>
+
+<h4 id="任务-1更新发布任务">任务 1：更新发布任务</h4>
+
+<p>在此任务中，你将更新发布任务。</p>
+
+<ol>
+  <li>在实验室计算机上，在 Azure DevOps 门户中切换到显示 <strong>“使用发布入口控制部署”</strong> 项目的浏览器窗口，在垂直导航窗格中，选择 <strong>Pipelines</strong> ，然后在 <strong>Pipelines</strong> 部分，单击 <strong>“发布”</strong>。</li>
+  <li>
+    <p>在 <strong>“发布”</strong> 视图的 <strong>PartsUnlimited-CD</strong> 窗格中，单击 <strong>“编辑”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此管道包含两个阶段，分别叫做 <strong>“Canary 环境”</strong> 和 <strong>“生产”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“管道”</strong> 选项卡上的 <strong>“项目”</strong> 矩形中，单击 <strong>PartsUnlimited-CI</strong> 生成项目右上角的 <strong>“持续部署触发器”</strong> 按钮。</li>
+  <li>如果 <strong>PartsUnlimited-CI</strong> 生成的持续部署触发器处于禁用状态，请切换开关以启用它。将所有其他设置保留为默认值，并单击右上角的 <strong>x</strong> 标记关闭“<strong>持续部署触发器</strong>”窗格。</li>
+  <li>
+    <p>在“<strong>Canary 环境</strong>”阶段中，单击“<strong>1 个作业, 2 个任务</strong>”标签，并查看此阶段中的任务。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： Canary 环境有 2 个任务，一个是将包发布到 Azure Web 应用，另一个是在部署后启用对应用程序的持续监视。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“所有管道” &gt; “PartsUnlimited-CD”</strong> 窗格上，确保已选择“<strong>Canary 环境</strong>”阶段。在“<strong>Azure 订阅</strong>”下拉列表中，选择你的 Azure 订阅，然后单击“<strong>授权</strong>”。如果出现提示，请使用在 Azure 订阅中具有所有者角色的用户帐户进行身份验证。</li>
+  <li>
+    <p>在“<strong>应用服务名称</strong>”下拉列表中，选择 <strong>Canary Web</strong> 应用的名称。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：你可能需要单击“<strong>刷新</strong>”按钮。</p>
+    </blockquote>
+  </li>
+  <li>在“<strong>资源组和 Application Insights</strong>”下拉列表中，选择 <strong>az400m10l01-RG</strong> 条目。</li>
+  <li>在“<strong>Application Insights 资源名称</strong>”下拉列表中，选择 <strong>Canary</strong> Application Insights 资源的名称，该名称应与 <strong>Canary</strong> Web 应用的名称匹配。</li>
+  <li>在“<strong>所有管道” &gt; “PartsUnlimited-CD</strong>”窗格上，单击“<strong>任务</strong>”选项卡，然后在下拉列表中选择“<strong>生产</strong>”。</li>
+  <li>选中“<strong>生产</strong>”阶段后，在“<strong>Azure 订阅</strong>”下拉列表中，选择“<strong>可用 Azure 服务连接</strong>”下显示的用于“<strong>Canary 环境</strong>”阶段的 Azure 订阅，因为我们在授权订阅使用之前就已经创建了服务连接。</li>
+  <li>在“<strong>应用服务名称</strong>”下拉列表中，选择 <strong>Prod Web</strong> 应用的名称。</li>
+  <li>在“<strong>所有管道” &gt; “PartsUnlimited-CD</strong>”窗格上，单击“<strong>保存</strong>”，然后在“<strong>保存</strong>”对话框中，单击“<strong>确定</strong>”。</li>
+  <li>在显示“<strong>使用发布入口控制部署</strong>”项目的浏览器窗口中，在垂直导航窗格的“<strong>管道</strong>”部分，单击“<strong>管道</strong>”。</li>
+  <li>在“<strong>管道</strong>”窗格上，单击代表 <strong>PartsUnlimited-CI</strong> 生成管道的条目，然后在 <strong>PartsUnlimited-CI</strong> 窗格上单击“<strong>运行管道</strong>”。</li>
+  <li>
+    <p>在“<strong>运行管道</strong>”窗格上，接受默认设置，然后单击“<strong>运行</strong>”以触发管道。<strong>等待生成管道完成</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 生成成功后，将自动触发发布，并将应用程序部署到两个环境中。</p>
+    </blockquote>
+  </li>
+  <li>在垂直导航窗格的 <strong>Pipelines</strong> 部分，单击“<strong>发布</strong>”，然后在 <strong>PartsUnlimited-CD</strong> 窗格中，单击代表最新发布的条目。</li>
+  <li>在“<strong>PartsUnlimited-CD” &gt; “Release-1</strong>”边栏选项卡上，跟踪发布进度并验证两个 Web 应用的部署是否成功完成。</li>
+  <li>切换到 Azure 门户界面，导航到资源组 <strong>az400m10l01-RG</strong>，在资源列表中，单击 <strong>Canary</strong> Web 应用，在 Web 应用边栏选项卡上，单击“<strong>浏览</strong>”，并验证网页是否在新的 Web 浏览器选项卡中成功加载。</li>
+  <li>关闭显示 <strong>Parts Unlimited</strong> 网站的 Web 浏览器选项卡。</li>
+  <li>切换到 Azure 门户界面，导航到资源组 <strong>az400m10l01-RG</strong>，在资源列表中，单击“<strong>生产</strong>”Web 应用，在 Web 应用边栏选项卡上，单击“<strong>浏览</strong>”，并验证网页是否在新的 Web 浏览器选项卡中成功加载。</li>
+  <li>
+    <p>关闭显示 <strong>Parts Unlimited</strong> 网站的 Web 浏览器选项卡。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 现在，应用程序已经配置了 CI/CD。在下一个练习中，我们将在发布管道中设置入口。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-2配置发布入口">练习 2：配置发布入口。</h3>
+
+<p>在本练习中，你将在发布管道中设置入口。</p>
+
+<h4 id="任务-1配置部署前入口">任务 1：配置部署前入口</h4>
+
+<p>在此任务中，你将配置部署前入口。</p>
+
+<ol>
+  <li>切换到显示 Azure DevOps 门户的 Web 浏览器窗口，在垂直导航窗格中的 <strong>Pipelines</strong> 部分，单击 <strong>“发布”</strong>，然后在 <strong>PartsUnlimited-CD</strong> 窗格中单击 <strong>“编辑”</strong>。</li>
+  <li>在 <strong>“所有管道” &gt; “PartsUnlimited-CD”</strong> 窗格上，在代表 <strong>“Canary 环境”</strong> 阶段的矩形的左边缘上，单击代表 <strong>“部署前条件”</strong> 的椭圆形。</li>
+  <li>在 <strong>“部署前条件”</strong> 窗格上，将 <strong>“部署前审批”</strong> 滑块设置为 <strong>“启用”</strong>，然后在 <strong>“审批者”</strong> 文本框中，键入并选择你的 Azure DevOps 帐户名称。</li>
+  <li>在 <strong>“预部署条件”</strong> 窗格中，将 <strong>“入口”</strong> 滑块设置为 <strong>“启用”</strong>，单击 <strong>“+ 添加”</strong>，然后单击弹出窗口中的 <strong>“查询工作项”</strong>。</li>
+  <li>
+    <p>在 <strong>“部署前条件”</strong> 窗格上 <strong>“查询工作项”</strong> 部分的 <strong>“查询”</strong> 下拉列表中，选择 <strong>“共享查询”</strong> 下的 Bug，将 <strong>“上限阈值”</strong> 的值设置为 <strong>0</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 基于 <strong>“上限阈值”</strong> 设置的值，如果此查询返回任何活动的 bug 工作项，则发布入口将失败。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“部署前条件”</strong> 窗格上，将 <strong>“评估前的延迟时间”</strong> 设置的值保留为 <strong>“5 分钟”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>“评估前的延迟时间”</strong> 表示第一次评估添加的入口之前的时间。如果未添加任何入口，则部署将等待一段时间，然后再继续。要使入口函数可以初始化且稳定（它可能需要一些时间才能开始返回准确的结果），我们在评估结果之前配置一个延迟，然后将其用于确定应批准还是拒绝部署。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“部署前条件”</strong> 窗格上，展开 <strong>“评估选项”</strong> 部分并配置以下选项：</p>
+
+    <ul>
+      <li>将 <strong>“重新评估入口的间隔时间”</strong> 值设置为 <strong>“5 分钟”</strong>。</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>“重新评估入口的间隔时间”</strong> 表示所有入口的每次评估时间间隔。在每个采样间隔，新请求将同时发送到每个入口以获取新结果。采样间隔必须大于任何已配置入口的最长典型响应时间，以便有时间接收所有响应。</p>
+    </blockquote>
+
+    <ul>
+      <li>将 <strong>“入口失败后超时时间”</strong> 值设置为 <strong>“8 分钟”</strong>。</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>“入口失败后超时时间”</strong> 表示所有入口的最大评估周期。如果在同一采样间隔内所有入口都成功之前已达到超时时间，则部署将被拒绝。我们可以为超时指定的最小值为 6 分钟，可为采样间隔指定的最小值为 5 分钟。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在这种情况下，触发发布时，入口将在 <em>0</em> 到 <em>5</em> 分钟之内验证样本。如果结果为 <strong>“通过”</strong>，则将发送通知以供审批。如果结果为 <strong>“失败”</strong>，则发布将在 <em>8</em> 分钟后超时。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 实际上，这些值可能跨越几个小时。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“部署前条件”</strong> 窗格上，选择 <strong>“在成功的入口上，请求批准”</strong> 单选按钮。</li>
+  <li>单击右上角的 x 标记，关闭 <strong>“部署前条件”</strong> 窗格。<strong>保存</strong>发布管道中的更改。</li>
+  <li>为了使 <strong>“查询工作项”</strong> 入口正常工作，项目生成服务需要对 Azure Boards 查询具有 <strong>“读取”</strong> 权限。</li>
+  <li>在 Azure DevOps 门户的垂直导航窗格中，将鼠标指针悬停在 <strong>Boards</strong> 上，在按住 <strong>Ctrl</strong> 键的同时单击 <strong>“查询”</strong>，以使用 <strong>“查询”</strong> 窗格打开单独的浏览器标签页。</li>
+  <li>在 <strong>Boards</strong> 视图的 <strong>“查询”</strong> 窗格上，单击 <strong>“全部”</strong> 以获取包含所有查询的列表。</li>
+  <li>右键单击 <strong>“共享查询”</strong> 文件夹，然后选择 <strong>“安全性…”</strong> 打开 <strong>“共享查询权限”</strong> 窗格。</li>
+  <li>
+    <p>在 <strong>“共享查询权限”</strong> 窗格上的 <strong>“搜索用户或组”</strong> 字段中，键入或粘贴 <strong>“使用发布入口生成服务控制部署”</strong> （[项目名称] 生成服务），然后单击找到的一个标识。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：必须按照如上所述搜索“<strong>使用发布入口生成服务控制部署</strong>”用户，因为该用户尚未显示为“<strong>用户</strong>”列表的成员。不要将“<strong>项目集合生成服务</strong>”用户与“<strong>项目生成服务</strong>”混淆。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“用户”</strong> 列表中选择 <strong>“使用发布入口生成服务控制部署”</strong> 用户，然后在右侧将 <strong>“读取”</strong> 权限设置为 <strong>“允许”</strong>。</li>
+  <li>单击右上角的 <strong>x</strong> 标记，关闭 <strong>“共享查询权限”</strong> 窗格。</li>
+  <li>导航回到浏览器标签页，其中发布管道仍处于打开状态。</li>
+</ol>
+
+<h4 id="任务-2配置部署后入口">任务 2：配置部署后入口</h4>
+
+<p>在此任务中，你将启用 Canary 环境的部署后入口。</p>
+
+<ol>
+  <li>返回 <strong>“所有管道” &gt; “PartsUnlimited-CD”</strong> 窗格，在代表 <strong>“Canary 环境”</strong> 阶段的矩形的右边缘上，单击代表 <strong>“部署后条件”</strong> 的椭圆形。</li>
+  <li>在 <strong>“部署后条件”</strong> 窗格中，将 <strong>“入口”</strong> 滑块设置为 <strong>“启用”</strong>，单击 <strong>“+ 添加”</strong>，然后单击弹出菜单中的 <strong>“查询 Azure Monitor 警报”</strong>。</li>
+  <li>在“<strong>部署后条件</strong>”窗格“<strong>查询 Azure Monitor 警报</strong>”部分的“<strong>Azure 订阅</strong>”下拉列表中，选择代表与 Azure 订阅的连接的条目，然后在“<strong>资源组</strong>”下拉列表中选择 <strong>az400m10l01-RG</strong> 条目。</li>
+  <li>在 <strong>“部署后条件”</strong> 窗格上，展开 <strong>“评估选项”</strong> 并配置以下选项：</li>
+</ol>
+
+<ul>
+  <li>将 <strong>“重新评估入口的间隔时间”</strong> 值设置为 <strong>“5 分钟”</strong>。</li>
+  <li>将 <strong>“入口失败后超时时间”</strong> 值设置为 <strong>“8 分钟”</strong>。</li>
+  <li>
+    <p>选择 <strong>“在成功的入口上，请求批准”</strong> 选项。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 采样间隔和超时一起作用，确保入口以适当的间隔调用函数，如果在超时周期同一采样间隔内未成功执行函数，则将拒绝部署。</p>
+    </blockquote>
+  </li>
+</ul>
+
+<ol>
+  <li>单击右上角的 <strong>x</strong> 标记，关闭 <strong>“部署后条件”</strong> 窗格。</li>
+  <li>返回 <strong>PartsUnlimited-CD</strong> 窗格，单击“<strong>保存</strong>”，然后在“<strong>保存</strong>”对话框中，单击“<strong>确定</strong>”。</li>
+</ol>
+
+<h3 id="练习-3测试发布入口">练习 3：测试发布入口</h3>
+
+<p>在本练习中，你将通过更新应用程序来测试发布入口，这将触发部署。</p>
+
+<h4 id="任务-1添加发布入口后更新和部署应用程序">任务 1：添加发布入口后更新和部署应用程序</h4>
+
+<p>在此任务中，你将在启用发布入口的情况下跟踪发布过程。</p>
+
+<ol>
+  <li>在显示 Azure DevOps 门户的浏览器窗口的垂直导航窗格中，选择 <strong>“发布”</strong>。</li>
+  <li>单击“<strong>创建发布</strong>”，然后在“<strong>创建新发布</strong>”窗格中，单击“<strong>创建</strong>”。</li>
+  <li>在 Azure DevOps 门户中，在垂直导航窗格的“<strong>管道</strong>”部分，单击“<strong>发布</strong>”。</li>
+  <li>在“<strong>发布</strong>”选项卡上，单击 <strong>PartsUnlimited-CD/Release-2</strong> 条目并查看部署到 <strong>Canary 环境</strong>的进度。</li>
+  <li>在代表 <strong>“Canary 环境”</strong> 阶段的矩形的左边缘上，单击代表 <strong>“预部署条件”</strong> 的椭圆，这时可能会被标记为 <strong>“评估入口”</strong> 或 <strong>“部署前入口失败”</strong>。</li>
+  <li>
+    <p>在 <strong>“Canary 环境”</strong> 窗格上，请注意 <strong>“查询工作项”</strong> 入口已失败。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这表明存在活动的工作项。需要关闭这些工作项后才能继续。下一次采样时间将在 5 分钟后。</p>
+    </blockquote>
+  </li>
+  <li>打开一个新的浏览器标签页，导航到 Azure DevOps 门户，在垂直导航窗格中，选择 <strong>Boards</strong>，然后在 <strong>Boards</strong> 部分选择 <strong>“查询”</strong>。</li>
+  <li>在 <strong>Boards</strong> 视图的 <strong>“查询”</strong> 窗格上，单击 <strong>“所有”</strong> 选项卡。</li>
+  <li>在 <strong>“查询”</strong> 窗格 <strong>“所有”</strong> 选项卡上的 <strong>“共享查询”</strong> 部分，单击 <strong>Bug</strong> 条目，然后在 <strong>“查询” &gt; “共享查询” &gt; “Bug”</strong> 窗格中，单击 <strong>“运行查询”</strong>。</li>
+  <li>
+    <p>验证查询是否返回名为 <strong>“Canary 环境中的磁盘空间不足”</strong> 的工作项，并且该工作项的状态为 <strong>“新建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 我们假设基础结构团队已解决磁盘空间问题。</p>
+    </blockquote>
+  </li>
+  <li>单击 <strong>“Canary 环境中的磁盘空间不足”</strong> 条目。</li>
+  <li>在 <strong>“Canary 环境中的磁盘空间不足”</strong> 窗格左上角的 <strong>“状态”</strong> 标签旁边，单击 <strong>“新建”</strong>，然后在下拉列表中，单击 <strong>“关闭”</strong>，再单击 <strong>“保存”</strong>。</li>
+  <li>
+    <p>切换回 <strong>“Canary 环境”</strong> 窗格，并等待通过第二次评估。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果第二次评估已失败，则将鼠标指针悬停在代表 <strong>“Canary 环境”</strong> 阶段的矩形上以显示 <strong>“重新部署”</strong> 选项，单击 <strong>“重新部署”</strong>，然后在 <strong>“Canary 环境”</strong> 边栏选项卡上单击 <strong>“部署”</strong> 并监视部署前入口的处理状态。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 评估成功后，你将看到部署前审批请求。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击“<strong>审批者</strong>”，然后单击“<strong>批准</strong>”将部署排入 Canary 环境的队列</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 成功部署到 Canary 环境后，我们将看到部署后入口正在运行，该入口使用 Application Insights 来检测是否存在针对新部署应用程序的失败请求。</p>
+    </blockquote>
+  </li>
+  <li>要触发失败的请求，请切换到显示 Azure 门户的 Web 浏览器窗口，导航到 <strong>Canary</strong> Azure Web 应用边栏选项卡，然后单击 <strong>“浏览”</strong>。这将打开一个新的浏览器标签页，其中显示 PartsUnlimited 网站。</li>
+  <li>
+    <p>在 PartsUnlimited 网站上，单击 <strong>“更多”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 网站的此部分故意配置错误，以便触发失败的请求。</p>
+    </blockquote>
+  </li>
+  <li>返回到 PartsUnlimited 网站的主页，再次单击 <strong>“更多”</strong>，然后重复此步骤几次。</li>
+  <li>
+    <p>验证 Application Insights 是否检测到失败的请求，操作方法：导航到 <strong>Canary</strong> Web 应用页面的 Application Insights 边栏选项卡，然后在 Application Insights 边栏选项卡上单击“<strong>警报</strong>”，并验证该页面是否列出了一个或多个 <strong>Sev 2</strong> 警报。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 由于异常触发了警报，因此 <strong>“查询 Azure Monitor”</strong> 入口将失败。反过来，这将阻止部署到 <strong>“生产”</strong> 环境。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-4删除-azure-实验室资源">练习 4：删除 Azure 实验室资源</h3>
+
+<p>在本练习中，你将删除在本实验室中预配的 Azure 资源，避免产生意外费用。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 请记得删除不再使用的所有新创建的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<h4 id="任务-1删除-azure-实验室资源">任务 1：删除 Azure 实验室资源</h4>
+
+<p>在此任务中，你将使用 Azure Cloud Shell 删除在本实验室中预配的 Azure 资源，避免产生不必要的费用。</p>
+
+<ol>
+  <li>在 Azure 门户中，在 <strong>Cloud Shell</strong> 窗格中打开 <strong>Bash</strong> Shell 会话。</li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m10l01-RG')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m10l01-RG')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：该命令以异步方式执行（由 –nowait 参数决定），因此，虽然你随后可在同一 Bash 会话中立即运行另一个 Azure CLI 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="回顾">回顾</h2>
+
+<p>在本实验室中，你配置了发布管道，然后配置并测试了发布入口。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

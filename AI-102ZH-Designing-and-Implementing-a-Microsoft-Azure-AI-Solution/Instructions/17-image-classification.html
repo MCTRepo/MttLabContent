@@ -1,0 +1,310 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="使用自定义视觉对图像进行分类">使用自定义视觉对图像进行分类</h1>
+
+<p>使用 <strong>“自定义视觉”</strong> 服务可创建计算机视觉模型并基于自己的图像进行训练。可以使用该服务来训练 <em>“图像分类”</em> 和 <em>“对象检测”</em> 模型；然后可以在应用程序中发布并使用这两个模型。</p>
+
+<p>在此练习中，你将使用自定义视觉服务来训练图像分类模型，该模型可识别三种水果（苹果、香蕉和橙子）。</p>
+
+<h2 id="克隆本课程的存储库">克隆本课程的存储库</h2>
+
+<p>如果尚未将 <strong>AI-102-AIEngineer</strong> 代码存储库克隆到你要在此实验室中使用的环境，请按照以下步骤克隆它。 否则，请在 Visual Studio Code 中打开克隆的文件夹。</p>
+
+<ol>
+  <li>启动 Visual Studio Code。</li>
+  <li>打开面板 (SHIFT+CTRL+P) 并运行 <strong>Git: Clone</strong> 命令，将 <code>https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution</code> 存储库克隆到本地文件夹（具体克隆到哪个文件夹无关紧要）。</li>
+  <li>克隆存储库后，在 Visual Studio Code 中打开文件夹。</li>
+  <li>
+    <p>等待其他文件安装完毕，以支持存储库中的 C# 代码项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果系统提示你添加生成和调试所需的资产，请选择 <strong>“以后再说”</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="创建自定义视觉资源">创建自定义视觉资源</h2>
+
+<p>需要先获取可用于<em>训练</em>和<em>预测的</em> Azure 资源才能训练模型。可以为这些任务中的每一个创建 <strong>“自定义视觉”</strong> 资源，也可以创建一个 <strong>“认知服务”</strong> 资源并在任一（或两个）任务中使用。</p>
+
+<p>在此练习中，你将创建用于训练和预测的 <strong>“自定义视觉”</strong> 资源，以便分别管理这些工作负载的访问权限和成本。</p>
+
+<ol>
+  <li>在新的浏览器标签页中，打开 Azure 门户 (<code>https://portal.azure.com</code>)，并使用与你的 Azure 订阅关联的 Microsoft 帐户登录。</li>
+  <li>选择 <strong>“＋创建资源”</strong> 按钮，搜索 <em>“自定义视觉”</em>，并使用以下设置创建一个<strong>自定义视觉</strong>资源：
+    <ul>
+      <li><strong>创建选项</strong>： 两个</li>
+      <li><strong>订阅</strong>： <em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>： <em>选择或创建一个资源组（如果你使用的是受限订阅，则可能无权创建新资源组，在此情况下，可使用一个已提供的资源组）</em></li>
+      <li><strong>名称</strong>： <em>输入唯一名称</em></li>
+      <li><strong>训练位置</strong>： <em>选择任何可用区域</em></li>
+      <li><strong>训练定价层</strong>： F0</li>
+      <li><strong>预测位置</strong>： <em>训练资源所在的同一区域</em></li>
+      <li><strong>预测定价层</strong>： F0</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果订阅中已有 F0 自定义视觉服务，请为其选择 <strong>S0</strong>。</p>
+    </blockquote>
+  </li>
+  <li>等待资源创建完成，然后查看部署详细信息，并注意两个自定义视觉资源是否已预配。一个资源用于训练，另一个用于预测。可以导航到你在其中创建了这些资源的资源组，然后查看这些资源。</li>
+</ol>
+
+<blockquote>
+  <p><strong>重要事项</strong>： 每个资源都有自己的终<em>结点</em>和<em>密钥</em>，用于管理来自代码的访问。若要训练图像分类模型，代码必须使用<em>训练</em>资源（及其终结点和密钥）；若要使用经过训练的模型来预测图像类别，代码必须使用<em>预测</em>资源（及其终结点和密钥）。</p>
+</blockquote>
+
+<h2 id="创建自定义视觉项目">创建自定义视觉项目</h2>
+
+<p>若要训练图像分类模型，需根据训练资源创建自定义视觉项目。为此，将使用自定义视觉门户。</p>
+
+<ol>
+  <li>在 Visual Studio Code 中，查看 <strong>17-image-classification/training-images</strong> 文件夹（你在其中克隆了存储库）中的训练图像。此文件夹包含含苹果、香蕉和橙子图像的子文件夹。</li>
+  <li>在新的浏览器标签页中，打开自定义视觉门户 (<code>https://customvision.ai</code>)。如果出现提示，请使用与 Azure 订阅相关联的 Microsoft 帐户登录并同意服务条款。</li>
+  <li>在“自定义视觉”门户中，使用以下设置创建新项目：
+    <ul>
+      <li><strong>名称</strong>： 对水果进行分类</li>
+      <li><strong>描述</strong>： 水果的图像分类</li>
+      <li><strong>资源</strong>： <em>先前创建的自定义视觉资源</em></li>
+      <li><strong>项目类型</strong>： 分类</li>
+      <li><strong>分类类型</strong>： 多类（一个图像一个标记）</li>
+      <li><strong>域</strong>： 食品</li>
+    </ul>
+  </li>
+  <li>在新项目中，单击 <strong>“[+] 添加图像”</strong>，然后选择先前查看的 <strong>training-images/apple</strong> 文件夹中的所有文件。然后，上传图像文件，并指定<em>苹果</em>标记，如下所示：</li>
+</ol>
+
+<p><a href="images/upload_apples.jpg" target="_blank"><img src="images/upload_apples.jpg" alt="上传带有苹果标记的苹果图像"></a></p>
+
+<ol>
+  <li>重复上一步，上传 <strong>banana</strong> 文件夹中的图像并指定<em>香蕉</em>标记，上传 <strong>orange</strong> 文件夹中的图像并指定<em>橙子</em>标记。</li>
+  <li>浏览在自定义视觉项目中上传的图像 - 每类图像应有 15 张，如下所示：</li>
+</ol>
+
+<p><a href="images/fruit.jpg" target="_blank"><img src="images/fruit.jpg" alt="带标记的水果图像 - 15 张苹果、15 张香蕉和 15 张橙子"></a></p>
+
+<ol>
+  <li>在自定义视觉项目中，单击图像上方的 <strong>“训练”</strong>，以使用带标记的图像训练分类模型。选择 <strong>“快速训练”</strong> 选项，然后等待训练迭代完成（可能需要约一分钟）。</li>
+  <li>训练模型迭代后，查看 <em>“精准率”</em>、 <em>“召回率”</em> 和 <em>AP</em> 性能指标 - 这些指标可衡量分类模型的预测准确度，并且这些指标应该都很高。</li>
+</ol>
+
+<blockquote>
+  <p><strong>备注</strong>： 性能指标基于 50% 这一概率阈值来实现每一次预测（也就是说，如果模型计算得出图像为某特定类别的概率为 50% 或更高，则预测其为该类别）。可以在页面左上角调整该阈值。</p>
+</blockquote>
+
+<h2 id="测试模型">测试模型</h2>
+
+<p>现在，你已经训练了模型，接下来可对其进行测试。</p>
+
+<ol>
+  <li>在性能指标上方，单击 <strong>“快速测试”</strong>。</li>
+  <li>在 <strong>“图像 URL”</strong> 框中，键入 <code>https://aka.ms/apple-image</code>，然后单击 ＆#10132;。</li>
+  <li>查看模型返回的预测 - <em>苹果</em>的概率分数应该最高，如下所示：</li>
+</ol>
+
+<p><a href="images/test-apple.jpg" target="_blank"><img src="images/test-apple.jpg" alt="类别预测为苹果的图像"></a></p>
+
+<ol>
+  <li>关闭 <strong>“快速测试”</strong> 窗口。</li>
+</ol>
+
+<h2 id="查看项目设置">查看项目设置</h2>
+
+<p>你创建的项目已分配有唯一标识符，你需要在与其交互的任意代码中指定该标识符。</p>
+
+<ol>
+  <li>单击 <strong>“性能”</strong> 页面右上方的 <em>“设置”</em> (⚙) 图标，查看项目设置。</li>
+  <li>在 <strong>“常规”</strong> （左侧）下，注意唯一标识该项目的<strong>项目 ID</strong>。</li>
+  <li>在右侧的 <strong>“资源”</strong> 下，注意显示了<em>训练</em>资源的详细信息，包括其密钥和终结点（也可以通过在 Azure 门户中查看资源来获取这些信息）。</li>
+</ol>
+
+<h2 id="使用训练-api">使用<em>训练 API</em></h2>
+
+<p>自定义视觉门户提供了方便的用户界面，可用于上传和标记图像，以及训练模型。但在某些情况下，你可能想要使用自定义视觉训练 API 自动训练模型。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 在此练习中，可以选择在 <strong>C#</strong> 或 <strong>Python</strong> SDK 中使用 API。在下面的步骤中，请执行适用于你的语言首选项的操作。</p>
+</blockquote>
+
+<ol>
+  <li>在 Visual Studio Code 的 <strong>“资源管理器”</strong> 窗格中，浏览到 <strong>17-image_classification</strong> 文件夹，并根据你的语言首选项展开 <strong>C-Sharp</strong> 文件夹或 <strong>Python</strong> 文件夹。</li>
+  <li>右键单击 <strong>train-classifier</strong> 文件夹，并打开集成终端。然后通过运行适用于你的语言首选项的命令，安装自定义视觉训练包：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CustomVision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Training</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 2<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-customvision==<span class="hljs-number"><span class="hljs-number">3</span></span>.<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+
+<ol>
+  <li>查看 <strong>train-classifier</strong> 文件夹的内容，并注意其中包含一个配置设置文件：
+    <ul>
+      <li><strong>C#</strong>： appsettings.json</li>
+      <li><strong>Python</strong>： .env</li>
+    </ul>
+
+    <p>打开配置文件并更新其包含的配置值，以反映自定义视觉<em>训练</em>资源的终结点和密钥，以及先前创建的分类项目的项目 ID。保存更改。</p>
+  </li>
+  <li>
+    <p>请注意，<strong>train-classifier</strong> 文件夹中包含客户端应用程序的代码文件：</p>
+
+    <ul>
+      <li><strong>C#</strong>： Program.cs</li>
+      <li><strong>Python</strong>： train-classifier.py</li>
+    </ul>
+
+    <p>打开代码文件并查看其中包含的代码，并注意以下详细信息：</p>
+    <ul>
+      <li>你安装和导入的包中的命名空间</li>
+      <li><strong>Main</strong> 函数检索配置设置，并使用密钥和终结点来创建经过身份验证的 <strong>CustomVisionTrainingClient</strong>，然后将其与项目 ID 结合使用以创建对项目的<strong>项目</strong>引用。</li>
+      <li><strong>Upload_Images</strong> 函数检索自定义视觉项目中定义的标记，然后将图像文件从相应名称的文件夹上传到项目，并分配适当的标记 ID。</li>
+      <li><strong>Train_Model</strong> 函数为项目创建新的训练迭代，然后等待训练完成。</li>
+    </ul>
+  </li>
+  <li>返回 <strong>train-classifier</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">train-classifier</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+
+<ol>
+  <li>等待程序结束。然后返回到浏览器，并在自定义视觉门户中查看项目的 <strong>“训练图像”</strong> 页面（如有必要，请刷新浏览器）。</li>
+  <li>验证某些带标记的新图像是否已添加到项目中。然后，查看 <strong>“性能”</strong> 页面，并验证是否已创建新迭代。</li>
+</ol>
+
+<h2 id="发布图像分类模型">发布图像分类模型</h2>
+
+<p>现在即可发布经过训练的模型，以便在客户端应用程序中使用。</p>
+
+<ol>
+  <li>在“自定义视觉”门户的 <strong>“性能”</strong> 页面上，单击 <strong>“🗸 发布”</strong> 以使用以下设置发布经过训练的模型：
+    <ul>
+      <li><strong>模型名称</strong>： fruit-classifier</li>
+      <li><strong>预测资源</strong>： <em>先前创建的<strong>预测</strong>资源（<u>不是</u>训练资源）</em>。</li>
+    </ul>
+  </li>
+  <li>在 <strong>“项目设置”</strong> 页面的左上角，单击 <em>“项目库”</em> (👁) 图标以返回到自定义视觉门户主页，此时其中列出了你的项目。</li>
+  <li>在自定义视觉门户主页的右上角，单击 <em>“设置”</em> (⚙) 图标以查看自定义视觉服务的设置。然后，在 <em>“资源”</em> 下查找到<em>预测</em>资源（<u>不是</u>训练资源），以确定其<em>密钥</em>和终<em>结点</em>值（也可以通过在 Azure 门户中查看资源来获取这些信息）。</li>
+</ol>
+
+<h2 id="使用客户端应用程序中的图像分类器">使用客户端应用程序中的图像分类器</h2>
+
+<p>现在，你已经发布了图像分类模型，接下来，可在客户端应用程序中使用。同样，可以选择使用 <strong>C#</strong> 或 <strong>Python</strong>。</p>
+
+<ol>
+  <li>在 Visual Studio Code 的 <strong>17-image-classification</strong> 文件夹的首选语言（<strong>C-Sharp</strong> 或 <strong>Python</strong>）的子文件夹中，右键单击 <strong>test-classifier</strong> 文件夹并打开集成终端。然后，输入以下 SDK 特定的命令，安装自定义视觉预测包：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CustomVision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Prediction</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 2<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-customvision==<span class="hljs-number"><span class="hljs-number">3</span></span>.<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+
+<blockquote>
+  <p><strong>备注</strong>： Python SDK 包包括训练和预测包，并且可能已安装完毕。</p>
+</blockquote>
+
+<ol>
+  <li>展开 <strong>test-classifier</strong> 文件夹以查看其包含的文件，这些文件用于为图像分类模型实现测试客户端应用程序。</li>
+  <li>打开客户端应用程序的配置文件（对于 C#，是 <em>appsettings.json</em>；对于 Python，则是 <em>.env</em>），并更新其包含的配置值，以反映自定义视觉<em>预测</em>资源的终结点和密钥、分类项目的项目 ID，以及发布的模型的名称（应为 <em>fruit-classifier</em>）。保存更改。</li>
+  <li>打开客户端应用程序的代码文件（对于 C#，是 <em>Program.cs</em>；对于 Python，则是 <em>test-classification.py</em>），然后查看其包含的代码，并注意以下详细信息：
+    <ul>
+      <li>已导入你安装的包中的命名空间</li>
+      <li><strong>Main</strong> 函数检索配置设置，并使用密钥和终结点创建经过身份验证的 <strong>CustomVisionPredictionClient</strong>。</li>
+      <li>预测客户端对象用于预测 <strong>test-images</strong> 文件夹中每个图像的类别，并为每个请求指定项目 ID 和模型名称。每个预测均包含每个可能类别的概率，但仅显示概率超过 50% 的预测标记。</li>
+    </ul>
+  </li>
+  <li>返回 <strong>test-classifier</strong> 文件夹的集成终端，然后输入以下 SDK 特定的命令以运行程序：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs bash">python <span class="hljs-built_in"><span class="hljs-built_in">test</span></span>-classifier.py
+</code></pre>
+
+<ol>
+  <li>查看每个预测的标签（标记）和概率分数。可以查看 <strong>test-images</strong> 文件夹中的图像，以验证模型是否已将其正确分类。</li>
+</ol>
+
+<h2 id="更多信息">更多信息</h2>
+
+<p>若要详细了解自定义视觉服务中的图像分类，请参阅<a href="https://docs.microsoft.com/azure/cognitive-services/custom-vision-service/">自定义视觉文档</a>。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

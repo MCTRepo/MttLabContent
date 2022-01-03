@@ -1,0 +1,1067 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-204: Developing solutions for Microsoft Azure
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-204: Developing solutions for Microsoft Azure
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-create-azure-resources">Exercise 1: Create Azure resources</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-upload-a-blob-into-a-container">Exercise 2: Upload a blob into a container</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-access-containers-by-using-the-net-sdk">Exercise 3: Access containers by using the .NET SDK</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-retrieve-blob-uniform-resource-identifiers-uris-by-using-the-net-sdk">Exercise 4: Retrieve blob Uniform Resource Identifiers (URIs) by using the .NET SDK</a></li><li class="nav-item"><a class="nav-link" href="#exercise-5-clean-up-your-subscription">Exercise 5: Clean up your subscription</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-03-retrieve-azure-storage-resources-and-metadata-by-using-the-azure-storage-sdk-for-net">Lab 03: Retrieve Azure Storage resources and metadata by using the Azure Storage SDK for .NET</h1>
+
+<h2 id="microsoft-azure-user-interface">Microsoft Azure user interface</h2>
+
+<p>Given the dynamic nature of Microsoft cloud tools, you might experience Azure user interface (UI) changes that occur after the development of this training content. As a result, the lab instructions and lab steps might not align correctly.</p>
+
+<p>Microsoft updates this training course when the community alerts us to needed changes. However, cloud updates occur frequently, so you might encounter UI changes before this training content updates. <strong>If this occurs, adapt to the changes, and then work through them in the labs as needed.</strong></p>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-environment">Sign in to the lab environment</h4>
+
+<p>Sign in to your Windows 10 virtual machine (VM) by using the following credentials:</p>
+
+<ul>
+  <li>
+    <p>Username: <strong>Admin</strong></p>
+  </li>
+  <li>
+    <p>Password: <strong>Pa55w.rd</strong></p>
+  </li>
+</ul>
+
+<blockquote>
+  <p><strong>Note</strong>: Your instructor will provide instructions to connect to the virtual lab environment.</p>
+</blockquote>
+
+<h4 id="review-the-installed-applications">Review the installed applications</h4>
+
+<p>Find the taskbar on your Windows 10 desktop. The taskbar contains the icons for the applications that you’ll use in this lab, including:</p>
+
+<ul>
+  <li>
+    <p>Microsoft Edge</p>
+  </li>
+  <li>
+    <p>File Explorer</p>
+  </li>
+</ul>
+
+<h2 id="architecture-diagram">Architecture diagram</h2>
+
+<p><a href="media/Lab03-Diagram.png" target="_blank"><img src="media/Lab03-Diagram.png" alt="Architecture diagram depicting a user retrieving Azure Storage resources and metadata by using the Azure Storage SDK for .NET."></a></p>
+
+<h3 id="exercise-1-create-azure-resources">Exercise 1: Create Azure resources</h3>
+
+<h4 id="task-1-open-the-azure-portal">Task 1: Open the Azure portal</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Microsoft Edge</strong> icon.</p>
+  </li>
+  <li>
+    <p>In the browser window, browse to the Azure portal (<a href="https://portal.azure.com">https://portal.azure.com</a>), and then sign in with the account you’ll be using for this lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is your first time signing in to the Azure portal, you’ll be offered a tour of the portal. Select <strong>Get Started</strong> to skip the tour and begin using the portal.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-create-a-storage-account">Task 2: Create a Storage account</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, use the <strong>Search resources, services, and docs</strong> text box to search for <strong>Storage Accounts</strong>, and then in the list of results, select <strong>Storage Accounts</strong>.</p>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Storage accounts</strong>&nbsp;blade, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a storage account</strong> blade, on the <strong>Basics</strong> tab, perform the following actions, and then select <strong>Review + create</strong>:</p>
+  </li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th>Setting</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Subscription</strong> drop-down list</td>
+      <td>Retain the default value.</td>
+    </tr>
+    <tr>
+      <td><strong>Resource group</strong> section</td>
+      <td>Select <strong>Create new</strong>, enter <strong>StorageMedia</strong>, and then select <strong>OK</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong>Storage account name</strong>&nbsp;text box</td>
+      <td>Enter <strong>mediastor</strong><em>[yourname]</em>.</td>
+    </tr>
+    <tr>
+      <td><strong>Region</strong> drop-down list</td>
+      <td>Select <strong>(US) East US</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong>Performance</strong> section</td>
+      <td>Select the <strong>Standard</strong> option.</td>
+    </tr>
+    <tr>
+      <td><strong>Redundancy</strong> drop-down list</td>
+      <td>select <strong>Locally-redundant storage (LRS)</strong>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The following screenshot displays the configured settings on the <strong>Create a storage account blade</strong>.</p>
+
+<p><a href="media/l03_create_a_storage_account.png" target="_blank"><img src="media/l03_create_a_storage_account.png" alt="Create a storage account blade"></a></p>
+
+<ol>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, review the options that you selected during the previous steps.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> to create the storage account by using your specified configuration.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the creation task to complete before you move forward with this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Select <strong>Go to resouce</strong>.</p>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Storage account</strong>&nbsp;blade, in the&nbsp;<strong>Settings</strong>&nbsp;section, select the&nbsp;<strong>Endpoints</strong>&nbsp;link.</p>
+  </li>
+  <li>
+    <p>In the <strong>Endpoints</strong> section, record the value of the <strong>Blob Service</strong> text box.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You’ll use this endpoint value later in the lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Storage account</strong> blade, in the&nbsp;<strong>Security + networking</strong>&nbsp;section, select the&nbsp;<strong>Access keys</strong>&nbsp;link.</p>
+  </li>
+  <li>
+    <p>In the&nbsp;<strong>Access keys</strong> section, perform the following actions:</p>
+
+    <p>a.  Record the value in the <strong>Storage account name</strong> text box.</p>
+
+    <p>b.  Select <strong>Show Keys</strong>.</p>
+
+    <p>c.  Select any one of the keys, and then record the value in either of the&nbsp;<strong>Key</strong>&nbsp;boxes.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You’ll use all these values later in this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this exercise, you created a new Storage account to use throughout the remainder of the lab.</p>
+
+<h3 id="exercise-2-upload-a-blob-into-a-container">Exercise 2: Upload a blob into a container</h3>
+
+<h4 id="task-1-create-storage-account-containers">Task 1: Create storage account containers</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>Storage account</strong> blade, select the <strong>Containers</strong> link in the <strong>Data storage</strong> section.</p>
+  </li>
+  <li>
+    <p>In the <strong>Containers</strong> section, select <strong>+ Container</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>New container</strong> pop-up window, perform the following actions, and then select <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Name</strong> text box</td>
+          <td>Enter <strong>raster-graphics</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Public access level</strong> drop-down list</td>
+          <td>Select <strong>Private (no anonymous access)</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the <strong>Containers</strong> section, select <strong>+ Container</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>New container</strong> pop-up window, perform the following actions and then select <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Name</strong> text box</td>
+          <td>Enter <strong>compressed-audio</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Public access level</strong> drop-down list</td>
+          <td>Select <strong>Private (no anonymous access)</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the <strong>Containers</strong> section, observe the updated list of containers.</p>
+
+    <p>The following screenshot displays the configured settings on the <strong>Create a storage account blade</strong>.</p>
+
+    <p><a href="media/l03_containers.png" target="_blank"><img src="media/l03_containers.png" alt="Create a storage account blade"></a></p>
+  </li>
+</ol>
+
+<h4 id="task-2-upload-a-storage-account-blob">Task 2: Upload a storage account blob</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>Containers</strong> section, select the recently created <strong>raster-graphics</strong> container.</p>
+  </li>
+  <li>
+    <p>On the <strong>Container</strong> blade, select <strong>Upload</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Upload blob</strong> window, perform the following actions, and then select <strong>Upload</strong>:</p>
+  </li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th>Setting</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Files</strong> section</td>
+      <td>Select the <strong>Folder</strong> icon.</td>
+    </tr>
+    <tr>
+      <td><strong>File Explorer</strong> window</td>
+      <td>Browse to <strong>Allfiles (F):\Allfiles\Labs\03\Starter\Images</strong>, select the <strong>graph.jpg</strong> file, and then select <strong>Open</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong>Overwrite if files already exist</strong> check box</td>
+      <td>Ensure that the check box is selected.</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>Note</strong>: Wait for the blob to upload before you continue with this lab.</p>
+</blockquote>
+
+<h4 id="review-1">Review</h4>
+
+<p>In this exercise, you created placeholder containers in the Storage account, and then populated one of the containers with a blob.</p>
+
+<h3 id="exercise-3-access-containers-by-using-the-net-sdk">Exercise 3: Access containers by using the .NET SDK</h3>
+
+<h4 id="task-1-create-net-project">Task 1: Create .NET project</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>Start</strong> screen, select the <strong>Visual Studio Code</strong> tile.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, select <strong>Open Folder</strong>, browse to <strong>Allfiles (F):\Allfiles\Labs\03\Starter\BlobManager</strong>, and then select <strong>Select Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu for the <strong>Explorer</strong> pane, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the command prompt, run the following command to create a new .NET project named <strong>BlobManager</strong> in the current folder:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs coffeescript">dotnet <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> <span class="hljs-built_in"><span class="hljs-built_in">console</span></span> --name BlobManager --output .
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>dotnet new</strong> command will create a new <strong>console</strong> project in a folder with the same name as the project.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the command prompt, run the following command to import version 12.0.0 of <strong>Azure.Storage.Blobs</strong> from NuGet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Storage</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Blobs</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 12<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>dotnet add package</strong> command will add the <strong>Azure.Storage.Blobs</strong> package from NuGet. For more information, refer to <a href="https://www.nuget.org/packages/Azure.Storage.Blobs/12.0.0">Azure.Storage.Blobs</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the command prompt, run the following command to build the .NET web application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> build
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> or the <strong>Recycle Bin</strong> icon to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-modify-the-program-class-to-access-storage">Task 2: Modify the Program class to access Storage</h4>
+
+<ol>
+  <li>
+    <p>On the&nbsp;<strong>Explorer</strong>&nbsp;pane of the <strong>Visual Studio Code</strong> window, open the <strong>Program.cs</strong> file.</p>
+  </li>
+  <li>
+    <p>On the code editor tab for the&nbsp;<strong>Program.cs</strong>&nbsp;file, delete all the code in the existing file.</p>
+  </li>
+  <li>
+    <p>Add the following line of code to import the <strong>Azure.Storage</strong>, <strong>Azure.Storage.Blobs</strong>, and <strong>Azure.Storage.Blobs.Models</strong> namespaces from the <strong>Azure.Storage.Blobs</strong> package imported from NuGet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Storage;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Storage.Blobs;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Storage.Blobs.Models;
+</code></pre>
+  </li>
+  <li>
+    <p>Add the following lines of code to add <strong>using</strong> directives for the built-in namespaces that will be used in this file:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create a new <strong>Program</strong> class:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">Program</span></span>
+{
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following line of code to create a new string constant named <strong>blobServiceEndpoint</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> blobServiceEndpoint = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Update the <strong>blobServiceEndpoint</strong> string constant by setting its value to the&nbsp;<strong>Primary Blob Service Endpoint</strong> of the storage account that you recorded previously in this lab.</p>
+  </li>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following line of code to create a new string constant named <strong>storageAccountName</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> storageAccountName = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Update the <strong>storageAccountName</strong> string constant by setting its value to the&nbsp;<strong>Storage account name</strong> of the storage account that you recorded previously in this lab.</p>
+  </li>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following line of code to create a new string constant named <strong>storageAccountKey</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> storageAccountKey = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Update the <strong>storageAccountKey</strong> string constant by setting its value to the&nbsp;<strong>Key</strong> of the storage account that you recorded previously in this lab.</p>
+  </li>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following code to create a new asynchronous <strong>Main</strong> method:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>Program.cs</strong> file, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Storage;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Storage.Blobs;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Storage.Blobs.Models;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+    
+<span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">Program</span></span>
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> blobServiceEndpoint = <span class="hljs-string"><span class="hljs-string">"&lt;primary-blob-service-endpoint&gt;"</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> storageAccountName = <span class="hljs-string"><span class="hljs-string">"&lt;storage-account-name&gt;"</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> storageAccountKey = <span class="hljs-string"><span class="hljs-string">"&lt;key&gt;"</span></span>;
+    
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+    </span></span>{
+    }
+}
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-3-connect-to-the-azure-storage-blob-service-endpoint">Task 3: Connect to the Azure Storage blob service endpoint</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following line of code to create a new instance of the <strong>StorageSharedKeyCredential</strong> class by using the <strong>storageAccountName</strong> and <strong>storageAccountKey</strong> constants as constructor parameters:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-csharp hljs">StorageSharedKeyCredential accountCredentials = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> StorageSharedKeyCredential(storageAccountName, storageAccountKey);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following line of code to create a new instance of the <strong>BlobServiceClient</strong> class by using the <strong>blobServiceEndpoint</strong> constant and the <em>accountCredentials</em> variable as constructor parameters:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-csharp hljs">BlobServiceClient serviceClient = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> BlobServiceClient(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Uri(blobServiceEndpoint), accountCredentials);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following line of code to invoke the <strong>GetAccountInfoAsync</strong> method of the <strong>BlobServiceClient</strong> class to retrieve account metadata from the service:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-csharp hljs">AccountInfo info = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> serviceClient.GetAccountInfoAsync();
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following line of code to render a welcome message:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Connected to Azure Storage Account"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following line of code to render the storage account’s name:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Account name:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{storageAccountName}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following line of code to render the type of storage account:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Account kind:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{info?.AccountKind}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, add the following line of code to render the currently selected stock keeping unit (SKU) for the storage account:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs cs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Account sku:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{info?.SkuName}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>Main</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+    StorageSharedKeyCredential accountCredentials = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> StorageSharedKeyCredential(storageAccountName, storageAccountKey);
+
+    BlobServiceClient serviceClient = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> BlobServiceClient(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Uri(blobServiceEndpoint), accountCredentials);
+
+    AccountInfo info = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> serviceClient.GetAccountInfoAsync();
+
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Connected to Azure Storage Account"</span></span>);
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Account name:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{storageAccountName}</span></span></span><span class="hljs-string">"</span></span>);
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Account kind:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{info?.AccountKind}</span></span></span><span class="hljs-string">"</span></span>);
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Account sku:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{info?.SkuName}</span></span></span><span class="hljs-string">"</span></span>);
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Save the&nbsp;<strong>Program.cs</strong>&nbsp;file.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu for the <strong>Explorer</strong> pane, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the open command prompt, run the following command to run the .NET web application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If there are any build errors, review the <strong>Program.cs</strong> file in the <strong>Allfiles (F):\Allfiles\Labs\03\Solution\BlobManager</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Observe the output from the currently running console application. The output contains metadata for the storage account that was retrieved from the service.</p>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> or the <strong>Recycle Bin</strong> icon to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-enumerate-the-existing-containers">Task 4: Enumerate the existing containers</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following code to create a new <strong>private static</strong> method named <strong>EnumerateContainersAsync</strong>, that’s asynchronous and has a single <strong>BlobServiceClient</strong> parameter type:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">EnumerateContainersAsync</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">BlobServiceClient client</span></span></span><span class="hljs-function">)
+</span></span>{        
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>EnumerateContainersAsync</strong> method, enter the following code to create an asynchronous <strong>foreach</strong> loop that iterates over the results of an invocation of the <strong>GetBlobContainersAsync</strong> method of the <strong>BlobServiceClient</strong> class:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> <span class="hljs-keyword"><span class="hljs-keyword">foreach</span></span> (BlobContainerItem container <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> client.GetBlobContainersAsync())
+{
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Within the <strong>foreach</strong> loop, enter the following code to print the name of each container:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Container:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{container.Name}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>EnumerateContainersAsync</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">EnumerateContainersAsync</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">BlobServiceClient client</span></span></span><span class="hljs-function">)
+</span></span>{        
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> <span class="hljs-keyword"><span class="hljs-keyword">foreach</span></span> (BlobContainerItem container <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> client.GetBlobContainersAsync())
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Container:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{container.Name}</span></span></span><span class="hljs-string">"</span></span>);
+    }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, enter the following code at the end of the method to invoke the <strong>EnumerateContainersAsync</strong> method, passing in the <em>serviceClient</em> variable as a parameter:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> EnumerateContainersAsync(serviceClient);
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>Main</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+    <span class="hljs-comment"><span class="hljs-comment">// Existing code has not been repeated here for brevity</span></span>
+
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> EnumerateContainersAsync(serviceClient);
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Save the&nbsp;<strong>Program.cs</strong>&nbsp;file.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu for the <strong>Explorer</strong> pane, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the open command prompt, run the following command to run the .NET web application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If there are any build errors, review the <strong>Program.cs</strong> file in the <strong>Allfiles (F):\Allfiles\Labs\03\Solution\BlobManager</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Observe the output from the currently running console application. The updated output includes a list of every existing container in the account.</p>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> or the <strong>Recycle Bin</strong> icon to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="review-2">Review</h4>
+
+<p>In this exercise, you accessed existing containers by using the Azure Storage SDK.</p>
+
+<h3 id="exercise-4-retrieve-blob-uniform-resource-identifiers-uris-by-using-the-net-sdk">Exercise 4: Retrieve blob Uniform Resource Identifiers (URIs) by using the .NET SDK</h3>
+
+<h4 id="task-1-enumerate-the-blobs-in-an-existing-container-by-using-the-sdk">Task 1: Enumerate the blobs in an existing container by using the SDK</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following code to create a new <strong>private static</strong> method named <strong>EnumerateBlobsAsync</strong> that’s asynchronous and has two parameter types, <strong>BlobServiceClient</strong> and <strong>string</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">EnumerateBlobsAsync</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">BlobServiceClient client, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params"> containerName</span></span></span><span class="hljs-function">)
+</span></span>{      
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>EnumerateBlobsAsync</strong> method, enter the following code to get a new instance of the <strong>BlobContainerClient</strong> class by using the <strong>GetBlobContainerClient</strong> method of the <strong>BlobServiceClient</strong> class, passing in the <strong>containerName</strong> parameter:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-csharp hljs">BlobContainerClient container = client.GetBlobContainerClient(containerName);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>EnumerateBlobsAsync</strong> method, enter the following code to render the name of the container that will be enumerated:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Searching:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{container.Name}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>EnumerateBlobsAsync</strong> method, enter the following code to create an asynchronous <strong>foreach</strong> loop that iterates over the results of an invocation of the <strong>GetBlobsAsync</strong> method of the <strong>BlobContainerClient</strong> class:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> <span class="hljs-keyword"><span class="hljs-keyword">foreach</span></span> (BlobItem blob <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> container.GetBlobsAsync())
+{        
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Within the <strong>foreach</strong> loop, enter the following code to print the name of each blob:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Existing Blob:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{blob.Name}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>EnumerateBlobsAsync</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">EnumerateBlobsAsync</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">BlobServiceClient client, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params"> containerName</span></span></span><span class="hljs-function">)
+</span></span>{      
+    BlobContainerClient container = client.GetBlobContainerClient(containerName);
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Searching:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{container.Name}</span></span></span><span class="hljs-string">"</span></span>);
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> <span class="hljs-keyword"><span class="hljs-keyword">foreach</span></span> (BlobItem blob <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> container.GetBlobsAsync())
+    {        
+         <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Existing Blob:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{blob.Name}</span></span></span><span class="hljs-string">"</span></span>);
+    }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, enter the following code at the end of the method to create a variable named <em>existingContainerName</em> with a value of <strong>raster-graphics</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">string</span></span> existingContainerName = <span class="hljs-string"><span class="hljs-string">"raster-graphics"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, enter the following code at the end of the method to invoke the <strong>EnumerateBlobsAsync</strong> method, passing in the <em>serviceClient</em> and <em>existingContainerName</em> variables as parameters:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> EnumerateBlobsAsync(serviceClient, existingContainerName);
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>Main</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+    <span class="hljs-comment"><span class="hljs-comment">// Existing code has not been repeated here for brevity</span></span>
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> EnumerateContainersAsync(serviceClient);
+
+    <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> existingContainerName = <span class="hljs-string"><span class="hljs-string">"raster-graphics"</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> EnumerateBlobsAsync(serviceClient, existingContainerName);
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Save the&nbsp;<strong>Program.cs</strong>&nbsp;file.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu for the <strong>Explorer</strong> pane, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the open command prompt, run the following command to run the .NET web application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock36" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock36" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If there are any build errors, review the <strong>Program.cs</strong> file in the <strong>Allfiles (F):\Allfiles\Labs\03\Solution\BlobManager</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Review the output from the currently running console application. The updated output includes metadata about the existing container and blobs.</p>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> or the <strong>Recycle Bin</strong> icon to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-create-a-new-container-by-using-the-sdk">Task 2: Create a new container by using the SDK</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following code to create a new <strong>private static</strong> method named <strong>GetContainerAsync</strong> that’s asynchronous and has two parameter types, <strong>BlobServiceClient</strong> and <strong>string</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock37" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock37" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;BlobContainerClient&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">GetContainerAsync</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">BlobServiceClient client, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params"> containerName</span></span></span><span class="hljs-function">)
+</span></span>{      
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>GetContainerAsync</strong> method, enter the following code to get a new instance of the <strong>BlobContainerClient</strong> class by using the <strong>GetBlobContainerClient</strong> method of the <strong>BlobServiceClient</strong> class, passing in the <strong>containerName</strong> parameter:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock38" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock38" class="mt-0"><code class="language-csharp hljs">BlobContainerClient container = client.GetBlobContainerClient(containerName);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>GetContainerAsync</strong> method, enter the following code to invoke the <strong>CreateIfNotExistsAsync</strong> method of the <strong>BlobContainerClient</strong> class:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock39" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock39" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> container.CreateIfNotExistsAsync(PublicAccessType.Blob);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>GetContainerAsync</strong> method, enter the following code to render the name of the container that was potentially created:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock40" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock40" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"New Container:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{container.Name}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>GetContainerAsync</strong> method, enter the following code to return the instance of the <strong>BlobContainerClient</strong> class named <strong>container</strong> as the result of the <strong>GetContainerAsync</strong> method:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock41" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock41" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">return</span></span> container;
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>GetContainerAsync</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock42" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock42" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;BlobContainerClient&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">GetContainerAsync</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">BlobServiceClient client, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params"> containerName</span></span></span><span class="hljs-function">)
+</span></span>{      
+    BlobContainerClient container = client.GetBlobContainerClient(containerName);
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> container.CreateIfNotExistsAsync(PublicAccessType.Blob);
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"New Container:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{container.Name}</span></span></span><span class="hljs-string">"</span></span>);
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> container;
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, enter the following code at the end of the method to create a variable named <em>newContainerName</em> with a value of <strong>vector-graphics</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock43" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock43" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">string</span></span> newContainerName = <span class="hljs-string"><span class="hljs-string">"vector-graphics"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, enter the following code at the end of the method to invoke the <strong>GetContainerAsync</strong> method, to pass the <em>serviceClient</em> and <em>newContainerName</em> variables as parameters, and to store the result in a variable named <em>containerClient</em> of type <strong>BlobContainerClient</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock44" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock44" class="mt-0"><code class="language-csharp hljs">BlobContainerClient containerClient = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> GetContainerAsync(serviceClient, newContainerName);
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>Main</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock45" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock45" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+    <span class="hljs-comment"><span class="hljs-comment">// Existing code has not been repeated here for brevity</span></span>
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> EnumerateContainersAsync(serviceClient);
+
+    <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> existingContainerName = <span class="hljs-string"><span class="hljs-string">"raster-graphics"</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> EnumerateBlobsAsync(serviceClient, existingContainerName);
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> newContainerName = <span class="hljs-string"><span class="hljs-string">"vector-graphics"</span></span>;
+    BlobContainerClient containerClient = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> GetContainerAsync(serviceClient, newContainerName);
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Save the&nbsp;<strong>Program.cs</strong>&nbsp;file.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu for the <strong>Explorer</strong> pane, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the open command prompt, run the following command to run the .NET web application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock46" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock46" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If there are any build errors, review the <strong>Program.cs</strong> file in the <strong>Allfiles (F):\Allfiles\Labs\03\Solution\BlobManager</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Observe the output from the currently running console application. The updated output includes metadata about the existing container and blobs.</p>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> or the <strong>Recycle Bin</strong> icon to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-upload-a-new-blob-by-using-the-portal">Task 3: Upload a new blob by using the portal</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s <strong>navigation</strong> pane, select the <strong>Resource groups</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>StorageMedia</strong> resource group that you created previously in this lab.</p>
+  </li>
+  <li>
+    <p>On the <strong>StorageMedia</strong> blade, select the <strong>mediastor</strong><em>[yourname]</em> storage account that you created previously in this lab.</p>
+  </li>
+  <li>
+    <p>On the <strong>Storage account</strong> blade, select the <strong>Containers</strong> link in the <strong>Data storage</strong> section.</p>
+  </li>
+  <li>
+    <p>In the <strong>Containers</strong> section, select the newly created <strong>vector-graphics</strong> container. You might need to refresh the page to observe the new container.</p>
+  </li>
+  <li>
+    <p>On the <strong>Container</strong> blade, select <strong>Upload</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Upload blob</strong> window, perform the following actions, and then select <strong>Upload</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Files</strong> section</td>
+          <td>Select the <strong>Folder</strong> icon.</td>
+        </tr>
+        <tr>
+          <td><strong>File Explorer</strong> window</td>
+          <td><strong>Allfiles (F):\Allfiles\Labs\03\Starter\Images</strong>, select the <strong>graph.svg</strong> file, and then select <strong>Open</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Overwrite if files already exist</strong> check box</td>
+          <td>Ensure that the check box is selected.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the blob to upload before you continue with this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-access-blob-uri-by-using-the-sdk">Task 4: Access blob URI by using the SDK</h4>
+
+<ol>
+  <li>
+    <p>Switch to the <strong>Visual Studio Code</strong> window.</p>
+  </li>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following code to create a new <strong>private static</strong> method named <strong>GetBlobAsync</strong> that’s asynchronous and has two parameter types, <strong>BlobContainerClient</strong> and <strong>string</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock47" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock47" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;BlobClient&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">GetBlobAsync</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">BlobContainerClient client, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params"> blobName</span></span></span><span class="hljs-function">)
+</span></span>{      
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>GetBlobAsync</strong> method, enter the following code to get a new instance of the <strong>BlobClient</strong> class by using the <strong>GetBlobClient</strong> method of the <strong>BlobContainerClient</strong> class, and to pass in the <strong>blobName</strong> parameter:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock48" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock48" class="mt-0"><code class="language-csharp hljs">BlobClient blob = client.GetBlobClient(blobName);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>GetBlobAsync</strong> method, enter the following code to render the name of the blob that was referenced:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock49" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock49" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Blob Found:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{blob.Name}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>GetBlobAsync</strong> method, enter the following code to return the instance of the <strong>BlobClient</strong> class named <strong>blob</strong> as the result of the <strong>GetBlobAsync</strong> method:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock50" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock50" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">return</span></span> blob;
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>GetBlobAsync</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock51" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock51" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;BlobClient&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">GetBlobAsync</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">BlobContainerClient client, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params"> blobName</span></span></span><span class="hljs-function">)
+</span></span>{      
+    BlobClient blob = client.GetBlobClient(blobName);
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Blob Found:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{blob.Name}</span></span></span><span class="hljs-string">"</span></span>);
+    <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> blob;
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, enter the following code at the end of the method to create a variable named <em>uploadedBlobName</em> with a value of <strong>graph.svg</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock52" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock52" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">string</span></span> uploadedBlobName = <span class="hljs-string"><span class="hljs-string">"graph.svg"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, enter the following code at the end of the method to invoke the <strong>GetBlobAsync</strong> method, passing in the <em>containerClient</em> and <em>uploadedBlobName</em> variables as parameters, and to store the result in a variable named <em>blobClient</em> of type <strong>BlobClient</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock53" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock53" class="mt-0"><code class="language-csharp hljs">BlobClient blobClient = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> GetBlobAsync(containerClient, uploadedBlobName);
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> method, enter the following code at the end of the method to render the <strong>Uri</strong> property of the <em>blobClient</em> variable:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock54" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock54" class="mt-0"><code class="language-csharp hljs"><span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Blob Url:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{blobClient.Uri}</span></span></span><span class="hljs-string">"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>Main</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock55" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock55" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+</span></span>{
+    <span class="hljs-comment"><span class="hljs-comment">// Existing code has not been repeated here for brevity</span></span>
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> EnumerateContainersAsync(serviceClient);
+
+    <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> existingContainerName = <span class="hljs-string"><span class="hljs-string">"raster-graphics"</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> EnumerateBlobsAsync(serviceClient, existingContainerName);
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> newContainerName = <span class="hljs-string"><span class="hljs-string">"vector-graphics"</span></span>;
+    BlobContainerClient containerClient = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> GetContainerAsync(serviceClient, newContainerName);
+        
+    <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> uploadedBlobName = <span class="hljs-string"><span class="hljs-string">"graph.svg"</span></span>;
+    BlobClient blobClient = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> GetBlobAsync(containerClient, uploadedBlobName);
+
+    <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> Console.Out.WriteLineAsync(<span class="hljs-string"><span class="hljs-string">$"Blob Url:\t</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{blobClient.Uri}</span></span></span><span class="hljs-string">"</span></span>);
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Save the&nbsp;<strong>Program.cs</strong>&nbsp;file.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu for the <strong>Explorer</strong> pane, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>At the open command prompt, run the following command to run the .NET web application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock56" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock56" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If there are any build errors, review the <strong>Program.cs</strong> file in the <strong>Allfiles (F):\Allfiles\Labs\03\Solution\BlobManager</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Observe the output from the currently running console application. The updated output includes the final URL to access the blob online. Record the value of this URL to use later in the lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The URL will likely be similar to the following string: <code>https://mediastor*[yourname]*.blob.core.windows.net/vector-graphics/graph.svg</code></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> or the <strong>Recycle Bin</strong> icon to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="task-5-test-the-uri-by-using-a-browser">Task 5: Test the URI by using a browser</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, activate the shortcut menu for the <strong>Microsoft Edge</strong> icon, and then select <strong>New window</strong>.</p>
+  </li>
+  <li>
+    <p>In the new browser window, refer to the URL that you previously copied in this lab for the blob.</p>
+  </li>
+  <li>
+    <p>You should now notice the Scalable Vector Graphics (SVG) file in your browser window.</p>
+  </li>
+</ol>
+
+<h4 id="review-3">Review</h4>
+
+<p>In this exercise, you created containers and managed blobs by using the Storage SDK.</p>
+
+<h3 id="exercise-5-clean-up-your-subscription">Exercise 5: Clean up your subscription</h3>
+
+<h4 id="task-1-open-azure-cloud-shell-and-list-resource-groups">Task 1: Open Azure Cloud Shell and list resource groups</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, select the <strong>Cloud Shell</strong> icon <a href="media/az204_lab_CloudShell.png" target="_blank"><img src="media/az204_lab_CloudShell.png" alt="Cloud Shell icon"></a> to open a new Bash session. If Cloud Shell defaults to a PowerShell session, select <strong>PowerShell</strong> and, in the drop-down menu, select <strong>Bash</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you’re starting <strong>Cloud Shell</strong>, when prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>. When you’re presented with the <strong>You have no storage mounted</strong> message, select the subscription you’re using in this lab, and then select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-delete-a-resource-group">Task 2: Delete a resource group</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>Cloud Shell</strong> pane, run the following command to delete the <strong>StorageMedia</strong> resource group:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock57" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock57" class="mt-0"><code class="hljs coffeescript">az group <span class="hljs-keyword"><span class="hljs-keyword">delete</span></span> --name StorageMedia --<span class="hljs-literal"><span class="hljs-literal">no</span></span>-wait --<span class="hljs-literal"><span class="hljs-literal">yes</span></span>
+</code></pre>
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the <em>–no-wait</em> parameter), so while you’ll be able to run another Azure CLI command immediately afterwards within the same Bash session, it’ll take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane in the portal.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-close-the-active-application">Task 3: Close the active application</h4>
+
+<ul>
+  <li>Close the currently running Microsoft Edge application.</li>
+</ul>
+
+<h4 id="review-4">Review</h4>
+
+<p>In this exercise, you cleaned up your subscription by removing the resource group used in this lab.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.js"></script>
+
+
+
+</body></html>

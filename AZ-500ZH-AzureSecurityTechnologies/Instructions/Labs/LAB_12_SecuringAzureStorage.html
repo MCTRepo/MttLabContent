@@ -1,0 +1,1026 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-500ZH-AzureSecurityTechnologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-500ZH-AzureSecurityTechnologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-500ZH-AzureSecurityTechnologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1服务终结点和安全存储">练习 1：服务终结点和安全存储</a></li><li class="nav-item"><a class="nav-link" href="#预计用时45-分钟">预计用时：45 分钟</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-12服务终结点和保护存储">实验室 12：服务终结点和保护存储</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你需要创建一个概念证明来演示如何保护 Azure 文件共享。具体来说，你需要：</p>
+
+<ul>
+  <li>创建一个存储终结点，以便发往 Azure 存储的流量始终留在 Azure 主干网络内。</li>
+  <li>配置该存储终结点，以便仅来自特定子网的资源可以访问存储。</li>
+  <li>确认特定子网之外的资源无法访问存储。</li>
+</ul>
+
+<blockquote>
+  <p>对于本实验室中的所有资源，我们使用 <strong>“美国东部”</strong> 区域。请与讲师确认这是课堂上所使用的区域。</p>
+</blockquote>
+
+<h2 id="实验室目标">实验室目标</h2>
+
+<p>在本实验室中，你将完成以下练习：</p>
+
+<ul>
+  <li>练习 1：服务终结点和安全存储</li>
+</ul>
+
+<h3 id="练习-1服务终结点和安全存储">练习 1：服务终结点和安全存储</h3>
+
+<h3 id="预计用时45-分钟">预计用时：45 分钟</h3>
+
+<p>在该练习中，你将完成以下任务：</p>
+
+<ul>
+  <li>任务 1：创建虚拟网络</li>
+  <li>任务 2：将子网添加到虚拟网络并配置存储终结点</li>
+  <li>任务 3：配置网络安全组以限制对子网的访问</li>
+  <li>任务 4：使用文件共享创建存储帐户</li>
+  <li>任务 5：将虚拟机部署到指定的子网中</li>
+  <li>任务 6：测试来自专用子网的存储连接，以确认允许访问</li>
+  <li>任务 7：测试来自公共子网的存储连接，以确认访问被拒绝</li>
+</ul>
+
+<h4 id="任务-1创建虚拟网络">任务 1：创建虚拟网络</h4>
+
+<p>在此任务中，你将创建一个虚拟网络。</p>
+
+<ol>
+  <li>
+    <p>登录 Azure 门户 <strong><code>https://portal.azure.com/</code></strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 使用此实验室使用的 Azure 订阅中具有所有者或参与者角色的帐户登录 Azure 门户。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户页面顶部的 <strong>“搜索资源、服务和文档”</strong> 文本框中键入 <strong>“虚拟网络”</strong>，然后按 <strong>Enter</strong> 键。</p>
+  </li>
+  <li>
+    <p>在“<strong>虚拟网络</strong>”边栏选项卡上，单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“基本”</strong> 选项卡中，指定以下设置（将其他设置保留为默认值），然后单击 <strong>“下一步: IP 地址”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td>单击 <strong>“新建”</strong> 并键入名称 <strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td><strong>（美国）美国东部</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“IP 地址”</strong> 选项卡上，将 <strong>“IPv4 地址空间”</strong> 设置为 <strong>“10.0.0.0/16”</strong>，在 <strong>“子网名称”</strong> 列，单击 <strong>“默认”</strong>，在 <strong>“编辑子网”</strong> 边栏选项卡上，指定以下设置并单击 <strong>“保存”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>子网名称</td>
+          <td><strong>公共</strong></td>
+        </tr>
+        <tr>
+          <td>子网地址范围</td>
+          <td><strong>10.0.0.0/24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>返回 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“IP 地址”</strong> 选项卡，单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟网络”</strong> 边栏选项卡的 <strong>“查看 + 创建”</strong> 选项卡中，单击 <strong>“创建”</strong>。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2将子网添加到虚拟网络并配置存储终结点">任务 2：将子网添加到虚拟网络并配置存储终结点</h4>
+
+<p>在此任务中，你将创建另一个子网并在该子网上启用服务终结点。每个服务、每个子网都启用了服务终结点。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“虚拟网络”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“虚拟网络”</strong> 边栏选项卡中，单击 <strong>“myVirtualNetwork”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“myVirtualNetwork”</strong> 边栏选项卡上的 <strong>“设置”</strong> 部分，单击 <strong>“子网”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“myVirtualNetwork | 子网”</strong> 边栏选项卡上，单击 <strong>“+ 子网”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加子网”</strong> 边栏选项卡上，请指定以下设置（将其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>子网名称</td>
+          <td><strong>专用</strong></td>
+        </tr>
+        <tr>
+          <td>子网地址范围</td>
+          <td><strong>10.0.1.0/24</strong></td>
+        </tr>
+        <tr>
+          <td>服务终结点</td>
+          <td><strong>Microsoft.Storage</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“添加子网”</strong> 边栏选项卡上单击 <strong>“保存”</strong> 以添加新的子网。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 虚拟网络现在有两个子网：公用和专用。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-3配置网络安全组以限制对子网的访问">任务 3：配置网络安全组以限制对子网的访问</h4>
+
+<p>在此任务中，你将创建一个网络安全组，其中包含两个出站安全规则（存储和 Internet）和一个入站安全规则 (RDP)。你还将网络安全组与专用子网相关联。这将限制来自连接到该子网的 Azure VM 的出站流量。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，在 Azure 门户页面顶部的 <strong>“搜索资源、服务和文档”</strong> 文本框中键入 <strong>“Network security groups”</strong>，然后按 <strong>Enter</strong> 键。</p>
+  </li>
+  <li>
+    <p>在“<strong>网络安全组</strong>”边栏选项卡中，单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建网络安全组”</strong> 边栏选项卡的 <strong>“基本信息”</strong> 选项卡中，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>myNsgPrivate</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td><strong>美国东部</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“查看 + 创建”</strong>，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在接下来的步骤中，你将创建一个允许与 Azure 存储服务进行通信的出站安全规则。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“网络安全组”</strong> 边栏选项卡，并单击 <strong>“myNsgPrivate”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“myNsgPrivate”</strong> 边栏选项卡上，在 <strong>“设置”</strong> 部分，单击 <strong>“出站安全规则”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“myNsgPrivate | 出站安全规则”</strong> 边栏选项卡上，单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加出站安全规则”</strong> 边栏选项卡上，请指定以下设置以显式允许到 Azure 存储的出站流量（将所有其他值保留为其默认设置）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>源</td>
+          <td><strong>虚拟网络</strong></td>
+        </tr>
+        <tr>
+          <td>源端口范围</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td>在下拉列表中，选择 <strong>“服务标记”</strong>，然后单击 <strong>“存储”</strong></td>
+        </tr>
+        <tr>
+          <td>目标端口范围</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>任何</strong></td>
+        </tr>
+        <tr>
+          <td>操作</td>
+          <td><strong>允许</strong></td>
+        </tr>
+        <tr>
+          <td>优先级</td>
+          <td><strong>1000</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>Allow-Storage-All</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在“<strong>添加出站安全规则</strong>”边栏选项卡上，单击“<strong>添加</strong>”以创建新的出站规则。</p>
+  </li>
+  <li>
+    <p>在 <strong>“myNsgPrivate”</strong> 边栏选项卡上的 <strong>“设置”</strong> 部分，单击 <strong>“出站安全规则”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加出站安全规则”</strong> 边栏选项卡上，指定以下设置以显式拒绝到 Internet 的出站流量（所有其他值保留为默认设置）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>源</td>
+          <td><strong>虚拟网络</strong></td>
+        </tr>
+        <tr>
+          <td>源端口范围</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td>在下拉列表中，选择 <strong>“服务标记”</strong>，然后单击 <strong>“Internet”</strong></td>
+        </tr>
+        <tr>
+          <td>目标端口范围</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>任何</strong></td>
+        </tr>
+        <tr>
+          <td>操作</td>
+          <td><strong>拒绝</strong></td>
+        </tr>
+        <tr>
+          <td>优先级</td>
+          <td><strong>1100</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>Deny-Internet-All</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此规则将替代所有网络安全组中允许出站 Internet 通信的默认规则。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在接下来的步骤中，你将创建一个允许远程桌面协议 (RDP) 流量流向子网的入站安全规则。此规则将替代拒绝来自 Internet 的所有入站流量的默认安全规则。允许远程桌面连接到子网，以便在接下来的步骤中测试连接性。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“myNsgPrivate | 出站安全规则”</strong> 边栏选项卡上的 <strong>“设置”</strong> 部分，单击 <strong>“入站安全规则”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加入站安全规则”</strong> 边栏选项卡上，请指定以下设置（将所有其他值保留为其默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>源</td>
+          <td><strong>任何</strong></td>
+        </tr>
+        <tr>
+          <td>源端口范围</td>
+          <td><strong>*</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>虚拟网络</strong></td>
+        </tr>
+        <tr>
+          <td>目标端口范围</td>
+          <td><strong>3389</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>操作</td>
+          <td><strong>允许</strong></td>
+        </tr>
+        <tr>
+          <td>优先级</td>
+          <td><strong>1200</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>Allow-RDP-All</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“添加入站安全规则”</strong> 边栏选项卡上，单击 <strong>“添加”</strong> 新建入站规则。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 现在，你将网络安全组与专用子网相关联。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“子网”</strong> 边栏选项卡中，选择 <strong>“+ 关联”</strong> 并在 <strong>“关联子网”</strong> 部分指定以下设置，然后单击 <strong>“确定”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>专用</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="任务-4使用文件共享创建存储帐户">任务 4：使用文件共享创建存储帐户</h4>
+
+<p>在此任务中，你将创建一个具有文件共享的存储帐户并获取存储帐户密钥。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，在 Azure 门户页面顶部的 <strong>“搜索资源、服务和文档”</strong> 文本框中，键入 <strong>“存储帐户”</strong>，然后按 <strong>Enter</strong> 键。</p>
+  </li>
+  <li>
+    <p>在“<strong>存储帐户</strong>”边栏选项卡上，单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“基本设置”</strong> 选项卡上，指定以下设置（其他设置则保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>存储帐户名称</td>
+          <td>由字母和数字组成、长度介于 3 到 24 之间的任意全局唯一名称</td>
+        </tr>
+        <tr>
+          <td>位置</td>
+          <td><strong>（美国）美国东部</strong></td>
+        </tr>
+        <tr>
+          <td>性能</td>
+          <td><strong>标准</strong></td>
+        </tr>
+        <tr>
+          <td>帐户类型</td>
+          <td><strong>StorageV2（常规用途 v2）</strong></td>
+        </tr>
+        <tr>
+          <td>冗余</td>
+          <td><strong>本地冗余存储 (LRS)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“基本信息”</strong> 选项卡中，单击 <strong>“查看 + 创建”</strong>，等待验证过程完成，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请等待存储帐户创建完成。该操作需约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户页面顶部的 <strong>“搜索资源、服务和文档”</strong> 文本框中，键入 <strong>“资源组”</strong>，然后按 <strong>Enter</strong> 键。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 边栏选项卡的资源组列表中，单击 <strong>“AZ500LAB12”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“AZ500LAB12”</strong> 资源组边栏选项卡的资源列表中，单击表示新建的存储账户的条目。</p>
+  </li>
+  <li>
+    <p>在存储帐户的 <strong>“概述”</strong> 边栏选项卡上，单击 <strong>“属性”</strong> 选项卡下的 <strong>“文件服务”</strong>，然后单击 <strong>“+文件共享”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建文件共享”</strong> 边栏选项卡上, 指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>my-file-share</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“新建文件共享”</strong> 边栏选项卡上，单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 现在，检索并记录用于创建到 Azure 文件共享的驱动器映射的 PowerShell 脚本。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“存储帐户”边栏选项卡上的文件共享列表中，单击 <strong>“my-file-share”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“my-file-share”</strong> 边栏选项卡上，单击 <strong>“连接”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“连接”</strong> 边栏选项卡上，在 <strong>“窗口”</strong> 选项卡中，将创建 Z 驱动器映射的 PowerShell 脚本复制到文件共享。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 记录此脚本。在本实验室的后面部分中，你将需要此文件，以便<strong>从专用</strong>子网上的 Azure 虚拟机映射文件共享。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>导航回“存储帐户”边栏选项卡，然后在 <strong>“安全 + 网络”</strong> 部分，单击 <strong>“网络”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“防火墙和虚拟网”</strong> 边栏选项卡下，选择 <strong>“已选定网络”</strong> 选项，然后单击 <strong>“+添加现有虚拟网络”</strong> 链接。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加网络”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>专用</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在“<strong>添加网络</strong>”边栏选项卡上，单击“<strong>添加</strong>”。</p>
+  </li>
+  <li>
+    <p>返回到“存储帐户”边栏选项卡，单击 <strong>“保存”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 至此，你已在实验室中配置虚拟网络、网络安全组和具有文件共享的存储帐户。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-5将虚拟机部署到指定的子网中">任务 5：将虚拟机部署到指定的子网中</h4>
+
+<p>在此任务中，你将创建两个虚拟机，一个在专用子网中，一个在公共子网中。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 第一个虚拟机将连接到专用子网。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户页面顶部的 <strong>“搜索资源、服务和文档”</strong> 文本框中，键入 <strong>“虚拟机”</strong>，然后按 <strong>Enter</strong> 键。</p>
+  </li>
+  <li>
+    <p>在“<strong>虚拟机</strong>”边栏选项卡上，单击“<strong>+ 创建</strong>”，然后在下拉列表中单击“<strong>+ 虚拟机</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“基本信息”</strong> 选项卡上，指定以下设置（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>本实验室将使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机名称</td>
+          <td><strong>myVmPrivate</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td><strong>（美国）美国东部</strong></td>
+        </tr>
+        <tr>
+          <td>映像</td>
+          <td><strong>Windows Server 2019 Datacenter - Gen 2</strong></td>
+        </tr>
+        <tr>
+          <td>用户名</td>
+          <td><strong>localadmin</strong></td>
+        </tr>
+        <tr>
+          <td>密码</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+        <tr>
+          <td>公共入站端口</td>
+          <td><strong>无</strong></td>
+        </tr>
+        <tr>
+          <td>已拥有 Windows Server 许可证</td>
+          <td><strong>否</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 对于公共入站端口，我们将依赖于预先创建的 NSG。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 磁盘 &gt;”</strong>，在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“磁盘”</strong> 选项卡上，将 <strong>“OS 磁盘类型”</strong> 设置为 <strong>“标准 HDD”</strong>，然后单击 <strong>“下一步: 网络 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 网络 &gt;”</strong>，在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“网络”</strong> 选项卡上，指定以下设置（其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>专用 (10.0.1.0/24)</strong></td>
+        </tr>
+        <tr>
+          <td>公共 IP</td>
+          <td><strong>(new)myVmPrivate-ip</strong></td>
+        </tr>
+        <tr>
+          <td>NIC 网络安全组</td>
+          <td><strong>无</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 管理 &gt;”</strong> ，在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“管理”</strong> 选项卡中，接受默认设置，然后单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“查看 + 创建”</strong> 边栏选项卡上，请确保验证成功，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 第二个虚拟机将连接到公共子网。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“虚拟机”</strong> 边栏选项卡上，单击 <strong>“+ 添加”</strong>，然后在下拉列表中单击 <strong>“+ 虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“基本信息”</strong> 选项卡上，指定以下设置（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>本实验室将使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>AZ500LAB12</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机名称</td>
+          <td><strong>myVmPublic</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td><strong>（美国）美国东部</strong></td>
+        </tr>
+        <tr>
+          <td>映像</td>
+          <td><strong>Windows Server 2019 Datacenter - Gen 2</strong></td>
+        </tr>
+        <tr>
+          <td>用户名</td>
+          <td><strong>localadmin</strong></td>
+        </tr>
+        <tr>
+          <td>密码</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+        <tr>
+          <td>公共入站端口</td>
+          <td><strong>无</strong></td>
+        </tr>
+        <tr>
+          <td>已拥有 Windows Server 许可证</td>
+          <td><strong>否</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 对于公共入站端口，我们将依赖于预先创建的 NSG。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 磁盘 &gt;”</strong>，在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“磁盘”</strong> 选项卡上，将 <strong>“OS 磁盘类型”</strong> 设置为 <strong>“标准 HDD”</strong>，然后单击 <strong>“下一步: 网络 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 网络 &gt;”</strong>，在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“网络”</strong> 选项卡上，指定以下设置（其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>myVirtualNetwork</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>公共 (10.0.0.0/24)</strong></td>
+        </tr>
+        <tr>
+          <td>公共 IP</td>
+          <td><strong>(new)myVmPublic-ip</strong></td>
+        </tr>
+        <tr>
+          <td>NIC 网络安全组</td>
+          <td><strong>无</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 管理 &gt;”</strong>，在 <strong>“创建虚拟机”</strong> 边栏选项卡的 <strong>“管理”</strong> 选项卡中，接受默认设置，然后单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“查看 + 创建”</strong> 边栏选项卡上，请确保验证成功，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>myVMPrivate</strong> Azure VM 部署完成后就可以继续下一个任务。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-6测试来自专用子网的存储连接以确认允许访问">任务 6：测试来自专用子网的存储连接，以确认允许访问</h4>
+
+<p>在此任务中，你将通过远程桌面连接到 myVMPrivate 虚拟机，并将驱动器映射到文件共享。</p>
+
+<ol>
+  <li>
+    <p>导航回 <strong>“虚拟机”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“虚拟机”</strong> 边栏选项卡上，单击 <strong>“myVMPrivate”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“myVMPrivate”</strong> 边栏选项卡上，单击 <strong>“连接”</strong>，然后在下拉菜单中，单击 <strong>“RDP”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“下载 RDP 文件”</strong>，并通过远程桌面将其连接到 <strong>myVMPrivate</strong> Azure VM。当系统提示你进行验证时，请提供以下凭据：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>用户名</td>
+          <td><strong>localadmin</strong></td>
+        </tr>
+        <tr>
+          <td>密码</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待打开远程桌面会话并加载服务器管理器。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 现在，你将驱动器 Z 映射到 Windows Server 2019 计算机的远程桌面会话中的 Azure 文件共享</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在与 <strong>myVMPrivate</strong> 的远程桌面会话中，单击 <strong>“启动”</strong>，然后单击 <strong>“Windows PowerShell ISE”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>Windows PowerShell ISE</strong> 窗口中，打开 <strong>“脚本”</strong> 窗格，然后粘贴并运行你在本实验室初期记录的 PowerShell 脚本。该脚本具有以下格式：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell"> $connectTestResult = Test-NetConnection -ComputerName &lt;storage_account_name&gt;.file.core.windows.net -Port 445
+ if ($connectTestResult.TcpTestSucceeded) {
+    # Save the password so the drive will persist on reboot
+    cmd.exe /C "cmdkey /add:`"&lt;storage_account_name&gt;.file.core.windows.net`" /user:`"Azure\&lt;storage_account_name&gt;`"  /pass:`"&lt;storage_account_key&gt;`""
+    # Mount the drive
+    New-PSDrive -Name Z -PSProvider FileSystem -Root "\\&lt;storage_account_name&gt;.file.core.windows.net\my-file-share" -Persist
+ } else {
+    Write-Error -Message "Unable to reach the Azure storage account via port 445. Check to make sure your organization or ISP is not blocking port 445, or use Azure P2S VPN, Azure S2S VPN, or Express Route to tunnel SMB traffic over a different port."
+ }
+</code></pre>
+    <blockquote>
+      <p><strong>备注</strong>： 占位符 <code>&lt;storage-account-name&gt;</code> 代表托管文件共享的存储帐户的名称，而 <code>&lt;storage_account_name&gt;</code> 代表它的主键</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>启动“文件资源管理器”，并验证是否已成功创建 Z: 驱动器映射。</p>
+  </li>
+  <li>
+    <p>接下来，在 <strong>Windows PowerShell ISE</strong> 控制台的“控制台”窗格中，运行以下命令以验证虚拟机没有到 Internet 的出站连接：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell"> Test-NetConnection -ComputerName www.bing.com -Port 80
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 测试将失败，因为与专用子网关联的网络安全组不允许到 Internet 的出站访问。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>终止与 <strong>myVMPrivate</strong> Azure VM 的远程桌面会话。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 至此，你已确认专用子网中的虚拟机可以访问存储帐户。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-7测试来自公共子网的存储连接以确认访问被拒绝">任务 7：测试来自公共子网的存储连接，以确认访问被拒绝</h4>
+
+<ol>
+  <li>
+    <p>导航回 <strong>“虚拟机”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“虚拟机”</strong> 边栏选项卡上，单击 <strong>“myVMPublic”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“myVMPublic”</strong> 边栏选项卡上，单击 <strong>“连接”</strong>，然后在下拉菜单中，单击 <strong>“RDP”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“下载 RDP 文件”</strong>，并通过远程桌面将其连接到 <strong>myVMPublic</strong> Azure VM。当系统提示你进行验证时，请提供以下凭据：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>用户名</td>
+          <td><strong>localadmin</strong></td>
+        </tr>
+        <tr>
+          <td>密码</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待打开远程桌面会话并加载服务器管理器。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 现在，你将驱动器 Z 映射到 Windows Server 2019 计算机的远程桌面会话中的 Azure 文件共享</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在与 <strong>myVMPublic</strong> 的远程桌面会话中，单击 <strong>“启动”</strong>，然后单击 <strong>“Windows PowerShell ISE”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>Windows PowerShell ISE</strong> 窗口，打开 <strong>“脚本”</strong> 窗格，然后远程桌面会话中运行的同一 PowerShell 脚本粘贴到 <strong>myVMPrivate</strong> Azure VM 并运行该脚本。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这次会收到 <strong>“New-PSDrive: 访问被拒绝”</strong> 错误。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 访问被拒绝，因为 <em>myVmPublic</em> 虚拟机部署在公共子网。公共子网没有为 Azure 存储启用的服务终结点。该存储帐户仅允许通过专用子网进行网络访问。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>接下来，在 <strong>Windows PowerShell ISE</strong> 控制台的“控制台”窗格中运行以下命令，以确认虚拟机有到 Internet 的出站连接：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell"> Test-NetConnection -ComputerName www.bing.com -Port 80
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 测试将成功，因为没有与公共子网关联的网络安全组。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>终止与 <strong>myVMPublic</strong> Azure VM 的远程桌面会话。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 至此，你已确认公共子网中的虚拟机无法访问存储帐户，但是可以访问 Internet。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<p><strong>清理资源</strong></p>
+
+<blockquote>
+  <p>请记得删除任何新创建而不会再使用的 Azure 资源。删除未使用的资源，确保不产生意外成本。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>单击 Azure 门户右上角的第一个图标，打开 Cloud Shell。如果出现提示，请选择 <strong>“PowerShell”</strong> 和 <strong>“创建储存”</strong>。</p>
+  </li>
+  <li>
+    <p>确保在“Cloud Shell”窗格左上角的下拉菜单中选中 <strong>“PowerShell”</strong>。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 PowerShell 会话中，运行以下命令删除在此实验室中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell"> Remove-AzResourceGroup -Name "AZ500LAB12" -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 <strong>Cloud Shell</strong> 窗格。</p>
+  </li>
+</ol>
+
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-500ZH-AzureSecurityTechnologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-500ZH-AzureSecurityTechnologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#add-a-learned-entity">Add a learned entity</a></li><li class="nav-item"><a class="nav-link" href="#add-a-list-entity">Add a list entity</a></li><li class="nav-item"><a class="nav-link" href="#add-a-prebuilt-entity">Add a prebuilt entity</a></li><li class="nav-item"><a class="nav-link" href="#retrain-the-model">Retrain the model</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="create-a-language-understanding-model-with-the-language-service-preview">Create a language understanding model with the Language service (preview)</h1>
+
+<blockquote>
+  <p><strong>Note</strong>: The conversational language understanding feature of the Language service is currently in preview, and subject to change. In some cases, model training may fail - if this happens, try again.</p>
+</blockquote>
+
+<p>The Language service enables you to define a <em>conversational language understanding</em> model that applications can use to interpret natural language input from users,  predict the users <em>intent</em> (what they want to achieve), and identify any <em>entities</em> to which the intent should be applied.</p>
+
+<p>For example, a language understanding model for a clock application might be expected to process input such as:</p>
+
+<p><em>What is the time in London?</em></p>
+
+<p>This kind of input is an example of an <em>utterance</em> (something a user might say or type), for which the desired <em>intent</em> is to get the time in a specific location (an <em>entity</em>); in this case, London.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: The task of the language understanding model is to predict the user’s intent, and identify any entities to which the intent applies. It is <u>not</u> its job to actually perform the actions required to satisfy the intent. For example, the clock application can use a language app to discern that the user wants to know the time in London; but the client application itself must then implement the logic to determine the correct time and present it to the user.</p>
+</blockquote>
+
+<h2 id="create-a-language-service-resource">Create a Language service resource</h2>
+
+<p>To create a conversational language understanding model, you need a <strong>Language service</strong> resource in a supported region. At the time of writing, only the West US 2 and West Europe regions are supported.</p>
+
+<ol>
+  <li>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>
+    <p>Select the <strong>＋Create a resource</strong> button, search for <em>language</em>, and create a <strong>Language service</strong> resource with the following settings.</p>
+
+    <ul>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Region</strong>: West US 2 or West Europe</li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Pricing tier</strong>: Free (F0) (<em>If this tier is not available, select Standard (S)</em>)</li>
+      <li><strong>Legal Terms</strong>: <em>Agree</em></li>
+      <li><strong>Responsible AI Notice</strong>: <em>Agree</em></li>
+    </ul>
+  </li>
+  <li>Wait for deployment to complete, and then view the deployment details.</li>
+</ol>
+
+<h2 id="create-a-conversational-language-understanding-project">Create a conversational language understanding project</h2>
+
+<p>Now that you have created an authoring resource, you can use it to create a conversational language understanding project.</p>
+
+<ol>
+  <li>In a new browser tab, open the Language Studio portal at <code>https://language.azure.com</code> and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>If prompted to choose a Language resource, select the following settings:
+    <ul>
+      <li><strong>Azure Directory</strong>: The Azure directory containing your subscription.</li>
+      <li><strong>Azure subscription</strong>: Your Azure subscription.</li>
+      <li><strong>Language resource</strong>: The Language resource you created previously.</li>
+    </ul>
+  </li>
+  <li>If you are <u>not</u> prompted to choose a language resource, it may be because you have already assigned a different language resource; in which case:
+    <ol>
+      <li>On the bar at the top if the page, click the <strong>Settings (⚙)</strong> button.</li>
+      <li>On the <strong>Settings</strong> page, view the <strong>Resources</strong> tab.</li>
+      <li>Select the language resource you just created, and click <strong>Switch resource</strong>.</li>
+      <li>At the top of the page, click <strong>Language Studio</strong> to return to the Language Studio home page.</li>
+    </ol>
+  </li>
+  <li>At the top of the portal, in the <strong>Create new</strong> menu, select <strong>Conversational language understanding</strong>.</li>
+  <li>In the <strong>Create a project</strong> dialog box, in the <strong>Choose project type</strong> page, select <strong>Conversation</strong> and click <strong>Next</strong>.</li>
+  <li>On the <strong>Enter basic information</strong> page, enter the following details and click <strong>Next</strong>:
+    <ul>
+      <li><strong>Name</strong>: <code>Clock</code></li>
+      <li><strong>Description</strong>: <code>Natural language clock</code></li>
+      <li><strong>Utterances primary language</strong>: English</li>
+      <li><strong>Enable multiple languages in project?</strong>: <em>Unselected</em></li>
+    </ul>
+  </li>
+  <li>On the <strong>Review and finish</strong> page, click <strong>Create</strong>.</li>
+</ol>
+
+<h2 id="create-intents">Create intents</h2>
+
+<p>The first thing we’ll do in the new project is to define some intents.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>: When working on your project, if some tips are displayed, read them and click <strong>Got it</strong> to dismiss them, or click <strong>Skip all</strong>.</p>
+</blockquote>
+
+<ol>
+  <li>On the <strong>Build schema</strong> page, on the <strong>Intents</strong> tab, select <strong>＋ Add</strong> to add a new intent named <strong>GetTime</strong>.</li>
+  <li>
+    <p>Click the new <strong>GetTime</strong> intent to edit it, add the following utterances as example user input:</p>
+
+    <p><code>what is the time?</code></p>
+
+    <p><code>what's the time?</code></p>
+
+    <p><code>what time is it?</code></p>
+
+    <p><code>tell me the time</code></p>
+  </li>
+  <li>
+    <p>After you’ve added these utterances, click <strong>Save changes</strong> and go back to the <strong>Build schema</strong> page.</p>
+  </li>
+  <li>
+    <p>Add another new intent named <strong>GetDay</strong> with the following utterances:</p>
+
+    <p><code>what day is it?</code></p>
+
+    <p><code>what's the day?</code></p>
+
+    <p><code>what is the day today?</code></p>
+
+    <p><code>what day of the week is it?</code></p>
+  </li>
+  <li>
+    <p>After you’ve added these utterances and saved them, go back to the <strong>Build schema</strong> page and add another new intent named <strong>GetDate</strong> with the following utterances:</p>
+
+    <p><code>what date is it?</code></p>
+
+    <p><code>what's the date?</code></p>
+
+    <p><code>what is the date today?</code></p>
+
+    <p><code>what's today's date?</code></p>
+  </li>
+  <li>After you’ve added these utterances, save them and clear the <strong>GetDate</strong> filter on the utterances page so you can see all of the utterances for all of the intents.</li>
+</ol>
+
+<h2 id="train-and-test-the-model">Train and test the model</h2>
+
+<p>Now that you’ve added some intents, let’s train the language model and see if it can correctly predict them from user input.</p>
+
+<ol>
+  <li>In the pane on the left, select the <strong>Train model</strong> page and select the option to train a new model, naming it <strong>Clock</strong> and ensuring that the option to run evaluation when training is selected. Click <strong>Train</strong> to train the model.</li>
+  <li>
+    <p>When training is complete (which may take some time), view the <strong>View model details</strong> page and select the <strong>Clock</strong> model. Then view the overall and per-intent evaluation metrics (<em>precision</em>, <em>recall</em>, and <em>F1 score</em>) and the <em>confusion matrix</em> generated by the evaluation that was performed when training (note that due to the small number of sample utterances, not all intents may be included in the results).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: To learn more about the evaluation metrics, refer to the <a href="https://docs.microsoft.com/azure/cognitive-services/language-service/conversational-language-understanding/concepts/evaluation-metrics">documentation</a></p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Deploy model</strong> page, select the <strong>Clock</strong> model and deploy it. This may take some time.</li>
+  <li>When the model has been deployed, on the <strong>Test model</strong> page, select the <strong>Clock</strong> model.</li>
+  <li>
+    <p>Enter the following text, and then click <strong>Run the test</strong>:</p>
+
+    <p><code>what's the time now?</code></p>
+
+    <p>Review the result that is returned, noting that it includes the predicted intent (which should be <strong>GetTime</strong>) and a confidence score that indicates the probability the model calculated for the predicted intent. The JSON tab shows the comparative confidence for each potential intent (the one with the highest confidence score is the predicted intent)</p>
+  </li>
+  <li>
+    <p>Clear the text box, and then run another test with the following text:</p>
+
+    <p><code>tell me the time</code></p>
+
+    <p>Again, review the predicted intent and confidence score.</p>
+  </li>
+  <li>
+    <p>Try the following text:</p>
+
+    <p><code>what's the day today?</code></p>
+
+    <p>Hopefully the model predicts the <strong>GetDay</strong> intent.</p>
+  </li>
+</ol>
+
+<h2 id="add-entities">Add entities</h2>
+
+<p>So far you’ve defined some simple utterances that map to intents. Most real applications include more complex utterances from which specific data entities must be extracted to get more context for the intent.</p>
+
+<h3 id="add-a-learned-entity">Add a <em>learned</em> entity</h3>
+
+<p>The most common kind of entity is a <em>learned</em> entity, in which the model learns to identify entity values based on examples.</p>
+
+<ol>
+  <li>In Language Studio, return to the <strong>Build schema</strong> page and then on the <strong>Entities</strong> tab, select <strong>＋ Add</strong> to add a new entity.</li>
+  <li>In the <strong>Add an entity</strong> dialog box, enter the entity name <strong>Location</strong> and ensure that <strong>Learned</strong> is selected. Then click <strong>Add entity</strong>.</li>
+  <li>After the <strong>Location</strong> entity has been created, return to the <strong>Build schema</strong> page and then on the <strong>Intents</strong> tab, select the <strong>GetTime</strong> intent.</li>
+  <li>
+    <p>Enter the following new example utterance:</p>
+
+    <p><code>what time is it in London?</code></p>
+  </li>
+  <li>When the utterance has been added, select the word <strong><em>London</em></strong>, and in the drop-down list that appears, select <strong>Location</strong> to indicate that “London” is an example of a location.</li>
+  <li>
+    <p>Add another example utterance:</p>
+
+    <p><code>Tell me the time in Paris?</code></p>
+  </li>
+  <li>When the utterance has been added, select the word <strong><em>Paris</em></strong>, and map it to the <strong>Location</strong> entity.</li>
+  <li>
+    <p>Add another example utterance:</p>
+
+    <p><code>what's the time in New York?</code></p>
+  </li>
+  <li>
+    <p>When the utterance has been added, select the words <strong><em>New York</em></strong>, and map them to the <strong>Location</strong> entity.</p>
+  </li>
+  <li>Click <strong>Save changes</strong> to save the new utterances.</li>
+</ol>
+
+<h3 id="add-a-list-entity">Add a <em>list</em> entity</h3>
+
+<p>In some cases, valid values for an entity can be restricted to a list of specific terms and synonyms; which can help the app identify instances of the entity in utterances.</p>
+
+<ol>
+  <li>In Language Studio, return to the <strong>Build schema</strong> page and then on the <strong>Entities</strong> tab, select <strong>＋ Add</strong> to add a new entity.</li>
+  <li>In the <strong>Add an entity</strong> dialog box, enter the entity name <strong>Weekday</strong> and select the <strong>List</strong> entity type. Then click <strong>Add entity</strong>.</li>
+  <li>
+    <p>in the page for the <strong>Weekday</strong> entity, in the <strong>List</strong> section, click <strong>＋ Add new list</strong>. Then enter the following value and synonym and click <strong>Save</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Value</th>
+          <th>synonyms</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>sunday</td>
+          <td>sun</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Repeat the previous step to add the following list components:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Value</th>
+          <th>synonyms</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Monday</td>
+          <td>Mon</td>
+        </tr>
+        <tr>
+          <td>Tuesday</td>
+          <td>Tue, Tues</td>
+        </tr>
+        <tr>
+          <td>Wednesday</td>
+          <td>Wed, Weds</td>
+        </tr>
+        <tr>
+          <td>Thursday</td>
+          <td>Thur, Thurs</td>
+        </tr>
+        <tr>
+          <td>Friday</td>
+          <td>Fri</td>
+        </tr>
+        <tr>
+          <td>Saturday</td>
+          <td>Sat</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Return to the <strong>Build schema</strong> page and then on the <strong>Intents</strong> tab, select the <strong>GetDate</strong> intent.</li>
+  <li>
+    <p>Enter the following new example utterance:</p>
+
+    <p><code>what date was it on Saturday?</code></p>
+  </li>
+  <li>When the utterance has been added, select the word <strong><em>Saturday</em></strong>, and in the drop-down list that appears, select <strong>Weekday</strong>.</li>
+  <li>
+    <p>Add another example utterance:</p>
+
+    <p><code>what date will it be on Friday?</code></p>
+  </li>
+  <li>
+    <p>When the utterance has been added, map <strong>Friday</strong> to the <strong>Weekday</strong> entity.</p>
+  </li>
+  <li>
+    <p>Add another example utterance:</p>
+
+    <p><code>what will the be on Thurs?</code></p>
+  </li>
+  <li>
+    <p>When the utterance has been added, map <strong>Thurs</strong> to the <strong>Weekday</strong> entity.</p>
+  </li>
+  <li>Click <strong>Save changes</strong> to save the new utterances.</li>
+</ol>
+
+<h3 id="add-a-prebuilt-entity">Add a <em>prebuilt</em> entity</h3>
+
+<p>The Language service provides a set of <em>prebuilt</em> entities that are commonly used in conversational applications.</p>
+
+<ol>
+  <li>In Language Studio, return to the <strong>Build schema</strong> page and then on the <strong>Entities</strong> tab, select <strong>＋ Add</strong> to add a new entity.</li>
+  <li>In the <strong>Add an entity</strong> dialog box, enter the entity name <strong>Date</strong> and select the <strong>prebuilt</strong> entity type. Then click <strong>Add entity</strong>.</li>
+  <li>On the page for the <strong>Date</strong> entity, in the <strong>Prebuilt</strong> section, click <strong>＋ Add new prebuilt</strong>.</li>
+  <li>In the <strong>Select prebuilt</strong> list, select <strong>DateTime</strong> and then click <strong>Save</strong>.</li>
+  <li>Return to the <strong>Build schema</strong> page and then on the <strong>Intents</strong> tab, select the <strong>GetDay</strong> intent.</li>
+  <li>
+    <p>Enter the following new example utterance:</p>
+
+    <p><code>what day was 01/01/1901?</code></p>
+  </li>
+  <li>When the utterance has been added, select <strong><em>01/01/1901</em></strong>, and in the drop-down list that appears, select <strong>Date</strong>.</li>
+  <li>
+    <p>Add another example utterance:</p>
+
+    <p><code>what day will it be on Dec 31st 2099?</code></p>
+  </li>
+  <li>
+    <p>When the utterance has been added, map <strong>Dec 31st 2099</strong> to the <strong>Date</strong> entity.</p>
+  </li>
+  <li>Click <strong>Save changes</strong> to save the new utterances.</li>
+</ol>
+
+<h3 id="retrain-the-model">Retrain the model</h3>
+
+<p>Now that you’ve modified the schema, you need to retrain and retest the mode.</p>
+
+<ol>
+  <li>On the <strong>Train model</strong> page, select the option to overwrite an existing model and specify the <strong>Clock</strong> model. Ensure that the option to run evaluation when training is selected and click <strong>Train</strong> to train the model; confirming you want to overwrite the existing model.</li>
+  <li>When training is complete (which may take some time), view the <strong>View model details</strong> page and select the <strong>Clock</strong> model. Then view the overall, per-entity, and per-intent evaluation metrics (<em>precision</em>, <em>recall</em>, and <em>F1 score</em>) and the <em>confusion matrix</em> generated by the evaluation that was performed when training (note that due to the small number of sample utterances, not all intents may be included in the results).</li>
+  <li>On the <strong>Deploy model</strong> page, select the <strong>Clock</strong> model and deploy it. This may take some time.</li>
+  <li>
+    <p>When the app is deployed, on the <strong>Test model</strong> page, select the <strong>Clock</strong> model, and then test it with the following text:</p>
+
+    <p><code>what's the time in Edinburgh?</code></p>
+  </li>
+  <li>Review the result that is returned, which should hopefully predict the <strong>GetTime</strong> intent and a <strong>Location</strong> entity with the text value “Edinburgh”.</li>
+  <li>
+    <p>Try testing the following utterances:</p>
+
+    <p><code>what time is it in Tokyo?</code></p>
+
+    <p><code>what date is it on Friday?</code></p>
+
+    <p><code>what's the date on Weds?</code></p>
+
+    <p><code>what day was 01/01/2020?</code></p>
+
+    <p><code>what day will Mar 7th 2030 be?</code></p>
+  </li>
+</ol>
+
+<h2 id="use-the-model-from-a-client-app">Use the model from a client app</h2>
+
+<p>In a real project, you’d iteratively refine intents and entities, retrain, and retest until you are satisfied with the predictive performance. Then, when you’ve tested it and are satisfied with its predictive performance, you can use it in a client app by calling its REST interface. In this exercise, you’ll use the <em>curl</em> utility to call the REST endpoint for your model.</p>
+
+<ol>
+  <li>In Language Studio, on the <strong>Deploy model</strong> page, select the <strong>Clock</strong> model. Then click <strong>Get prediction URL</strong>.</li>
+  <li>In the <strong>Get prediction URL</strong> dialog box, note that the URL for the prediction endpoint is shown along with a sample request, which consists of a <strong>curl</strong> command that submits an HTTP POST request to the endpoint, specifying the key for your Language resource in the header and including a query and language in the request data.</li>
+  <li>Copy the sample request, and paste it into your preferred text editor (for example Notepad).</li>
+  <li>Replace the following placeholders:
+    <ul>
+      <li><strong>YOUR_QUERY_HERE</strong>: <em>What’s the time in Sydney</em></li>
+      <li><strong>QUERY_LANGUAGE_HERE</strong>: <em>EN</em></li>
+    </ul>
+
+    <p>The command should resemble the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"> curl -X POST "https://some-name.cognitiveservices.azure.com/language/:<span class="hljs-keyword"><span class="hljs-keyword">analyze</span></span>-conversations?projectName=Clock&amp;deploymentName=production&amp;api-<span class="hljs-keyword"><span class="hljs-keyword">version</span></span>=<span class="hljs-number"><span class="hljs-number">2021</span></span><span class="hljs-number"><span class="hljs-number">-11</span></span><span class="hljs-number"><span class="hljs-number">-01</span></span>-preview<span class="hljs-string"><span class="hljs-string">" -H "</span></span>Ocp-Apim-Subscription-<span class="hljs-keyword"><span class="hljs-keyword">Key</span></span>: <span class="hljs-number"><span class="hljs-number">0</span></span>ab1c23de4f56...<span class="hljs-string"><span class="hljs-string">"  -H "</span></span>Apim-Request-<span class="hljs-keyword"><span class="hljs-keyword">Id</span></span>: <span class="hljs-number"><span class="hljs-number">9</span></span>zy8x76wv5u43....<span class="hljs-string"><span class="hljs-string">" -H "</span></span><span class="hljs-keyword"><span class="hljs-keyword">Content</span></span>-<span class="hljs-keyword"><span class="hljs-keyword">Type</span></span>: application/<span class="hljs-keyword"><span class="hljs-keyword">json</span></span><span class="hljs-string"><span class="hljs-string">" -d "</span></span>{\<span class="hljs-string"><span class="hljs-string">"verbose\":true,\"query\":\"What's the time in Sydney?\",\"language\":\"EN\"}"</span></span>
+</code></pre>
+  </li>
+  <li>Open a command prompt (Windows) or bash shell (Linux/Mac).</li>
+  <li>Copy and paste the edited curl command to your command line interface and run it.</li>
+  <li>
+    <p>View the resulting JSON, which should include the predicted intent and entities, like this:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs json"> {<span class="hljs-attr"><span class="hljs-attr">"query"</span></span>:<span class="hljs-string"><span class="hljs-string">"What's the time in Sydney?"</span></span>,<span class="hljs-attr"><span class="hljs-attr">"prediction"</span></span>:{<span class="hljs-attr"><span class="hljs-attr">"topIntent"</span></span>:<span class="hljs-string"><span class="hljs-string">"GetTime"</span></span>,<span class="hljs-attr"><span class="hljs-attr">"projectKind"</span></span>:<span class="hljs-string"><span class="hljs-string">"conversation"</span></span>,<span class="hljs-attr"><span class="hljs-attr">"intents"</span></span>:[{<span class="hljs-attr"><span class="hljs-attr">"category"</span></span>:<span class="hljs-string"><span class="hljs-string">"GetTime"</span></span>,<span class="hljs-attr"><span class="hljs-attr">"confidenceScore"</span></span>:<span class="hljs-number"><span class="hljs-number">0.9998859</span></span>},{<span class="hljs-attr"><span class="hljs-attr">"category"</span></span>:<span class="hljs-string"><span class="hljs-string">"GetDate"</span></span>,<span class="hljs-attr"><span class="hljs-attr">"confidenceScore"</span></span>:<span class="hljs-number"><span class="hljs-number">9.8372206E-05</span></span>},{<span class="hljs-attr"><span class="hljs-attr">"category"</span></span>:<span class="hljs-string"><span class="hljs-string">"GetDay"</span></span>,<span class="hljs-attr"><span class="hljs-attr">"confidenceScore"</span></span>:<span class="hljs-number"><span class="hljs-number">1.5763446E-05</span></span>}],<span class="hljs-attr"><span class="hljs-attr">"entities"</span></span>:[{<span class="hljs-attr"><span class="hljs-attr">"category"</span></span>:<span class="hljs-string"><span class="hljs-string">"Location"</span></span>,<span class="hljs-attr"><span class="hljs-attr">"text"</span></span>:<span class="hljs-string"><span class="hljs-string">"Sydney"</span></span>,<span class="hljs-attr"><span class="hljs-attr">"offset"</span></span>:<span class="hljs-number"><span class="hljs-number">19</span></span>,<span class="hljs-attr"><span class="hljs-attr">"length"</span></span>:<span class="hljs-number"><span class="hljs-number">6</span></span>,<span class="hljs-attr"><span class="hljs-attr">"confidenceScore"</span></span>:<span class="hljs-number"><span class="hljs-number">1</span></span>}]}}
+</code></pre>
+  </li>
+  <li>Review the JSON response returned by your app, which should indicate the top scoring intent predicted for your input (which should be <strong>GetTime</strong>).</li>
+  <li>Change the query in the curl command to <code>What's today's date?</code> and then run it and review the resulting JSON.</li>
+  <li>
+    <p>Try the following queries:</p>
+
+    <p><code>What day will Jan 1st 2050 be?</code></p>
+
+    <p><code>What time is it in Glasgow?</code></p>
+
+    <p><code>What date will next Monday be?</code></p>
+  </li>
+</ol>
+
+<h2 id="export-the-project">Export the project</h2>
+
+<p>You can use Language Studio to develop and test your language understanding model, but in a software development process for DevOps, you should maintain a source controlled definition of the project that can be included in continuous integration and delivery (CI/CD) pipelines. While you <em>can</em> use the Language REST API in code scripts to create and train the model, a simpler way is to use the portal to create the model schema, and export it as a <em>.json</em> file that can be imported and retrained in another Language service instance. This approach enables you to make use of the productivity benefits of the Language Studio visual interface while maintaining portability and reproducibility for the model.</p>
+
+<ol>
+  <li>In Language Studio, on the <strong>Projects</strong> page, selct the <strong>Clock (Conversation)</strong> project.</li>
+  <li>Click the <strong>⤓ Export</strong> button.</li>
+  <li>Save the <strong>Clock.json</strong> file that is generated (anywhere you like).</li>
+  <li>Open the downloaded file in your favorite code editor (for example, Visual Studio Code) to review the JSON definition of your project.</li>
+</ol>
+
+<h2 id="more-information">More information</h2>
+
+<p>For more information about using the <strong>Language</strong> service to create conversational language understanding solutions, see the <a href="https://docs.microsoft.com/azure/cognitive-services/language-service/conversational-language-understanding/overview">Language service documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

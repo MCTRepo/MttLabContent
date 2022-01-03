@@ -1,0 +1,841 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104ZH-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104ZH-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1">练习 1</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-10---备份虚拟机">实验室 10 - 备份虚拟机</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你的任务是对使用 Azure 恢复服务来备份和还原 Azure 虚拟机和本地计算机上托管的文件这一过程进行评估。此外，你还想确定保护恢复服务保管库中所存储数据的方法，以防意外或恶意行为造成的数据丢失。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>在本实验室中，你将：</p>
+
+<ul>
+  <li>任务 1：预配实验室环境</li>
+  <li>任务 2：创建恢复服务保管库</li>
+  <li>任务 3：实现 Azure 虚拟机级备份</li>
+  <li>任务 4：实现文件和文件夹备份</li>
+  <li>任务 5：通过使用 Azure 恢复服务代理执行文件恢复</li>
+  <li>任务 6：通过使用 Azure 虚拟机快照执行文件恢复（可选）</li>
+  <li>任务 7：查看 Azure 恢复服务软删除功能（可选）</li>
+</ul>
+
+<h2 id="预计用时50-分钟">预计用时：50 分钟</h2>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="练习-1">练习 1</h3>
+
+<h4 id="任务-1预配实验室环境">任务 1：预配实验室环境</h4>
+
+<p>在此任务中，你将部署两台虚拟机用于测试不同的备份方案。</p>
+
+<ol>
+  <li>
+    <p>登录到 <a href="https://portal.azure.com">Azure 门户</a>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，单击 Azure 门户右上方的图标，打开 <strong>Azure Cloud Shell</strong>。</p>
+  </li>
+  <li>
+    <p>提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong> 时，选择 <strong>“PowerShell”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果这是第一次启动 <strong>Cloud Shell</strong>，并看到 <strong>“未装载任何存储”</strong> 消息，请选择在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的工具栏中，单击 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中，单击 <strong>“上传”</strong> 并将文件 <strong>\Allfiles\Labs\10\az104-10-vms-edge-template.json</strong> 和 <strong>\Allfiles\Labs\10\az104-10-vms-edge-parameters.json</strong> 上传到 Cloud Shell 主目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建托管虚拟机的资源组（将 <code>[Azure_region]</code> 占位符替换为你打算将 Azure 虚拟机部署到的 Azure 区域的名称）。分别键入每个命令行并分别执行：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location = '[Azure_region]'
+</code></pre>
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">$rgName = 'az104-10-rg0'
+</code></pre>
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">New-AzResourceGroup -Name $rgName -Location $location
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令创建第一个虚拟网络，并使用上传的模板和参数文件将虚拟机部署到其中：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-10-vms-edge-template.json `
+   -TemplateParameterFile $HOME/az104-10-vms-edge-parameters.json `
+   -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>最小化 Cloud Shell（但不要将其关闭）。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 不要等待部署完成，而是继续执行下一个任务。该部署大约需要 5 分钟。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2创建恢复服务保管库">任务 2：创建恢复服务保管库</h4>
+
+<p>在此任务中，你将创建恢复服务保管库。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>恢复服务保管库</strong>”，然后在“<strong>恢复服务保管库</strong>”边栏选项卡上，单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建恢复服务保管库”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td>新资源组名称 <strong>az104-10-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>保管库名称</td>
+          <td><strong>az104-10-rsv1</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>在上一个任务中部署两台虚拟机的区域的名称</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>注意</strong>： 确保指定与上一个任务中部署虚拟机的区域相同的区域。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“查看 + 创建”</strong>，确保通过验证并单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待部署完成。部署时间应少于 1 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>部署完成后，单击 <strong>“前往资源”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>az104-10-rsv1</strong> 恢复服务保管库边栏选项上的 <strong>“设置”</strong> 部分，单击 <strong>“属性”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-rsv1 - 属性”</strong> 边栏选项卡中，在 <strong>“备份配置”</strong> 标签下单击 <strong>“更新”</strong> 链接。</p>
+  </li>
+  <li>
+    <p>在 <strong>“备份配置”</strong> 边栏选项卡上，请注意，可以将 <strong>“存储复制类型”</strong> 设置为 <strong>“本地冗余”</strong> 或 <strong>“异地冗余”</strong>。保留 <strong>“异地冗余”</strong> 默认设置，关闭边栏选项卡。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 只有不存在现有备份项目时才能配置此设置。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>返回 <strong>“az104-10-rsv1 - 属性”</strong> 边栏选项卡，在 <strong>“安全设置”</strong> 标签下单击 <strong>“更新”</strong> 链接。</p>
+  </li>
+  <li>
+    <p>在 <strong>“安全设置”</strong> 边栏选项卡上，请注意， <strong>“软删除(适用于 Azure 虚拟机)”</strong> 为 <strong>“已启用”</strong>。</p>
+  </li>
+  <li>
+    <p>关闭 <strong>“安全设置”</strong> 边栏选项卡，然后返回 <strong>az104-10-rsv1</strong> “恢复服务保管库”边栏选项卡，单击 <strong>“概述”</strong>。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3实现-azure-虚拟机级备份">任务 3：实现 Azure 虚拟机级备份</h4>
+
+<p>在此任务中，你将实现 Azure 虚拟机级备份。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 开始本任务之前，请确保在本实验室第一个任务中开始的部署已顺利完成。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 <strong>“az104-10-rsv1”</strong> 恢复服务保管库边栏选项卡上，依次单击 <strong>“概述”</strong> 和 <strong>“+ 备份”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“备份目标”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>工作负载在哪里运行？</td>
+          <td><strong>Azure</strong></td>
+        </tr>
+        <tr>
+          <td>想要备份什么？</td>
+          <td><strong>虚拟机</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“备份目标”</strong> 边栏选项卡上，单击 <strong>“备份”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“备份策略”</strong> 上，查看 <strong>“DefaultPolicy”</strong> 设置并选择 <strong>“创建新策略”</strong>。</p>
+  </li>
+  <li>
+    <p>使用以下设置定义新备份策略（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>策略名称</td>
+          <td><strong>az104-10-backup-policy</strong></td>
+        </tr>
+        <tr>
+          <td>频率</td>
+          <td><strong>每日</strong></td>
+        </tr>
+        <tr>
+          <td>时间</td>
+          <td><strong>0:00</strong></td>
+        </tr>
+        <tr>
+          <td>时区</td>
+          <td>当地时区的名称</td>
+        </tr>
+        <tr>
+          <td>即时恢复快照保留时间</td>
+          <td><strong>2</strong> 天</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“确定”</strong> 以创建策略，然后在 <strong>“虚拟机”</strong> 部分选择 <strong>“添加”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择虚拟机”</strong> 边栏选项卡上，选择 <strong>“az-104-10-vm0”</strong>，单击 <strong>“确定”</strong>，然后返回 <strong>“备份”</strong> 边栏选项卡，单击 <strong>“启用备份”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待启用备份。该操作需约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>导航回 <strong>“az104-10-rsv1”</strong> 恢复服务保管库边栏选项卡，然后在 <strong>“受保护项目”</strong> 部分，单击 <strong>“备份项目”</strong>，再单击 <strong>“Azure 虚拟机”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>az104-10-vm0</strong> 的“<strong>备份项目(Azure 虚拟机)</strong>”边栏选项卡上，查看“<strong>备份预检查</strong>”和“<strong>上次备份状态</strong>”条目的值。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-vm0”</strong> 备份项目边栏选项卡上，单击 <strong>“立即备份”</strong>，接受 <strong>“保留备份截止日期”</strong> 下拉列表中的默认值，然后单击 <strong>“确定”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 不要等待备份完成，而是继续执行下一个任务。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4实现文件和文件夹备份">任务 4：实现文件和文件夹备份</h4>
+
+<p>在此任务中，你将使用 Azure 恢复服务实现文件和文件夹备份。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟机”</strong>，并且在 <strong>“虚拟机”</strong> 边栏选项卡上，单击 <strong>“az104-10-vm1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-vm1”</strong> 边栏选项卡上，单击 <strong>“连接”</strong>，然后在下拉菜单中，单击 <strong>“RDP”</strong>，再在 <strong>“与 RDP 连接”</strong> 边栏选项卡上，单击 <strong>“下载 RDP 文件”</strong> 并按照提示启动远程桌面会话。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 此步骤是指在 Windows 计算机中通过远程桌面进行连接。在 Mac 上，可以使用 Mac App Store 中的远程桌面客户端，而在 Linux 计算机上，可以使用开源 RDP 客户端软件。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 连接到目标虚拟机时，可以忽略任何警告提示。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>出现提示时，请使用用户名 <strong>“Student”</strong> 和密码 <strong>“Pa55w.rd1234”</strong> 登录。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 由于 Azure 门户不再支持 IE11，所以必须使用 Microsoft Edge 浏览器来完成此项任务。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>az104-10-vm1</strong> Azure 虚拟机的远程桌面会话中，启动 Edge 浏览器，浏览到 <a href="https://portal.azure.com">Azure 门户</a>，然后使用凭据登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“恢复服务保管库”</strong>，然后在 <strong>“恢复服务保管库”</strong> 中单击 <strong>“az104-10-rsv1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-rsv1”</strong> 恢复服务保管库边栏选项卡上，单击 <strong>“+ 备份”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“备份目标”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>工作负载在哪里运行？</td>
+          <td><strong>本地</strong></td>
+        </tr>
+        <tr>
+          <td>想要备份什么？</td>
+          <td><strong>文件和文件夹</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 即使在此任务中使用的虚拟机在 Azure 中运行，也可以利用它来评估适用于任何运行 Windows Server 操作系统的本地计算机的备份功能。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“备份目标”</strong> 边栏选项卡上，单击 <strong>“准备基础结构”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“准备基础结构”</strong> 边栏选项卡上，单击 <strong>“下载 Windows Server 或 Windows 客户端的代理”</strong> 链接。</p>
+  </li>
+  <li>
+    <p>出现提示时，单击 <strong>“运行”</strong> 以默认设置开始安装 <strong>MARSAgentInstaller.exe</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在 <strong>“Microsoft Azure 恢复服务代理安装向导”</strong> 的 <strong>“Microsoft Update 选择加入”</strong> 页面 ，选择 <strong>“我不想使用 Microsoft Update”</strong> 安装选项。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“Microsoft Azure 恢复服务代理安装向导”</strong> 的 <strong>“安装”</strong> 页面，单击 <strong>“继续注册”</strong>。这将启动 <strong>“注册服务器向导”</strong>。</p>
+  </li>
+  <li>
+    <p>切换到显示 Azure 门户的 Web 浏览器窗口，在 <strong>“准备基础结构”</strong> 边栏选项卡上，选中 <strong>“已下载或使用最新的恢复服务器代理”</strong> 复选框，然后单击 <strong>“下载”</strong>。</p>
+  </li>
+  <li>
+    <p>提示选择要打开还是保存保管库凭据文件时，请单击 <strong>“保存”</strong>。这会将保管库凭据文件保存到本地的“下载”文件夹。</p>
+  </li>
+  <li>
+    <p>切换回 <strong>“注册服务器向导”</strong> 窗口，在 <strong>“保管库标识”</strong> 页面上，单击 <strong>“浏览”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择保管库凭据”</strong> 对话框中，浏览到 <strong>“资料下载”</strong> 文件夹，单击所下载的保管库凭据文件，然后单击 <strong>“打开”</strong>。</p>
+  </li>
+  <li>
+    <p>返回 <strong>“保管库标识”</strong> 页面，单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“注册服务器向导”</strong> 的 <strong>“加密设置”</strong> 页面上，单击 <strong>“生成密码”</strong>。</p>
+  </li>
+  <li>
+    <p>在<strong>注册服务器向导的</strong>“<strong>加密设置</strong>”页面上，单击“<strong>输入保存密码的位置</strong>”旁边的“<strong>浏览</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>在 <strong>“浏览文件夹”</strong> 对话框中，选择 <strong>“文档”</strong> 文件夹，然后单击 <strong>“确定”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“完成”</strong>，查看 <strong>“Microsoft Azure 备份”</strong> 警告并单击 <strong>“是”</strong>，然后等待注册完成。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在生产环境中，应该将密码文件存储在除备份服务器之外的安全位置。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“注册服务器向导”</strong> 的 <strong>“服务器注册”</strong> 页面上，查看有关密码文件位置的警告，确保选中 <strong>“启动 Microsoft Azure 恢复服务代理”</strong> 复选框，然后单击 <strong>“关闭”</strong>。这会自动打开 <strong>“Microsoft Azure 备份”</strong> 控制台。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Microsoft Azure 备份”</strong> 控制台的 <strong>“操作”</strong> 窗格中，单击 <strong>“计划备份”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“计划备份向导”</strong> 的 <strong>“入门”</strong> 页面上，单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择备份项目”</strong> 页面上，单击 <strong>“添加项目”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择项目”</strong> 对话框中，展开 <strong>C:\Windows\System32\drivers\etc\</strong>，选择 <strong>“hosts”</strong>，然后单击 <strong>“确定”</strong>：</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择备份项目”</strong> 页面上，单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“指定备份计划”</strong> 页面上，确保选择 <strong>“天”</strong> 选项，然后在 <strong>“在以下时间(每天最多三个时间)”</strong> 方框下的第一个下拉列表框中，选择 <strong>“凌晨 4:30”</strong>，然后单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择保留策略”</strong> 页面上，接受默认设置，然后单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择初始备份类型”</strong> 页面上，接受默认设置，然后单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“确认”</strong> 页面上，单击 <strong>“完成”</strong>。创建备份计划后，单击 <strong>“关闭”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Microsoft Azure 备份”</strong> 控制台的“操作”窗格中，单击 <strong>“立即备份”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 创建计划的备份后，可以使用按需运行备份的选项。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“立即备份”向导的 <strong>“选择备份项目”</strong> 页面上，确保选中 <strong>“文件和文件夹”</strong> 选项并单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“保留备份截止日期”</strong> 页面上，接受默认设置，然后单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“确认”</strong> 页面上，单击 <strong>“备份”</strong>。</p>
+  </li>
+  <li>
+    <p>备份完成后，单击 <strong>“关闭”</strong>，然后关闭“Microsoft Azure 备份”。</p>
+  </li>
+  <li>
+    <p>切换到显示 Azure 门户的 Web 浏览器窗口，导航回 <strong>“恢复服务保管库”</strong> 边栏选项卡，在 <strong>“受保护项目”</strong> 部分，单击 <strong>“备份项目”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-rsv1 - 备份项目”</strong> 边栏选项卡上，单击 <strong>“Azure 备份代理”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“备份项目(Azure 备份代理)”</strong> 边栏选项卡上，验证是否存在引用 <strong>“az104-10-vm1”</strong> 的 <strong>C:\</strong> 驱动器的条目。</p>
+  </li>
+</ol>
+
+<h4 id="任务-5通过使用-azure-恢复服务代理来执行文件恢复可选">任务 5：通过使用 Azure 恢复服务代理来执行文件恢复（可选）</h4>
+
+<p>在此任务中，你将使用 Azure 恢复服务代理执行文件还原。</p>
+
+<ol>
+  <li>
+    <p>在 <strong>az104-10-vm1</strong> 的远程桌面会话中，打开文件资源管理器，导航到 <strong>“C:\Windows\System32\drivers\etc\”</strong> 文件夹并删除 <strong>hosts</strong> 文件。</p>
+  </li>
+  <li>
+    <p>打开 Microsoft Azure 备份，然后在 <strong>“操作”</strong> 窗格中单击 <strong>“恢复数据”</strong>。这将启动 <strong>“恢复数据向导”</strong>。</p>
+  </li>
+  <li>
+    <p>在恢复数据向导的 <strong>“入门”</strong> 页面上，确保选中 <strong>“此服务器(az104-10-vm1.)”</strong> 选项并单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择恢复模式”</strong> 页面上，确保选中 <strong>“单个文件和文件夹”</strong> 选项并单击 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择卷和日期”</strong> 页面的 <strong>“选择卷”</strong> 下拉列表中，选择 <strong>“C:\”</strong>，接受可用备份的默认选择，然后单击 <strong>“装载”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 等待装载操作完成。该操作需要约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“浏览和恢复文件”</strong> 页面上，记下恢复卷的驱动器号，并查看有关使用 robocopy 的提示。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“开始”</strong> ，展开 <strong>“Windows 系统”</strong> 文件夹，然后单击 <strong>“命令提示符”</strong>。</p>
+  </li>
+  <li>
+    <p>在命令提示符下，运行以下命令以复制还原 <strong>“hosts”</strong> 文件到原始位置（用先前确定的恢复卷的驱动器号替换 <code>[recovery_volume]</code>）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">robocopy [recovery_volume]:\Windows\System32\drivers\etc C:\Windows\system32\drivers\etc hosts /r:1 /w:1
+</code></pre>
+  </li>
+  <li>
+    <p>切换回 <strong>“恢复数据向导”</strong>，然后在 <strong>“浏览和恢复文件”</strong> 中单击 <strong>“卸载”</strong>，并在提示确认时单击 <strong>“是”</strong>。</p>
+  </li>
+  <li>
+    <p>终止远程桌面会话。</p>
+  </li>
+</ol>
+
+<h4 id="任务-6通过使用-azure-虚拟机快照执行文件恢复可选">任务 6：通过使用 Azure 虚拟机快照执行文件恢复（可选）</h4>
+
+<p>在此任务中，你将从基于 Azure 虚拟机级快照的备份中还原文件。</p>
+
+<ol>
+  <li>
+    <p>切换到在实验室计算机上运行并显示 Azure 门户的浏览器窗口。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟机”</strong>，并且在 <strong>“虚拟机”</strong> 边栏选项卡中，单击 <strong>“az104-10-vm0”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-vm0”</strong> 边栏选项卡上单击 <strong>“连接”</strong>，在下拉列表中单击 <strong>“RDP”</strong>，在 <strong>“使用 RDP 连接”</strong> 边栏选项卡上单击 <strong>“下载 RDP 文件”</strong>，并按照提示启动远程桌面会话。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此步骤是指在 Windows 计算机中通过远程桌面进行连接。在 Mac 上，可以使用 Mac App Store 中的远程桌面客户端，而在 Linux 计算机上，可以使用开源 RDP 客户端软件。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 连接到目标虚拟机时，可以忽略任何警告提示。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>出现提示时，请使用用户名 <strong>“Student”</strong> 和密码 <strong>“Pa55w.rd1234”</strong> 登录。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 由于 Azure 门户不再支持 IE11，所以必须使用 Microsoft Edge 浏览器来完成此项任务。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>az104-10-vm0</strong> 的远程桌面会话中，单击 <strong>“开始”</strong>，展开 <strong>“Windows 系统”</strong> 文件夹，然后单击 <strong>“命令提示符”</strong>。</p>
+  </li>
+  <li>
+    <p>在命令提示符下运行以下命令，以删除 <strong>hosts</strong> 文件：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sh hljs bash">del C:\Windows\system32\drivers\etc\hosts
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在此任务的稍后部分，你将从基于 Azure 虚拟机级快照的备份中还原此文件。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-vm0”</strong> Azure 虚拟机的远程桌面会话中，启动 Edge 浏览器，浏览到 <a href="https://portal.azure.com">Azure 门户</a>，然后使用凭据登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“恢复服务保管库”</strong>，然后在 <strong>“恢复服务保管库”</strong> 中单击 <strong>“az104-10-rsv1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-rsv1”</strong> 恢复服务保管库边栏选项卡的 <strong>“受保护项目”</strong> 部分，单击 <strong>“备份项目”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-rsv1 - 备份项目”</strong> 边栏选项卡上，单击 <strong>“Azure 虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“备份项目(Azure 虚拟机)”</strong> 边栏选项卡上，单击 <strong>“az104-10-vm0”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-vm0”</strong> 备份项目边栏选项卡上，单击 <strong>“文件恢复”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可以选择在备份开始后不久根据应用程序一致性快照运行恢复。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“文件恢复”</strong> 边栏选项卡上，接受默认恢复点，然后单击 <strong>“下载可执行文件”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该脚本从所选恢复点将磁盘装载为运行脚本的操作系统中的本地驱动器。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“下载”</strong>，在提示运行还是保存 <strong>IaaSVMILRExeForWindows.exe</strong> 时，单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>返回“文件资源管理器”窗口，双击新下载的文件。</p>
+  </li>
+  <li>
+    <p>当提示从门户提供密码时，请从 <strong>“文件恢复”</strong> 边栏选项卡上的 <strong>“用于运行脚本的密码”</strong> 文本框中复制密码，并将其粘贴在命令提示符下，然后按 <strong>Enter</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 这将打开一个 Windows PowerShell 窗口，并显示装载进度。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>注意</strong>： 如果此时收到错误消息，请刷新 Web 浏览器窗口并重复最后三个步骤。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>等待装载过程完成，查看 Windows PowerShell 窗口中的信息性消息，记下分配给托管 <strong>“Windows”</strong> 的卷的驱动器号，然后启动“文件资源管理器”。</p>
+  </li>
+  <li>
+    <p>在文件资源管理器中，导航到你在上一步中确定的承载操作系统卷快照的驱动器号，并查看其内容。</p>
+  </li>
+  <li>
+    <p>切换到 <strong>“命令提示符”</strong> 窗口。</p>
+  </li>
+  <li>
+    <p>在命令提示符下，运行以下命令以复制还原 <strong>“hosts”</strong> 文件到原始位置（用先前确定的操作系统卷的驱动器号替换 <code>[os_volume]</code>）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-sh hljs bash">robocopy [os_volume]:\Windows\System32\drivers\etc C:\Windows\system32\drivers\etc hosts /r:1 /w:1
+</code></pre>
+  </li>
+  <li>
+    <p>切换回 Azure 门户中的 <strong>“文件恢复”</strong> 边栏选项卡，然后单击 <strong>“卸载磁盘”</strong>。</p>
+  </li>
+  <li>
+    <p>终止远程桌面会话。</p>
+  </li>
+</ol>
+
+<h4 id="任务-7查看-azure-恢复服务软删除功能">任务 7：查看 Azure 恢复服务软删除功能</h4>
+
+<ol>
+  <li>
+    <p>在实验室计算机的 Azure 门户中，搜索并选择 <strong>“恢复服务保管库”</strong>，然后在 <strong>“恢复服务保管库”</strong> 中，单击 <strong>“az104-10-rsv1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-rsv1”</strong> 恢复服务保管库边栏选项卡的 <strong>“受保护项目”</strong> 部分，单击 <strong>“备份项目”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-rsv1 - 备份项目”</strong> 边栏选项卡上，单击 <strong>“Azure 备份代理”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“备份项目(Azure 备份代理)”</strong> 边栏选项卡上，单击代表 <strong>az104-10-vm1</strong> 备份的条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-vm1. 上的 C:\”</strong> 边栏选项卡上，单击 <strong>“az104-10-vm1.”</strong> 链接。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-vm1.</strong> 受保护服务器边栏选项卡上，单击 <strong>“删除”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“删除”</strong> 边栏选项卡上，指定以下设置。</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>键入服务器名称</td>
+          <td><strong>az104-10-vm1.</strong></td>
+        </tr>
+        <tr>
+          <td>原因</td>
+          <td><strong>回收开发/测试服务器</strong></td>
+        </tr>
+        <tr>
+          <td>备注</td>
+          <td><strong>az104 10 实验室</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 确保在键入服务器名称时包含末尾句点</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>选中 <strong>“有与此服务器关联的 1 个备份项目的备份数据”标签旁边的复选框。 我了解单击“确认”将永久删除所有云备份数据。此操作无法撤消。此订阅的管理员可能会收到数据删除的警告”</strong> 标签旁边的复选框，然后单击 <strong>“删除”</strong>。</p>
+  </li>
+  <li>
+    <p>导航回 <strong>“az104-10-rsv1 - 备份项目”</strong> 边栏选项卡并单击 <strong>“Azure 虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-rsv1 - 备份项目”</strong> 边栏选项卡上，单击 <strong>“Azure 虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“备份项目(Azure 虚拟机)”</strong> 边栏选项卡上，单击 <strong>“az104-10-vm0”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-vm0”</strong> 备份项边栏选项卡上，单击 <strong>“停止备份”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“停止备份”</strong> 边栏选项卡上，选择 <strong>“删除备份数据”</strong>，指定以下设置，然后单击 <strong>“停止备份”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>键入备份项目名称</td>
+          <td><strong>az104-10-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>原因</td>
+          <td><strong>其他</strong></td>
+        </tr>
+        <tr>
+          <td>备注</td>
+          <td><strong>az104 10 实验室</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>导航回 <strong>“az104-10-rsv1 - 备份项目”</strong> 边栏选项卡并单击 <strong>“刷新”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>“Azure 虚拟机”</strong> 条目仍列出 <strong>1</strong> 个 备份项目。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“Azure 虚拟机”</strong> 条目，然后在 <strong>“备份项目(Azure 虚拟机)”</strong> 边栏选项卡上，单击 <strong>“az104-10-vm0”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-vm0”</strong> 备份项目边栏选项卡上，请注意，可以选择 <strong>“取消删除”</strong> 已删除的备份。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 此功能由软删除功能提供，默认为 Azure 虚拟机备份启用。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>导航回 <strong>“az104-10-rsv1”</strong> 恢复服务保管库边栏选项卡，在 <strong>“设置”</strong> 部分单击 <strong>“属性”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-10-rsv1 - 属性”</strong> 边栏选项卡上，在 <strong>“安全设置”</strong> 标签下单击 <strong>“更新”</strong>  链接。</p>
+  </li>
+  <li>
+    <p>在“<strong>安全设置</strong>”边栏选项卡上，禁用“<strong>软删除(适用于 Azure 虚拟机)</strong>”并单击“<strong>保存</strong>”。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 这不会影响已处于软删除状态的项目。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 <strong>“安全设置”</strong> 边栏选项卡，然后返回 <strong>az104-10-rsv1</strong> “恢复服务保管库”边栏选项卡，单击 <strong>“概述”</strong>。</p>
+  </li>
+  <li>
+    <p>导航回 <strong>“az104-10-vm0”</strong> 备份项目边栏选项卡并单击 <strong>“取消删除”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“取消删除 az104-10-vm0”</strong> 边栏选项卡上，单击 <strong>“取消删除”</strong>。</p>
+  </li>
+  <li>
+    <p>等待取消删除操作完成，刷新 Web 浏览器页面（如有需要），导航回 <strong>“az104-10-vm0”</strong> 备份项目边栏选项卡，然后单击 <strong>“删除备份数据”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“删除备份数据”</strong> 边栏选项卡上，指定以下设置并单击 <strong>“删除”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>键入备份项目名称</td>
+          <td><strong>az104-10-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>原因</td>
+          <td><strong>其他</strong></td>
+        </tr>
+        <tr>
+          <td>备注</td>
+          <td><strong>az104 10 实验室</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="清理资源">清理资源</h4>
+
+<blockquote>
+  <p><strong>备注</strong>： 请记得删除任何新创建而不会再使用的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，在 <strong>“Cloud Shell”</strong> 窗格中打开 <strong>“PowerShell”</strong> 会话。</p>
+  </li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-10*'
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-10*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可以视需要考虑删除自动生成的带有前缀 <strong>“AzureBackupRG_”</strong> 的资源组（该资源组的存在不会产生额外费用）。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该命令异步执行（由 -AsJob 参数确定），因此尽管此后可以立即在同一 PowerShell 会话中运行另一个 PowerShell 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本实验室中，你已：</p>
+
+<ul>
+  <li>预配实验室环境</li>
+  <li>创建恢复服务保管库</li>
+  <li>实现 Azure 虚拟机级备份</li>
+  <li>实现文件和文件夹备份</li>
+  <li>通过使用 Azure 恢复服务代理执行了文件恢复</li>
+  <li>通过使用 Azure 虚拟机快照执行了文件恢复</li>
+  <li>查看了 Azure 恢复服务软删除功能</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

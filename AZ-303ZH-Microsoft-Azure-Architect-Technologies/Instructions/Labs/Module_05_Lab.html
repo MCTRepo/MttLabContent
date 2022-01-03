@@ -1,0 +1,1551 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-303ZH-Microsoft-Azure-Architect-Technologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-303ZH-Microsoft-Azure-Architect-Technologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#练习-1使用可用性集和-azure-基本负载均衡器实现和分析高可用性-azure-vm-部署">练习 1：使用可用性集和 Azure 基本负载均衡器实现和分析高可用性 Azure VM 部署</a></li><li class="nav-item"><a class="nav-link" href="#练习-2使用可用性区域和-azure-标准负载均衡器实现和分析高可用性-azure-vm-部署">练习 2：使用可用性区域和 Azure 标准负载均衡器实现和分析高可用性 Azure VM 部署</a></li><li class="nav-item"><a class="nav-link" href="#练习-3使用可用性区域和-azure-应用程序网关实现和分析高可用性-azure-vm-规模集部署">练习 3：使用可用性区域和 Azure 应用程序网关实现和分析高可用性 Azure VM 规模集部署。</a></li><li class="nav-item"><a class="nav-link" href="#练习-4使用可用性区域和-azure-应用程序网关实现-azure-vm-规模集的自动缩放">练习 4：使用可用性区域和 Azure 应用程序网关实现 Azure VM 规模集的自动缩放。</a></li><li class="nav-item"><a class="nav-link" href="#练习-5实现-azure-vm-规模集的垂直缩放">练习 5：实现 Azure VM 规模集的垂直缩放</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室实现高可用性-azure-iaas-计算体系结构">实验室：实现高可用性 Azure IaaS 计算体系结构</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>Adatum 公司有几个本地工作负载在物理服务器和虚拟机的组合上运行。大多数工作负载都需要一定程度的复原能力，包括一系列高可用性 SLA。大多数工作负载都利用 Windows Server 故障转移群集或 Linux Corosync 群集以及 Pacemaker 资源管理器，并在群集节点之间进行同步复制。Adatum 试图确定如何在 Azure 中实现等效功能。特别是，Adatum 企业体系结构团队正在探索 Azure 平台功能，这些功能可满足同一数据中心内以及同一区域中数据中心之间的高可用性要求。</p>
+
+<p>此外，Adatum 企业架构团队意识到仅靠复原能力可能不足以提供其业务运营所期望的可用性级别。一些工作负载具有高度动态的使用模式，当前基于连续监视和自定义脚本解决方案来解决这些问题，并自动预配和取消配置其他群集节点。其他工作负载的使用模式更容易预测，但也需要偶尔进行调整，以解决对磁盘空间、内存或处理资源增加的需求。</p>
+
+<p>为了实现这些目标，体系结构团队希望测试一系列高可用性的 IaaS 计算部署，包括：</p>
+
+<ul>
+  <li>
+    <p>在 Azure 基本负载均衡器基本后面基于可用性集的 Azure VM 的部署</p>
+  </li>
+  <li>
+    <p>在 Azure 标准负载均衡器后面的 Azure VM 的区域冗余部署</p>
+  </li>
+  <li>
+    <p>在 Azure 应用程序网关后面的 Azure VM 规模集的区域冗余部署</p>
+  </li>
+  <li>
+    <p>Azure VM 规模集的自动水平缩放（自动缩放）</p>
+  </li>
+  <li>
+    <p>Azure VM 规模集的手动垂直缩放（计算和存储）</p>
+  </li>
+</ul>
+
+<p>可用性集表示 Azure VM 的逻辑分组，用于控制它们在同一 Azure 数据中心内的物理位置。Azure 确保同一可用性集中的 VM 跨多个物理服务器、计算机架、存储单元和网络交换机运行。如果 Azure 中发生硬件或软件故障，那么只有一部分 VM 会受到影响，你的整体解决方案仍然可运行。可用性集对于构建可靠的云解决方案至关重要。借助可用性集，Azure 提供业界最佳的 99.95% VM 运行时间 SLA。</p>
+
+<p>可用性区域在 Azure 区域内具有惟一的物理位置。每个区域由一个或多个配备独立电源、冷却和网络的数据中心组成。区域内可用性区域的物理分离可保护应用程序和数据免受数据中心故障的影响。区域冗余服务在可用性区域之间复制应用程序和数据，以防止单点故障。借助可用性区域，Azure 提供 99.99% 的 VM 运行时间 SLA。</p>
+
+<p>Azure 虚拟机规模集使你能够创建和管理一组相同、负载均衡的 VM。VM 实例数可以自动增加或减少，从而响应需求或定义的计划。规模集为应用程序提供高可用性，以便集中管理、配置和更新大量 VM。借助虚拟机规模集，你可以为计算、大数据和容器工作负荷等领域构建大规模服务。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>
+    <p>描述驻留在 Azure 基本负载均衡器后面的相同可用性集中的高可用性 Azure VM 的特征</p>
+  </li>
+  <li>
+    <p>描述位于 Azure 标准负载均衡器后面不同可用性区域中的高可用性 Azure VM 的特征</p>
+  </li>
+  <li>
+    <p>描述 Azure VM 规模集自动水平缩放的特征</p>
+  </li>
+  <li>
+    <p>描述 Azure VM 规模集的手动垂直缩放的特征</p>
+  </li>
+</ul>
+
+<h2 id="实验室环境">实验室环境</h2>
+
+<p>Windows Server 管理员凭据</p>
+
+<ul>
+  <li>
+    <p>用户名： <strong>Admin</strong></p>
+  </li>
+  <li>
+    <p>密码：<strong>Pa55w.rd</strong></p>
+  </li>
+</ul>
+
+<p>预计用时：120 分钟</p>
+
+<h2 id="实验室文件">实验室文件</h2>
+
+<ul>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305suba.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rga.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rga.parameters.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rgb.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rgb.parameters.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rgc.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rgc.parameters.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\az30305e-configure_VMSS_with_data_disk.ps1</p>
+  </li>
+</ul>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="练习-1使用可用性集和-azure-基本负载均衡器实现和分析高可用性-azure-vm-部署">练习 1：使用可用性集和 Azure 基本负载均衡器实现和分析高可用性 Azure VM 部署</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>使用 Azure 资源管理器模板将高可用性 Azure VM 部署到 Azure 负载均衡器基础版之后的可用性集中</p>
+  </li>
+  <li>
+    <p>分析部署到 Azure 基本负载均衡器之后的可用性集中的高可用性 Azure VM</p>
+  </li>
+  <li>
+    <p>删除练习中部署的 Azure 资源</p>
+  </li>
+</ol>
+
+<h4 id="任务-1使用-azure-资源管理器模板将高可用性-azure-vm-部署到-azure-负载均衡器基础版之后的可用性集中">任务 1：使用 Azure 资源管理器模板将高可用性 Azure VM 部署到 Azure 负载均衡器基础版之后的可用性集中</h4>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器，导航至<a href="https://portal.azure.com">“Azure 门户”</a>，然后通过提供要在本实验中使用的订阅中的所有者角色的用户帐户凭据来登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，通过选择搜索文本框右侧的工具栏图标打开 <strong>Cloud Shell</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>如果提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong>，请选择 <strong>“Bash”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 如果这是你第一次打开 <strong>“Cloud Shell”</strong>，会看到 <strong>“未装载任何存储”</strong> 消息，请选择你在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令，以注册 Microsoft.Insights 资源提供程序，为本实验室后面的练习做准备：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-Bash hljs">az provider register --namespace <span class="hljs-string"><span class="hljs-string">'Microsoft.Insights'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格的工具栏中，选择 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中选择 <strong>“上传”</strong>，然后将文件 <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305suba.json</strong> 上传到 Cloud Shell 主目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以分配要在此实验室中使用的 Azure 区域（用订阅中可用于部署 Azure VM 且最接近实验室计算机位置的 Azure 区域的名称替换 <code>&lt;Azure region&gt;</code> 占位符）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-Bash hljs">LOCATION=<span class="hljs-string"><span class="hljs-string">'&lt;Azure region&gt;'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 若要标识可在其中预配 Azure VM 的 Azure 区域，请参阅<a href="https://azure.microsoft.com/zh-cn/regions/offers/"><strong>https://azure.microsoft.com/zh-cn/regions/offers/</strong></a></p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 若要识别 Azure 名称以便在设置 <strong>LOCATION</strong> 变量的值时使用，请运行 <code>az account list-locations --query "[].{name:name}" -o table</code>。请使用不含空格的表示法，例如 <strong>eastus</strong> 而不是 <strong>US East</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令，以创建网络观察程序的实例，为本实验室后面的练习做准备：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-Bash hljs">az network watcher configure --resource-group NetworkWatcherRG --locations <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --enabled -o table
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果收到指示没有“NetworkWatcherRG”资源组的错误，请从名为 NetworkWatcherRG 的门户创建一个资源组并重新运行该命令。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以在指定的 Azure 区域创建资源组。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-Bash hljs">az deployment sub create \
+--location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> \
+--template-file azuredeploy30305suba.json \
+--parameters rgName=az30305a-labRG rgLocation=<span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，上传 Azure 资源管理器模板 <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rga.json</strong>。</p>
+  </li>
+  <li>
+    <p>从 Cloud Shell 窗格中运行以下命令，以标识与托管 Bash 会话的 Azure VM 关联的 IPv4 地址：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-Bash hljs">curl -s checkip.dyndns.org | sed -e <span class="hljs-string"><span class="hljs-string">'s/.*Current IP Address: //'</span></span> -e <span class="hljs-string"><span class="hljs-string">'s/&lt;.*$//'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>记录命令返回的公共 IP 地址。你将需要在本实验室中用到它。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中，在首选文本编辑器中打开 <strong>azuredeploy30305rga.json</strong> 文件。</p>
+  </li>
+  <li>
+    <p>在显示 <strong>azuredeploy30305rga.json</strong> 文件内容的编辑器窗口中，将以下部分中的 <code>"sourceAddressPrefix": "*",</code> 行中的星号替换为你记录的公共 IP 地址，保存更改然后关闭文件：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-json hljs">       {
+         <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"custom-allow-rdp"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"priority"</span></span>: <span class="hljs-number"><span class="hljs-number">1000</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourceAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"protocol"</span></span>: <span class="hljs-string"><span class="hljs-string">"Tcp"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationPortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"3389"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"access"</span></span>: <span class="hljs-string"><span class="hljs-string">"Allow"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"direction"</span></span>: <span class="hljs-string"><span class="hljs-string">"Inbound"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourcePortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>
+         }
+       },
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，上传 Azure 资源管理器参数文件 <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rga.parameters.json</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以将 Azure 负载均衡器基本版及其后端池（由一对托管 Windows Server 2019 数据中心核心的 Azure VM 组成）部署到同一可用性集中（将 <code>&lt;vm_Size&gt;</code> 占位符替换为要用于此部署的 Azure VM 的大小，例如<code>Standard_D2s_v3</code>）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-Bash hljs">az deployment group create \
+--resource-group az30305a-labRG \
+--template-file azuredeploy30305rga.json \
+--parameters @azuredeploy30305rga.parameters.json vmSize=&lt;vm_Size&gt;
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 请等待部署完成后再继续下一个任务。该过程需要约 10 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，关闭 <strong>Cloud Shell</strong> 窗格。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2分析部署到-azure-基本负载均衡器之后的可用性集中的高可用性-azure-vm">任务 2：分析部署到 Azure 基本负载均衡器之后的可用性集中的高可用性 Azure VM</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“网络观察程序”</strong>，然后在 <strong>“网络观察程序”</strong> 边栏选项卡中选择 <strong>“拓扑”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序 | “拓扑”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30305a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az30305a-vnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>查看结果拓扑关系图，注意公用 IP 地址、负载均衡器及其后端池中 Azure VM 网络适配器之间的连接。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”</strong> 边栏选项卡上，选择 <strong>“有效安全规则”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序 | 有效安全规则”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30305a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az30305a-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>网络接口</td>
+          <td><strong>az30305a-nic0</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>查看关联的网络安全组和有效的安全规则，其中包括允许通过 RDP 和 HTTP 进行入站连接的两个自定义规则。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 或者，你可以从以下位置查看 <strong>“有效的安全规则”</strong>：</p>
+      <ul>
+        <li><strong>“az30305a-nic0”</strong> 网络接口边栏选项卡。</li>
+        <li><strong>“az30305a-web-nsg”</strong> 网络安全组边栏选项卡</li>
+      </ul>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”</strong> 边栏选项卡上，选择 <strong>“连接疑难解答”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 目的是验证同一可用性集中两个 Azure VM 的接近度（以网络术语而言）。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序 | 连接疑难解答”</strong> 边栏选项卡上，指定以下设置并选择 <strong>“检查”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30305a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>源类型</td>
+          <td><strong>虚拟机</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az30305a-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>选择一个虚拟机</strong></td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30305a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az30305a-vm1</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>目标端口</td>
+          <td><strong>80</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>注意</strong>： 需要等待几分钟才能得到结果，以便在 Azure VM 上安装 <strong>Azure 网络观察程序代理</strong> VM 扩展。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>查看结果，并记下 Azure VM 之间的网络连接延迟。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 由于两个 VM 都在同一可用性集中（在同一 Azure 数据中心内），延迟应为约 1 毫秒。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az30305a-labRG”</strong> 资源组边栏选项卡，在资源列表中，选择 <strong>“az30305a-avset”</strong> 可用性集条目，在 <strong>“az30305a-avset”</strong> 边栏选项卡上，注意容错域并更新分配给两个 Azure VM 的域值。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航回 <strong>“az30305a-labRG”</strong> 资源组边栏选项卡，在资源列表中，选择 <strong>“az30305a-lb”</strong> 负载均衡器条目，在 <strong>“az30305a-lb”</strong> 边栏选项卡上，注意公共 IP 地址条目。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，在 Cloud Shell 窗格中启动 <strong>Bash</strong> 会话。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令，更新网络安全组 <strong>az30305a-web-nsg</strong> 的 <strong>custom-allow-rdp</strong> 规则中包含的 IP 地址。要考虑与新的 Cloud Shell 会话关联的新 IP 地址，必须执行此操作：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-Bash hljs">RESOURCE_GROUP_NAME=az30305a-labRG
+NSG_NAME=az30305a-web-nsg
+RULE_NAME=custom-allow-rdp
+
+MY_IP=$(curl -s checkip.dyndns.org | sed -e <span class="hljs-string"><span class="hljs-string">'s/.*Current IP Address: //'</span></span> -e <span class="hljs-string"><span class="hljs-string">'s/&lt;.*$//'</span></span>)
+
+az network nsg rule update \
+--resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCE_GROUP_NAME</span></span> \
+--nsg-name <span class="hljs-variable"><span class="hljs-variable">$NSG_NAME</span></span> \
+--name <span class="hljs-variable"><span class="hljs-variable">$RULE_NAME</span></span> \
+--<span class="hljs-built_in"><span class="hljs-built_in">source</span></span>-address-prefixes <span class="hljs-variable"><span class="hljs-variable">$MY_IP</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以测试流向 Azure 负载均衡器后端池中 Azure VM 的 HTTP 流量的负载均衡（将 <code>&lt;lb_IP_address&gt;</code> 占位符替换为你之前确定的负载均衡器前端 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;lb_IP_address&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证返回的消息是否表明正在以轮询的方式将请求传递到后端 Azure VM</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30305a-lb”</strong> 边栏选项卡上，选择 <strong>“负载均衡规则”</strong> 条目，在 <strong>“az30305a-lb | 负载均衡规则”</strong> 边栏选项卡上，选择代表处理 HTTP 流量的负载均衡规则的 <strong>“az303005a-lbruletcp80”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az303005a-lbruletcp80”</strong> 边栏选项卡的 <strong>“会话持续性”</strong> 下拉列表中，选择 <strong>“客户端 IP”</strong>，然后选择 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>等待更新完成，然后在 Cloud Shell 窗格中重新运行以下内容，以测试流向具有会话持续性 Azure 负载均衡器后端池中 Azure VM 的 HTTP 流量负载均衡（将 <code>&lt;lb_IP_address&gt;</code> 占位符替换为你之前确定的负载均衡器前端 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;lb_IP_address&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证返回的消息是否表明正在将请求传递到相同的后端 Azure VM</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航回 <strong>“az30305a-lb”</strong> 边栏选项卡，选择 <strong>“入站 NAT 规则”</strong> 条目，并记下两个规则，这些规则允许经由 TCP 端口 33890 和 33891 通过远程桌面分别连接到第一个和第二个后端池 VM。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以测试通过 NAT 到 Azure 负载均衡器后端池中第一个 Azure VM 的远程桌面连接（将 <code>&lt;lb_IP_address&gt;</code> 占位符替换为你之前确定的负载均衡器前端 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-Bash hljs">curl -v telnet://&lt;lb_IP_address&gt;:33890
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证返回的消息是否表明你已成功连接。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>按 <strong>Ctrl+C</strong> 组合键以返回 Bash shell 提示符，并运行以下命令以测试通过 NAT 到 Azure 负载均衡器后端池中第二个 Azure VM 的远程桌面连接（将 <code>&lt;lb_IP_address&gt;</code> 占位符替换为你之前确定的负载均衡器的前端 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-Bash hljs">curl -v telnet://&lt;lb_IP_address&gt;:33891
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证返回的消息是否表明你已成功连接。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>按 <strong>Ctrl+C</strong> 组合键，返回 Bash shell 提示符。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3删除练习中部署的-azure-资源">任务 3：删除练习中部署的 Azure 资源</h4>
+
+<ol>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以列出你在本练习中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305a-')]"</span></span>.name --output tsv
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证输出结果是否仅包含你在本实验室中创建的资源组。在本任务中将删除这个组。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以删除在本实验室中创建的资源组</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305a-')]"</span></span>.name --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h3 id="练习-2使用可用性区域和-azure-标准负载均衡器实现和分析高可用性-azure-vm-部署">练习 2：使用可用性区域和 Azure 标准负载均衡器实现和分析高可用性 Azure VM 部署</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>使用 Azure 资源管理器模板将高可用性 Azure VM 部署到 Azure 标准负载平衡器后面的可用性区域中</p>
+  </li>
+  <li>
+    <p>分析 Azure 负载均衡器后面跨可用性区域部署的高可用性 Azure VM</p>
+  </li>
+  <li>
+    <p>删除练习中部署的 Azure 资源</p>
+  </li>
+</ol>
+
+<h4 id="任务-1使用-azure-资源管理器模板将高可用性-azure-vm-部署到-azure-标准负载平衡器后面的可用性区域中">任务 1：使用 Azure 资源管理器模板将高可用性 Azure VM 部署到 Azure 标准负载平衡器后面的可用性区域中</h4>
+
+<ol>
+  <li>
+    <p>如果需要，在 Azure 门户中，通过直接选择搜索文本框右侧的工具栏图标，打开 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>如果提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong>，请选择 <strong>“Bash”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格的工具栏中，选择 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中选择 <strong>“上传”</strong>，然后将文件 <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305subb.json</strong> 上传到 Cloud Shell 主目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令创建资源组（将 <code>&lt;Azure region&gt;</code> 占位符替换为订阅中可用且最接近实验室位置的 Azure 区域名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-Bash hljs">LOCATION=<span class="hljs-string"><span class="hljs-string">'&lt;Azure region&gt;'</span></span>
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-Bash hljs">az deployment sub create \
+--location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> \
+--template-file azuredeploy30305subb.json \
+--parameters rgName=az30305b-labRG rgLocation=<span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，上传 Azure 资源管理器模板 <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rgb.json</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中，在首选文本编辑器中打开 <strong>azuredeploy30305rgb.json</strong> 文件。</p>
+  </li>
+  <li>
+    <p>在显示 <strong>azuredeploy30305rgb.json</strong> 文件内容的编辑器窗口中，将以下部分中的 <code>"sourceAddressPrefix": "*",</code> 行中的星号替换为你在本实验室前面部分记录的公共 IP 地址，保存更改然后关闭文件：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-json hljs">       {
+         <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"custom-allow-rdp"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"priority"</span></span>: <span class="hljs-number"><span class="hljs-number">1000</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourceAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"protocol"</span></span>: <span class="hljs-string"><span class="hljs-string">"Tcp"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationPortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"3389"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"access"</span></span>: <span class="hljs-string"><span class="hljs-string">"Allow"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"direction"</span></span>: <span class="hljs-string"><span class="hljs-string">"Inbound"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourcePortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>
+         }
+       },
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，上传 Azure 资源管理器参数文件 <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rgb.parameters.json</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令，部署 Azure 负载均衡器标准版及其后端池，该后端池由跨两个可用性区域托管 Windows Server 2019 Datacenter Core 的一对 Azure VM 组成（将 <code>&lt;vm_Size&gt;</code> 占位符替换为要用于此部署的 Azure VM 的大小，例如<code>Standard_D2s_v3</code>）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-Bash hljs">az deployment group create \
+--resource-group az30305b-labRG \
+--template-file azuredeploy30305rgb.json \
+--parameters @azuredeploy30305rgb.parameters.json vmSize=&lt;vm_Size&gt;
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 请等待部署完成后再继续下一个任务。该过程需要约 10 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2分析-azure-负载均衡器后面跨可用性区域部署的高可用性-azure-vm">任务 2：分析 Azure 负载均衡器后面跨可用性区域部署的高可用性 Azure VM</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“网络观察程序”</strong>，然后在 <strong>“网络观察程序”</strong> 边栏选项卡中选择 <strong>“拓扑”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序 | “拓扑”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30305b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az30305b-vnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>查看结果拓扑关系图，注意公用 IP 地址、负载均衡器及其后端池中 Azure VM 网络适配器之间的连接。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 该图实际上与上一练习中看到的图完全相同，因为尽管 Azure VM 位于不同区域（实际上是 Azure 数据中心），但它们位于同一子网中。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”</strong> 边栏选项卡上，选择 <strong>“有效安全规则”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序 | 有效安全规则”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30305b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az30305b-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>网络接口</td>
+          <td><strong>az30305b-nic0</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>查看关联的网络安全组和有效的安全规则，其中包括允许通过 RDP 和 HTTP 进行入站连接的两个自定义规则。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 该列表实际上也与你在上一练习中看到的列表完全相同，通过使用与两个 Azure VM 都连接到的子网相关联的网络安全组来实现网络级保护。但是请记住，由于本例使用了 Azure 负载均衡器标准版 SKU（在使用基本版 SKU 时，NSG 是可选的），HTTP 和 RDP 流量需要网络安全组才能到达后端池 Azure VM。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>注意</strong>： 或者，你可以从以下位置查看 <strong>“有效的安全规则”</strong>：</p>
+      <ul>
+        <li><strong>“az30305b-nic0”</strong> 网络接口边栏选项卡。</li>
+        <li><strong>“az30305b-web-nsg”</strong> 网络安全组边栏选项卡</li>
+      </ul>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”</strong> 边栏选项卡上，选择 <strong>“连接疑难解答”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>：目的是验证不同区域中（不同 Azure 数据中心内）两个 Azure VM 的接近度（以网络连接而言）。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序 | 连接疑难解答”</strong> 边栏选项卡上，指定以下设置并选择 <strong>“检查”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30305b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>源类型</td>
+          <td><strong>虚拟机</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az30305b-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>选择一个虚拟机</strong></td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30305b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az30305b-vm1</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>目标端口</td>
+          <td><strong>80</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>注意</strong>： 需要等待几分钟才能得到结果，以便在 Azure VM 上安装 <strong>Azure 网络观察程序代理</strong> VM 扩展。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>查看结果，并记下 Azure VM 之间的网络连接延迟。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 由于两个 VM 位于不同区域（在不同的 Azure 数据中心内），因此延迟可能会比在上一个练习中观察到的延迟稍高。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az30305b-labRG”</strong> 资源组边栏选项卡，在资源列表中，选择 <strong>“az30305b-vm0”</strong> 虚拟机条目，在 <strong>“az30305b-vm0”</strong> 边栏选项卡上，记录 <strong>“位置”</strong> 和 <strong>“可用性区域”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az30305b-labRG”</strong> 资源组边栏选项卡，在资源列表中，选择 <strong>“az30305b-vm1”</strong> 虚拟机条目，在 <strong>“az30305b-vm1”</strong> 边栏选项卡上，记录 <strong>“位置”</strong> 和 <strong>“可用性区域”</strong> 条目。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 查看的条目证实了每个 Azure VM 位于不同的可用性区域。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az30305b-labRG”</strong> 资源组边栏选项卡，然后在资源列表中选择 <strong>“az30305b-lb”</strong> 负载均衡器条目，在 <strong>“az30305b-lb”</strong> 边栏选项卡上，记录公共 IP 地址条目。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中的 Cloud Shell 窗格中启动 <strong>Bash</strong> 会话。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以测试流向 Azure 负载均衡器后端池中 Azure VM 的 HTTP 流量的负载均衡（将 <code>&lt;lb_IP_address&gt;</code> 占位符替换为你之前确定的负载均衡器前端 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;lb_IP_address&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证返回的消息是否表明正在以轮询的方式将请求传递到后端 Azure VM</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30305b-lb”</strong> 边栏选项卡上，选择 <strong>“负载均衡规则”</strong> 条目，在 <strong>“az30305b-lb | 负载均衡规则”</strong> 边栏选项卡上，选择代表处理 HTTP 流量的负载均衡规则的 <strong>“az303005b-lbruletcp80”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az303005b-lbruletcp80”</strong> 边栏选项卡的 <strong>“会话持续性”</strong> 下拉列表中，选择 <strong>“客户端 IP”</strong>，然后选择 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>等待更新完成，然后在 Cloud Shell 窗格中重新运行以下内容，以测试流向具有会话持续性 Azure 负载均衡器后端池中 Azure VM 的 HTTP 流量负载均衡（将 <code>&lt;lb_IP_address&gt;</code> 占位符替换为你之前确定的负载均衡器前端 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;lb_IP_address&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证返回的消息是否表明正在将请求传递到相同的后端 Azure VM</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航回 <strong>“az30305b-lb”</strong> 边栏选项卡，选择 <strong>“入站 NAT 规则”</strong> 条目，并记下两个规则，这些规则允许经由 TCP 端口 33890 和 33891 通过远程桌面分别连接到第一个和第二个后端池 VM。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以测试通过 NAT 到 Azure 负载均衡器后端池中第一个 Azure VM 的远程桌面连接（将 <code>&lt;lb_IP_address&gt;</code> 占位符替换为你之前确定的负载均衡器前端 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-Bash hljs">curl -v telnet://&lt;lb_IP_address&gt;:33890
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证返回的消息是否表明你已成功连接。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>按 <strong>Ctrl+C</strong> 组合键以返回 Bash shell 提示符，并运行以下命令以测试通过 NAT 到 Azure 负载均衡器后端池中第二个 Azure VM 的远程桌面连接（将 <code>&lt;lb_IP_address&gt;</code> 占位符替换为你之前确定的负载均衡器的前端 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-Bash hljs">curl -v telnet://&lt;lb_IP_address&gt;:33891
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证返回的消息是否表明你已成功连接。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>请按下 <strong>Ctrl+C</strong> 组合键以返回到 Bash shell 提示符，然后关闭“Cloud Shell”窗格。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30305b-lb”</strong> 边栏选项卡上，选择 <strong>“负载均衡规则”</strong> 条目，在 <strong>“az30305b-lb | 负载均衡规则”</strong> 边栏选项卡上，选择代表处理 HTTP 流量的负载均衡规则的 <strong>“az303005b-lbruletcp80”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az303005b-lbruletcp80”</strong> 边栏选项卡上的 <strong>“出站源网络地址转换 (SNAT)”</strong> 部分，选择 <strong>“（推荐）使用出站规则为后端池成员提供对 Internet 的访问”</strong>，然后选择 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>导航回 <strong>“az30305b-lb”</strong> 边栏选项卡，选择 <strong>“出站规则”</strong> 条目，然后在 <strong>“az30305b-lb | “出站规则”</strong> 边栏选项卡中，选择 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加出站规则”</strong> 边栏选项卡中，指定以下设置并选择 <strong>“添加”</strong> （将所有其他设置保留为其默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az303005b-obrule</strong></td>
+        </tr>
+        <tr>
+          <td>前端 IP 地址</td>
+          <td><strong>az30305b-lb</strong> 负载均衡器现有前端 IP 地址的名称</td>
+        </tr>
+        <tr>
+          <td>后端池</td>
+          <td><strong>az30305b-bepool</strong></td>
+        </tr>
+        <tr>
+          <td>端口分配</td>
+          <td><strong>手动选择出站端口数</strong></td>
+        </tr>
+        <tr>
+          <td>选择方式</td>
+          <td><strong>最大后端实例数</strong></td>
+        </tr>
+        <tr>
+          <td>最大后端实例数</td>
+          <td><strong>3</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>注意</strong>： Azure 负载均衡器标准允许为出站流量指定专属的前端 IP 地址（在分配了多个前端 IP 地址的情况下）。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az30305b-labRG”</strong> 资源组边栏选项卡，在资源列表中选择 <strong>“az30305b-vm0”</strong> 虚拟机条目，并在 <strong>“az30305b-vm0”</strong> 边栏选项卡的 <strong>“操作”</strong> 边栏选项卡中，选择 <strong>“运行命令”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30305b-vm0 | “运行命令”</strong> 边栏选项卡，选择 <strong>“RunPowerShellScript”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“运行命令脚本”</strong> 边栏选项卡的 <strong>“PowerShell 脚本”</strong> 文本框中，键入以下内容并选择 <strong>“运行”</strong>。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-powershell">(Invoke-RestMethod -Uri "http://ipinfo.io").IP
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 此命令将返回从其中发出 Web 请求的公共 IP 地址。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>查看输出结果并验证其与分配给 Azure 负载均衡器标准前端的公共 IP 地址是否匹配，你已将该 IP 地址分配给出站负载均衡规则。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3删除练习中部署的-azure-资源-1">任务 3：删除练习中部署的 Azure 资源</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中的 Cloud Shell 窗格中启动 <strong>Bash</strong> 会话。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以列出你在本练习中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305b-')]"</span></span>.name --output tsv
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证输出结果是否仅包含你在本实验室中创建的资源组。在本任务中将删除这个组。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以删除在本实验室中创建的资源组</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305b-')]"</span></span>.name --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h3 id="练习-3使用可用性区域和-azure-应用程序网关实现和分析高可用性-azure-vm-规模集部署">练习 3：使用可用性区域和 Azure 应用程序网关实现和分析高可用性 Azure VM 规模集部署。</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>使用 Azure 资源管理器模板将高可用性 Azure VM 规模集部署到 Azure 应用程序网关后面的可用性区域</p>
+  </li>
+  <li>
+    <p>分析在 Azure 应用程序网关后面的可用性区域中部署的高可用性 Azure VM 规模集</p>
+  </li>
+  <li>
+    <p>删除练习中部署的 Azure 资源</p>
+  </li>
+</ol>
+
+<h4 id="任务-1使用-azure-资源管理器模板将高可用性-azure-vm-规模集部署到-azure-应用程序网关后面的可用性区域">任务 1：使用 Azure 资源管理器模板将高可用性 Azure VM 规模集部署到 Azure 应用程序网关后面的可用性区域</h4>
+
+<ol>
+  <li>
+    <p>如果需要，在 Azure 门户中，通过直接选择搜索文本框右侧的工具栏图标，打开 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>如果提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong>，请选择 <strong>“Bash”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格的工具栏中，选择 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中选择 <strong>“上传”</strong>，然后将文件 <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305subc.json</strong> 上传到 Cloud Shell 主目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令创建资源组（将 <code>&lt;Azure region&gt;</code> 占位符替换为订阅中可用且最接近实验室位置的 Azure 区域名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-Bash hljs">az deployment sub create --location <span class="hljs-string"><span class="hljs-string">'&lt;Azure region&gt;'</span></span> --template-file azuredeploy30305subc.json --parameters rgName=az30305c-labRG rgLocation=<span class="hljs-string"><span class="hljs-string">'&lt;Azure region&gt;'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，上传 Azure 资源管理器模板 <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rgc.json</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中，在首选文本编辑器中打开 <strong>azuredeploy30305rgc.json</strong> 文件。</p>
+  </li>
+  <li>
+    <p>在显示 <strong>azuredeploy30305rgc.json</strong> 文件内容的编辑器窗口中，将以下部分中的 <code>"sourceAddressPrefix": "*",</code> 行中的星号替换为你在本实验室前面部分记录的公共 IP 地址，保存更改然后关闭文件：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-json hljs">       {
+         <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"custom-allow-rdp"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"priority"</span></span>: <span class="hljs-number"><span class="hljs-number">1000</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourceAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"protocol"</span></span>: <span class="hljs-string"><span class="hljs-string">"Tcp"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationPortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"3389"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"access"</span></span>: <span class="hljs-string"><span class="hljs-string">"Allow"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"direction"</span></span>: <span class="hljs-string"><span class="hljs-string">"Inbound"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourcePortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>
+         }
+       },
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，上传 Azure 资源管理器参数文件 <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rgc.parameters.json</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以部署 Azure 应用程序网关，其后端池由一对 Azure VM 组成，这些 VM 跨不同的可用性区域托管 Windows Server 2019 数据中心核心（将 <code>&lt;vm_Size&gt;</code> 占位符替换为要用于此部署的 Azure VM 的大小，例如<code>Standard_D2s_v3</code>）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">az</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">deployment</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">group</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">create</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--resource-group</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">az30305c-labRG</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--template-file</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">azuredeploy30305rgc</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.json</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--parameters</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">azuredeploy30305rgc</span></span>.<span class="hljs-keyword"><span class="hljs-keyword">parameters</span></span>.<span class="hljs-keyword"><span class="hljs-keyword">json</span></span> vmSize= &lt;vm_Size&gt;
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 请等待部署完成后再继续下一个任务。该过程需要约 10 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2分析在-azure-应用程序网关后面的可用性区域中部署的高可用性-azure-vm-规模集">任务 2：分析在 Azure 应用程序网关后面的可用性区域中部署的高可用性 Azure VM 规模集</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“网络观察程序”</strong>，然后在 <strong>“网络观察程序”</strong> 边栏选项卡中选择 <strong>“拓扑”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序 | “拓扑”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az30305c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az30305c-vnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>查看生成的拓扑图，记录公共 IP 地址、负载均衡器和 Azure 虚拟机规模集在其后端池中的 Azure VM 实例的网络适配器之间的连接。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 此外，部署 Azure 应用程序网关需要一个如关系图中所示的专用子网（尽管未显示网关）。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>注意</strong>： 在这种配置中，无法使用网络观察程序查看有效的网络安全规则（这是 Azure VM 与 Azure VM 规模集实例之间的区别之一）。同样，尽管可以使用<strong>连接故障排除</strong>测试来自 Azure 应用程序网关的连接，但是不能依赖使用它来测试来自 Azure VM 规模集实例的网络连接。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az30305c-labRG”</strong> 资源组边栏选项卡，在资源列表中，选择 <strong>“az30305c-vmss”</strong> 虚拟机规模集条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss”</strong> 边栏选项卡中，记录<strong>位置</strong>和<strong>容错域</strong>条目。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 与 Azure VM 不同，Azure VM 规模集的各个实例部署到单独的容错域中，包括部署在同一区域中的实例。此外，它们支持 5 个容错域（与 Azure VM 最多可以使用 3 个容错域不同）。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss”</strong> 边栏选项卡中，选择 <strong>“实例”</strong>，在 <strong>“az30305c-vmss | “实例”</strong> 边栏选项卡中，选择第一个实例，然后通过查看<strong>位置</strong>属性的值确定其可用区域 。</p>
+  </li>
+  <li>
+    <p>导航回 <strong>“az30305c-vmss | “实例”</strong> 边栏选项卡，选择第二个实例，然后通过查看<strong>位置</strong>属性的值确定其可用区域。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证每个实例是否都位于不同的可用性区域中。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az30305c-labRG”</strong> 资源组边栏选项卡，然后在资源列表中选择 <strong>“az30305c-appgw”</strong> 负载均衡器条目，并注意 <strong>“az30305c-appgw”</strong> 边栏选项卡中的公共 IP 地址条目。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中的 Cloud Shell 窗格中启动 <strong>Bash</strong> 会话。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中，运行以下命令以测试到 Azure 应用程序网关后端池中 Azure VM 规模集实例的 HTTP 流量的负载均衡情况（将 <code>&lt;lb_IP_address&gt; </code>占位符替换为你之前标识的网关前端的 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;appgw_IPaddress&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证返回的消息是否表明正在以轮询的方式将请求传递到后端 Azure VM</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-appgw”</strong> 边栏选项卡中，选择 <strong>“HTTP 设置”</strong> 条目，然后在 <strong>“az30305c-appgw | “HTTP 设置”</strong> 边栏选项卡中，选择代表处理 HTTP 流量的负载均衡规则的 <strong>“appGwBackentHttpSettings”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“appGwBackentHttpSettings”</strong> 边栏选项卡中，请在不进行任何更改的情况下查看现有设置，并注意你可以启用<strong>基于 Cookie 的相关性</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 此功能要求客户端支持使用 cookie。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>注意</strong>： 不能使用 Azure 应用程序网关来实现 NAT，以用于 Azure VM 规模集实例的 RDP 连接。Azure 应用程序网关仅支持 HTTP / HTTPS 通信。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-4使用可用性区域和-azure-应用程序网关实现-azure-vm-规模集的自动缩放">练习 4：使用可用性区域和 Azure 应用程序网关实现 Azure VM 规模集的自动缩放。</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>配置 Azure VM 规模集的自动缩放</p>
+  </li>
+  <li>
+    <p>测试 Azure VM 规模集的自动缩放</p>
+  </li>
+</ol>
+
+<h4 id="任务-1配置-azure-vm-规模集的自动缩放">任务 1：配置 Azure VM 规模集的自动缩放</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az30305c-labRG”</strong> 资源组边栏选项卡，在资源列表中，选择 <strong>“az30305c-vmss”</strong> 虚拟机规模集条目，并在 <strong>“az30305c-vmss”</strong> 边栏选项卡上选择 <strong>“缩放”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss | 缩放”</strong> 边栏选项卡上，选择 <strong>“自定义自动缩放”</strong> 选项。</p>
+  </li>
+  <li>
+    <p>在 <strong>“自定义自动缩放”</strong> 部分，指定以下设置（将其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>缩放模式</td>
+          <td><strong>根据指标进行缩放</strong></td>
+        </tr>
+        <tr>
+          <td>最小实例限制</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>最大实例限制</td>
+          <td><strong>3</strong></td>
+        </tr>
+        <tr>
+          <td>默认实例限制</td>
+          <td><strong>1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>选择 <strong>“+ 添加规则”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“缩放规则”</strong> 边栏选项卡上，指定以下设置并选择 <strong>“添加”</strong> （将其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>时间聚合</td>
+          <td><strong>最大值</strong></td>
+        </tr>
+        <tr>
+          <td>指标命名空间</td>
+          <td><strong>虚拟机主机</strong></td>
+        </tr>
+        <tr>
+          <td>指标名称</td>
+          <td><strong>CPU 百分比</strong></td>
+        </tr>
+        <tr>
+          <td>VMName 运算符</td>
+          <td><strong>=</strong></td>
+        </tr>
+        <tr>
+          <td>维度值</td>
+          <td><strong>az30305c-vmss_0</strong></td>
+        </tr>
+        <tr>
+          <td>启用除以实例数后的指标</td>
+          <td><strong>启用</strong></td>
+        </tr>
+        <tr>
+          <td>运算符</td>
+          <td><strong>大于</strong></td>
+        </tr>
+        <tr>
+          <td>触发缩放操作的指标阈值</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>持续时间（分钟）</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>时间粒度统计信息</td>
+          <td><strong>最大值</strong></td>
+        </tr>
+        <tr>
+          <td>操作</td>
+          <td><strong>计数增加</strong></td>
+        </tr>
+        <tr>
+          <td>实例计数</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>冷却（分钟）</td>
+          <td><strong>5</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>注意</strong>： 这些值是为实验室目的而严格选择的，以便尽快触发缩放。有关 Azure VM 规模集缩放的指导，请参阅 <a href="https://docs.microsoft.com/zh-cn/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview">Microsoft Docs</a>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>回到 <strong>“az30305c-vmss | 缩放”</strong> 边栏选项卡，选择 <strong>“+ 添加规则”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“缩放规则”</strong> 边栏选项卡上，指定以下设置并选择 <strong>“添加”</strong> （将其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>时间聚合</td>
+          <td><strong>平均值</strong></td>
+        </tr>
+        <tr>
+          <td>指标命名空间</td>
+          <td><strong>虚拟机主机</strong></td>
+        </tr>
+        <tr>
+          <td>指标名称</td>
+          <td><strong>CPU 百分比</strong></td>
+        </tr>
+        <tr>
+          <td>VMName 运算符</td>
+          <td><strong>=</strong></td>
+        </tr>
+        <tr>
+          <td>维度值</td>
+          <td><strong>已选择 2</strong></td>
+        </tr>
+        <tr>
+          <td>启用除以实例数后的指标</td>
+          <td><strong>启用</strong></td>
+        </tr>
+        <tr>
+          <td>运算符</td>
+          <td><strong>小于</strong></td>
+        </tr>
+        <tr>
+          <td>触发缩放操作的指标阈值</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>持续时间（分钟）</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>时间粒度统计信息</td>
+          <td><strong>至少有</strong></td>
+        </tr>
+        <tr>
+          <td>操作</td>
+          <td><strong>计数减少</strong></td>
+        </tr>
+        <tr>
+          <td>实例计数</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>冷却（分钟）</td>
+          <td><strong>5</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>回到 **“az30305c-vmss</td>
+          <td>缩放”** 边栏选项卡，选择 <strong>“保存”</strong>。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="任务-2测试-azure-vm-规模集的自动缩放">任务 2：测试 Azure VM 规模集的自动缩放</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中的 Cloud Shell 窗格中启动 <strong>Bash</strong> 会话。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以触发 Azure 应用程序网关后端池中 Azure VM 规模集实例的自动缩放（将 <code>&lt;lb_IP_address&gt;</code> 占位符替换为你之前确定的网关前端 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (( ; ; )); <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl -s &lt;lb_IP_address&gt;?[1-10]; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Azure 门户中的 <strong>“az30305c-vmss 概览”</strong> 边栏选项卡的“监视”选项卡上，查看 <strong>“CPU（平均）”</strong> 图表，并验证应用程序网关的 CPU 使用率是否增加到足以触发横向扩展。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>：你可能需要等待几分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss”</strong> 边栏选项卡上，选择 <strong>“实例”</strong> 条目并验证实例数量已增加。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 你可能需要刷新 <strong>“az30305c-vmss | 实例”</strong> 边栏选项卡。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>注意</strong>： 你可能会看到实例数量增加了 2 个（而不是 1 个）。只要最终运行的实例数为 3，这就是预料之中的。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，关闭 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中的 <strong>“az30305c-vmss”</strong> 边栏选项卡上，查看 <strong>“CPU（平均）”</strong> 图表，并验证应用程序网关的 CPU 使用率是否降低到足以触发横向缩减。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 你可能需要等待几分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss”</strong> 边栏选项卡上，选择 <strong>“实例”</strong> 条目，并验证实例数是否已降低到 2。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 你可能需要刷新 <strong>“az30305c-vmss | 实例”</strong> 边栏选项卡。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss”</strong> 边栏选项卡上，选择 <strong>“缩放”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss | 缩放”</strong> 边栏选项卡上，选择 <strong>“手动缩放”</strong> 选项，并选择 <strong>“保存”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 这将防止在下一个练习中出现任何不希望看到的自动缩放。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-5实现-azure-vm-规模集的垂直缩放">练习 5：实现 Azure VM 规模集的垂直缩放</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>缩放 Azure 虚拟机规模集实例的计算资源。</p>
+  </li>
+  <li>
+    <p>缩放 Azure 虚拟机规模集实例的存储资源。</p>
+  </li>
+</ol>
+
+<h4 id="任务-1缩放-azure-虚拟机规模集实例的计算资源">任务 1：缩放 Azure 虚拟机规模集实例的计算资源。</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中的 <strong>“az30305c-vmss”</strong> 边栏选项卡上，选择 <strong>“大小”</strong>。</p>
+  </li>
+  <li>
+    <p>在可用大小列表中，选择当前配置以外的任何可用大小，然后选择 <strong>“调整大小”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss”</strong> 边栏选项卡中，选择 <strong>“实例”</strong> 条目，然后在 <strong>“az30305c-vmss | 实例”</strong> 边栏选项卡上，观察将现有实例替换为所需大小的新实例的流程。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 你可能需要刷新 <strong>“az30305c-vmss | 实例”</strong> 边栏选项卡。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>等待实例更新并运行。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2缩放-azure-虚拟机规模集实例的存储资源">任务 2：缩放 Azure 虚拟机规模集实例的存储资源。</h4>
+
+<ol>
+  <li>
+    <p>在“az30305c-vmss”<strong>**边栏选项卡上，选择“磁盘”</strong><strong>，选择“+ 创建并附加新磁盘”</strong><strong>，使用以下设置附加新的托管磁盘（其他设置保留默认值），然后选择“保存”</strong>**：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>LUN</td>
+          <td><strong>0</strong></td>
+        </tr>
+        <tr>
+          <td>大小</td>
+          <td><strong>32</strong></td>
+        </tr>
+        <tr>
+          <td>存储帐户类型</td>
+          <td><strong>标准 HDD</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss”</strong> 边栏选项卡中，选择 <strong>“实例”</strong> 条目，然后在 <strong>“az30305c-vmss | 实例”</strong> 边栏选项卡，观察现有实例的更新过程。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 上一步中附加的磁盘是原始磁盘。在使用它之前，需要创建一个分区，对其进行格式化并装载。为此，你将通过自定义脚本扩展将 PowerShell 脚本部署到 Azure VM 规模集实例。但是，首先，你需要将其删除。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss”</strong> 边栏选项卡中，选择 <strong>“扩展”</strong>，在 <strong>“az30305c-vmss | 扩展”</strong> 边栏选项卡中，选择 <strong>“customScriptExtension”</strong> 条目，然后在 <strong>“扩展”</strong> 边栏选项卡中，选择 <strong>“卸载”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 等待卸载完成。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az30305c-labRG”</strong> 资源组边栏选项卡，并在资源列表中选择“存储帐户”资源。</p>
+  </li>
+  <li>
+    <p>在“存储帐户”边栏选项卡中，选择 <strong>“容器”</strong>，然后选择 <strong>“+ 容器”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建容器”</strong> 边栏选项卡中，指定以下设置（将其他设置保留为默认值）并选择 <strong>“创建”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>脚本</strong></td>
+        </tr>
+        <tr>
+          <td>公共访问级别</td>
+          <td><strong>专用（不允许匿名访问</strong>）</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>返回到显示容器列表的“存储帐户”边栏选项卡，选择 <strong>“脚本”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“脚本”</strong> 边栏选项卡中，选择 <strong>“上传”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“上传 Blob”</strong> 边栏选项卡中，选择文件夹图标，在 <strong>“打开”</strong> 对话框中，导航到 <strong>“\\AZ303\AllFiles\Labs\05”</strong> 文件夹，选择 <strong>“az30305e-configure_VMSS_with_data_disk.ps1”</strong>，选择 <strong>“打开”</strong>，然后返回到 <strong>“上传 Blob”</strong> 边栏选项卡，选择 <strong>“上传”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航回到 <strong>“az30305c-vmss”</strong> 虚拟机规模集边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30305c-vmss”</strong> 边栏选项卡中，选择 <strong>“扩展”</strong>，在 <strong>“az30305c-vmss | 扩展”</strong> 边栏选项卡中，选择 <strong>“+ 添加”</strong> ，然后选择 <strong>“扩展”</strong> 边栏选项卡中的 <strong>“customScriptExtension”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建资源”</strong> 边栏选项卡中，选择 <strong>“自定义脚本扩展”</strong>，然后选择 <strong>“创建”</strong>。</p>
+  </li>
+  <li>
+    <p>从 <strong>“安装扩展”</strong> 边栏选项卡中，选择 <strong>“浏览”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“存储帐户”</strong> 边栏选项卡中，选择你将 <strong>“az30305e-configure_VMSS_with_data_disk.ps1”</strong> 脚本上传其中的存储帐户的名称，在 <strong>“容器”</strong> 边栏选项卡中，选择 <strong>“脚本”</strong>，在 <strong>“脚本”</strong> 边栏选项卡中，选择 <strong>“az30305e-configure_VMSS_with_data_disk.ps1”</strong>，然后选择 <strong>“选择”</strong>。</p>
+  </li>
+  <li>
+    <p>返回到 <strong>“安装扩展”</strong> 边栏选项卡，选择 <strong>“确定”</strong>。</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>在 <strong>“az30305c-vmss”</strong> 边栏选项卡中，选择 <strong>“实例”</strong> 条目，然后在 **“az30305c-vmss</td>
+          <td>实例”** 边栏选项卡中，观察现有实例的更新过程。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>注意</strong>： 你可能需要刷新 <strong>“az30305c-vmss | 实例”</strong> 边栏选项卡。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-3删除练习中部署的-azure-资源-2">任务 3：删除练习中部署的 Azure 资源</h4>
+
+<ol>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以列出你在本练习中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305c-')]"</span></span>.name --output tsv
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证输出结果是否仅包含你在本实验室中创建的资源组。在本任务中将删除这个组。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以删除在本实验室中创建的资源组</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305c-')]"</span></span>.name --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

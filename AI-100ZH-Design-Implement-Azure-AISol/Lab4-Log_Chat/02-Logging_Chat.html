@@ -1,0 +1,287 @@
+<!DOCTYPE html><html lang="en-US"><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>实验室 4：记录聊天信息 | AI-100ZH-Design-Implement-Azure-AISol</title>
+<meta name="generator" content="Jekyll v3.9.0">
+<meta property="og:title" content="实验室 4：记录聊天信息">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="AI100T01A ILT 课程的实验文件">
+<meta property="og:description" content="AI100T01A ILT 课程的实验文件">
+<link rel="canonical" href="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab4-Log_Chat/02-Logging_Chat.html">
+<meta property="og:url" content="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab4-Log_Chat/02-Logging_Chat.html">
+<meta property="og:site_name" content="AI-100ZH-Design-Implement-Azure-AISol">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="实验室 4：记录聊天信息">
+<script type="application/ld+json">
+{"description":"AI100T01A ILT 课程的实验文件","url":"https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab4-Log_Chat/02-Logging_Chat.html","@type":"WebPage","headline":"实验室 4：记录聊天信息","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <style class="anchorjs"></style><link rel="stylesheet" href="../assets/css/style_v%3D3a0ab1c74f6d3ca7c17e819da8185129fa5047f9.css">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/AI-100ZH-Design-Implement-Azure-AISol/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="../">AI-100ZH-Design-Implement-Azure-AISol</a></h1>
+      
+
+      <h1 id="实验室-4记录聊天信息">实验室 4：记录聊天信息</h1>
+
+<h2 id="简介">简介<a class="anchorjs-link " href="#简介" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>本研讨会介绍如何使用 Microsoft Bot Framework 执行日志记录以及存储聊天对话的各个方面。完成这些实验后，你将能够：</p>
+
+<ul>
+  <li>了解如何拦截和记录机器人与用户的消息活动</li>
+  <li>将言语记录到文件存储</li>
+</ul>
+
+<h2 id="先决条件">先决条件：<a class="anchorjs-link " href="#先决条件" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>本实验假定你已在<a href="../Lab3-Basic_Filter_Bot/02-Basic_Filter_Bot.html">实验 3</a> 中生成并发布了机器人。</p>
+
+<p>建议执行该实验，这样才能实现本实验中涵盖的记录。如果没有执行该实验，可以仔细阅读所有练习，并根据需要查看一些代码或者将代码用于自己的应用程序中。</p>
+
+<h2 id="实验-40拦截和分析消息">实验 4.0：拦截和分析消息<a class="anchorjs-link " href="#实验-40拦截和分析消息" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>在本实验中，我们将介绍一些不同方式，我们将使用 Bot Framework 来拦截和记录机器人与用户的对话数据。首先，我们将使用内存存储，这非常合适用于测试，但并不适合用于生产环境。</p>
+
+<p>接下来，我们将通过一个非常简单的实现来了解如何在 Azure 中将对话中的数据写入文件。具体来说，我们将用户发送到机器人的消息放入列表中，并将列表以及一些其他项目存储在临时文件中（不过你可以根据需要将这个文件更改为特定的文件路径）</p>
+
+<h3 id="使用-bot-framework-emulator">使用 Bot Framework Emulator<a class="anchorjs-link " href="#使用-bot-framework-emulator" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>我们来了解一下在不向机器人添加任何内容的情况下可以收集哪些信息来完成测试。</p>
+
+<ol>
+  <li>
+    <p>在 Visual Studio 中打开 <strong>PictureBot.sln</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意：</strong>如果未完成实验 3，可使用<strong>初学</strong>者解决方案。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>按 <strong>F5</strong> 运行你的机器人</p>
+  </li>
+  <li>
+    <p>在 Bot Framework Emulator 中打开机器人并进行快速对话：</p>
+  </li>
+  <li>
+    <p>查看机器人仿真器调试区域，注意以下几点：</p>
+
+    <ul>
+      <li>
+        <p>如果单击消息，则可以使用右侧的“Inspector-JSON”工具查看其关联的 JSON。单击消息并检查 JSON，以查看可以获取的信息。</p>
+      </li>
+      <li>
+        <p>右下角的“日志”包含完整的对话日志。让我们来进行深入了解。</p>
+      </li>
+      <li>
+        <p>你将看到的第一部分是仿真器正在侦听的端口</p>
+      </li>
+      <li>
+        <p>你还可以看到 ngrok 正在收听的位置，并且可以使用“ngrok 流量检查器”链接检查 ngrok 的流量。但是，你应注意到，如果我们访问的是本地地址，我们将绕过 ngrok。<strong>此处的 ngrok 仅用于参考，因为此研讨会不涉及远程测试</strong></p>
+      </li>
+      <li>
+        <p>如果调用过程中出现错误（POST 200 或 POST 201 响应以外的任何错误），你可以单击该错误并在“Inspector-JSON”中查看非常详细的日志。根据错误类型，你甚至可以通过代码获取堆栈跟踪并尝试指出错误发生的位置。调试机器人项目时，这一点非常有用。</p>
+      </li>
+      <li>
+        <p>调用 LUIS 时，你也可以看到一个 <code class="language-plaintext highlighter-rouge">Luis Trace</code>。如果单击 <code class="language-plaintext highlighter-rouge">trace</code> 链接，则可以看到 LUIS 信息。你可能会注意到，此特定实验中未设置此项。</p>
+      </li>
+    </ul>
+
+    <p><img src="../images/emulator.png" alt="仿真器"></p>
+  </li>
+</ol>
+
+<p>可以在<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-service-debug-emulator?view=azure-bot-service-4.0">此处</a>了解有关使用仿真器进行测试、调试和记录日志的更多信息。</p>
+
+<h2 id="实验-41登录到-azure-存储">实验 4.1：登录到 Azure 存储<a class="anchorjs-link " href="#实验-41登录到-azure-存储" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>默认的机器人存储提供程序使用内存存储，重启机器人时其中的内容会被清理。这仅适用于测试目的。如果要保留数据但不想将机器人连接到数据库，则可以使用 Azure 存储提供程序或使用 SDK 自行生成提供程序。</p>
+
+<ol>
+  <li>
+    <p>打开 <strong>Startup.cs</strong> 文件。  由于我们希望每条消息都遵循此过程，因此我们将在 Startup 类中使用 <code class="language-plaintext highlighter-rouge">ConfigureServices</code> 方法将存储信息添加到 Azure Blob 文件。请注意，目前我们正在使用：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">IStorage</span> <span class="n">dataStore</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">MemoryStorage</span><span class="p">();</span>
+</code></pre></div>    </div>
+
+    <p>如你所见，当前的实现使用内存存储。同样，建议将此内存存储仅用于本地机器人调试。重启机器人时，将删除存储在内存中的所有内容。</p>
+  </li>
+  <li>
+    <p>将当前的 <code class="language-plaintext highlighter-rouge">Istorage</code> 行替换为以下内容，从而将其更改为基于 FileStorage 的持久性：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   <span class="kt">var</span> <span class="n">blobConnectionString</span> <span class="p">=</span> <span class="n">Configuration</span><span class="p">.</span><span class="nf">GetSection</span><span class="p">(</span><span class="s">"BlobStorageConnectionString"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">;</span>
+   <span class="kt">var</span> <span class="n">blobContainer</span> <span class="p">=</span> <span class="n">Configuration</span><span class="p">.</span><span class="nf">GetSection</span><span class="p">(</span><span class="s">"BlobStorageContainer"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">;</span>
+   <span class="n">BlobsStorage</span> <span class="n">dataStore</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">BlobsStorage</span><span class="p">(</span><span class="n">blobConnectionString</span><span class="p">,</span> <span class="n">blobContainer</span><span class="p">);</span>
+   <span class="k">return</span> <span class="n">dataStore</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>还需要将单一实例定义从</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">IStorage</span><span class="p">,</span> <span class="n">MemoryStorage</span><span class="p">&gt;(</span><span class="n">sp</span> <span class="p">=&gt;</span>
+</code></pre></div>    </div>
+
+    <p>更改为</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">IStorage</span><span class="p">,</span> <span class="n">BlobsStorage</span><span class="p">&gt;(</span><span class="n">sp</span> <span class="p">=&gt;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>切换到 Azure 门户，导航到 blob 存储帐户</p>
+  </li>
+  <li>
+    <p>从 <strong>“概述”</strong> 选项卡中单击 <strong>“容器”</strong></p>
+  </li>
+  <li>
+    <p>检查是否存在 <strong>chatlog</strong>容器，如果不存在，单击 <strong>“+ 容器”</strong>：</p>
+
+    <ul>
+      <li>对于名称，键入 <strong>“chatlog”</strong>，单击 <strong>“确定”</strong></li>
+    </ul>
+  </li>
+  <li>
+    <p>如果尚未执行此操作，请单击 <strong>“访问键”</strong> 并记录连接字符串</p>
+  </li>
+  <li>
+    <p>打开 <strong>appsettings.json</strong> 并添加 blob 连接字符串详细信息：</p>
+
+    <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w"> </span><span class="nl">"BlobStorageConnectionString"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="err">,</span><span class="w">
+ </span><span class="nl">"BlobStorageContainer"</span><span class="w"> </span><span class="p">:</span><span class="w">  </span><span class="s2">"chatlog"</span><span class="w">
+</span></code></pre></div>    </div>
+  </li>
+  <li>
+    <p>按 <strong>F5</strong> 运行机器人。</p>
+  </li>
+  <li>
+    <p>在仿真器中，与机器人进行示例对话。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>，如果没有得到回复，请检查 Azure 存储帐户连接字符串</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>切换到 Azure 门户，导航到 blob 存储帐户</p>
+  </li>
+  <li>
+    <p>单击 <strong>“容器”</strong>，然后打开 <strong>ChatLog</strong> 容器</p>
+  </li>
+  <li>
+    <p>选择聊天日志文件（它应该以“<strong>emulator…</strong>”开头），然后选择“<strong>编辑</strong>”。  你在文件中看到哪些内容？你期待/希望看到却未看到哪些内容？</p>
+
+    <p>你应看到以下类似内容：</p>
+
+    <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w"> </span><span class="p">{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"System.Collections.Concurrent.ConcurrentDictionary`2[[System.String, System.Private.CoreLib],[System.Object, System.Private.CoreLib]], System.Collections.Concurrent"</span><span class="p">,</span><span class="nl">"DialogState"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"Microsoft.Bot.Builder.Dialogs.DialogState, Microsoft.Bot.Builder.Dialogs"</span><span class="p">,</span><span class="nl">"DialogStack"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"System.Collections.Generic.List`1[[Microsoft.Bot.Builder.Dialogs.DialogInstance, Microsoft.Bot.Builder.Dialogs]], System.Private.CoreLib"</span><span class="p">,</span><span class="nl">"$values"</span><span class="p">:[{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"Microsoft.Bot.Builder.Dialogs.DialogInstance, Microsoft.Bot.Builder.Dialogs"</span><span class="p">,</span><span class="nl">"Id"</span><span class="p">:</span><span class="s2">"mainDialog"</span><span class="p">,</span><span class="nl">"State"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[System.Object, System.Private.CoreLib]], System.Private.CoreLib"</span><span class="p">,</span><span class="nl">"options"</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nl">"values"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[System.Object, System.Private.CoreLib]], System.Private.CoreLib"</span><span class="p">},</span><span class="nl">"instanceId"</span><span class="p">:</span><span class="s2">"f80db88d-cdea-4b47-a3f6-a5bfa26ed60b"</span><span class="p">,</span><span class="nl">"stepIndex"</span><span class="p">:</span><span class="mi">0</span><span class="p">}}]}},</span><span class="nl">"PictureBotAccessors.PictureState"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"Microsoft.PictureBot.PictureState, PictureBot"</span><span class="p">,</span><span class="nl">"Greeted"</span><span class="p">:</span><span class="s2">"greeted"</span><span class="p">,</span><span class="nl">"Search"</span><span class="p">:</span><span class="s2">""</span><span class="p">,</span><span class="nl">"Searching"</span><span class="p">:</span><span class="s2">"no"</span><span class="p">}}</span><span class="w">
+</span></code></pre></div>    </div>
+  </li>
+</ol>
+
+<h2 id="实验-42将言语记录到文件中">实验 4.2：将言语记录到文件中<a class="anchorjs-link " href="#实验-42将言语记录到文件中" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>在本实验中，我们将重点关注用户发送到机器人的实际言语。这样做有助于确定用户尝试使用机器人完成的对话和操作类型。</p>
+
+<p>可以通过更新 <strong>PictureState.cs</strong> 文件中的 <code class="language-plaintext highlighter-rouge">UserData</code> 对象中存储的内容以及向 <strong>PictureBot.cs</strong> 中的对象添加信息来实现此目的：</p>
+
+<ol>
+  <li>
+    <p>打开 <strong>PictureState.cs</strong></p>
+  </li>
+  <li>
+    <p>在以下代码之<strong>后</strong>：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">public</span> <span class="k">class</span> <span class="nc">PictureState</span>
+ <span class="p">{</span>
+     <span class="k">private</span> <span class="k">readonly</span> <span class="n">PictureBotAccessors</span> <span class="n">_accessors</span><span class="p">;</span>
+     <span class="k">private</span> <span class="n">DialogSet</span> <span class="n">_dialogs</span><span class="p">;</span>
+</code></pre></div>    </div>
+
+    <p>添加：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c1">// A list of things that users have said to the bot</span>
+ <span class="k">public</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">UtteranceList</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">private</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
+</code></pre></div>    </div>
+
+    <p>在上面，我们简单地创建了一个列表，用于存储用户发送到机器人的消息。</p>
+
+    <p>在此示例中，我们选择使用状态管理器来读取和写入数据，但也可以选择<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-howto-v4-storage?view=azure-bot-service-4.0&amp;tabs=csharpechorproperty%2Ccsetagoverwrite%2Ccsetag">不使用状态管理器，直接从存储中读取和写入数据</a>。</p>
+
+    <blockquote>
+      <p>如果选择直接写入存储，则可以根据自己的方案设置 eTag。通过将 eTag 属性设置为 <code class="language-plaintext highlighter-rouge">*</code>，使机器人的其他实例可以覆盖以前写入的数据，即保留最后一次写入的数据。我们不会在此处对其进行介绍，但你可以<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-howto-v4-storage?view=azure-bot-service-4.0&amp;tabs=csharpechorproperty%2Ccsetagoverwrite%2Ccsetag#manage-concurrency-using-etags">了解有关管理并发的更多信息</a>。</p>
+    </blockquote>
+
+    <p>在运行机器人之前，要做的最后一件事是使用 <code class="language-plaintext highlighter-rouge">OnTurn</code> 操作将消息添加到列表中。</p>
+  </li>
+  <li>
+    <p>在 <strong>PictureState.cs</strong> 中的 <code class="language-plaintext highlighter-rouge">Searching</code> 声明后添加新字段</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>     <span class="k">public</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">UtteranceList</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">private</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>在 <strong>PictureBot.cs</strong> 中的以下代码<strong>后</strong>：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">public</span> <span class="k">override</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">OnTurnAsync</span><span class="p">(</span><span class="n">ITurnContext</span> <span class="n">turnContext</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="n">CancellationToken</span><span class="p">))</span>
+ <span class="p">{</span>
+</code></pre></div>    </div>
+    <p>添加：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   <span class="kt">var</span> <span class="n">utterance</span> <span class="p">=</span> <span class="n">turnContext</span><span class="p">.</span><span class="n">Activity</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
+   <span class="kt">var</span> <span class="n">state</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_accessors</span><span class="p">.</span><span class="n">PictureState</span><span class="p">.</span><span class="nf">GetAsync</span><span class="p">(</span><span class="n">turnContext</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="nf">PictureState</span><span class="p">());</span>
+   <span class="n">state</span><span class="p">.</span><span class="n">UtteranceList</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="n">utterance</span><span class="p">);</span>
+   <span class="k">await</span> <span class="n">_accessors</span><span class="p">.</span><span class="n">ConversationState</span><span class="p">.</span><span class="nf">SaveChangesAsync</span><span class="p">(</span><span class="n">turnContext</span><span class="p">);</span>
+</code></pre></div>    </div>
+
+    <blockquote>
+      <p><strong>注意：</strong> 如果修改了状态，则必须保存状态</p>
+    </blockquote>
+
+    <p>第一行接收用户传入的消息并将其存储在名为 <code class="language-plaintext highlighter-rouge">utterance</code> 的变量中。下一行将言语添加到在 PictureState.cs 中创建的现有列表中。</p>
+  </li>
+  <li>
+    <p>按 <strong>F5</strong> 运行机器人。</p>
+  </li>
+  <li>
+    <p>与机器人进行另一次对话。停止机器人并检查日志文件中保存的最新 blob。现在是什么情况？</p>
+
+    <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w"> </span><span class="p">{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"System.Collections.Concurrent.ConcurrentDictionary`2[[System.String, System.Private.CoreLib],[System.Object, System.Private.CoreLib]], System.Collections.Concurrent"</span><span class="p">,</span><span class="nl">"DialogState"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"Microsoft.Bot.Builder.Dialogs.DialogState, Microsoft.Bot.Builder.Dialogs"</span><span class="p">,</span><span class="nl">"DialogStack"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"System.Collections.Generic.List`1[[Microsoft.Bot.Builder.Dialogs.DialogInstance, Microsoft.Bot.Builder.Dialogs]], System.Private.CoreLib"</span><span class="p">,</span><span class="nl">"$values"</span><span class="p">:[{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"Microsoft.Bot.Builder.Dialogs.DialogInstance, Microsoft.Bot.Builder.Dialogs"</span><span class="p">,</span><span class="nl">"Id"</span><span class="p">:</span><span class="s2">"mainDialog"</span><span class="p">,</span><span class="nl">"State"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[System.Object, System.Private.CoreLib]], System.Private.CoreLib"</span><span class="p">,</span><span class="nl">"options"</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nl">"values"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"System.Collections.Generic.Dictionary`2[[System.String, System.Private.CoreLib],[System.Object, System.Private.CoreLib]], System.Private.CoreLib"</span><span class="p">},</span><span class="nl">"instanceId"</span><span class="p">:</span><span class="s2">"f80db88d-cdea-4b47-a3f6-a5bfa26ed60b"</span><span class="p">,</span><span class="nl">"stepIndex"</span><span class="p">:</span><span class="mi">0</span><span class="p">}}]}},</span><span class="nl">"PictureBotAccessors.PictureState"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"Microsoft.PictureBot.PictureState, PictureBot"</span><span class="p">,</span><span class="nl">"Greeted"</span><span class="p">:</span><span class="s2">"greeted"</span><span class="p">,</span><span class="nl">"UtteranceList"</span><span class="p">:{</span><span class="nl">"$type"</span><span class="p">:</span><span class="s2">"System.Collections.Generic.List`1[[System.String, System.Private.CoreLib]], System.Private.CoreLib"</span><span class="p">,</span><span class="nl">"$values"</span><span class="p">:[</span><span class="s2">"help"</span><span class="p">]},</span><span class="nl">"Search"</span><span class="p">:</span><span class="s2">""</span><span class="p">,</span><span class="nl">"Searching"</span><span class="p">:</span><span class="s2">"no"</span><span class="p">}}</span><span class="w">
+</span></code></pre></div>    </div>
+
+    <blockquote>
+      <p>卡住或中断？此时，可以在 <a href="code/PictureBot-FinishedSolution-File/">/code/PictureBot-FinishedSolution-File</a> 下找到实验的解决方案。你需要在 <code class="language-plaintext highlighter-rouge">appsettings.json</code> 文件中插入 Azure 机器人服务和 Azure 存储设置的密钥。建议使用此代码作为参考，而不是作为解决方案运行，但如果选择运行此代码，请务必添加必需的密钥。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="延伸阅读">延伸阅读<a class="anchorjs-link " href="#延伸阅读" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>若要将数据库存储和测试合并到日志记录解决方案中，建议使用以下基于此解决方案的自引导教程：<a href="https://github.com/Azure/LearnAI-Bootcamp/blob/master/lab02.5-logging_chat_conversations/3_Cosmos.md">在 Cosmos 中存储数据</a>。</p>
+
+<h2 id="后续步骤">后续步骤<a class="anchorjs-link " href="#后续步骤" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="../Lab5-QnA/01-Introduction.html">实验 05-01：QnA Maker</a></li>
+</ul>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  
+
+</body></html>

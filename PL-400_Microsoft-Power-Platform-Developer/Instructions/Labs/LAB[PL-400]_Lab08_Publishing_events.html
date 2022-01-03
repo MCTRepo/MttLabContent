@@ -1,0 +1,612 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            PL-400_Microsoft-Power-Platform-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                PL-400_Microsoft-Power-Platform-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <blockquote>
+  <p>[!NOTE]
+Effective November 2020:</p>
+  <ul>
+    <li>Common Data Service has been renamed to Microsoft Dataverse. <a href="https://aka.ms/PAuAppBlog">Learn more</a></li>
+    <li>Some terminology in Microsoft Dataverse has been updated. For example, <em>entity</em> is now <em>table</em> and <em>Column</em> is now <em>column</em>. <a href="https://go.microsoft.com/fwlink/?linkid=2147247">Learn more</a></li>
+  </ul>
+
+  <p>This content will be updated soon to reflect the latest terminology.</p>
+</blockquote>
+
+<h2 id="lab-08--publishing-events-externally">Lab 08 – Publishing Events Externally</h2>
+
+<h1 id="scenario">Scenario</h1>
+
+<p>A regional building department issues and tracks permits for new buildings and updates for remodeling of existing buildings. Throughout this course you will build applications and automation to enable the regional building department to manage the permitting process. This will be an end-to-end solution which will help you understand the overall process flow.</p>
+
+<p>In this lab you will use the event publishing capability of the Microsoft Dataverse. When a permit results in changing the size of the build site, an external taxing authority needs to be notified so they can evaluate if additional taxing is required. You will configure Microsoft Dataverse to publish permits with size changes using the web hook option. To simulate the taxing authority receiving the information you will create a simple Azure function to receive the post.</p>
+
+<h1 id="high-level-lab-steps">High-level lab steps</h1>
+
+<p>As part of configuring the event publishing, you will complete the following:</p>
+
+<ul>
+  <li>
+    <p>Create an Azure Function to receive the web hook post</p>
+  </li>
+  <li>
+    <p>Configure Microsoft Dataverse to publish events using a web hook</p>
+  </li>
+  <li>
+    <p>Test publishing of events</p>
+  </li>
+</ul>
+
+<h2 id="things-to-consider-before-you-begin">Things to consider before you begin</h2>
+
+<ul>
+  <li>
+    <p>Do we know what events will trigger our web hook?</p>
+  </li>
+  <li>
+    <p>Could what we are doing with the web hook, be done using Power Automate?</p>
+  </li>
+  <li>
+    <p>Remember to continue working in your DEVELOPMENT environment. We’ll move everything to production soon.</p>
+  </li>
+</ul>
+
+<p>‎</p>
+
+<h1 id="exercise-1-create-an-azure-function">Exercise #1: Create an Azure Function</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will create an Azure Function that will be the endpoint to accept and log incoming web requests.</p>
+
+<h2 id="task-1-create-azure-function-app">Task #1: Create Azure Function App</h2>
+
+<ol>
+  <li>
+    <p>Create new function application</p>
+
+    <ul>
+      <li>
+        <p>Sign in to <a href="https://portal.azure.com">Azure portal</a> and login.</p>
+      </li>
+      <li>
+        <p>Click <strong>Show portal menu</strong> and select + <strong>Create a Resource</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image1.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image1.png" alt="Create new resource - screenshot"></a></p>
+
+    <ul>
+      <li>Search for Function App and select it.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image2.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image2.png" alt="New function app - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Create</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image3.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image3.png" alt="Create function app - screenshot"></a></p>
+
+    <ul>
+      <li>Enter your initials plus today’s date for <strong>App Name</strong>, select your <strong>Subscription</strong>, select <strong>Create New</strong> for <strong>Resource Group</strong>, select <strong>.NET Core</strong> for Runtime Stack, select location in the same region as <strong>Microsoft Dataverse</strong>, and click <strong>Review + Create</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image4.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image4.png" alt="Review/create function app - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Create</strong> and wait for the deployment to complete.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="task-2-create-an-azure-function">Task #2: Create an Azure Function</h2>
+
+<ol>
+  <li>
+    <p>Create a new function</p>
+
+    <ul>
+      <li>Click <strong>Go to resource</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image5.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image5.png" alt="Go to resource - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Functions</strong> and click <strong>+ Create</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image6.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image6.png" alt="Add function - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>HTTP trigger</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image7.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image7.png" alt="HTTP trigger - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Create Function</strong> and wait for the function to be created.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Test the function</p>
+
+    <ul>
+      <li>Select <strong>Code + Test</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image8.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image8.png" alt="Code + Test - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Test</strong>/<strong>Run</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image9.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image9.png" alt="Test/run - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Run</strong>.</p>
+      </li>
+      <li>
+        <p>You should see <strong>Hello, Azure</strong> in the output.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image10.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image10.png" alt="Function output - screenshot"></a></p>
+
+    <ul>
+      <li>Close the test pane.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Edit the function</p>
+
+    <ul>
+      <li>
+        <p>Replace the Run method with the method below.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs cpp">  <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> async </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(HttpRequest req, ILogger </span></span><span class="hljs-built_in"><span class="hljs-function"><span class="hljs-params"><span class="hljs-built_in">log</span></span></span></span><span class="hljs-function"><span class="hljs-params">)</span></span></span><span class="hljs-function">
+  </span></span>{
+      <span class="hljs-built_in"><span class="hljs-built_in">log</span></span>.LogInformation(<span class="hljs-string"><span class="hljs-string">"C# HTTP trigger function processed a request."</span></span>);
+
+      <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> requestBody = await <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> StreamReader(req.Body).ReadToEndAsync();
+      dynamic data = JsonConvert.DeserializeObject(requestBody);
+      <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> indentedJson = JsonConvert.SerializeObject(data, Formatting.Indented);
+      <span class="hljs-built_in"><span class="hljs-built_in">log</span></span>.LogInformation(indentedJson);
+  }
+</code></pre>
+      </li>
+      <li>
+        <p>Save your changes.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image11.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image11.png" alt="Save function - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Remove HTTP output</p>
+
+    <ul>
+      <li>Select <strong>Integration</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image12.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image12.png" alt="Integration - screenshot"></a></p>
+
+    <ul>
+      <li>Select the <strong>HTTP Output</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image13.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image13.png" alt="Outputs - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Delete</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image14.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image14.png" alt="Delete output - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>OK</strong>.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Get the function URL</p>
+
+    <ul>
+      <li>Select <strong>Overview</strong> and click <strong>Get Function URL</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image15.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image15.png" alt="Get function URL - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Copy</strong> and click OK to close the popup.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image16.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image16.png" alt="Copy function URL - screenshot"></a></p>
+
+    <ul>
+      <li>Save the <strong>URL</strong>, you will need it in the next exercise.</li>
+    </ul>
+  </li>
+</ol>
+
+<h1 id="exercise-2-configure-web-hook">Exercise #2: Configure Web Hook</h1>
+
+<h2 id="task-1-configure-publishing-to-a-web-hook">Task #1: Configure publishing to a web hook</h2>
+
+<ol>
+  <li>
+    <p>Download the SDK Toolkit. If you already have the Plugin Registration tool from the previous lab you can proceed to step three of this task.</p>
+
+    <ul>
+      <li>
+        <p>Navigate to <a href="https://xrm.tools/SDK">https://xrm.tools/SDK</a></p>
+      </li>
+      <li>
+        <p>Click <strong>Download SDK Zip File</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image17.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image17.png" alt="Download SDK - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Save the zip file on your machine.</p>
+      </li>
+      <li>
+        <p>Right click on the downloaded <strong>sdk.zip</strong> file and select <strong>Properties</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image18.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image18.png" alt="File properties - screenshot"></a></p>
+
+    <ul>
+      <li>Check the <strong>Unblock</strong> checkbox and click Apply.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image19.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image19.png" alt="Unblock file - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>OK</strong>.</p>
+      </li>
+      <li>
+        <p>Right click on the <strong>sdk.zip</strong> file again and select <strong>Extract All</strong>.</p>
+      </li>
+      <li>
+        <p>Complete extracting.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Start the Plugin Registration Tool</p>
+
+    <ul>
+      <li>Open the <strong>sdk</strong> folder you extracted and click to open the <strong>PluginRegistration</strong> folder.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image20.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image20.png" alt="Plugin registration - screenshot"></a></p>
+
+    <ul>
+      <li>Locate and double click PluginRegistration.exe.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image21.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image21.png" alt="Start plugin registration tool - screenshot "></a></p>
+  </li>
+  <li>
+    <p>Create new connection</p>
+
+    <ul>
+      <li>Click <strong>Create New Connection</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image22.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image22.png" alt="New connection - screenshot "></a></p>
+
+    <ul>
+      <li>
+        <p>Select <strong>Office 365</strong> and check the <strong>Display List of available organization</strong> and <strong>Show Advanced</strong> checkboxes. Select <strong>Online Region</strong> where your organization is located. If you are unsure what region to select, select <strong>Don’t Know</strong>.</p>
+      </li>
+      <li>
+        <p>Provide your <strong>Microsoft Dataverse</strong> credentials and click <strong>Login</strong>.<br>
+‎    <a href="../L08/Static/Mod_01_Web_Hook_image23.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image23.png" alt="Login - screenshot"></a></p>
+      </li>
+      <li>
+        <p>Select the <strong>Dev</strong> environment and click <strong>Login</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image24.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image24.png" alt="Select environment - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Register new Web Hook</p>
+
+    <ul>
+      <li>Click <strong>Register</strong> and select <strong>Register New Web Hook</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image25.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image25.png" alt="Register new web hook - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Enter <strong>NewSize</strong> for <strong>Name</strong>.</p>
+      </li>
+      <li>
+        <p>Go to the notepad where you saved the function URL and copy everything before the <strong>‘?’</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image26.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image26.png" alt="Copy URL - screenshot"></a></p>
+
+    <ul>
+      <li>Go back to the <strong>Plugin Registration</strong> tool and paste the <strong>URL</strong> you copied in the <strong>Endpoint URL</strong> Column.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image27.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image27.png" alt="Paste URL - screenshot "></a></p>
+
+    <ul>
+      <li>
+        <p>Select <strong>WebhookKey</strong> for <strong>Authentication</strong>.</p>
+      </li>
+      <li>
+        <p>Go back to the notepad and copy the key.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image28.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image28.png" alt="Copy key - screenshot"></a></p>
+
+    <ul>
+      <li>Go back to the <strong>Plugin Registration</strong> tool, paste the key you copied in the <strong>Value</strong> Column and click <strong>Save</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image29.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image29.png" alt="Paste key value and save - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Register new step</p>
+
+    <ul>
+      <li>Select the <strong>Web Hook</strong> you registered, click <strong>Register</strong> and select <strong>Register New Step</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image30.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image30.png" alt="Register new step - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Update</strong> for <strong>Message</strong>, <strong>contoso_permit</strong> for <strong>Primary Table</strong>, and click <strong>Filtering Attributes.</strong></li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image31.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image31.png" alt="Filtering attributes - screenshot"></a></p>
+
+    <ul>
+      <li>Select only <strong>New Size</strong> and click <strong>OK</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image32.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image32.png" alt="Select attribute - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Asynchronous</strong> for <strong>Execution Mode</strong> and click <strong>Register New Step</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image33.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image33.png" alt="Register new step - screenshot"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-2-test-the-web-hook">Task #2: Test the Web Hook</h2>
+
+<ol>
+  <li>
+    <p>Start the Permit Management application</p>
+
+    <ul>
+      <li>
+        <p>Sign in to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you have the <strong>Dev</strong> environment selected.</p>
+      </li>
+      <li>
+        <p>Select Apps and click to open the Permit Management application.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image34.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image34.png" alt="Start application - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Permits</strong> and open one of the permit records. Create new if you don’t have a Permit record.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image35.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image35.png" alt="Open permit record - screenshot"></a></p>
+
+    <ul>
+      <li>Change the <strong>New Size</strong> to <strong>5000</strong> and <strong>Save</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image36.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image36.png" alt="Change size and save - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Check Azure Output</p>
+
+    <ul>
+      <li>
+        <p>Go back to your <strong>Azure Function</strong>.</p>
+      </li>
+      <li>
+        <p>Select <strong>Code + Test</strong>.</p>
+      </li>
+      <li>
+        <p>Show <strong>Logs</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image37.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image37.png" alt="Show logs - screenshot"></a></p>
+
+    <ul>
+      <li>You should see logs like the image below. The Output is a serialized <strong>RemoteExecutionContextobject</strong> object</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image38.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image38.png" alt="Function output - screenshot"></a></p>
+  </li>
+</ol>
+
+<p><strong>Hint</strong>: If the log is not showing in the console (sometimes this happens), click <strong>Monitor</strong> on the left and check execution log. Select entry, details will be on the right (this could be delayed up to a few minutes).</p>
+
+<ol>
+  <li>
+    <p>Confirm the function executes only when the New Size value changes</p>
+
+    <ul>
+      <li>
+        <p>Go back to the <strong>Permit Management</strong> application.</p>
+      </li>
+      <li>
+        <p>Change the <strong>Start Date</strong> to tomorrow’s date and click <strong>Save</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image39.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image39.png" alt="Update record and save - screenshot"></a></p>
+  </li>
+</ol>
+
+<p>Go back to the Azure Function and make sure the function did not execute.</p>
+
+<h2 id="task-3-configure-an-table-image">Task #3: Configure an Table image</h2>
+
+<p>This step allows you to avoid unnecessarily querying Microsoft Dataverse and make a request only when you need information from the primary Table. It can also be used to get the prior value of a Column before an update operation.</p>
+
+<ol>
+  <li>
+    <p>Register New Image</p>
+
+    <ul>
+      <li>
+        <p>Go back to the <strong>Plugin Registration</strong> tool.</p>
+      </li>
+      <li>
+        <p>Select the <strong>NewSize</strong> step you created, click <strong>Register</strong> and select <strong>Register New Image</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image40.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image40.png" alt="Register new image - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Check both <strong>Pre</strong> and <strong>Post</strong> images checkboxes.</p>
+      </li>
+      <li>
+        <p>Enter <strong>Permit Image</strong> for <strong>Name</strong>, <strong>PermitImage</strong> for <strong>Table Alias</strong>, and click on the <strong>Parameters</strong> button.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image41.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image41.png" alt="Image type information - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Build Site</strong>, <strong>Contact</strong>, <strong>Name</strong>, <strong>New Size</strong>, <strong>Permit Type</strong>, and <strong>Start Date</strong>, and then click <strong>OK</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image42.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image42.png" alt="Select attributes - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Register Image</strong>.</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image43.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image43.png" alt="Register image - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Clear Azure log</p>
+
+    <ul>
+      <li>
+        <p>Go back to the <strong>Azure Function.</strong></p>
+      </li>
+      <li>
+        <p>Clear <strong>Logs</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image44.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image44.png" alt="Clear logs - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Update Permit record</p>
+
+    <ul>
+      <li>
+        <p>Go to the <strong>Permit Management</strong> application.</p>
+      </li>
+      <li>
+        <p>Select <strong>Permits</strong> and open one of the <strong>Permit</strong> records.</p>
+      </li>
+      <li>
+        <p>Change the New Size to <strong>4000</strong> and click <strong>Save</strong></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Check Azure logs</p>
+
+    <ul>
+      <li>
+        <p>Go back to the <strong>Azure Function</strong>.</p>
+      </li>
+      <li>
+        <p>Maximize the log pane.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image45.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image45.png" alt="Maximize log pane - screenshot"></a></p>
+
+    <ul>
+      <li>The logs should now show both <strong>Pre</strong> and <strong>Post</strong> Table images. In this case you should see the old value <strong>5000</strong> in <strong>Pre</strong> image and the new value <strong>4000</strong> in the <strong>Post</strong> image</li>
+    </ul>
+
+    <p><a href="../L08/Static/Mod_01_Web_Hook_image46.png" target="_blank"><img src="../L08/Static/Mod_01_Web_Hook_image46.png" alt="Post and pre Table image values - screenshot"></a></p>
+  </li>
+</ol>
+
+<p><strong>Note:</strong> Technically, we have the data in the target object already. However, if there are plugins modifying the data, PostImage will contain the copy as recorded in Microsoft Dataverse while Target contains the data as submitted on Save. In addition to that, preimage contains data before the save operation took place.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.js"></script>
+
+
+
+</body></html>

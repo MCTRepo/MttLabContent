@@ -1,0 +1,241 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            SC-200T00A-Microsoft-Security-Operations-Analyst
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="/SC-200T00A-Microsoft-Security-Operations-Analyst/assets/css/style.css?v=20cbc7b52187d61fca294ac2c00146c2c7c6d337">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                SC-200T00A-Microsoft-Security-Operations-Analyst
+            </a>
+            <a href="https://github.com/MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#task-1-create-a-hunting-query">Task 1: Create a hunting query</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="module-8---lab-1---exercise-1---perform-threat-hunting-in-microsoft-sentinel">Module 8 - Lab 1 - Exercise 1 - Perform Threat Hunting in Microsoft Sentinel</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>You are a Security Operations Analyst working at a company that implemented Microsoft Sentinel. You have received threat intelligence about a Command and Control (C2 or C&amp;C) technique.  You need to perform a hunt and watch for the threat.</p>
+
+<blockquote>
+  <p><strong>Important:</strong> The log data used in the lab was created in the previous module. See <strong>Attack 3</strong> in WIN1 server in Exercise 5.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>Note:</strong>  Because you already experienced the process of exploring data in a previous module, the lab provides a KQL statement to start with.</p>
+</blockquote>
+
+<h3 id="task-1-create-a-hunting-query">Task 1: Create a hunting query</h3>
+
+<p>In this task, you will create a hunting query, bookmark a result, and create a Livestream.</p>
+
+<ol>
+  <li>
+    <p>Log in to WIN1 virtual machine as Admin with the password: <strong>Pa55w.rd</strong>.</p>
+  </li>
+  <li>
+    <p>In the Edge browser, navigate to the Azure portal at https://portal.azure.com.</p>
+  </li>
+  <li>
+    <p>In the <strong>Sign in</strong> dialog box, copy and paste in the <strong>Tenant Email</strong> account provided by your lab hosting provider and then select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Enter password</strong> dialog box, copy and paste in the <strong>Tenant Password</strong> provided by your lab hosting provider and then select <strong>Sign in</strong>.</p>
+  </li>
+  <li>
+    <p>In the Search bar of the Azure portal, type <em>Sentinel</em>, then select <strong>Microsoft Sentinel</strong>.</p>
+  </li>
+  <li>
+    <p>Select your Microsoft Sentinel Workspace.</p>
+  </li>
+  <li>
+    <p>Select <strong>Logs</strong></p>
+  </li>
+  <li>
+    <p>Enter the following KQL Statement in the New Query 1 space:</p>
+
+    <blockquote>
+      <p><strong>Important:</strong> Please paste any KQL queries first in Notepad and then copy from there to the <em>New Query 1</em> Log window to avoid any errors.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-KQL">let lookback = 2d;
+DeviceEvents
+| where TimeGenerated &gt;= ago(lookback) 
+|&nbsp;where&nbsp;ActionType&nbsp;==&nbsp;"DnsQueryResponse"
+|&nbsp;extend&nbsp;c2&nbsp;=&nbsp;substring(tostring(AdditionalFields.DnsQueryString),0,indexof(tostring(AdditionalFields.DnsQueryString),"."))
+|&nbsp;where&nbsp;c2&nbsp;startswith&nbsp;"sub"
+|&nbsp;summarize&nbsp;count()&nbsp;by&nbsp;bin(TimeGenerated,&nbsp;3m),&nbsp;c2
+| where count_ &gt; 5
+|&nbsp;render&nbsp;timechart&nbsp;
+</code></pre>
+
+<p><a href="../Media/SC200_hunting1.png" target="_blank"><img src="../Media/SC200_hunting1.png" alt="Screenshot"></a></p>
+
+<ol>
+  <li>
+    <p>The goal of this statement is to provide a visualization to check for a C2 beaconing out on a consistent basis. Take time to adjust the 3m setting to 30s in the summarize operator and more. Change the count_ &gt; 5 setting to other threshold counts to witness the impact.</p>
+  </li>
+  <li>
+    <p>You have now identified DNS requests that are beaconing to a C2 server.  Next, determine which devices are beaconing.  Enter the following KQL Statement:</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-KQL">let lookback = 2d;
+DeviceEvents
+| where TimeGenerated &gt;= ago(lookback) 
+|&nbsp;where&nbsp;ActionType&nbsp;==&nbsp;"DnsQueryResponse"
+|&nbsp;extend&nbsp;c2&nbsp;=&nbsp;substring(tostring(AdditionalFields.DnsQueryString),0,indexof(tostring(AdditionalFields.DnsQueryString),"."))
+|&nbsp;where&nbsp;c2&nbsp;startswith&nbsp;"sub"
+|&nbsp;summarize&nbsp;cnt=count()&nbsp;by&nbsp;bin(TimeGenerated,&nbsp;5m),&nbsp;c2, DeviceName
+| where cnt &gt; 15
+</code></pre>
+
+<p><a href="../Media/SC200_hunting2.png" target="_blank"><img src="../Media/SC200_hunting2.png" alt="Screenshot"></a></p>
+
+<blockquote>
+  <p><strong>Note:</strong> The generated log data is only from one device.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>Close the Logs window by selecting the ‘x’ in the top-right of the window and select <strong>OK</strong> to discard the changes. Select your Microsoft Sentinel workspace again and select the <strong>Hunting</strong> page under the Threat Management area.</p>
+  </li>
+  <li>
+    <p>Select <strong>+ New Query</strong> from the command bar.</p>
+  </li>
+  <li>
+    <p>For the <strong>Custom query</strong> enter the following KQL statement:</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-KQL">let lookback = 2d;
+DeviceEvents
+| where TimeGenerated &gt;= ago(lookback) 
+|&nbsp;where&nbsp;ActionType&nbsp;==&nbsp;"DnsQueryResponse"
+|&nbsp;extend&nbsp;c2&nbsp;=&nbsp;substring(tostring(AdditionalFields.DnsQueryString),0,indexof(tostring(AdditionalFields.DnsQueryString),"."))
+|&nbsp;where&nbsp;c2&nbsp;startswith&nbsp;"sub"
+|&nbsp;summarize&nbsp;cnt=count()&nbsp;by&nbsp;bin(TimeGenerated,&nbsp;5m),&nbsp;c2, DeviceName
+| where cnt &gt; 15
+</code></pre>
+
+<ol>
+  <li>
+    <p>For the Name enter type <em>C2 Hunt</em></p>
+  </li>
+  <li>
+    <p>In the <em>Entity mapping (Preview)</em> select <strong>+ Add new entity</strong>:</p>
+
+    <ul>
+      <li>For the <em>Entity type</em> drop-down list select <strong>Host</strong>.</li>
+      <li>For the <em>Identifier</em> drop-down list select <strong>HostName</strong>.</li>
+      <li>For the <em>Value</em> drop-down list select <strong>DeviceName</strong>.</li>
+    </ul>
+  </li>
+  <li>
+    <p>In the <em>Tactics &amp; Techniques</em> select <strong>Command and Control</strong>. Select <strong>Create</strong> to create the hunting query.</p>
+  </li>
+  <li>
+    <p>In the Microsoft Sentinel - Hunting blade search for the query you just created in the list, <em>C2 Hunt</em>.</p>
+  </li>
+  <li>
+    <p>Select <strong>C2 Hunt</strong> in the list.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Run Query</strong> button on the right side of the page.</p>
+  </li>
+  <li>
+    <p>The result count is displayed at the top of the flyout.</p>
+  </li>
+  <li>
+    <p>Select the <strong>View Results</strong> button.</p>
+  </li>
+  <li>
+    <p>Select the first row in the results.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Add bookmark</strong> button.</p>
+  </li>
+  <li>
+    <p>In the Add bookmark blade select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>Return to the Hunting page in the Microsoft Sentinel portal (hint: scroll to the left).</p>
+  </li>
+  <li>
+    <p>Select the <strong>Bookmarks</strong> tab.</p>
+  </li>
+  <li>
+    <p>Select the bookmark you just created in the results list.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Investigate</strong> button.</p>
+  </li>
+  <li>
+    <p>Explore the Investigation graph.</p>
+  </li>
+  <li>
+    <p>Return to the Hunting page in the Microsoft Sentinel portal by closing the window selecting the ‘x’ in the top-right.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Queries</strong> tab</p>
+  </li>
+  <li>
+    <p>Search again for and select the <strong>C2 Hunt</strong> query.</p>
+  </li>
+  <li>
+    <p>Select the <strong>…</strong> at the end of the row to the right to open the context menu.</p>
+  </li>
+  <li>
+    <p>Select <strong>Add to livestream</strong>.</p>
+  </li>
+</ol>
+
+<h1 id="proceed-to-exercise-2">Proceed to Exercise 2</h1>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst" target="_blank" class="ml-2">
+                    MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D20cbc7b52187d61fca294ac2c00146c2c7c6d337.js"></script>
+
+
+
+</body></html>

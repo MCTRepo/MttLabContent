@@ -1,0 +1,360 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-500ZH-AzureSecurityTechnologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-500ZH-AzureSecurityTechnologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-500ZH-AzureSecurityTechnologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1使用-azure-monitor-从-azure-虚拟机收集数据">练习 1：使用 Azure Monitor 从 Azure 虚拟机收集数据</a></li><li class="nav-item"><a class="nav-link" href="#练习时间20-分钟">练习时间：20 分钟</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-13azure-monitor">实验室 13：Azure Monitor</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你需要创建监视虚拟机性能的概念证明。具体来说，你需要：</p>
+
+<ul>
+  <li>配置虚拟机，以便可以收集遥测和日志。</li>
+  <li>显示可以收集哪些遥测和日志。</li>
+  <li>显示如何使用和查询数据。</li>
+</ul>
+
+<blockquote>
+  <p>对于本实验室中的所有资源，我们使用 <strong>“美国东部”</strong> 区域。请与讲师确认这是课堂上所使用的区域。</p>
+</blockquote>
+
+<h2 id="实验室目标">实验室目标</h2>
+
+<p>在本实验室中，你将完成以下练习：</p>
+
+<ul>
+  <li>练习 1：使用 Azure Monitor 从 Azure 虚拟机收集数据</li>
+</ul>
+
+<h3 id="练习-1使用-azure-monitor-从-azure-虚拟机收集数据">练习 1：使用 Azure Monitor 从 Azure 虚拟机收集数据</h3>
+
+<h3 id="练习时间20-分钟">练习时间：20 分钟</h3>
+
+<p>在该练习中，你将完成以下任务：</p>
+
+<ul>
+  <li>任务 1：部署 Azure 虚拟机</li>
+  <li>任务 2：创建 Log Analytics 工作区</li>
+  <li>任务 3：启用 Log Analytics 虚拟机扩展</li>
+  <li>任务 4：收集虚拟机事件和性能数据</li>
+  <li>任务 5：查看和查询收集的数据</li>
+</ul>
+
+<h4 id="任务-1部署-azure-虚拟机">任务 1：部署 Azure 虚拟机</h4>
+
+<ol>
+  <li>
+    <p>登录 Azure 门户 <strong><code>https://portal.azure.com/</code></strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 使用此实验室使用的 Azure 订阅中具有所有者或参与者角色的帐户登录 Azure 门户。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 Azure 门户右上角的第一个图标，打开 Cloud Shell。如果出现提示，请选择 <strong>“PowerShell”</strong> 和 <strong>“创建储存”</strong>。</p>
+  </li>
+  <li>
+    <p>确保在“Cloud Shell”窗格左上角的下拉菜单中选中 <strong>“PowerShell”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格内的 PowerShell 会话中运行以下命令，创建一个将在本实验室中使用的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell"> New-AzResourceGroup -Name AZ500LAB131415 -Location 'EastUS'
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此资源组将用于实验室 13、14 和 15。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格内的 PowerShell 会话中运行下列命令，创建新的 Azure 虚拟机。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell"> New-AzVm -ResourceGroupName "AZ500LAB131415" -Name "myVM" -Location 'EastUS' -VirtualNetworkName "myVnet" -SubnetName "mySubnet" -SecurityGroupName   "myNetworkSecurityGroup" -PublicIpAddressName "myPublicIpAddress" -OpenPorts 80,3389
+</code></pre>
+  </li>
+  <li>
+    <p>当提示输入凭据时：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>用户名</td>
+          <td><strong>localadmin</strong></td>
+        </tr>
+        <tr>
+          <td>密码</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待部署完成。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中的 PowerShell 会话中，运行以下命令以确认创建了名为 <strong>“myVM”</strong> 的虚拟机，并且其 <strong>“ProvisioningState”</strong> 为 <strong>“成功”</strong>。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell"> Get-AzVM -Name 'myVM' -ResourceGroupName 'AZ500LAB131415' | Format-Table
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2创建-log-analytics-工作区">任务 2：创建 Log Analytics 工作区</h4>
+
+<p>此任务将创建一个 Log Analytics 工作区。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户页面顶部的 <strong>“搜索资源、服务和文档”</strong> 文本框中，键入 <strong>“Log Analytics 工作区”</strong>，然后按 <strong>“Enter”</strong> 键。</p>
+  </li>
+  <li>
+    <p>在“<strong>Log Analytics 工作区</strong>”边栏选项卡上，单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建 Log Analytics 工作区”</strong> 边栏选项卡的 <strong>“基本”</strong> 选项卡中，指定以下设置（将其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>AZ500LAB131415</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td>任何有效的全局唯一名称</td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td><strong>（美国）美国东部</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 定价层 &gt;”</strong> ，在 <strong>“创建 Log Analytics 工作区”</strong> 边栏选项卡的 <strong>“定价层”</strong> 选项卡中，接受默认的 <strong>“即用即付(每 GB 2018)”</strong> 定价层，然后单击 <strong>“查看 + 创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建 Log Analytics 工作区”</strong> 边栏选项卡的 <strong>“查看 + 创建”</strong> 选项卡中，单击 <strong>“创建”</strong>。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3启用-log-analytics-虚拟机扩展">任务 3：启用 Log Analytics 虚拟机扩展</h4>
+
+<p>在此任务中，你将启用 Log Analytics 虚拟机扩展。此扩展在 Windows 和 Linux 虚拟机上安装 Log Analytics 代理。此代理从虚拟机收集数据，并将其传输到你指定的 Log Analytics 工作区。安装代理后，它将自动升级，以确保你始终拥有最新的功能和修补程序。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航回 <strong>“Log Analytics 工作区”</strong> 边栏选项卡，然后在工作区列表中，单击表示你在上一个任务中创建的工作区的条目。</p>
+  </li>
+  <li>
+    <p>在“<strong>Log Analytics 工作区</strong>”边栏选项卡中的“<strong>连接数据源</strong>”部分，单击“<strong>虚拟机</strong>”条目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 为了成功安装代理，虚拟机必须正在运行。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在虚拟机列表中，找到表示你在本练习的第一个任务中部署的 <strong>Azure VM myVM</strong> 的条目，并注意它被列为 <strong>“未连接”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“myVM”</strong> 条目，然后在 <strong>“myVM”</strong> 边栏选项卡上单击 <strong>“连接”</strong>。</p>
+  </li>
+  <li>
+    <p>等待虚拟机连接到 Log Analytics 工作区。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这可能需要几分钟时间。 <strong>“myVM”</strong> 边栏选项卡上显示的 <strong>“状态”</strong> 将从 <strong>“正在连接”</strong> 变为 <strong>“此工作区”</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4收集虚拟机事件和性能数据">任务 4：收集虚拟机事件和性能数据</h4>
+
+<p>在此任务中要配置 Windows 系统日志和几个常见性能计数器的集合。还将查看其他可用资源。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航回到在本练习前面创建的 Log Analytics 工作区。</p>
+  </li>
+  <li>
+    <p>在“Log Analytics 工作区”边栏选项卡上，单击 <strong>“设置”</strong> 部分中的 <strong>“代理配置”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“代理配置”</strong> 边栏选项卡上查看可配置的设置，包括 Windows 事件日志、Windows 性能计数器、Linux 性能计数器、IIS 日志和 Syslog。</p>
+  </li>
+  <li>
+    <p>确保选中“<strong>Windows 事件日志</strong>”，单击“<strong>+ 添加 Windows 事件日志</strong>”，然后在事件日志类型列表中选择“<strong>系统</strong>”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这是将事件日志添加到工作区的方式。其他选择包括 <strong>“硬件事件”</strong> 或 <strong>“密钥管理服务”</strong> 等。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>取消勾选 <strong>“信息”</strong> 复选框，将 <strong>“错误”</strong> 和 <strong>“警告”</strong> 复选框保留为选中状态。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“Windows 性能计数器”</strong>，单击 <strong>“+ 添加性能计数器”</strong>，查看可用的性能计数器列表，然后添加以下计数器：</p>
+
+    <ul>
+      <li>处理(*)\%处理器时间</li>
+      <li>适用于 Windows 的事件跟踪\总内存使用量 — 非分页池</li>
+      <li>适用于 Windows 的事件跟踪\总内存使用量 — 分页池</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>备注</strong>： 添加计数器并配置为 60 秒的收集采样间隔。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“代理配置”</strong> 边栏选项卡上，单击 <strong>“应用”</strong>。</p>
+  </li>
+</ol>
+
+<h4 id="任务-5查看和查询收集的数据">任务 5：查看和查询收集的数据</h4>
+
+<p>此任务将对数据收集运行日志搜索。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航回到在本练习前面创建的 Log Analytics 工作区。</p>
+  </li>
+  <li>
+    <p>在“Log Analytics 工作区”边栏选项卡上，单击 <strong>“常规”</strong> 部分中的 <strong>“日志”</strong>。</p>
+  </li>
+  <li>
+    <p>根据需要关闭 <strong>“欢迎使用日志分析”窗口</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“查询”</strong> 窗格上的 <strong>“所有查询”</strong> 列中，向下滚动到资源类型列表的底部，然后单击 <strong>“虚拟机”</strong></p>
+  </li>
+  <li>
+    <p>查看预定义查询列表，选择 <strong>“内存和 CPU 使用情况”</strong>，然后单击相应的 <strong>“运行”</strong> 按钮。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你可以从查询<strong>虚拟机可用内存</strong>开始。如果没有任何结果，请检查范围是否设置为虚拟机</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>该查询将在新的查询选项卡中自动打开。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： Log Analytics 使用 Kusto 查询语言。你可以自定义现有查询或创建自己的查询。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 所选查询的结果将自动显示在查询窗格下方。要重新运行查询，请单击 <strong>“运行”</strong>。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 由于此虚拟机是刚刚创建的，因此可能还没有任何数据。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你可以选择以不同的格式显示数据。你还可以选择根据查询结果创建警报规则。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：可使用以下步骤在本实验室前面部分部署的 Azure VM 上生成一些额外的负载：</p>
+    </blockquote>
+
+    <ol>
+      <li>导航到 Azure VM 边栏选项卡。</li>
+      <li>在 Azure VM 边栏选项卡的 <strong>“操作”</strong> 部分选择 <strong>“运行命令”</strong>，在 <strong>“运行命令脚本”</strong> 边栏选项卡上键入以下脚本，然后单击 <strong>“运行”</strong>：</li>
+      <li>
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-cmd">cmd
+:loop
+dir c:\ /s &gt; SWAP
+goto loop
+</code></pre>
+      </li>
+      <li>切换回“Log Analytics”边栏选项卡，并重新运行查询。可能需要等待几分钟来完成数据收集过程，然后再次重新运行查询。</li>
+    </ol>
+  </li>
+</ol>
+
+<blockquote>
+  <p>结果：你使用 Log Analytics 工作区配置了数据源和查询日志。</p>
+</blockquote>
+
+<p><strong>清理资源</strong></p>
+
+<blockquote>
+  <p><strong>备注</strong>： 请勿从此实验室中删除资源，因为 Azure 安全中心实验室和 Azure Sentinel 实验室需要这些资源。</p>
+</blockquote>
+
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-500ZH-AzureSecurityTechnologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-500ZH-AzureSecurityTechnologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

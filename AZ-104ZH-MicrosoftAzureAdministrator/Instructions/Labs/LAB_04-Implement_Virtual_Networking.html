@@ -1,0 +1,841 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104ZH-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104ZH-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#练习-1">练习 1</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-04---实现虚拟网络">实验室 04 - 实现虚拟网络</h1>
+
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你需要探索 Azure 虚拟网络功能。首先，你计划在 Azure 中创建一个将托管几个 Azure 虚拟机的虚拟网络。由于你打算实现基于网络的分段，因此会将这些虚拟机部署到虚拟网络的不同子网中。你还希望确保其专用 IP 地址和公共 IP 地址不会随着时间的推移而发生变化。为了符合 Contoso 的安全要求，你需要保护可从 Internet 访问的 Azure 虚拟机公共终结点。最后，你需要为虚拟网络和 Internet 内的 Azure 虚拟机实现 DNS 名称解析。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>在本实验室中，你将：</p>
+
+<ul>
+  <li>任务 1：创建和配置虚拟网络</li>
+  <li>任务 2：将虚拟机部署到虚拟网络中</li>
+  <li>任务 3：配置 Azure VM 的专用 IP 地址和公共 IP 地址</li>
+  <li>任务 4：配置网络安全组</li>
+  <li>任务 5：配置 Azure DNS 以进行内部名称解析</li>
+  <li>任务 6：配置 Azure DNS 以进行外部名称解析</li>
+</ul>
+
+<h2 id="预计用时40-分钟">预计用时：40 分钟</h2>
+
+<h2 id="体系结构图">体系结构图</h2>
+
+<p><a href="../media/lab04.png" target="_blank"><img src="../media/lab04.png" alt="图像"></a></p>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="练习-1">练习 1</h3>
+
+<h4 id="任务-1创建和配置虚拟网络">任务 1：创建和配置虚拟网络</h4>
+
+<p>在此任务中，你将使用 Azure 门户创建一个包含多个子网的虚拟网络</p>
+
+<ol>
+  <li>
+    <p>登录到 <a href="https://portal.azure.com">Azure 门户</a>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>虚拟网络</strong>”，然后在“<strong>虚拟网络</strong>”边栏选项卡中单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>创建一个虚拟网络，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>本实验室将使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>新</strong> 资源组名称 <strong>az104-04-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-04-vnet1</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>本实验室将使用的订阅中可用的任何 Azure 区域的名称</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: IP 地址”</strong> 并输入以下值</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>IPv4 地址空间</td>
+          <td><strong>10.40.0.0/20</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“+ 添加子网”</strong>，输入以下值，然后单击 <strong>“添加”</strong></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>子网名</td>
+          <td><strong>subnet0</strong></td>
+        </tr>
+        <tr>
+          <td>子网地址范围</td>
+          <td><strong>10.40.0.0/24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>接受默认值，并单击 <strong>“查看和创建”</strong>。允许进行验证，然后再次单击 <strong>“创建”</strong> 以提交部署。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 请等待预配虚拟网络。所需时间应该不超过一分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“前往资源”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-04-vnet1”</strong> 虚拟网络边栏选项卡中，单击 <strong>“子网”</strong>，然后单击 <strong>“+ 子网”</strong>。</p>
+  </li>
+  <li>
+    <p>创建一个子网，设置如下（其他则保留其默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>subnet1</strong></td>
+        </tr>
+        <tr>
+          <td>地址范围（CIDR 块）</td>
+          <td><strong>10.40.1.0/24</strong></td>
+        </tr>
+        <tr>
+          <td>网络安全组</td>
+          <td><strong>无</strong></td>
+        </tr>
+        <tr>
+          <td>路由表</td>
+          <td><strong>无</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“保存”</strong></p>
+  </li>
+</ol>
+
+<h4 id="任务-2将虚拟机部署到虚拟网络中">任务 2：将虚拟机部署到虚拟网络中</h4>
+
+<p>在此任务中，你将使用 ARM 模板将 Azure 虚拟机部署到虚拟网络的不同子网中</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，单击 Azure 门户右上方的图标，打开 <strong>Azure Cloud Shell</strong>。</p>
+  </li>
+  <li>
+    <p>提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong> 时，选择 <strong>“PowerShell”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果这是第一次启动 <strong>Cloud Shell</strong>，并看到 <strong>“未装载任何存储”</strong> 消息，请选择在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的工具栏中，单击“上传/下载文件”图标，在下拉菜单中单击 <strong>“上传”</strong>，然后将文件 <strong>\Allfiles\Labs\04\az104-04-vms-loop-template.json</strong> 和 <strong>\Allfiles\Labs\04\az104-04-vms-loop-parameters.json</strong> 上传到 Cloud Shell 主目录中。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你可能需要分别上传各个文件。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，使用你上传的模板和参数文件运行以下命令，以部署两台虚拟机：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$rgName = 'az104-04-rg1'
+
+New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-04-vms-loop-template.json `
+   -TemplateParameterFile $HOME/az104-04-vms-loop-parameters.json
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这种部署 ARM 模板的方法使用了 Azure PowerShell。你可以通过运行等效的 Azure CLI 命令 <strong>az deployment create</strong> 来执行相同的任务（有关详细信息，请参阅<a href="https://docs.microsoft.com/zh-cn/azure/azure-resource-manager/templates/deploy-cli">使用资源管理器模板和 Azure CLI 部署资源</a>。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请等待部署完成后再继续下一个任务。该操作需约 2 分钟。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果收到错误消息，指出 VM 大小在该区域中不可用，请执行以下步骤：</p>
+      <ol>
+        <li>单击 CloudShell 中的 <code>{}</code> 按钮，从左侧栏中选择“<strong>az104-04-vms-loop-parameters.json</strong>”，并记下 <code>vmSize</code> 参数值。</li>
+        <li>检查部署“az104-04-rg1”资源组的位置。你可以在 CloudShell 中运行 <code>az group show -n az104-04-rg1 --query location</code> 来获取它。</li>
+        <li>在 CloudShell 中运行 <code>az vm list-skus --location &lt;Replace with your location&gt; -o table --query "[? contains(name,'Standard_D2s')].name"</code>。</li>
+        <li>将 <code>vmSize</code> 参数的值替换为你刚刚运行的命令返回的其中一个值。</li>
+        <li>现在，通过再次运行 <code>New-AzResourceGroupDeployment</code> 命令来重新部署模板。你可以按几次向上按钮，以显示上次执行的命令。</li>
+      </ol>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3配置-azure-vm-的专用-ip-地址和公共-ip-地址">任务 3：配置 Azure VM 的专用 IP 地址和公共 IP 地址</h4>
+
+<p>在此任务中，你将配置分配到 Azure 虚拟机网络接口的公共 IP 地址和专用 IP 地址的静态分配。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 专用 IP 地址和公共 IP 地址实际上分配到网络接口，而这些接口又附加到 Azure 虚拟机，但是，改为引用分配给 Azure VM 的 IP 地址相当普遍。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“资源组”</strong>，然后在 <strong>“资源组”</strong> 边栏选项卡中单击 <strong>“az104-04-rg1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-04-rg1”</strong> 资源组边栏选项卡的资源列表中，单击 <strong>“az104-04-vnet1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-04-vnet1”</strong> 虚拟网络边栏选项卡中，查看 <strong>“已连接设备”</strong> 部分，并验证 <strong>“az104-04-nic0”</strong> 和 <strong>“az104-04-nic1”</strong> 这两个网络接口是否已连接到虚拟网络。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“az104-04-nic0”</strong>，然后在 <strong>“az104-04-nic0”</strong> 边栏选项卡中单击 <strong>“IP 配置”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请验证当前是否将 <strong>“ipconfig1”</strong> 设置为动态专用 IP 地址。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 IP 配置列表中，单击 <strong>“ipconfig1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“ipconfig1”</strong> 边栏选项卡上的 <strong>“公共 IP 地址设置”</strong> 部分，选择 <strong>“关联”</strong>，单击 <strong>“+ 新建”</strong>，指定以下设置，然后单击 <strong>“确定”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-04-pip0</strong></td>
+        </tr>
+        <tr>
+          <td>SKU</td>
+          <td><strong>标准</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“ipconfig1”</strong> 边栏选项卡中，将 <strong>“分配”</strong> 设置为 <strong>“静态”</strong>，将 <strong>“IP 地址”</strong> 的默认值设置为 <strong>“10.40.0.4”</strong>。</p>
+  </li>
+  <li>
+    <p>返回 <strong>“ipconfig1”</strong> 边栏选项卡，保存更改。在继续下一步骤之前，请确保等待保存操作完成。</p>
+  </li>
+  <li>
+    <p>导航回 <strong>“az104-04-vnet1”</strong> 边栏选项卡</p>
+  </li>
+  <li>
+    <p>单击 <strong>“az104-04-nic1”</strong>，然后在 <strong>“az104-04-nic1”</strong> 边栏选项卡中单击 <strong>“IP 配置”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请验证当前是否将 <strong>“ipconfig1”</strong> 设置为动态专用 IP 地址。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 IP 配置列表中，单击 <strong>“ipconfig1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“ipconfig1”</strong> 边栏选项卡上的 <strong>“公共 IP 地址设置”</strong> 部分，选择 <strong>“关联”</strong>，单击 <strong>“+ 新建”</strong>，指定以下设置，然后单击 <strong>“确定”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-04-pip1</strong></td>
+        </tr>
+        <tr>
+          <td>SKU</td>
+          <td><strong>标准</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“ipconfig1”</strong> 边栏选项卡中，将 <strong>“分配”</strong> 设置为 <strong>“静态”</strong>，将 <strong>“IP 地址”</strong> 的默认值设置为 <strong>“10.40.1.4”</strong>。</p>
+  </li>
+  <li>
+    <p>返回 <strong>“ipconfig1”</strong> 边栏选项卡，保存更改。</p>
+  </li>
+  <li>
+    <p>导航回 <strong>“az104-04-rg1”</strong> 资源组边栏选项卡，在资源列表中单击 <strong>“az104-04-vm0”</strong>，并记下 <strong>“az104-04-vm0”</strong> 虚拟机边栏选项卡中的公共 IP 地址条目。</p>
+  </li>
+  <li>
+    <p>导航回 <strong>“az104-04-rg1”</strong> 资源组边栏选项卡，在资源列表中单击 <strong>“az104-04-vm1”</strong>，并记下 <strong>“az104-04-vm1”</strong> 虚拟机边栏选项卡中的公共 IP 地址条目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 本实验室的最后一个任务中需要这两个 IP 地址。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4配置网络安全组">任务 4：配置网络安全组</h4>
+
+<p>在此任务中，你将配置网络安全组，以允许对 Azure 虚拟机的受限连接。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航回 <strong>“az104-04-rg1”</strong> 资源组边栏选项卡，然后在资源列表中单击 <strong>“az104-04-vm0”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-04-vm0”</strong> 概述边栏选项卡上单击 <strong>“连接”</strong>，在下拉菜单中单击 <strong>“RDP”</strong>，在 <strong>“使用 RDP 连接”</strong> 边栏选项卡上单击 <strong>“使用公共 IP 地址下载 RDP 文件”</strong>，然后按照提示启动远程桌面会话。</p>
+  </li>
+  <li>
+    <p>请注意，连接尝试失败。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这很正常，因为在默认情况下，标准 SKU 的公共 IP 地址会要求其分配到的网络接口受网络安全组的保护。为了允许远程桌面连接，你将创建一个网络安全组，明确允许来自 Internet 的入站 RDP 流量，并将这些流量分配到两台虚拟机的网络接口。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>网络安全组</strong>”，然后在“<strong>网络安全组</strong>”边栏选项卡中单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>创建一个网络安全组，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-04-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-04-nsg01</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>本实验室中用于部署所有其他资源的 Azure 区域的名称</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“查看并创建”</strong>。允许进行验证，然后单击 <strong>“创建”</strong> 以提交部署。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待部署完成。该操作需约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“部署”边栏选项卡上，单击 <strong>“前往资源”</strong> 以打开 <strong>“az104-04-nsg01”</strong> 网络安全组边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-04-nsg01”</strong> 网络安全组边栏选项卡中的 <strong>“设置”</strong> 部分，单击 <strong>“入站安全规则”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个入站规则，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>源</td>
+          <td><strong>任何</strong></td>
+        </tr>
+        <tr>
+          <td>源端口范围</td>
+          <td>*</td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>任何</strong></td>
+        </tr>
+        <tr>
+          <td>服务</td>
+          <td><strong>RDP</strong></td>
+        </tr>
+        <tr>
+          <td>操作</td>
+          <td><strong>允许</strong></td>
+        </tr>
+        <tr>
+          <td>优先级</td>
+          <td><strong>300</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>AllowRDPInBound</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“az104-04-nsg01”</strong> 网络安全组边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“网络接口”</strong>，然后单击 <strong>“+ 关联”</strong>。</p>
+  </li>
+  <li>
+    <p>将 <strong>“az104-04-nsg01”</strong> 网络安全组与 <strong>“az104-04-nic0”</strong> 和 <strong>“az104-04-nic1”</strong> 网络接口关联。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 新创建的网络安全组中的规则可能需要最多 5 分钟才能应用到网络接口卡。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>导航回 <strong>“az104-04-vm0”</strong> 虚拟机边栏选项卡。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在后续步骤中，你将验证是否可以成功连接到目标虚拟机，并使用用户名 <strong>“Student”</strong> 和密码 <strong>“Pa55w.rd1234”</strong> 登录。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az104-04-vm0”</strong> 边栏选项卡上依次单击 <strong>“连接”</strong> 和 <strong>“RDP”</strong>，在 <strong>“使用 RDP 连接”</strong> 边栏选项卡上单击 <strong>“使用公共 IP 地址下载 RDP 文件”</strong>，然后按照提示启动远程桌面会话。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此步骤是指在 Windows 计算机中通过远程桌面进行连接。在 Mac 上，可以使用 Mac App Store 中的远程桌面客户端，而在 Linux 计算机上，可以使用开源 RDP 客户端软件。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 连接到目标虚拟机时，可以忽略任何警告提示。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>出现提示时，请使用用户名 <strong>“Student”</strong> 和密码 <strong>“Pa55w.rd1234”</strong> 登录。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 使远程桌面会话保持开启状态。在下一个任务中需要使用它。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-5配置-azure-dns-以进行内部名称解析">任务 5：配置 Azure DNS 以进行内部名称解析</h4>
+
+<p>在此任务中，你将使用 Azure 专用 DNS 区域在虚拟网络中配置 DNS 名称解析。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>专用 DNS 区域</strong>”，然后在“<strong>专用 DNS 区域</strong>”边栏选项卡中单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>创建一个专用 DNS 区域，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-04-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>contoso.org</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击“查看并创建”。允许进行验证，然后再次单击“创建”以提交部署。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请等待专用 DNS 区域创建完毕。该操作需约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“前往资源”</strong> 以打开 <strong>“contoso.org DNS”</strong> 专用区域边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“contoso.org”</strong> 专用 DNS 区域边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“虚拟网络链接”</strong></p>
+  </li>
+  <li>
+    <p>单击 <strong>“+ 添加”</strong>，使用以下设置创建虚拟网络链接（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>链接名称</td>
+          <td><strong>az104-04-vnet1-link</strong></td>
+        </tr>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az104-04-vnet1</strong></td>
+        </tr>
+        <tr>
+          <td>启用自动注册</td>
+          <td>已启用</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“确定”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 请等待虚拟网络链接创建完成。所需时间应该不超过一分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“contoso.org”</strong> 专用 DNS 区域边栏选项卡的侧边栏中，单击 <strong>“概述”</strong></p>
+  </li>
+  <li>
+    <p>验证 <strong>“az104-04-vm0”</strong> 和 <strong>“az104-04-vm1”</strong> 的DNS 记录是否在记录集列表中显示为 <strong>“自动注册”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 如果其未在记录集中列出，你可能需要等待分钟，然后刷新页面。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>将远程桌面会话切换到 <strong>az104-04-vm0</strong>，右键单击 <strong>“开始”</strong> 按钮，然后在右键菜单中单击 <strong>“Windows PowerShell (管理员)”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Windows PowerShell 控制台窗口中，运行以下命令以测试新创建的专用 DNS 区域中的内部名称解析：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">nslookup az104-04-vm0.contoso.org
+nslookup az104-04-vm1.contoso.org
+</code></pre>
+  </li>
+  <li>
+    <p>验证命令的输出是否包含 <strong>az104-04-vm1</strong> 的专用 IP 地址 (<strong>10.40.1.4</strong>)。</p>
+  </li>
+</ol>
+
+<h4 id="任务-6配置-azure-dns-以进行外部名称解析">任务 6：配置 Azure DNS 以进行外部名称解析</h4>
+
+<p>在此任务中，你将使用 Azure 公共 DNS 区域配置外部 DNS 名称解析。</p>
+
+<ol>
+  <li>
+    <p>在 <strong>“SEA-DEV”</strong> 实验室系统的 Web 浏览器中，打开一个新标签页，然后导航到 <a href="https://www.godaddy.com/domains/domain-name-search">https://www.godaddy.com/domains/domain-name-search</a>。</p>
+  </li>
+  <li>
+    <p>使用域名搜索来标识未使用的域名。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>DNS 区域</strong>”，然后在“<strong>DNS 区域</strong>”边栏选项卡中单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>创建一个 DNS 区域，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-04-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td>你之前在此任务中标识的 DNS 域名</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击“查看并创建”。允许进行验证，然后再次单击“创建”以提交部署。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请等待 DNS 区域创建完毕。该操作需约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“前往资源”</strong>，打开新创建的 DNS 区域的边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在“DNS 区域”边栏选项卡中，单击 <strong>“+ 记录集”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个记录集，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-04-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>类型</td>
+          <td><strong>A</strong></td>
+        </tr>
+        <tr>
+          <td>别名记录集</td>
+          <td><strong>否</strong></td>
+        </tr>
+        <tr>
+          <td>TTL</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>TTL 单位</td>
+          <td><strong>小时</strong></td>
+        </tr>
+        <tr>
+          <td>IP 地址</td>
+          <td>在本实验室的第三个练习中标识的 <strong>az104-04-vm0</strong> 的公用 IP 地址</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“确定”</strong></p>
+  </li>
+  <li>
+    <p>在“DNS 区域”边栏选项卡中，单击 <strong>“+ 记录集”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个记录集，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-04-vm1</strong></td>
+        </tr>
+        <tr>
+          <td>类型</td>
+          <td><strong>A</strong></td>
+        </tr>
+        <tr>
+          <td>别名记录集</td>
+          <td><strong>否</strong></td>
+        </tr>
+        <tr>
+          <td>TTL</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>TTL 单位</td>
+          <td><strong>小时</strong></td>
+        </tr>
+        <tr>
+          <td>IP 地址</td>
+          <td>在本实验室的第三个练习中标识的 <strong>az104-04-vm1</strong> 的公用 IP 地址</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“确定”</strong></p>
+  </li>
+  <li>
+    <p>在“DNS 区域”边栏选项卡中，请记下 <strong>“名称服务器 1”</strong> 条目的名称。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，通过单击 Azure 门户右上方的图标，在 <strong>“Cloud Shell”</strong> 中打开 <strong>“PowerShell”</strong> 会话。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中，运行以下命令以测试新创建的 DNS 区域中 <strong>“az104-04-vm0”</strong> DNS 记录集的外部名称解析（将占位符 <code>[Name server 1]</code> 替换为你之前在本任务中记下的 <strong>“名称服务器 1”</strong> 的名称，将占位符 <code>[domain name]</code> 替换为你之前在本任务中创建的 DNS 域的名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">nslookup az104-04-vm0.[domain name] [Name server 1]
+</code></pre>
+  </li>
+  <li>
+    <p>验证命令输出是否包含 <strong>az104-04-vm0</strong> 的公共 IP 地址。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以测试新创建的 DNS 区域中 <strong>“az104-04-vm1”</strong> DNS 记录集的外部名称解析（将占位符 <code>[Name server 1]</code> 替换为你之前在本任务中记下的 <strong>“名称服务器 1”</strong> 的名称，将占位符 <code>[domain name]</code> 替换为你之前在本任务中创建的 DNS 域的名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">nslookup az104-04-vm1.[domain name] [Name server 1]
+</code></pre>
+  </li>
+  <li>
+    <p>验证命令输出是否包含 <strong>az104-04-vm1</strong> 的公共 IP 地址。</p>
+  </li>
+</ol>
+
+<h4 id="清理资源">清理资源</h4>
+
+<blockquote>
+  <p><strong>备注</strong>： 请记得删除任何新创建而不会再使用的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，在 <strong>“Cloud Shell”</strong> 窗格中打开 <strong>“PowerShell”</strong> 会话。</p>
+  </li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-04*'
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-04*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该命令异步执行（由 -AsJob 参数确定），因此尽管此后可以立即在同一 PowerShell 会话中运行另一个 PowerShell 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本实验室中，你已：</p>
+
+<ul>
+  <li>创建和配置虚拟网络</li>
+  <li>将虚拟机部署到虚拟网络中</li>
+  <li>配置 Azure VM 的专用 IP 地址和公共 IP 地址</li>
+  <li>配置网络安全组</li>
+  <li>配置 Azure DNS 以进行内部名称解析</li>
+  <li>配置 Azure DNS 以进行外部名称解析</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

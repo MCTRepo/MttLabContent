@@ -1,0 +1,553 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="use-the-speech-and-language-understanding-services">Use the Speech and Language Understanding Services</h1>
+
+<p>You can integrate the Speech service with the Language Understanding service to create applications that can intelligently determine user intents from spoken input.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: This exercise works best if you have a microphone. Some hosted virtual environments may be able to capture audio from your local microphone, but if this doesn’t work (or you don’t have a microphone at all), you can use a provided audio file for speech input. Follow the instructions carefully, as you’ll need to choose different options depending on whether you are using a microphone or the audio file.</p>
+</blockquote>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have already cloned <strong>AI-102-AIEngineer</strong> code repository to the environment where you’re working on this lab, open it in Visual Studio Code; otherwise, follow these steps to clone it now.</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="create-language-understanding-resources">Create Language Understanding resources</h2>
+
+<p>If you already have Language Understanding authoring and prediction resources in your Azure subscription, you can use them in this exercise. Otherwise, follow these instructions to create them.</p>
+
+<ol>
+  <li>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>Select the <strong>＋Create a resource</strong> button, search for <em>language understanding</em>, and create a <strong>Language Understanding</strong> resource with the following settings:
+    <ul>
+      <li><strong>Create option</strong>: Both</li>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Authoring location</strong>: <em>Select your preferred location</em></li>
+      <li><strong>Authoring pricing tier</strong>: F0</li>
+      <li><strong>Prediction location</strong>: <em>Choose the <u>same location</u> as your authoring location</em></li>
+      <li><strong>Prediction pricing tier</strong>: F0 (<em>If F0 is not available, choose S0</em>)</li>
+    </ul>
+  </li>
+  <li>Wait for the resources to be created, and note that two Language Understanding resources are provisioned; one for authoring, and another for prediction. You can view both of these by navigating to the resource group where you created them.</li>
+</ol>
+
+<h2 id="prepare-a-language-understanding-app">Prepare a Language Understanding app</h2>
+
+<p>If you already have a <strong>Clock</strong> app from a previous exercise, open it in the Language Understanding portal at <code>https://www.luis.ai</code>. Otherwise, follow these instructions to create it.</p>
+
+<ol>
+  <li>In a new browser tab, open the Language Understanding portal at <code>https://www.luis.ai</code>.</li>
+  <li>Sign in using the Microsoft account associated with your Azure subscription. If this is the first time you have signed into the Language Understanding portal, you may need to grant the app some permissions to access your account details. Then complete the <em>Welcome</em> steps by selecting your Azure subscription and the authoring resource you just created.</li>
+  <li>Open the <strong>Conversation Apps</strong> page, next to <strong>＋New app</strong>, view the drop-down list and select <strong>Import As LU</strong>.
+Browse to the <strong>11-luis-speech</strong> subfolder in the project folder containing the lab files for this exercise, and select <strong>Clock.lu</strong>. Then specify a unique name for the clock app.</li>
+  <li>If a panel with tips for creating an effective Language Understanding app is displayed, close it.</li>
+</ol>
+
+<h2 id="train-and-publish-the-app-with-speech-priming">Train and publish the app with <em>Speech Priming</em></h2>
+
+<ol>
+  <li>At the top of the Language Understanding portal, select <strong>Train</strong> to train the app if it has not already been trained.</li>
+  <li>At the top right of the Language Understanding portal, select <strong>Publish</strong>. Then select the <strong>Production slot</strong> and change the settings to enable <strong>Speech Priming</strong> (this will result in better performance for speech recognition).</li>
+  <li>After publishing is complete, at the top of the Language Understanding portal, select <strong>Manage</strong>.</li>
+  <li>On the <strong>Settings</strong> page, note the <strong>App ID</strong>. Client applications need this to use your app.</li>
+  <li>On the <strong>Azure Resources</strong> page, under <strong>Prediction resources</strong>, if no prediction resource is listed, add the prediction resource in your Azure subscription.</li>
+  <li>Note the <strong>Primary Key</strong>, <strong>Secondary Key</strong>, and <strong>Location</strong> (<u>not</u> endpoint!) for the prediction resource. Speech SDK client applications need the location and one of the keys to connect to the prediction resource and be authenticated.</li>
+</ol>
+
+<h2 id="configure-a-client-application-for-language-understanding">Configure a client application for Language Understanding</h2>
+
+<p>In this exercise, you’ll create a client application that accepts spoken input and uses your Language Understanding app to predict the user’s intent.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: You can choose to use the SDK for either <strong>C#</strong> or <strong>Python</strong> in this exercise. In the steps that follow, perform the actions appropriate for your preferred language.</p>
+</blockquote>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>Explorer</strong> pane, browse to the <strong>11-luis-speech</strong> folder and expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>View the contents of the <strong>speaking-clock-client</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+
+    <p>Open the configuration file and update the configuration values it contains to include the <strong>App ID</strong> for your Language Understanding app, and the <strong>Location</strong> (<u>not</u> the full endpoint - for example, <em>eastus</em>) and one of the <strong>Keys</strong> for its prediction resource (from the <strong>Manage</strong> page for your app in the Language Understanding portal).</p>
+  </li>
+</ol>
+
+<h2 id="install-sdk-packages">Install SDK Packages</h2>
+
+<p>To use the Speech SDK with the Language Understanding service, you need to install the Speech SDK package for your programming language.</p>
+
+<ol>
+  <li>
+    <p>In Visual Studio, right-click the <strong>speaking-clock-client</strong> folder and open an integrated terminal. Then install the Language Understanding SDK package by running the appropriate command for your language preference:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Speech</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 1<span class="hljs-selector-class"><span class="hljs-selector-class">.14</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-speech==<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">14</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Additionally, if your system does <u>not</u> have a working microphone, you will need to use an audio file to provide spoken input for your application. In this case, use the following commands to install an additional package so your program can play the audio file (you can skip this if you intend to use a microphone):</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Windows</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Extensions</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 4<span class="hljs-selector-class"><span class="hljs-selector-class">.6</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span> 
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install playsound==<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">2</span></span>.<span class="hljs-number"><span class="hljs-number">2</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Note that the <strong>speaking-clock-client</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: speaking-clock-client.py</li>
+    </ul>
+  </li>
+  <li>
+    <p>Open the code file and at the top, under the existing namespace references, find the comment <strong>Import namespaces</strong>. Then, under this comment, add the following language-specific code to import the namespaces you will need to use the Speech SDK:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.CognitiveServices.Speech;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.CognitiveServices.Speech.Audio;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.CognitiveServices.Speech.Intent;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> azure.cognitiveservices.speech <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> speech_sdk
+</code></pre>
+  </li>
+  <li>
+    <p>Additionally, if your system does <u>not</u> have a working microphone, under the existing namespace imports, add the following code to import the library you will use to play an audio file:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-C# hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Media;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-Python hljs"> <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> playsound <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> playsound
+</code></pre>
+  </li>
+</ol>
+
+<h2 id="create-an-intentrecognizer">Create an <em>IntentRecognizer</em></h2>
+
+<p>The <strong>IntentRecognizer</strong> class provides a client object that you can use to get Language Understanding predictions from spoken input.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>Main</strong> function, note that code to load the App ID, prediction region, and key from the configuration file has already been provided. Then find the comment <strong>Configure speech service and get intent recognizer</strong>, and add the following code depending on whether you will use a microphone or an audio file for speech input:</p>
+
+    <p>### <strong>If you have a working microphone:</strong></p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Configure speech service and get intent recognizer</span></span>
+ SpeechConfig speechConfig = SpeechConfig.FromSubscription(predictionKey, predictionRegion);
+ AudioConfig audioConfig = AudioConfig.FromDefaultMicrophoneInput();
+ IntentRecognizer recognizer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> IntentRecognizer(speechConfig, audioConfig);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Configure speech service and get intent recognizer</span></span>
+ speech_config = speech_sdk.SpeechConfig(subscription=lu_prediction_key, region=lu_prediction_region)
+ audio_config = speech_sdk.AudioConfig(use_default_microphone=<span class="hljs-keyword"><span class="hljs-keyword">True</span></span>)
+ recognizer = speech_sdk.intent.IntentRecognizer(speech_config, audio_config)
+</code></pre>
+
+    <p>### <strong>If you need to use an audio file:</strong></p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Configure speech service and get intent recognizer</span></span>
+ <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> audioFile = <span class="hljs-string"><span class="hljs-string">"time-in-london.wav"</span></span>;
+ SoundPlayer wavPlayer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SoundPlayer(audioFile);
+ wavPlayer.Play();
+ System.Threading.Thread.Sleep(<span class="hljs-number"><span class="hljs-number">2000</span></span>);
+ SpeechConfig speechConfig = SpeechConfig.FromSubscription(predictionKey, predictionRegion);
+ AudioConfig audioConfig = AudioConfig.FromWavFileInput(audioFile);
+ IntentRecognizer recognizer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> IntentRecognizer(speechConfig, audioConfig);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Configure speech service and get intent recognizer</span></span>
+ audioFile = <span class="hljs-string"><span class="hljs-string">'time-in-london.wav'</span></span>
+ playsound(audioFile)
+ speech_config = speech_sdk.SpeechConfig(subscription=lu_prediction_key, region=lu_prediction_region)
+ audio_config = speech_sdk.AudioConfig(filename=audioFile)
+ recognizer = speech_sdk.intent.IntentRecognizer(speech_config, audio_config)
+</code></pre>
+  </li>
+</ol>
+
+<h2 id="get-a-predicted-intent-from-spoken-input">Get a predicted intent from spoken input</h2>
+
+<p>Now you’re ready to implement code that uses the Speech SDK to get a predicted intent from spoken input.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>Main</strong> function, immediately beneath the code you just added, find the comment <strong>Get the model from the AppID and add the intents we want to use</strong> and add the following code to get your Language Understanding model (based on its App ID) and specify the intents that we want the recognizer to identify.</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Get the model from the AppID and add the intents we want to use</span></span>
+ var model = LanguageUnderstandingModel.FromAppId(luAppId);
+ recognizer.AddIntent(model, <span class="hljs-string"><span class="hljs-string">"GetTime"</span></span>, <span class="hljs-string"><span class="hljs-string">"time"</span></span>);
+ recognizer.AddIntent(model, <span class="hljs-string"><span class="hljs-string">"GetDate"</span></span>, <span class="hljs-string"><span class="hljs-string">"date"</span></span>);
+ recognizer.AddIntent(model, <span class="hljs-string"><span class="hljs-string">"GetDay"</span></span>, <span class="hljs-string"><span class="hljs-string">"day"</span></span>);
+ recognizer.AddIntent(model, <span class="hljs-string"><span class="hljs-string">"None"</span></span>, <span class="hljs-string"><span class="hljs-string">"none"</span></span>);
+</code></pre>
+
+    <p><em>Note that you can specify a string-based ID for each intent</em></p>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Get the model from the AppID and add the intents we want to use</span></span>
+ model = speech_sdk.intent.LanguageUnderstandingModel(app_id=lu_app_id)
+ intents = [
+     (model, <span class="hljs-string"><span class="hljs-string">"GetTime"</span></span>),
+     (model, <span class="hljs-string"><span class="hljs-string">"GetDate"</span></span>),
+     (model, <span class="hljs-string"><span class="hljs-string">"GetDay"</span></span>),
+     (model, <span class="hljs-string"><span class="hljs-string">"None"</span></span>)
+ ]
+ recognizer.add_intents(intents)
+</code></pre>
+  </li>
+  <li>
+    <p>Under the comment <strong>Process speech input</strong>, add the following code, which uses the recognizer to asynchronously call the Language Understanding service with spoken input, and retrieve response. If the response includes a predicted intent, the spoken query, predicted intent, and full JSON response are displayed. Otherwise the code handles the response based on the reason returned.</p>
+  </li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Process speech input</span></span>
+<span class="hljs-built_in"><span class="hljs-built_in">string</span></span> intent = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+var result = await recognizer.RecognizeOnceAsync().ConfigureAwait(<span class="hljs-literal"><span class="hljs-literal">false</span></span>);
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (result.Reason == ResultReason.RecognizedIntent)
+{
+    <span class="hljs-comment"><span class="hljs-comment">// Intent was identified</span></span>
+    intent = result.IntentId;
+    Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"Query: {result.Text}"</span></span>);
+    Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"Intent Id: {intent}."</span></span>);
+    <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> jsonResponse = result.Properties.GetProperty(PropertyId.LanguageUnderstandingServiceResponse_JsonResult);
+    Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"JSON Response:\n{jsonResponse}\n"</span></span>);
+    
+    <span class="hljs-comment"><span class="hljs-comment">// Get the first entity (if any)</span></span>
+
+    <span class="hljs-comment"><span class="hljs-comment">// Apply the appropriate action</span></span>
+    
+}
+<span class="hljs-keyword"><span class="hljs-keyword">else</span></span> <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (result.Reason == ResultReason.RecognizedSpeech)
+{
+    <span class="hljs-comment"><span class="hljs-comment">// Speech was recognized, but no intent was identified.</span></span>
+    intent = result.Text;
+    Console.Write($<span class="hljs-string"><span class="hljs-string">"I don't know what {intent} means."</span></span>);
+}
+<span class="hljs-keyword"><span class="hljs-keyword">else</span></span> <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (result.Reason == ResultReason.NoMatch)
+{
+    <span class="hljs-comment"><span class="hljs-comment">// Speech wasn't recognized</span></span>
+    Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"Sorry. I didn't understand that."</span></span>);
+}
+<span class="hljs-keyword"><span class="hljs-keyword">else</span></span> <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (result.Reason == ResultReason.Canceled)
+{
+    <span class="hljs-comment"><span class="hljs-comment">// Something went wrong</span></span>
+    var cancellation = CancellationDetails.FromResult(result);
+    Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"CANCELED: Reason={cancellation.Reason}"</span></span>);
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (cancellation.Reason == CancellationReason.Error)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"CANCELED: ErrorCode={cancellation.ErrorCode}"</span></span>);
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"CANCELED: ErrorDetails={cancellation.ErrorDetails}"</span></span>);
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Process speech input</span></span>
+intent = <span class="hljs-string"><span class="hljs-string">''</span></span>
+result = recognizer.recognize_once_async().get()
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> result.reason == speech_sdk.ResultReason.RecognizedIntent:
+    intent = result.intent_id
+    print(<span class="hljs-string"><span class="hljs-string">"Query: {}"</span></span>.format(result.text))
+    print(<span class="hljs-string"><span class="hljs-string">"Intent: {}"</span></span>.format(intent))
+    json_response = json.loads(result.intent_json)
+    print(<span class="hljs-string"><span class="hljs-string">"JSON Response:\n{}\n"</span></span>.format(json.dumps(json_response, indent=<span class="hljs-number"><span class="hljs-number">2</span></span>)))
+    
+    <span class="hljs-comment"><span class="hljs-comment"># Get the first entity (if any)</span></span>
+    
+    <span class="hljs-comment"><span class="hljs-comment"># Apply the appropriate action</span></span>
+    
+<span class="hljs-keyword"><span class="hljs-keyword">elif</span></span> result.reason == speech_sdk.ResultReason.RecognizedSpeech:
+    <span class="hljs-comment"><span class="hljs-comment"># Speech was recognized, but no intent was identified.</span></span>
+    intent = result.text
+    print(<span class="hljs-string"><span class="hljs-string">"I don't know what {} means."</span></span>.format(intent))
+<span class="hljs-keyword"><span class="hljs-keyword">elif</span></span> result.reason == speech_sdk.ResultReason.NoMatch:
+    <span class="hljs-comment"><span class="hljs-comment"># Speech wasn't recognized</span></span>
+    print(<span class="hljs-string"><span class="hljs-string">"Sorry. I didn't understand that."</span></span>)
+<span class="hljs-keyword"><span class="hljs-keyword">elif</span></span> result.reason == speech_sdk.ResultReason.Canceled:
+    <span class="hljs-comment"><span class="hljs-comment"># Something went wrong</span></span>
+    print(<span class="hljs-string"><span class="hljs-string">"Intent recognition canceled: {}"</span></span>.format(result.cancellation_details.reason))
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> result.cancellation_details.reason == speech_sdk.CancellationReason.Error:
+        print(<span class="hljs-string"><span class="hljs-string">"Error details: {}"</span></span>.format(result.cancellation_details.error_details))
+</code></pre>
+
+<p>The code you’ve added so far identifies the <em>intent</em>, but some intents can reference <em>entities</em>, so you must add code to extract the entity information from the JSON returned by the service.</p>
+
+<ol>
+  <li>In the code you just added, find the comment <strong>Get the first entity (if any)</strong> and add the following code beneath it:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get the first entity (if any)</span></span>
+JObject jsonResults = JObject.Parse(jsonResponse);
+<span class="hljs-built_in"><span class="hljs-built_in">string</span></span> entityType = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+<span class="hljs-built_in"><span class="hljs-built_in">string</span></span> entityValue = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (jsonResults[<span class="hljs-string"><span class="hljs-string">"entities"</span></span>].HasValues)
+{
+    JArray entities = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> JArray(jsonResults[<span class="hljs-string"><span class="hljs-string">"entities"</span></span>][<span class="hljs-number"><span class="hljs-number">0</span></span>]);
+    entityType = entities[<span class="hljs-number"><span class="hljs-number">0</span></span>][<span class="hljs-string"><span class="hljs-string">"type"</span></span>].ToString();
+    entityValue = entities[<span class="hljs-number"><span class="hljs-number">0</span></span>][<span class="hljs-string"><span class="hljs-string">"entity"</span></span>].ToString();
+    Console.WriteLine(entityType + <span class="hljs-string"><span class="hljs-string">": "</span></span> + entityValue);
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get the first entity (if any)</span></span>
+entity_type = <span class="hljs-string"><span class="hljs-string">''</span></span>
+entity_value = <span class="hljs-string"><span class="hljs-string">''</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(json_response[<span class="hljs-string"><span class="hljs-string">"entities"</span></span>]) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+    entity_type = json_response[<span class="hljs-string"><span class="hljs-string">"entities"</span></span>][<span class="hljs-number"><span class="hljs-number">0</span></span>][<span class="hljs-string"><span class="hljs-string">"type"</span></span>]
+    entity_value = json_response[<span class="hljs-string"><span class="hljs-string">"entities"</span></span>][<span class="hljs-number"><span class="hljs-number">0</span></span>][<span class="hljs-string"><span class="hljs-string">"entity"</span></span>]
+    print(entity_type + <span class="hljs-string"><span class="hljs-string">': '</span></span> + entity_value)
+</code></pre>
+
+<p>Your code now uses the Language Understanding app to predict an intent as well as any entities that were detected in the input utterance. Your client application must now use that prediction to determine and perform the appropriate action.</p>
+
+<ol>
+  <li>Beneath the code you just added, find the comment <strong>Apply the appropriate action</strong>, and add the following code, which checks for intents supported by the application (<strong>GetTime</strong>, <strong>GetDate</strong>, and <strong>GetDay</strong>) and determines if any relevant entities have been detected, before calling an existing function to produce an appropriate response.</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-C# hljs"><span class="hljs-comment"><span class="hljs-comment">// Apply the appropriate action</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">switch</span></span> (intent)
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">case</span></span> <span class="hljs-string"><span class="hljs-string">"time"</span></span>:
+        var location = <span class="hljs-string"><span class="hljs-string">"local"</span></span>;
+        <span class="hljs-comment"><span class="hljs-comment">// Check for entities</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (entityType == <span class="hljs-string"><span class="hljs-string">"Location"</span></span>)
+        {
+            location = entityValue;
+        }
+        <span class="hljs-comment"><span class="hljs-comment">// Get the time for the specified location</span></span>
+        var getTimeTask = Task.Run(() =&gt; GetTime(location));
+        <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> timeResponse = await getTimeTask;
+        Console.WriteLine(timeResponse);
+        <span class="hljs-keyword"><span class="hljs-keyword">break</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">case</span></span> <span class="hljs-string"><span class="hljs-string">"day"</span></span>:
+        var date = DateTime.Today.ToShortDateString();
+        <span class="hljs-comment"><span class="hljs-comment">// Check for entities</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (entityType == <span class="hljs-string"><span class="hljs-string">"Date"</span></span>)
+        {
+            date = entityValue;
+        }
+        <span class="hljs-comment"><span class="hljs-comment">// Get the day for the specified date</span></span>
+        var getDayTask = Task.Run(() =&gt; GetDay(date));
+        <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> dayResponse = await getDayTask;
+        Console.WriteLine(dayResponse);
+        <span class="hljs-keyword"><span class="hljs-keyword">break</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">case</span></span> <span class="hljs-string"><span class="hljs-string">"date"</span></span>:
+        var day = DateTime.Today.DayOfWeek.ToString();
+        <span class="hljs-comment"><span class="hljs-comment">// Check for entities</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (entityType == <span class="hljs-string"><span class="hljs-string">"Weekday"</span></span>)
+        {
+            day = entityValue;
+        }
+
+        var getDateTask = Task.Run(() =&gt; GetDate(day));
+        <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> dateResponse = await getDateTask;
+        Console.WriteLine(dateResponse);
+        <span class="hljs-keyword"><span class="hljs-keyword">break</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">default</span></span>:
+        <span class="hljs-comment"><span class="hljs-comment">// Some other intent (for example, "None") was predicted</span></span>
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"You said "</span></span> + result.Text.ToLower());
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (result.Text.ToLower().Replace(<span class="hljs-string"><span class="hljs-string">"."</span></span>, <span class="hljs-string"><span class="hljs-string">""</span></span>) == <span class="hljs-string"><span class="hljs-string">"stop"</span></span>)
+        {
+            intent = result.Text;
+        }
+        <span class="hljs-keyword"><span class="hljs-keyword">else</span></span>
+        {
+            Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Try asking me for the time, the day, or the date."</span></span>);
+        }
+        <span class="hljs-keyword"><span class="hljs-keyword">break</span></span>;
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Apply the appropriate action</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> intent == <span class="hljs-string"><span class="hljs-string">'GetTime'</span></span>:
+    location = <span class="hljs-string"><span class="hljs-string">'local'</span></span>
+    <span class="hljs-comment"><span class="hljs-comment"># Check for entities</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> entity_type == <span class="hljs-string"><span class="hljs-string">'Location'</span></span>:
+        location = entity_value
+    <span class="hljs-comment"><span class="hljs-comment"># Get the time for the specified location</span></span>
+    print(GetTime(location))
+
+<span class="hljs-keyword"><span class="hljs-keyword">elif</span></span> intent == <span class="hljs-string"><span class="hljs-string">'GetDay'</span></span>:
+    date_string = date.today().strftime(<span class="hljs-string"><span class="hljs-string">"%m/%d/%Y"</span></span>)
+    <span class="hljs-comment"><span class="hljs-comment"># Check for entities</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> entity_type == <span class="hljs-string"><span class="hljs-string">'Date'</span></span>:
+        date_string = entity_value
+    <span class="hljs-comment"><span class="hljs-comment"># Get the day for the specified date</span></span>
+    print(GetDay(date_string))
+
+<span class="hljs-keyword"><span class="hljs-keyword">elif</span></span> intent == <span class="hljs-string"><span class="hljs-string">'GetDate'</span></span>:
+    day = <span class="hljs-string"><span class="hljs-string">'today'</span></span>
+    <span class="hljs-comment"><span class="hljs-comment"># Check for entities</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> entity_type == <span class="hljs-string"><span class="hljs-string">'Weekday'</span></span>:
+        <span class="hljs-comment"><span class="hljs-comment"># List entities are lists</span></span>
+        day = entity_value
+    <span class="hljs-comment"><span class="hljs-comment"># Get the date for the specified day</span></span>
+    print(GetDate(day))
+
+<span class="hljs-keyword"><span class="hljs-keyword">else</span></span>:
+    <span class="hljs-comment"><span class="hljs-comment"># Some other intent (for example, "None") was predicted</span></span>
+    print(<span class="hljs-string"><span class="hljs-string">'You said {}'</span></span>.format(result.text))
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> result.text.lower().replace(<span class="hljs-string"><span class="hljs-string">'.'</span></span>, <span class="hljs-string"><span class="hljs-string">''</span></span>) == <span class="hljs-string"><span class="hljs-string">'stop'</span></span>:
+        intent = result.text
+    <span class="hljs-keyword"><span class="hljs-keyword">else</span></span>:
+        print(<span class="hljs-string"><span class="hljs-string">'Try asking me for the time, the day, or the date.'</span></span>)
+</code></pre>
+
+<h2 id="run-the-client-application">Run the client application</h2>
+
+<ol>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>speaking-clock-client</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">speaking-clock-client</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>If using a microphone, speak utterances aloud to test the application. For example, try the following (re-running the program each time):</p>
+
+    <p><em>What’s the time?</em></p>
+
+    <p><em>What time is it?</em></p>
+
+    <p><em>What day is it?</em></p>
+
+    <p><em>What is the time in London?</em></p>
+
+    <p><em>What’s the date?</em></p>
+
+    <p><em>What date is Sunday?</em></p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: The logic in the application is deliberately simple, and has a number of limitations, but should serve the purpose of testing the ability for the Language Understanding model to predict intents from spoken input using the Speech SDK. You may have trouble recognizing the <strong>GetDay</strong> intent with a specific date entity due to the difficulty in verbalizing a date in <em>MM/DD/YYYY</em> format!</p>
+</blockquote>
+
+<h2 id="more-information">More information</h2>
+
+<p>To learn more about Speech and Language Understanding integration, see the <a href="https://docs.microsoft.com/azure/cognitive-services/speech-service/quickstarts/intent-recognition">Speech documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

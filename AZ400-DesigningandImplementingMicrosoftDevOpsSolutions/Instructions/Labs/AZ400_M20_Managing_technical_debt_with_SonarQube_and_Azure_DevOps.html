@@ -1,0 +1,677 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-set-up-an-azure-devops-pipeline-that-integrates-with-sonarcloud">Exercise 1: Set up an Azure DevOps pipeline that integrates with SonarCloud</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-analyze-sonarcloud-reports">Exercise 2: Analyze SonarCloud reports</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-implement-azure-devops-pull-request-integration-with-sonarcloud">Exercise 3: Implement Azure DevOps pull request integration with SonarCloud</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-20-managing-technical-debt-with-sonarcloud-and-azure-devops">Lab 20: Managing technical debt with SonarCloud and Azure DevOps</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-overview">Lab overview</h2>
+
+<p>In the context of Azure DevOps, the term <em>technical debt</em> represents suboptimal means of reaching tactical goals, which affect negatively the ability to reach strategic objectives in the area of software development and deployment. Technical debt affects productivity by making code hard to understand, prone to failures, time-consuming to change, and difficult to validate. Without proper oversight and management, technical debt can accumulate over time and significantly impact the overall quality of the software and the productivity of development teams in the longer term.</p>
+
+<p><a href="https://sonarcloud.io/" target="\_blank">SonarCloud</a> is a cloud-based code quality and security service. The main features of SonarCloud include:</p>
+
+<ul>
+  <li>Support for 23 programming and scripting languages, including Java, JS, C#, C/C++, Objective-C, TypeScript, Python, ABAP, PLSQL and T-SQL.</li>
+  <li>Thousands of rules to track down hard-to-find bugs and quality issues based on powerful static code analyzers.</li>
+  <li>Cloud-based integrations with popular CI services, including Travis, Azure DevOps, BitBucket, and AppVeyor.</li>
+  <li>Deep code analysis for exploring all source files in branches and pull requests, helping reach a green Quality Gate and promote the build.</li>
+  <li>Speed and scalability.</li>
+</ul>
+
+<p>In this lab, you will learn how to integrate Azure DevOps Services with SonarCloud.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Before you run this lab, ensure that you have the ability to run Azure DevOps pipelines. Due to the change to public projects that took place in February 2021, access to pipelines will need to be requested: https://devblogs.microsoft.com/devops/change-in-azure-pipelines-grant-for-public-projects/</p>
+</blockquote>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After you complete this lab, you will be able to:</p>
+
+<ul>
+  <li>Setup an Azure DevOps project and CI build to integrate with SonarCloud</li>
+  <li>Analyze SonarCloud reports</li>
+  <li>Integrate static analysis into the Azure DevOps pull request process</li>
+</ul>
+
+<h2 id="lab-duration">Lab duration</h2>
+
+<ul>
+  <li>Estimated time: <strong>60 minutes</strong></li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-virtual-machine">Sign in to the lab virtual machine</h4>
+
+<p>Ensure that you’re signed in to your Windows 10 computer by using the following credentials:</p>
+
+<ul>
+  <li>Username: <strong>Student</strong></li>
+  <li>Password: <strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="review-applications-required-for-this-lab">Review applications required for this lab</h4>
+
+<p>Identify the applications that you’ll use in this lab:</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="set-up-an-azure-devops-organization">Set up an Azure DevOps organization.</h4>
+
+<p>If you don’t already have an Azure DevOps organization that you can use for this lab, create one by following the instructions available at <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/create-organization?view=azure-devops">Create an organization or project collection</a>.</p>
+
+<h3 id="exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</h3>
+
+<p>In this exercise, you will set up the prerequisites for the lab, which consist of a team project based on the <a href="https://github.com/SonarSource/sonar-scanning-examples.git">Sonar Scanning Examples repository</a>.</p>
+
+<h4 id="task-1-create-the-team-project">Task 1: Create the team project</h4>
+
+<p>In this task, you will create a new Azure DevOps project based on the <a href="https://github.com/SonarSource/sonar-scanning-examples.git">Sonar Scanning Examples repository</a> repository.</p>
+
+<ol>
+  <li>On your lab computer, start a web browser, navigate to the <a href="https://dev.azure.com"><strong>Azure DevOps portal</strong></a> and sign in to your Azure DevOps organization.</li>
+  <li>In the <strong>Azure DevOps portal</strong>, in the upper right corner, click <strong>+ New project</strong>.</li>
+  <li>
+    <p>On the <strong>Create new project</strong> pane, in the <strong>Project name</strong> textbox, type <strong>SonarExamples</strong>, in the <strong>Visibility</strong> section, click <strong>Public</strong>, and then click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Unless you intend to sign up for a paid plan with SonarCloud, make sure that you set your Azure DevOps project to be public. If you <em>do</em> intend to sign up for a paid plan, then you can create a private project.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>SonarExamples</strong> pane, in the vertical menu bar at the far left of the Azure DevOps portal, click <strong>Repos</strong>, on the <strong>SonarExamples is empty. Add some code!</strong> pane, and, in the <strong>Import a repository</strong> section, click <strong>Import</strong>.</li>
+  <li>
+    <p>On the <strong>Import a Git repository</strong> pane, ensure that <strong>Git</strong> appears in the <strong>Repository type</strong> dropdown list, in the <strong>Clone URL</strong>, type <strong>https://github.com/SonarSource/sonar-scanning-examples.git</strong>, and click <strong>Import</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The scanning examples repository contains sample projects for a number of build systems and languages including C# with MSBuild, and Maven and Gradle with Java.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-generate-an-azure-devops-personal-access-token">Task 2: Generate an Azure DevOps personal access token</h4>
+
+<p>In this task, you will generate an Azure DevOps personal access token that will be used to authenticate from the Postman app you will install in the next task of this exercise.</p>
+
+<ol>
+  <li>On the lab computer, in the web browser window displaying the Azure DevOps portal, in the upper right corner of the Azure DevOps page, click the <strong>User settings</strong> icon, in the dropdown menu, click <strong>Personal access tokens</strong>, on the <strong>Personal Access Tokens</strong> pane, and click <strong>+ New Token</strong>.</li>
+  <li>
+    <p>On the <strong>Create a new personal access token</strong> pane, click the <strong>Show all scopes</strong> link and, specify the following settings and click <strong>Create</strong> (leave all others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>Managing technical debt with SonarCloud and Azure DevOps lab</strong></td>
+        </tr>
+        <tr>
+          <td>Scopes</td>
+          <td><strong>Custom defined</strong></td>
+        </tr>
+        <tr>
+          <td>Scope</td>
+          <td><strong>Code</strong></td>
+        </tr>
+        <tr>
+          <td>Permissions</td>
+          <td><strong>Read &amp; write</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Success</strong> pane, copy the value of the personal access token to Clipboard.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure you record the value of the token. You will not be able to retrieve it once you close this pane.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Success</strong> pane, click <strong>Close</strong>.</li>
+</ol>
+
+<h4 id="task-3-install-and-configure-the-sonarcloud-azure-devops-extension">Task 3: Install and configure the SonarCloud Azure DevOps extension</h4>
+
+<p>In this task, you will install and configure the SonarCloud Azure DevOps extension in your Azure DevOps project.</p>
+
+<ol>
+  <li>On your lab computer, start a web browser, navigate to the <a href="https://marketplace.visualstudio.com/items?itemName=SonarSource.sonarcloud">SonarCloud extension page</a> on the Visual Studio Marketplace, click <strong>Get it free</strong>, ensure that the name of your Azure DevOps organization appears in the <strong>Select an Azure Devops organization</strong> dropdown list, and click <strong>Install</strong>.</li>
+  <li>
+    <p>Once the installation completes, click <strong>Proceed to organization</strong>. This will redirect the browser to the Azure DevOps portal displaying your organization’s home page.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you do not have the appropriate permissions to install an extension from the marketplace, a request will be sent to the account administrator to ask them to approve the installation.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: The SonarCloud extension contains build tasks, build templates and a custom dashboard widget.</p>
+    </blockquote>
+  </li>
+  <li>In the web browser window, navigate to the <strong>SonarCloud home page</strong> <a href="https://sonarcloud.io/">https://sonarcloud.io/</a>.</li>
+  <li>On the SonarCloud home page, click <strong>Log in</strong>.</li>
+  <li>On the <strong>Log in or Sign up to SonarCloud</strong>, click <strong>With Azure DevOps</strong>.</li>
+  <li>
+    <p>When prompted whether to <strong>Let this app access your info?</strong>, click <strong>Yes</strong>. If prompted, select <strong>Consent of behalf of your organization</strong> and <strong>Accept</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In SonarCloud, you will create an organization and, within it, a new project. The organization and project you set up in SonarCloud will mirror the organization and project that you set up in Azure DevOps.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Welcome to SonarCloud</strong> page, click <strong>Import an organization from Azure</strong>.</li>
+  <li>On the <strong>Create an organization</strong> page, in the <strong>Azure DevOps organization name</strong> textbox, type the name of your Azure DevOps organization, in the <strong>Personal Access Token</strong> textbox, paste the value of the token you recorded in the previous exercise, and click <strong>Continue</strong>.</li>
+  <li>
+    <p>In the <strong>Import organization details</strong> section, in the <strong>Key</strong> textbox, type a string of characters that will designate your organization and click <strong>Continue</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The key must be unique within the SonarCloud system. Make sure that the green checkmark appears to the right of the <strong>Key</strong> textbox. This indicates that the key satisfies the uniqueness prerequisite.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Choose a plan</strong> section, select the plan that you intend to use for this lab and click <strong>Create Organization</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You have now created the SonarCloud organization that mirrors your Azure DevOps organization.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Next, within the newly created organization, you will create a SonarCloud project that will mirror the Azure DevOps project <strong>SonarExamples</strong>.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>All set! Your organization is now ready to go</strong> page, click <strong>Analyze new project</strong>.</li>
+  <li>On the <strong>Analyze projects - Select repositories</strong> page, in the list of Azure DevOps projects, select the checkbox next to the <strong>SonarExamples / SonarExamples</strong> entry and click <strong>Set up</strong>.</li>
+  <li>On the <strong>Analyze your project</strong> page, click <strong>With Azure DevOps Pipeline</strong> tile.</li>
+  <li>
+    <p>On the <strong>Analyze with Azure Pipelines</strong> page, in the <strong>Install our extension</strong> section, click <strong>Continue</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can skip extension creation if you have already installed it.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Analyze with Azure Pipelines</strong> page, in the <strong>Configure Azure Pipelines</strong> section, click <strong>.NET</strong>. This will display a sequence of steps required to <strong>Prepare Analysis Configuration</strong>, <strong>Run Code Analysis</strong>, and <strong>Publish Quality Gate Result</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Review the listing of steps to accomplish each of these objectives. You will implement them in the subsequent tasks.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the value of the token necessary to set up the SonarCloud Service Endpoint and the value of the <strong>Project Key</strong> and <strong>Project Name</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-1-set-up-an-azure-devops-pipeline-that-integrates-with-sonarcloud">Exercise 1: Set up an Azure DevOps pipeline that integrates with SonarCloud</h3>
+
+<p>In this exercise, you will set up an Azure DevOps pipeline that integrates with SonarCloud.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: We will set up a new build pipeline that integrates with SonarCloud to analyze the <strong>SonarExamples</strong> code.</p>
+</blockquote>
+
+<h4 id="task-1-initiate-creation-of-the-project-build-pipeline">Task 1: Initiate creation of the project build pipeline</h4>
+
+<p>In this task, you will begin creating the build pipeline for our project.</p>
+
+<ol>
+  <li>Switch to the web browser window displaying the <strong>SonarExamples</strong> pane in the Azure DevOps portal, in the vertical menu bar at the far left of the Azure DevOps portal, click <strong>Pipelines</strong> and then click <strong>Create Pipeline</strong>.</li>
+  <li>
+    <p>On the <strong>Where is your code?</strong> pane, review the available options.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You have two options. You can configure the pipeline with either the <strong>YAML editor</strong> or with the <strong>classic editor</strong>. With the classic editor, you can take advantage of the pre-defined templates that were installed as part of the SonarCloud Extension, above. With the YAML editor you need to use a separately provided YAML file. We will step through each of these two options.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Skip the next task if you intend to use the classic editor.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-create-a-pipeline-by-using-the-yaml-editor">Task 2: Create a pipeline by using the YAML editor</h4>
+
+<p>In this task, you will create a pipeline by using the YAML editor.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Before you continue with configuration of the YAML pipeline, you will first create a service connection for SonarCloud.</p>
+</blockquote>
+
+<ol>
+  <li>Open another browser tab, navigate to the home page of the <strong>SonarExamples</strong> in the Azure DevOps portal.</li>
+  <li>In the web browser window displaying the <strong>SonarExamples</strong> pane in the Azure DevOps portal and, in the lower left corner, click <strong>Project settings</strong>.</li>
+  <li>On the <strong>Project settings</strong> pane, in the vertical menu bar, in the <strong>Pipelines</strong> section, click <strong>Service connections</strong> and click <strong>Create service connection</strong>.</li>
+  <li>On the <strong>New service connection</strong> pane, select the <strong>SonarCloud</strong> option and click <strong>Next</strong>.</li>
+  <li>On the <strong>New SonarCloud service connection</strong> pane, in the <strong>SonarCloud Token</strong> textbox, paste the value of the token you recorded in the previous task, in the <strong>Service connection name</strong> textbox, type <strong>SC</strong> and click <strong>Verify and save</strong>.</li>
+  <li>Switch back to the web browser tab displaying the <strong>Where is your code?</strong> pane. If you have closed this tab, return to the <strong>SonarExamples</strong> pane in the Azure DevOps portal, in the vertical menu bar at the far left of the Azure DevOps portal, click <strong>Pipelines</strong> and then click <strong>Create Pipeline</strong>.</li>
+  <li>On the <strong>Where is your code?</strong> pane, click <strong>Azure Repos Git</strong>.</li>
+  <li>On the <strong>Select a repository</strong> pane, click <strong>SonarExamples</strong>.</li>
+  <li>
+    <p>On the <strong>Configure your pipeline</strong> pane, click <strong>.NET Desktop</strong> YAML template.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will automatically display the YAML editor with the template YAML file open. In order to configure it correctly you will need to adjust it (or replace it) so that matches the following file:</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-yaml">trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  buildPlatform: 'any cpu'
+
+steps:
+- task: NuGetToolInstaller@0
+  displayName: 'Use NuGet 4.4.1'
+  inputs:
+    versionSpec: 4.4.1
+
+- task: NuGetCommand@2
+  displayName: 'NuGet restore'
+  inputs:
+    restoreSolution: 'SomeConsoleApplication.sln'
+
+- task: SonarCloudPrepare@1
+  displayName: 'Prepare analysis configuration'
+  inputs:
+    SonarCloud: 'SC'
+    organization: 'myorga'
+    scannerMode: 'MSBuild'
+    projectKey: 'dotnet-framework-on-azdo'
+    projectName: 'Sample .NET Framework project with Azure DevOps'
+
+
+- task: VSBuild@1
+  displayName: 'Build solution **\*.sln'
+  inputs:
+    solution: 'SomeConsoleApplication.sln'
+    platform: '$(BuildPlatform)'
+    configuration: '$(BuildConfiguration)'
+
+- task: VSTest@2
+  displayName: 'VsTest - testAssemblies'
+  inputs:
+    testAssemblyVer2: |
+     **\$(BuildConfiguration)\*Test*.dll
+     !**\obj\**
+    codeCoverageEnabled: true
+    platform: '$(BuildPlatform)'
+    configuration: '$(BuildConfiguration)'
+
+- task: SonarCloudAnalyze@1
+  displayName: 'Run SonarCloud analysis'
+
+- task: SonarCloudPublish@1
+  displayName: 'Publish results on build summary'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can download the file <strong>net-desktop-sonarcloud.yml</strong> from the <a href="https://github.com/SonarSource/sonar-scanner-vsts/blob/master/yaml-pipeline-templates/net-desktop-sonarcloud.yml">SonarSource GitHub repository</a>.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: The YAML pipeline needs to be modified by following the remaining steps in this task.</p>
+    </blockquote>
+  </li>
+  <li>In the <strong>NuGetCommand@2</strong> task, replace <code>restoreSolution: 'SomeConsoleApplication.sln'</code> with <code>restoreSolution: '**\SomeConsoleApplication.sln'</code> to account for the fact that our solution is not located in the root of the repo.</li>
+  <li>In the <strong>VSBuild@1</strong> task, replace <code>solution: 'SomeConsoleApplication.sln'</code> with <code>solution: '**\SomeConsoleApplication.sln'</code> to account for the fact that our solution is not located in the root of the repo.</li>
+  <li>In the <strong>SonarCloudPrepare@1</strong> task, replace the value of the <code>myorga</code> placeholder in the <code>organization: 'myorga'</code> entry with the name of your SonarCloud organization.</li>
+  <li>In the <strong>SonarCloudPrepare@1</strong> task, replace the value of the <code>dotnet-framework-on-azdo</code> placeholder in the <code>projectKey: 'dotnet-framework-on-azdo'</code> entry with the name of your SonarCloud project key.</li>
+  <li>In the <strong>SonarCloudPrepare@1</strong> task, replace the value of the <code>Sample .NET Framework project with Azure DevOps</code> placeholder in the <code>projectName: 'Sample .NET Framework project with Azure DevOps'</code> entry with the name of your SonarCloud project name (<code>SonarExamples</code>).</li>
+  <li>
+    <p>On the <strong>Review your pipeline YAML</strong> pane, click <strong>Save and Run</strong> and, on the <strong>Save and run</strong> pane, click <strong>Save and run</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Skip the next task if you completed this task in YAML editor.</p>
+    </blockquote>
+  </li>
+  <li>Go to Azure Pipelines &gt; Pipelines and click in <strong>Sonarexample</strong> pipeline, open latest run. You will see it queued, <strong>Cancel</strong> the pending one, click <strong>Yes</strong>. Now click on <strong>Run new</strong> &gt; <strong>Run</strong> to trigger a new run (this time pipeline will have the proper agents assigned for private projects).</li>
+</ol>
+
+<h4 id="task-3-create-a-pipeline-by-using-the-classic-editor">Task 3: Create a pipeline by using the classic editor</h4>
+
+<p>In this task, you will create a pipeline by using the classic editor.</p>
+
+<ol>
+  <li>On the <strong>Where is your code?</strong> pane, click <strong>Use the classic editor</strong>.</li>
+  <li>
+    <p>On the <strong>Select a source</strong> pane, ensure that the <strong>Azure Repos Git</strong> option is selected, the <strong>SonarExamples</strong> entry appears in the <strong>Repository</strong> dropdown list, and the <strong>master</strong> branch appears in the <strong>Default branch for manual and scheduled builds</strong>, and click <strong>Continue</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The SonarCloud extension installed earlier provides SonarCloud-enabled custom build templates for Maven, Gradle, .NET Core and .NET Desktop applications. The templates are based on the standard Azure DevOps templates but with additional analysis-specific tasks and some pre-configured settings.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Select a template</strong> pane, scroll down to the <strong>Others</strong> section and click the <strong>.NET Desktop with SonarCloud</strong> template entry and click <strong>Apply</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The template contains all of the necessary tasks and most of the required settings. You will need to provide the remaining ones.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Tasks</strong> tab of the build pipeline definition, ensure that the <strong>Pipeline</strong> entry is selected, on the right side, in the <strong>Agent pool</strong> dropdown list, select the <strong>Azure Pipelines</strong> entry and, in the <strong>Agent Specification</strong> dropdown list, select the <strong>vs2017-win2016</strong> entry.</li>
+  <li>In the list of pipeline tasks, select the <strong>Prepare analysis on SonarCloud</strong> task and click <strong>+New</strong>.</li>
+  <li>On the <strong>New service connection</strong> pane, in the <strong>SonarCloud Token</strong> textbox, paste the value of the token you recorded earlier in this lab, click <strong>Verify</strong> to validate it, in the <strong>Service connection name</strong> textbox, type <strong>SC</strong> and click <strong>Verify and save</strong>.</li>
+  <li>Back on the <strong>Prepare Analysis Configuration</strong> pane, in the <strong>Organization</strong> dropdown list, select the name of your SonarCloud organization.</li>
+  <li>On the <strong>Prepare Analysis Configuration</strong> pane, in the <strong>Project Key</strong> text box, type the name of the project key you recorded earlier in this lab.</li>
+  <li>On the <strong>Prepare Analysis Configuration</strong> pane, in the <strong>Project Name</strong> text box, type the name of the project name you recorded earlier in this lab (<code>SonarExamples</code>).</li>
+  <li>
+    <p>Optionally, you can disable the Publish Quality Gate Result, in the list of pipeline tasks, select the <strong>Publish Quality Gate Result</strong> task, on the <strong>Publish Quality Gate Result</strong> pane, expand the <strong>Control Options</strong> section and clear the <strong>Enabled</strong> checkbox.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This task is not required unless you want to use the pre-deployment gate along with Release Pipelines.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this step is enabled, a summary of the analysis results will appear on the <strong>Extensions</strong> tab of the <strong>Build Summary</strong> page. However, this will delay the completion of the build until the processing on SonarCloud has finished.</p>
+    </blockquote>
+  </li>
+  <li>On the build pipeline editor pane, click <strong>Save &amp; queue</strong>, in the dropdown menu, click <strong>Save &amp; queue</strong>, and, on the <strong>Run pipeline</strong> pane, click <strong>Save and run</strong>, and wait for the build to complete.</li>
+</ol>
+
+<h4 id="task-4-check-pipeline-results">Task 4: Check pipeline results</h4>
+
+<p>In this task, you will check pipeline results.</p>
+
+<ol>
+  <li>
+    <p>On the build run pane (either YAML or Classic one created before) , review the content of the <strong>Summary</strong> tab and then click the <strong>Extensions</strong> tab header.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you left the <strong>Publish Quality Gate Result</strong> task enabled, the <strong>Extension</strong> tab includes the summary of the SonarCloud analysis report.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Extensions</strong> tab, click the <strong>Detailed SonarCloud report</strong>. This will automatically open a new browser tab displaying the report on your SonarCloud project page.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Alternatively, you could browse to you SonarCloud project.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Verify that the report does not include the Quality Gate results and note the reason for its absence.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: To be able to see the Quality gate result, after running he first report we need to set <strong>New Code Definition</strong>. This way, subsequent pipeline runs will include Quality Gate results.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Overview</strong> tab of the SonarCloud project, click <strong>Set New Code definition</strong>.</li>
+  <li>On the <strong>Administration</strong> tab of the SonarCloud project, click <strong>Previous version</strong>.</li>
+  <li>Switch to the web browser window displaying the <strong>SonarExamples</strong> project pane in the Azure DevOps portal with the most recent build run, click <strong>Run new</strong> and, on the <strong>Run pipeline</strong> pane, click <strong>Run</strong>.</li>
+  <li>On the build run pane, review the content of the <strong>Summary</strong> tab and then click the <strong>Extensions</strong> tab header.</li>
+  <li>On the <strong>Extensions</strong> tab, click the <strong>Detailed SonarCloud report</strong>. This will automatically open a new browser tab displaying the report on your SonarCloud project page.</li>
+  <li>
+    <p>Verify that the report now includes the Quality Gate result.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: We have now created a new organization on SonarCloud and configured an Azure DevOps build to perform analysis and push the results of the build to SonarCloud.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-2-analyze-sonarcloud-reports">Exercise 2: Analyze SonarCloud reports</h3>
+
+<p>In this exercise, you will analyze SonarCloud reports.</p>
+
+<h4 id="task-1-analyze-sonarcloud-reports">Task 1: Analyze SonarCloud reports</h4>
+
+<p>In this task, you will analyze SonarCloud reports.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>Overview</strong> tab of the SonarCloud project, in the <strong>Reliability Measures</strong> section, note that there is a single bug entry.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The page has other metrics such as <strong>Code Smells</strong>, <strong>Coverage</strong>, <strong>Duplications</strong>, and <strong>Size</strong> (lines of code). The following table briefly explains each of these terms.</p>
+    </blockquote>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Terms</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Bugs</strong></td>
+          <td>An issue that represents an error in code. If this has not broken yet, it will, and probably at the worst possible moment. This needs to be fixed</td>
+        </tr>
+        <tr>
+          <td><strong>Vulnerabilities</strong></td>
+          <td>A security-related issue which represents a potential backdoor for attackers</td>
+        </tr>
+        <tr>
+          <td><strong>Code Smells</strong></td>
+          <td>A maintainability-related issue in the code. Leaving it as-is means that, at best, maintainers will have a harder time than they should when making subsequent changes. At worst, they’ll be so confused by the state of the code that they’ll introduce additional errors as they make changes</td>
+        </tr>
+        <tr>
+          <td><strong>Coverage</strong></td>
+          <td>An indication of the percentage of code that is being validated by tests such as unit tests. To guard effectively against bugs, these tests should exercise or cover a large portion of your code</td>
+        </tr>
+        <tr>
+          <td><strong>Duplications</strong></td>
+          <td>The duplications decoration shows which parts of the source code are duplicated</td>
+        </tr>
+        <tr>
+          <td><strong>Size</strong></td>
+          <td>Provides the count of lines of code within the project including the number of statements, functions, classes, files and directories</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: The letter displayed next to the bug count designates the <strong>Reliability Rating</strong>. In particular, the letter <strong>C</strong> indicates that there is at least 1 major bug in this code. For more information on Reliability Rating, refer to <a href="https://docs.sonarqube.org/display/SONAR/Metric+Definitions#MetricDefinitions-Reliability">SonarQube documentation</a>. You will also find there more information on <a href="https://docs.sonarqube.org/latest/user-guide/rules/">rule types</a> and see <a href="https://docs.sonarqube.org/latest/user-guide/issues/">severities</a>.</p>
+    </blockquote>
+  </li>
+  <li>Click the number designating the count of <strong>Bugs</strong>. This will automatically display the content of the <strong>Issues</strong> tab.</li>
+  <li>
+    <p>On the right side of the <strong>Issues</strong> tab, click the large rectangle representing the bug to display the corresponding code.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Review the error details in line number 9 of <strong>Program.cs</strong> file, including the recommendation stating <strong>Change this condition so that it does not always evaluate to ‘true’; some subsequent code is never executed.</strong></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Hover with the mouse pointer over vertical lines between the code and the line numbers to identify gaps in code coverage.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Our sample project is very small and has no historical data. However, there are thousands of <a href="https://sonarcloud.io/explore/projects">public projects on SonarCloud</a> that have more interesting and realistic results.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-3-implement-azure-devops-pull-request-integration-with-sonarcloud">Exercise 3: Implement Azure DevOps pull request integration with SonarCloud</h3>
+
+<p>In this exercise, you will set up pull request integration between Azure DevOps and SonarCloud.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: In order to configure SonarCloud analysis to perform analysis of code included in an Azure DevOps pull request, you need to perform the following tasks:</p>
+</blockquote>
+
+<ul>
+  <li>Add an Azure DevOps personal access token to a SonarCloud project, which authorizes its access to pull requests.</li>
+  <li>Configure an Azure DevOps branch policy that controls a pull request-triggered build</li>
+</ul>
+
+<h4 id="task-1-create-an-azure-devops-personal-access-token-for-pull-request-integration-with-sonarcloud">Task 1: Create an Azure DevOps personal access token for pull request integration with SonarCloud</h4>
+
+<p>In this task, you will review the personal access token requirements for implementing Azure DevOps pull request integration with a SonarCloud project.</p>
+
+<ol>
+  <li>Switch to the web browser window displaying the <strong>SonarExamples</strong> project in the Azure DevOps portal.</li>
+  <li>
+    <p>Repeat the steps described earlier in this lab in order to generate a personal access token with the <strong>Code</strong> scope and <strong>Read &amp; write</strong> permissions to the <strong>SonarExamples</strong> project.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Alternatively, you can reuse the personal access token you generated earlier in this lab.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: SonarCloud comments to pull requests will be added in the security context of the user who created the personal access token. The recommended practice is to create a separate “bot” Azure DevOps user for this purpose, to clearly identify comments originating from SonarCloud.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-pull-request-integration-in-sonarcloud">Task 2: Configure pull request integration in SonarCloud</h4>
+
+<p>In this task, you will configure pull request integration in SonarCloud by assigning an Azure DevOps personal access token to your SonarCloud project.</p>
+
+<ol>
+  <li>Switch to the web browser window displaying the <strong>SonarExamples</strong> project in the SonarCloud portal.</li>
+  <li>On the project’s dashboard page, click the header of the <strong>Administration</strong> tab and, in the dropdown menu, click <strong>General Settings</strong>.</li>
+  <li>On the <strong>General Settings</strong> page, click <strong>Pull Requests</strong>.</li>
+  <li>In the <strong>General</strong> section of the <strong>Pull Requests</strong> settings, in the <strong>Provider</strong> dropdown list, select <strong>Azure DevOps Services</strong> and click <strong>Save</strong>.</li>
+  <li>In the <strong>Integration with Azure DevOps Services</strong> section of the <strong>Pull Requests</strong> settings, in the <strong>Personal access token</strong> textbox, paste the previously generated Azure DevOps personal access token and click <strong>Save</strong></li>
+</ol>
+
+<h4 id="task-3-configure-a-branch-policy-for-integration-with-sonarcloud">Task 3: Configure a branch policy for integration with SonarCloud</h4>
+
+<p>In this task, you will configure an Azure DevOps branch policy for integration with SonarCloud.</p>
+
+<ol>
+  <li>Switch to the web browser window displaying the <strong>SonarExamples</strong> project in the Azure DevOps portal.</li>
+  <li>In the vertical menu bar at the far left of the Azure DevOps portal, click <strong>Repos</strong> and, in the <strong>Repos</strong> section, click <strong>Branches</strong>.</li>
+  <li>On the <strong>Branches</strong> pane, in the list of branches, hover with the mouse pointer over the right edge of the <strong>master</strong> branch entry to reveal the vertical ellipsis character designating the <strong>More options</strong> menu, click it, and, in the popup menu, click <strong>Branch policies</strong>.</li>
+  <li>On the <strong>master</strong> pane, to the right of the <strong>Build Validation</strong> section, click <strong>+</strong>.</li>
+  <li>
+    <p>On the <strong>Add build policy</strong> pane, in the <strong>Build pipeline</strong> dropdown list, select the pipeline you created earlier in this lab, in the <strong>Display name</strong> textbox, type <strong>SonarCloud analysis</strong> and click <strong>Save</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Azure DevOps is now configured to trigger a SonarCloud analysis when any pull request targeting the <strong>master</strong> branch is created.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-validate-pull-request-integration">Task 4: Validate pull request integration</h4>
+
+<p>In this task, you will validate pull request integration between Azure DevOps and SonarCloud by creating a pull request and reviewing the resulting outcome.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: You will make a change to a file in the repository and create a request to trigger SonarCloud analysis.</p>
+</blockquote>
+
+<ol>
+  <li>In the Azure DevOps portal, in the vertical menu bar on the left side, click <strong>Repos</strong>. This will display the <strong>Files</strong> pane.</li>
+  <li>In the central pane, in the folder hierarchy, navigate to the file <strong>Program.cs</strong> in the <strong>sonarqube-scanner-msbuild\CSharpProject\SomeConsoleApplication</strong> folder and click <strong>Edit</strong>.</li>
+  <li>
+    <p>On the <strong>Program.cs</strong> pane, add the following empty method to the code directly above the line <code>public static bool AlwaysReturnsTrue()</code></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Unused</span></span></span><span class="hljs-function">(</span><span class="hljs-params"></span><span class="hljs-function"><span class="hljs-params"></span>)</span></span>{
+
+}
+</code></pre>
+  </li>
+  <li>On the <strong>Program.cs</strong> pane, click <strong>Commit</strong>.</li>
+  <li>On the <strong>Commit</strong> pane, in the <strong>Branch name</strong> textbox, type <strong>branch1</strong>, select the <strong>Create a pull request</strong> checkbox, and click <strong>Commit</strong>.</li>
+  <li>On the <strong>New pull request</strong> pane, select <strong>Create</strong>.</li>
+  <li>On the <strong>Overview</strong> tab of the <strong>Updated Program.cs</strong> pane, monitor the progress of the build process to its completion.</li>
+  <li>On the <strong>Overview</strong> tab of the <strong>Updated Program.cs</strong> pane, note that while required checks succeeded, there are optional checks that failed and click the <strong>View 3 checks</strong> link.</li>
+  <li>
+    <p>On the <strong>Checks</strong> pane, review the results of the SonarCloud checks and close the pane.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The results show that the analysis builds completed successfully, but that the new code in the PR failed the Code Quality check. Comment has been posted to the PR regarding the new issue that was discovered.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Back on the <strong>Overview</strong> tab of the <strong>Updated Program.cs</strong> pane, scroll down to the section containing comments and review the comment from SonarCloud regarding the newly added class.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The reported issues contain only changes in the code corresponding to the pull request. Pre-existing issues in <strong>Program.cs</strong> and other files are ignored.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-block-pull-requests-in-response-to-failing-code-quality-checks">Task 4: Block pull requests in response to failing Code Quality checks</h4>
+
+<p>In this task, you will configure blocking of pull requests in response to failing Code Quality checks.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: At this point, it is still possible to complete the pull request and commit the corresponding changes even though Code Quality checks fail. You will modify Azure DevOps configuration to block the commit unless the relevant Code Quality checks pass.</p>
+</blockquote>
+
+<ol>
+  <li>In the Azure DevOps portal, displaying the <strong>Updated Programs.cs</strong> pane, in the lower left corner, click <strong>Project Settings</strong>.</li>
+  <li>In the <strong>Project Settings</strong> vertical menu, in the <strong>Repos</strong> section, click <strong>Repositories</strong>.</li>
+  <li>On the <strong>All repositories</strong> pane, click <strong>SonarExamples</strong>.</li>
+  <li>On the <strong>SonarExamples</strong> pane, click the <strong>Policies</strong> tab header.</li>
+  <li>On the listing of <strong>Policies</strong> scroll down to the listing of branches and click the entry representing the <strong>master</strong> branch.</li>
+  <li>On the <strong>master</strong> pane, scroll down to the <strong>Status Checks</strong> section and click <strong>+</strong>.</li>
+  <li>
+    <p>On the <strong>Add status policy</strong> pane, in the <strong>Status to check</strong> dropdown list, select the <strong>SonarCloud/quality gate</strong> entry, ensure that the <strong>Policy requirement</strong> option is set to <strong>Required</strong>, and click <strong>Save</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: At this point, users will not be able to merge pull request until the Code Quality check is successful. This, in turn, requires that all issues identified by SonarCloud have been either fixed or marked as <strong>confirmed</strong> or <strong>resolved</strong> in the corresponding SonarCloud project.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="review">Review</h2>
+
+<p>In this lab, you learned how to integrate Azure DevOps Services with SonarCloud.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.js"></script>
+
+
+
+</body></html>

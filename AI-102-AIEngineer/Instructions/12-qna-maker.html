@@ -1,0 +1,311 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="create-a-question-answering-solution">Create a Question Answering Solution</h1>
+
+<p>One of the most common conversational scenarios is providing support through a knowledge base of frequently asked questions (FAQs). Many organizations publish FAQs as documents or web pages, which works well for a small set of question and answer pairs, but large documents can be difficult and time-consuming to search.</p>
+
+<p>The <strong>Language</strong> service includes a <em>question answering</em> capability that enables you to create a knowledge base of question and answer pairs that can be queried using natural language input, and is most commonly used as a resource that a bot can use to look up answers to questions submitted by users.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: The question answering capability in the Language service is a newer version of the QnA Maker service - which is still available as a separate service.</p>
+</blockquote>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have not already cloned <strong>AI-102-AIEngineer</strong> code repository to the environment where you’re working on this lab, follow these steps to do so. Otherwise, open the cloned folder in Visual Studio Code.</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="create-a-language-resource">Create a Language resource</h2>
+
+<p>To create and host a knowledge base for question answering, you need a <strong>Language service</strong> resource in your Azure subscription.</p>
+
+<ol>
+  <li>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>Select the <strong>＋Create a resource</strong> button, search for <em>Language</em>, and create a <strong>Language service</strong> resource.</li>
+  <li>
+    <p>Click <strong>Select</strong> on the <strong>Custom question answering</strong> block. Then click <strong>Continue to create your resource</strong>. You will need to enter the following settings:</p>
+
+    <ul>
+      <li>
+<strong>Subscription</strong>: <em>Your Azure subscription</em>
+</li>
+      <li>
+<strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em>
+</li>
+      <li>
+<strong>Region</strong>: <em>Choose any available location</em>
+</li>
+      <li>
+<strong>Name</strong>: <em>Enter a unique name</em>
+</li>
+      <li>
+<strong>Pricing tier</strong>: Standard S</li>
+      <li>
+<strong>Azure Search location</strong>*: <em>Choose a location in the same global region as your Language resource</em>.</li>
+      <li>
+<strong>Azure Search pricing tier</strong>: Free (F) (<em>If this tier is not available, select Basic (B)</em>)</li>
+      <li>
+<strong>Legal Terms</strong>: <em>Agree</em>
+</li>
+      <li>
+<strong>Responsible AI Notice</strong>: <em>Agree</em>
+</li>
+    </ul>
+
+    <p>*Custom Question Answering uses Azure Search to index and query the knowledge base of questions and answers.</p>
+  </li>
+  <li>Wait for deployment to complete, and then view the deployment details.</li>
+</ol>
+
+<h2 id="create-a-question-answering-project">Create a question answering project</h2>
+
+<p>To create a knowledge base for question answering in your Language resource, you can use the Language Studio portal to create a question answering project. In this case, you’ll create a knowledge base containing questions and answers about <a href="https://docs.microsoft.com/learn">Microsoft Learn</a>.</p>
+
+<ol>
+  <li>In a new browser tab, go to the <em>Language Studio</em> portal at <code>https://language.azure.com</code> and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>If prompted to choose a Language resource, select the following settings:
+    <ul>
+      <li>
+<strong>Azure Directory</strong>: The Azure directory containing your subscription.</li>
+      <li>
+<strong>Azure subscription</strong>: Your Azure subscription.</li>
+      <li>
+<strong>Language resource</strong>: The Language resource you created previously.</li>
+    </ul>
+  </li>
+  <li>If you are <u>not</u> prompted to choose a language resource, it may be because you have multiple Language resources in your subscription; in which case:
+    <ol>
+      <li>On the bar at the top if the page, click the <strong>Settings (⚙)</strong> button.</li>
+      <li>On the <strong>Settings</strong> page, view the <strong>Resources</strong> tab.</li>
+      <li>Select the language resource you just created, and click <strong>Switch resource</strong>.</li>
+      <li>At the top of the page, click <strong>Language Studio</strong> to return to the Language Studio home page.</li>
+    </ol>
+  </li>
+  <li>At the top of the portal, in the <strong>Create new</strong> menu, select <strong>Custom question answering</strong>.</li>
+  <li>In the <strong>*Create a project</strong> wizard, on the <strong>Choose language setting</strong> page, select the option to set the language for all projects in this resource, and select <strong>English</strong> as the language. Then click <strong>Next</strong>.</li>
+  <li>On the <strong>Enter basic information</strong> page, enter the following details and then click <strong>Next</strong>:
+    <ul>
+      <li>
+<strong>Name</strong> LearnFAQ</li>
+      <li>
+<strong>Description</strong>: FAQ for Microsoft Learn</li>
+      <li>
+<strong>Default answer when no answer is returned</strong>: Sorry, I don’t understand the question</li>
+    </ul>
+  </li>
+  <li>On the <strong>Review and finish</strong> page, click <strong>Create project</strong>.</li>
+</ol>
+
+<h2 id="add-a-sources-to-the-knowledge-base">Add a sources to the knowledge base</h2>
+
+<p>You can create a knowledge base from scratch, but it’s common to start by importing questions and answers from an existing FAQ page or document. In this case, you’ll import data from an existing FAQ web page for Microsoft learn, and you’ll also import some pre-defined “chit chat” questions and answers to support common conversational exchanges.</p>
+
+<ol>
+  <li>On the <strong>Manage sources</strong> page for your question answering project, in the <strong>╋ Add source</strong> list, select <strong>URLs</strong>. Then in the <strong>Add URLs</strong> dialog box, click <strong>╋ Add url</strong> and add the following URL, and then click <strong>Add all</strong> to add it to the knowledge base:
+    <ul>
+      <li>
+<strong>Name</strong>: <code>Learn FAQ Page</code>
+</li>
+      <li>
+<strong>URL</strong>: <code>https://docs.microsoft.com/en-us/learn/support/faq</code>
+</li>
+    </ul>
+  </li>
+  <li>On the <strong>Manage sources</strong> page for your question answering project, in the <strong>╋ Add source</strong> list, select <strong>Chitchat</strong>. The in the <strong>Add chit chat</strong> dialog box, select <strong>Friendly</strong> and click <strong>Add chit chat</strong>.</li>
+</ol>
+
+<h2 id="edit-the-knowledge-base">Edit the knowledge base</h2>
+
+<p>Your knowledge base has been populated with question and answer pairs from the Microsoft Learn FAQ, supplemented with a set of conversational <em>chit-chat</em> question  and answer pairs. You can extend the knowledge base by adding additional question and answer pairs.</p>
+
+<ol>
+  <li>In the <strong>LearnFAQ</strong> project in Language Studio, select the <strong>Edit knowledge base</strong> page to see the existing question and answer pairs (if some tips are displayed, read them and click <strong>Got it</strong> to dismiss them, or click <strong>Skip all</strong>)</li>
+  <li>In the knowledge base, select <strong>＋ Add question pair</strong>.</li>
+  <li>In the <strong>Question</strong> box, type <code>What is Microsoft certification?</code> and press <strong>Enter</strong>**.</li>
+  <li>Select <strong>＋ Add alternative phrasing</strong> and type <code>How can I demonstrate my Microsoft technology skills?</code> and press <strong>Enter</strong>.</li>
+  <li>
+    <p>In the <strong>Answer</strong> box, type <code>The Microsoft Certified Professional program enables you to validate and prove your skills with Microsoft technologies.</code> Then press <strong>Enter</strong> and click <strong>Submit</strong> to add the question (including alternative phrasing) and answer to the knowledge base.</p>
+
+    <p>In some cases, it makes sense to enable the user to follow up on answer to create a <em>multi-turn</em> conversation that enables the user to iteratively refine the question to get to the answer they need.</p>
+  </li>
+  <li>Under the answer you entered for the certification question, select <strong>＋ Add follow-up prompts</strong>.</li>
+  <li>In the <strong>Follow-up Prompt</strong> dialog box, enter the following settings, and then click <strong>Add prompt</strong>:
+    <ul>
+      <li>
+<strong>Text displayed in the prompt to the user</strong>: `Learn more about certification.</li>
+      <li>Select <strong>Create link to new pair</strong>, and enter this text: <code>You can learn more about certification on the [Microsoft certification page](https://docs.microsoft.com/learn/certifications/).</code>
+</li>
+      <li>
+<strong>Show in contextual flow only</strong>: Selected. <em>This option ensures that the answer is only ever returned in the context of a follow-up question from the original certification question.</em>
+</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="train-and-test-the-knowledge-base">Train and test the knowledge base</h2>
+
+<p>Now that you have a knowledge base, you can test it in the QnA Maker portal.</p>
+
+<ol>
+  <li>At the top right of the page, click <strong>Save changes</strong>.</li>
+  <li>After the changes have been saved, click <strong>Test</strong> to open the test pane.</li>
+  <li>In the test pane, at the top, <em>deselect</em> the option to display short answers. Then at the bottom enter the message <code>Hello</code>. A suitable response should be returned.</li>
+  <li>In the test pane, at the bottom enter the message <code>What is Microsoft Learn?</code>. An appropriate response from the FAQ should be returned.</li>
+  <li>Enter the message <code>Thanks!</code> An appropriate chit-chat response should be returned.</li>
+  <li>Enter the message <code>Tell me about certification</code>. The answer you created should be returned along with a follow-up prompt link.</li>
+  <li>Select the <strong>Learn more about certification</strong> follow-up link. The follow-up answer with a link to the certification page should be returned.</li>
+  <li>When you’re done testing the knowledge base, close the test pane.</li>
+</ol>
+
+<h2 id="deploy-and-test-the-knowledge-base">Deploy and test the knowledge base</h2>
+
+<p>The knowledge base provides a back-end service that client applications can use to answer questions. Now you are ready to publish your knowledge base and access its REST interface from a client.</p>
+
+<ol>
+  <li>In the <strong>LearnFAQ</strong> project in Language Studio, select the <strong>Deploy knowledge base</strong> page.</li>
+  <li>At the top of the page, click <strong>Deploy</strong>. Then click <strong>Deploy</strong> to confirm you want to deploy the knowledge base.</li>
+  <li>When deployment is complete, click <strong>Get prediction URL</strong> to view the REST endpoint for your knowledge base, and copy it to the clipboard (but don’t close the dialog box yet).</li>
+  <li>In Visual Studio Code, in the <strong>12-qna</strong> folder, open <strong>ask-question.cmd</strong>. This script uses <em>Curl</em> to call the REST interface of a question answering endpoint.</li>
+  <li>In the script, replace <em>YOUR_PREDICTION_ENDPOINT</em> with the prediction endpoint you copied (ensuring it is enclosed in the quotation marks).</li>
+  <li>Return to the browser and in the <strong>Get prediction URL</strong> dialog box, note that the sample request includes a value for the <strong>Ocp-Apim-Subscription-Key</strong> parameter, which looks similar to <em>ab12c345de678fg9hijk01lmno2pqrs34</em>. This is the authorization key for your resource. Copy it to the clipboard, and then click <strong>Got it</strong> to close the dialog box.</li>
+  <li>Return to Visual Studio Code, and in the <strong>ask-question.cmd</strong> script, replace <em>YOUR_KEY</em> with the key you copied (ensuring it is enclosed in the quotation marks).</li>
+  <li>Note that the Curl command in the script submits a <strong>question</strong> parameter with the value <strong>What is a Learning Path?</strong>.</li>
+  <li>
+    <p>Verify that the entire script looks similar to the following code, then save the file.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"> @echo off
+ SETLOCAL ENABLEDELAYEDEXPANSION
+
+ rem <span class="hljs-keyword"><span class="hljs-keyword">Set</span></span> <span class="hljs-keyword"><span class="hljs-keyword">variables</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">set</span></span> prediction_url=<span class="hljs-string"><span class="hljs-string">"https://some-name.cognitiveservices.azure.com/language/......."</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">set</span></span> <span class="hljs-keyword"><span class="hljs-keyword">key</span></span>=<span class="hljs-string"><span class="hljs-string">"ab12c345de678fg9hijk01lmno2pqrs34"</span></span>
+
+ curl -X POST !prediction_url! -H <span class="hljs-string"><span class="hljs-string">"Ocp-Apim-Subscription-Key: !key!"</span></span> -H <span class="hljs-string"><span class="hljs-string">"Content-Type: application/json"</span></span> -d <span class="hljs-string"><span class="hljs-string">"{'question': 'What is a learning Path?' }"</span></span>
+</code></pre>
+  </li>
+  <li>In Visual Studio Code in the Explorer pane, right-click the <strong>ask-question.cmd</strong> script and select <strong>Open in Integrated Terminal</strong>.</li>
+  <li>In the terminal pane, enter the command <code>ask-question.cmd</code> to run the script and view the JSON response that is returned by the service, which should contain an appropriate answer to the question <em>What is a learning path?</em>.</li>
+</ol>
+
+<h2 id="create-a-bot-for-the-knowledge-base">Create a bot for the knowledge base</h2>
+
+<p>Most commonly, the client applications used to retrieve answers from a knowledge base are bots.</p>
+
+<ol>
+  <li>Return to Language Studio in the browser, and in the <strong>Deploy knowledge base</strong> page, select <strong>Create Bot</strong>. This opens the Azure portal in a new browser tab so you can create a Web App Bot in your Azure subscription (if prompted, sign in).</li>
+  <li>
+    <p>In the Azure portal, create a Web App Bot with the following settings (most of these will be pre-populated for you):</p>
+
+    <p><em>If some values are missing, refresh your browser.</em></p>
+  </li>
+</ol>
+
+<ul>
+  <li>
+<strong>Bot handle</strong>: <em>A unique name for your bot</em>
+</li>
+  <li>
+<strong>Subscription</strong>: <em>Your Azure subscription</em>
+</li>
+  <li>
+<strong>Resource group</strong>: <em>The resource group containing your Language resource</em>
+</li>
+  <li>
+<strong>Location</strong>: <em>The same location as your Text Analytics service</em>.</li>
+  <li>
+<strong>Pricing tier</strong>: F0</li>
+  <li>
+<strong>App name</strong>: <em>Same as the <strong>Bot handle</strong> with a unique ID and *.azurewebsites.net</em> appended automatically</li>
+  <li>
+<strong>SDK language</strong>: <em>Choose either C# or Node.js</em>
+</li>
+  <li>
+<strong>QnA Auth Key</strong>: <em>This should automatically be set to the authentication key for your QnA knowledge base</em>
+</li>
+  <li>
+<strong>App service plan/location</strong>: <em>This may be set automatically to a suitable plan and location if one exists. If not, create a new plan</em>
+</li>
+  <li>
+<strong>Application Insights</strong>: Off</li>
+  <li>
+<strong>Microsoft App ID and password</strong>: Auto create App ID and password.
+    <ol>
+      <li>Wait for your bot to be created . Then click <strong>Go to resource</strong> (or alternatively, on the home page, click <strong>Resource groups</strong>, open the resource group where you created the web app bot, and click it.)</li>
+      <li>In the blade for your bot, view the <strong>Test in Web Chat</strong> page, and wait until the bot displays the message <strong>Hello and welcome!</strong> (it may take a few seconds to initialize).</li>
+      <li>Use the test chat interface to ensure your bot answers questions from your knowledge base as expected. For example, try submitting <code>What is Microsoft certification?</code>.</li>
+    </ol>
+  </li>
+</ul>
+
+<h2 id="more-information">More information</h2>
+
+<p>To learn more about question answering in the Language service, see the <a href="https://docs.microsoft.com/en-us/azure/cognitive-services/language-service/question-answering/overview">Langage service documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            dp-080-Transact-SQL
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                dp-080-Transact-SQL
+            </a>
+            <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#challenge-1-retrieve-product-price-information">Challenge 1: Retrieve product price information</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2-analyze-profitability">Challenge 2: Analyze profitability</a></li><li class="nav-item"><a class="nav-link" href="#challenge-1">Challenge 1</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2">Challenge 2</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="use-subqueries">Use Subqueries</h1>
+
+<p>In this lab, you’ll use subqueries to retrieve data from tables in the <strong>adventureworks</strong> database. For your reference, the following diagram shows the tables in the database (you may need to resize the pane to see them clearly).</p>
+
+<p><a href="images/adventureworks-erd.png" target="_blank"><img src="images/adventureworks-erd.png" alt="An entity relationship diagram of the adventureworks database"></a></p>
+
+<blockquote>
+  <p><strong>Note</strong>: If you’re familiar with the standard <strong>AdventureWorks</strong> sample database, you may notice that in this lab we are using a simplified version that makes it easier to focus on learning Transact-SQL syntax.</p>
+</blockquote>
+
+<h2 id="use-simple-subqueries">Use simple subqueries</h2>
+
+<p>A subquery is a query that is nested within another query. The subquery is often referred to as the <em>inner</em> query, and the query within which it is nested is referred to as the <em>outer</em> query.</p>
+
+<ol>
+  <li>Start Azure Data Studio, and create a new query (you can do this from the <strong>File</strong> menu or on the <em>welcome</em> page).</li>
+  <li>In the new <strong>SQLQuery_…</strong> pane, use the <strong>Connect</strong> button to connect the query to the <strong>AdventureWorks</strong> saved connection.</li>
+  <li>
+    <p>In the query editor, enter the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">MAX</span></span>(UnitPrice)
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail;
+</code></pre>
+  </li>
+  <li>
+    <p>Use the <strong>⏵Run</strong> button to run the query, and and after a few seconds, review the results, which consists of the maximum <strong>UnitPrice</strong> in the <strong>SalesLT.SalesOrderDetail</strong> (the highest price for which any individual product has been sold).</p>
+  </li>
+  <li>
+    <p>Modify the query as follows to use the query you just ran as a subquery in an outer query that retrieves products with a <strong>ListPrice</strong> higher than the maximum selling price.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ListPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ListPrice &gt;
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">MAX</span></span>(UnitPrice)
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail);
+</code></pre>
+  </li>
+  <li>Run the query and review the results, which include all products that have a <strong>listPrice</strong> that is higher than the maximum price for which any product has been sold.</li>
+  <li>
+    <p>Replace the existing query with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">DISTINCT</span></span> ProductID
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> OrderQty &gt;= <span class="hljs-number"><span class="hljs-number">20</span></span>;
+</code></pre>
+  </li>
+  <li>Run the query and note that it returns the <strong>ProductID</strong> for each product that has been ordered in quantities of 20 or more.</li>
+  <li>
+    <p>Modify the query as follows to use it in a subquery that finds the names of the products that have been ordered in quantities of 20 or more.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span> <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ProductID <span class="hljs-keyword"><span class="hljs-keyword">IN</span></span>
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">DISTINCT</span></span> ProductID
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail
+      <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> OrderQty &gt;= <span class="hljs-number"><span class="hljs-number">20</span></span>);
+</code></pre>
+  </li>
+  <li>Run the query and note that it returns the product names.</li>
+  <li>
+    <p>Replace the query with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">DISTINCT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> p
+<span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> o
+    <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> p.ProductID = o.ProductID
+<span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> OrderQty &gt;= <span class="hljs-number"><span class="hljs-number">20</span></span>;
+</code></pre>
+  </li>
+  <li>Run the query and note that it returns the same results. Often you can achieve the same outcome with a subquery or a join, and often a subquery approach can be more easily interpreted by a developer looking at the code than a complex join query because the operation can be broken down into discrete components. In most cases, the performance of equivalent join or subquery operations is similar, but in some cases where existence checks need to be performed, joins perform better.</li>
+</ol>
+
+<h2 id="use-correlated-subqueries">Use correlated subqueries</h2>
+
+<p>So far, the subqueries we’ve used have been independent of the outer query. In some cases, you might need to use an inner subquery that references a value in the outer query. Conceptually, the inner query runs once for each row returned by the outer query (which is why correlated subqueries are sometimes referred to as <em>repeating subqueries</em>).</p>
+
+<ol>
+  <li>
+    <p>Replace the existing query with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> od.SalesOrderID, od.ProductID, od.OrderQty
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> od
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> od.ProductID;
+</code></pre>
+  </li>
+  <li>Run the query and note that the results contain the order ID, product ID, and quantity for each sale of a product.</li>
+  <li>
+    <p>Modify the query as follows to filter it using a subquery in the <strong>WHERE</strong> clause that retrieves the maximum purchased quantity for each product retrieved by the outer query. Note that the inner query references a table alias that is declared in the outer query.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> od.SalesOrderID, od.ProductID, od.OrderQty
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> od
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> od.OrderQty =
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">MAX</span></span>(OrderQty)
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> d
+      <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> od.ProductID = d.ProductID)
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> od.ProductID;
+</code></pre>
+  </li>
+  <li>Run the query and review the results, which should only contain product order records for which the quantity ordered is the maximum ordered for that product.</li>
+  <li>
+    <p>Replace the query with the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> o.SalesOrderID, o.OrderDate, o.CustomerID
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderHeader <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> o
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> o.SalesOrderID;
+</code></pre>
+  </li>
+  <li>Run the query and note that it returns the order ID, order date, and customer ID for each order that has been placed.</li>
+  <li>
+    <p>Modify the query as follows to retrieve the company name for each customer using a correlated subquery in the <strong>SELECT</strong> clause.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> o.SalesOrderID, o.OrderDate,
+       (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> CompanyName
+       <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> c
+       <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> c.CustomerID = o.CustomerID) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> CompanyName
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderHeader <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> o
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> o.SalesOrderID;
+</code></pre>
+  </li>
+  <li>Run the query, and verify that the company name is returned for each customer found by the outer query.</li>
+</ol>
+
+<h2 id="challenges">Challenges</h2>
+
+<p>Now it’s your opportunity to try using subqueries to retrieve data.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>: Try to determine the appropriate queries for yourself. If you get stuck, suggested answers are provided at the end of this lab.</p>
+</blockquote>
+
+<h3 id="challenge-1-retrieve-product-price-information">Challenge 1: Retrieve product price information</h3>
+
+<p>Adventure Works products each have a standard cost price that indicates the cost of manufacturing the product, and a list price that indicates the recommended selling price for the product. This data is stored in the <strong>SalesLT.Product</strong> table. Whenever a product is ordered, the actual unit price at which it was sold is also recorded in the <strong>SalesLT.SalesOrderDetail</strong> table. You must use subqueries to compare the cost and list prices for each product with the unit prices charged in each sale.</p>
+
+<ol>
+  <li>Retrieve products whose list price is higher than the average unit price.
+    <ul>
+      <li>Retrieve the product ID, name, and list price for each product where the list price is higher than the average unit price for all products that have been sold.</li>
+      <li><strong>Tip</strong>: Use the <strong>AVG</strong> function to retrieve an average value.</li>
+    </ul>
+  </li>
+  <li>Retrieve Products with a list price of 100 or more that have been sold for less than 100.
+    <ul>
+      <li>Retrieve the product ID, name, and list price for each product where the list price is 100 or more, and the product has been sold for less than 100.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="challenge-2-analyze-profitability">Challenge 2: Analyze profitability</h3>
+
+<p>The standard cost of a product and the unit price at which it is sold determine its profitability. You must use correlated subqueries to compare the cost and average selling price for each product.</p>
+
+<ol>
+  <li>Retrieve the cost, list price, and average selling price for each product
+    <ul>
+      <li>Retrieve the product ID, name, cost, and list price for each product along with the average unit price for which that product has been sold.</li>
+    </ul>
+  </li>
+  <li>Retrieve products that have an average selling price that is lower than the cost.
+    <ul>
+      <li>Filter your previous query to include only products where the cost price is higher than the average selling price.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="challenge-solutions">Challenge Solutions</h2>
+
+<p>This section contains suggested solutions for the challenge queries.</p>
+
+<h3 id="challenge-1">Challenge 1</h3>
+
+<ol>
+  <li>
+    <p>Retrieve products whose list price is higher than the average unit price:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ListPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ListPrice &gt;
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AVG</span></span>(UnitPrice)
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail)
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> ProductID;
+</code></pre>
+  </li>
+  <li>
+    <p>Retrieve Products with a list price of 100 or more that have been sold for less than 100:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ListPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ProductID <span class="hljs-keyword"><span class="hljs-keyword">IN</span></span>
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail
+      <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> UnitPrice &lt; <span class="hljs-number"><span class="hljs-number">100.00</span></span>)
+ <span class="hljs-keyword"><span class="hljs-keyword">AND</span></span> ListPrice &gt;= <span class="hljs-number"><span class="hljs-number">100.00</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> ProductID;
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="challenge-2">Challenge 2</h3>
+
+<ol>
+  <li>
+    <p>Retrieve the cost, list price, and average selling price for each product:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> p.ProductID, p.Name, p.StandardCost, p.ListPrice,
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AVG</span></span>(o.UnitPrice)
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> o
+      <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> p.ProductID = o.ProductID) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> AvgSellingPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> p
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> p.ProductID;
+</code></pre>
+  </li>
+  <li>
+    <p>Retrieve products that have an average selling price that is lower than the cost:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> p.ProductID, p.Name, p.StandardCost, p.ListPrice,
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AVG</span></span>(o.UnitPrice)
+     <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> o
+     <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> p.ProductID = o.ProductID) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> AvgSellingPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> p
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> StandardCost &gt;
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AVG</span></span>(od.UnitPrice)
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> od
+      <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> p.ProductID = od.ProductID)
+ <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> p.ProductID;
+</code></pre>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="ml-2">
+                    MicrosoftLearning/dp-080-Transact-SQL
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.js"></script>
+
+
+
+</body></html>

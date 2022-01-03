@@ -1,0 +1,1002 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            MB-340-Dynamics-365-Commerce-Functional-Consultant
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D2483e2e3af6b99ed19355551ef947634d65bee8e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                MB-340-Dynamics-365-Commerce-Functional-Consultant
+            </a>
+            <a href="https://github.com/MicrosoftLearning/MB-340-Dynamics-365-Commerce-Functional-Consultant" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercises">Exercises:</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1--create-dom-rules">Exercise 1 – Create DOM rules</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2--create-a-fulfilment-profile">Exercise 2 – Create a fulfilment profile</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3--prepare-stock-data-for-use-in-tests">Exercise 3 – Prepare stock data for use in tests</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4--create-sales-orders">Exercise 4 – Create sales orders</a></li><li class="nav-item"><a class="nav-link" href="#exercise-5--process-dom">Exercise 5 – Process DOM</a></li><li class="nav-item"><a class="nav-link" href="#exercise-6--review-the-fulfillment-plan">Exercise 6 – Review the fulfillment plan</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <p><strong>Why learn this?</strong> This activity takes the learnings from the activity ‘DOM
+Scenarios, rules and examples’ and puts it into practice. Students will learn
+how to configure distributed order management and see how the configuration is
+used by the engine to allocate a fulfilment plan to an order.</p>
+
+<p><strong>Scenario</strong>: In this activity you will configure distributed order management
+and test your configuration. This includes:</p>
+
+<p>• Creating DOM rules</p>
+
+<p>• Configuring a DOM fulfillment profile</p>
+
+<p>• Setting inventory values to meet test requirements</p>
+
+<p>• Creating test customer orders</p>
+
+<p>• Configuring DOM processing</p>
+
+<p>• Reviewing the results of DOM runs</p>
+
+<p><strong>Time to complete</strong>: 45 minutes</p>
+
+<p><strong>Prerequisites</strong>: None</p>
+
+<p><strong>Objectives</strong>: After completing this lab, students will have configured and
+tested a realistic configuration of distributed order management. Combining the
+set-up with a business scenario and validating the test results will help
+students visualize the impact each configuration is having on the result.</p>
+
+<h3 id="exercises">Exercises:</h3>
+
+<p>Scenario – Fabrikam operates retail stores in the Unites States. The company
+also has an online store and call center. Fabrikam has a central distribution
+center.</p>
+
+<p>When customers place orders, the company wants orders to be fulfilled from the
+nearest available location where stock is available. To reduce freight costs,
+orders must not be split to reduce freight costs.</p>
+
+<p>Each store can process a maximum of one order per day due to low employee
+numbers. An order must not leave a store short of inventory. A minimum of two
+units of inventory for each item must be allocated to a store for walk-in
+customers.</p>
+
+<p>In the exercises that follow, you will configure distributed order management to
+meet Fabrikam’s requirements. You will then complete a series of tests to
+validate the configuration.</p>
+
+<p>To test the configuration, you will create four new sales orders for customer
+Mathew Tolley. Mathew lives in Alameda, San Francisco. The three Fabrikam
+locations closest to Alameda, ordered by distance, are: The San Francisco store,
+then the San Jose store, then the Central DC warehouse.</p>
+
+<p>You will configure the following inventory availability:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Item Number</th>
+      <th>San Francisco</th>
+      <th>San Jose</th>
+      <th>Central DC</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>91065</td>
+      <td>10</td>
+      <td>5</td>
+      <td>1000</td>
+    </tr>
+    <tr>
+      <td>91066</td>
+      <td>0</td>
+      <td>10</td>
+      <td>800</td>
+    </tr>
+    <tr>
+      <td>91067</td>
+      <td>1</td>
+      <td>2</td>
+      <td>1200</td>
+    </tr>
+    <tr>
+      <td>91068</td>
+      <td>10</td>
+      <td>5</td>
+      <td>500</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The four sales orders will be created with the following item lines:</p>
+
+<ul>
+  <li>
+    <p>Sales order 1 will have one item line, 91065.</p>
+  </li>
+  <li>
+    <p>Sales order 2 will have two item lines, 91065 and 91066.</p>
+  </li>
+  <li>
+    <p>Sales order 3 will have one item line, 91067</p>
+  </li>
+  <li>
+    <p>Sales order 4 will have one item line, 91068.</p>
+  </li>
+</ul>
+
+<p>You will now run the DOM processing job.</p>
+
+<p>The tables below demonstrate how each order will be evaluated:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Order 1</th>
+      <th>Meets partial order rule</th>
+      <th>Meets minimum inventory rule</th>
+      <th>Meets maximum order rule</th>
+      <th>Location will be assigned</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>San Francisco</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td><strong>Yes</strong></td>
+    </tr>
+    <tr>
+      <td>San Jose</td>
+      <td>Nearest location already assigned</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Central DC</td>
+      <td>Nearest location already assigned</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Reason: San Francisco is the nearest location and meets all rules.</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Order 2</td>
+      <td>Meets partial order rule</td>
+      <td>Meets minimum inventory rule</td>
+      <td>Meets maximum order rule</td>
+      <td>Location will be assigned</td>
+    </tr>
+    <tr>
+      <td>San Francisco</td>
+      <td>No</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>San Jose</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td><strong>Yes</strong></td>
+    </tr>
+    <tr>
+      <td>Central DC</td>
+      <td>Nearest location already assigned</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Reason: San Francisco has no stock of item 91066 and orders cannot be split.</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Order 3</td>
+      <td>Meets partial order rule</td>
+      <td>Meets minimum inventory rule</td>
+      <td>Meets maximum order rule</td>
+      <td>Location will be assigned</td>
+    </tr>
+    <tr>
+      <td>San Francisco</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>San Jose</td>
+      <td>No</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>Central DC</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>N/A</td>
+      <td><strong>Yes</strong></td>
+    </tr>
+    <tr>
+      <td>Reason: San Francisco and San Jose do not have enough inventory to meet the minimum required.</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Order 4</td>
+      <td>Meets partial order rule</td>
+      <td>Meets minimum inventory rule</td>
+      <td>Meets maximum order rule</td>
+      <td>Location will be assigned</td>
+    </tr>
+    <tr>
+      <td>San Francisco</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>San Jose</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>Central DC</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>N/A</td>
+      <td><strong>Yes</strong></td>
+    </tr>
+    <tr>
+      <td>Reason: San Francisco and San Jose have both exceeded the maximum orders and Central DC is not a store, so does not apply to the maximum orders rule.</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Finally, you will review the results of the DOM processing job, to validate the
+orders have been assigned to the expected locations:</p>
+
+<ul>
+  <li>
+    <p>Order 1 – San Francisco</p>
+  </li>
+  <li>
+    <p>Order 2 – San Jose</p>
+  </li>
+  <li>
+    <p>Order 3 – Central DC</p>
+  </li>
+  <li>
+    <p>Order 4 – Central DC</p>
+  </li>
+</ul>
+
+<h3 id="exercise-1--create-dom-rules">Exercise 1 – Create DOM rules</h3>
+
+<h4 id="task-1--create-a-dom-rule-for-partial-orders">Task 1 – Create a DOM rule for partial orders</h4>
+
+<ol>
+  <li>
+    <p>Launch Dynamics 365 Commerce in the <strong>USRT</strong> company.</p>
+  </li>
+  <li>
+    <p>Navigate to Retail and Commerce &gt; Distributed order management &gt; Setup &gt;
+Manage rules or search for <strong>Manage rules</strong> by using the search function.</p>
+  </li>
+  <li>
+    <p>Select <strong>New</strong>.</p>
+  </li>
+  <li>
+    <p>In the DOM rules field, select <strong>Partial orders rule</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>In the name field, enter a name for the rule.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>In the lines tab, select <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Fulfill partial orders? field, clear the check mark.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2--create-a-dom-rule-for-maximum-orders">Task 2 – Create a DOM rule for maximum orders</h4>
+
+<ol>
+  <li>
+    <p>Launch Dynamics 365 Commerce.</p>
+  </li>
+  <li>
+    <p>Navigate to Retail and Commerce &gt; Distributed order management &gt; Setup &gt;
+Manage rules or search for <strong>Manage rules</strong> by using the search function.</p>
+  </li>
+  <li>
+    <p>Select <strong>New</strong>.</p>
+  </li>
+  <li>
+    <p>In the DOM rules field, select <strong>Maximum orders rule</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>In the name field, enter a name for the rule.</p>
+  </li>
+  <li>
+    <p>Set the slider for <strong>Hard constraint</strong> to <strong>Yes.</strong></p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>In the lines tab, select <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Fulfilment group field, select <strong>All stores</strong> from the list.</p>
+  </li>
+  <li>
+    <p>In the Maximum orders field, enter <strong>1</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-3--create-a-dom-rule-for-minimum-inventory">Task 3 – Create a DOM rule for minimum inventory</h4>
+
+<ol>
+  <li>
+    <p>Launch Dynamics 365 Commerce.</p>
+  </li>
+  <li>
+    <p>Navigate to Retail and Commerce &gt; Distributed order management &gt; Setup &gt;
+Manage rules or search for <strong>Manage rules</strong> by using the search function.</p>
+  </li>
+  <li>
+    <p>Select <strong>New</strong>.</p>
+  </li>
+  <li>
+    <p>In the DOM rules field, select <strong>Minimum inventory rule</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>In the name field, enter a name for the rule.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>In the lines tab, select <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Fulfilment group field, select <strong>All stores</strong> from the list.</p>
+  </li>
+  <li>
+    <p>In the Category field, select the <strong>All</strong> node, then select <strong>Ok</strong>.</p>
+  </li>
+  <li>
+    <p>In the Minimum inventory field, enter <strong>2</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-2--create-a-fulfilment-profile">Exercise 2 – Create a fulfilment profile</h3>
+
+<h4 id="task-1--create-the-profile">Task 1 – Create the profile</h4>
+
+<ol>
+  <li>
+    <p>Launch Dynamics 365 Commerce.</p>
+  </li>
+  <li>
+    <p>Navigate to Retail and Commerce &gt; Distributed order management &gt; Setup &gt;
+Fulfilment profiles or search for <strong>Fulfillment profiles</strong> by using the
+search function.</p>
+  </li>
+  <li>
+    <p>Select <strong>New</strong>.</p>
+  </li>
+  <li>
+    <p>In the Profile field, enter a name for your profile.</p>
+  </li>
+  <li>
+    <p>In the Description field, enter a description for your profile.</p>
+  </li>
+  <li>
+    <p>Set the slider for <strong>Auto apply result</strong> to <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>Set the slider for <strong>Process orders with empty sales origin</strong> to <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>Expand the Legal entities fast tab.</p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Company field, select <strong>USRT</strong> from the list.</p>
+  </li>
+</ol>
+
+<h4 id="task-2--add-rules-to-the-profile">Task 2 – Add rules to the profile</h4>
+
+<ol>
+  <li>
+    <p>Expand the Rules fast tab.</p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Rule field, select the partial orders rule you created in Exercise 1,
+Task 1.</p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Rule field, select the maximum orders rule you created in Exercise 1,
+Task 2.</p>
+  </li>
+  <li>
+    <p>Select <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Rule field, select the minimum inventory rule you created in Exercise
+1, Task 3.</p>
+  </li>
+</ol>
+
+<h4 id="task-3--complete-the-fulfillment-profile">Task 3 – Complete the fulfillment profile</h4>
+
+<ol>
+  <li>
+    <p>In the action pane, select the <strong>Setup</strong> tab and then select <strong>Modes of
+delivery</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>New</strong>.</p>
+  </li>
+  <li>
+    <p>In the Company field, select <strong>USRT</strong> from the list.</p>
+  </li>
+  <li>
+    <p>In the Mode of delivery field, select <strong>Standard - Standard Service (retailer
+choice)</strong> from the list.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Close the Modes of delivery form.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Enable profile</strong> check box in the General FastTab.</p>
+
+    <p>Select <strong>Save</strong>.</p>
+
+    <p>Note: All fields (excluding the Enable profile checkbox) are disabled once
+the record is saved.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-3--prepare-stock-data-for-use-in-tests">Exercise 3 – Prepare stock data for use in tests</h3>
+
+<h4 id="task-1--identify-rows">Task 1 – Identify rows</h4>
+
+<ol>
+  <li>
+    <p>Launch Dynamics 365 Commerce.</p>
+  </li>
+  <li>
+    <p>Navigate to Inventory management &gt; Journal entries &gt; Item counting &gt;
+Counting or search for <strong>Counting</strong> by using the search function.</p>
+  </li>
+  <li>
+    <p>Select <strong>New</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>On the action pane, select <strong>Create Lines</strong> and then select <strong>On-hand</strong> from
+the context menu.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Warehouse</strong> slider.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Location</strong> slider.</p>
+  </li>
+  <li>
+    <p>Expand the <strong>Records to include</strong> fast tab.</p>
+  </li>
+  <li>
+    <p>Select <strong>Filter</strong>.</p>
+  </li>
+  <li>
+    <p>Locate the row where the Field value is  Items/Items/<strong>Item number.</strong></p>
+  </li>
+  <li>
+    <p>In the Criteria field, enter: <strong>91065,91066,91067,91068</strong>.</p>
+  </li>
+  <li>
+    <p>Locate the row where the Field value equals <strong>Warehouse</strong>.</p>
+  </li>
+  <li>
+    <p>In the Criteria field, enter: <strong>SANFRANCIS,SANJOSEADV,DC-CENTRAL</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK</strong> on the Create on-hand counting journal dialog and let the
+journal process.</p>
+  </li>
+</ol>
+
+<h4 id="task-2--enter-data-for-tests">Task 2 – Enter data for tests</h4>
+
+<ol>
+  <li>
+    <p>Expand the Journal lines fast tab. You should have 12 lines, for all combinations of the above 4 items and above 3 warehouses.</p>
+  </li>
+  <li>
+    <p>Make sure you have On-hand (quantity) for each line; if not, enter it. For example:</p>
+
+    <ol>
+      <li>
+        <p>Select line 1. In the Counted field, enter <strong>1000</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 2. In the Counted field, enter <strong>10</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 3. In the Counted field, enter <strong>5</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 4. In the Counted field, enter <strong>800</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 5. In the Counted field, enter <strong>0</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 6. In the Counted field, enter <strong>10</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 7. In the Counted field, enter <strong>1200</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 8. In the Counted field, enter <strong>1</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 9. In the Counted field, enter <strong>2</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 10. In the Counted field, enter <strong>500</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 11. In the Counted field, enter <strong>10</strong>.</p>
+      </li>
+      <li>
+        <p>Select line 12. In the Counted field, enter <strong>5</strong>.</p>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>On the action pane, select <strong>Post</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-4--create-sales-orders">Exercise 4 – Create sales orders</h3>
+
+<h4 id="task-1--create-a-sales-order-for-customer-for-mathew-tolley">Task 1 – Create a sales order for customer for Mathew Tolley</h4>
+
+<ol>
+  <li>
+    <p>Launch Dynamics 365 Commerce.</p>
+  </li>
+  <li>
+    <p>Navigate to Retail and Commerce &gt; Channels &gt; Call centers &gt; All call
+centers or search for <strong>All call centers</strong> by using the search function.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Fabrikam call center</strong> record.</p>
+  </li>
+  <li>
+    <p>On the action pane, select <strong>Channel users</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>New</strong> and select your user account from the list if it is not
+already there.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Navigate to Accounts receivable &gt; Orders &gt; All sales orders or search for
+<strong>All sales orders</strong> by using the search function.</p>
+  </li>
+  <li>
+    <p>Select <strong>New</strong>.</p>
+  </li>
+  <li>
+    <p>In the Customer account field, select <strong>004009</strong> from the list.</p>
+  </li>
+  <li>
+    <p>Expand the <strong>Delivery</strong> fast tab. Note: You may need to scroll down the
+page.</p>
+  </li>
+  <li>
+    <p>In the Mode of delivery field, select <strong>Standard</strong> – Standard Service
+(retailer choice) from the list.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Expand the Sales order lines fast tab.</p>
+  </li>
+  <li>
+    <p>Select <strong>Add Line</strong> if necessary</p>
+  </li>
+  <li>
+    <p>In the Item number field, select <strong>91065</strong> from the list.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the action pane, select <strong>Complete</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2--add-payments">Task 2 – Add payments</h4>
+
+<ol>
+  <li>
+    <p>On the Payments fast tab, select <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Payment method field, select <strong>1</strong> from the list.</p>
+  </li>
+  <li>
+    <p>In the Payment amount field, enter <strong>246.68</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK.</strong></p>
+  </li>
+  <li>
+    <p>Select <strong>Submit</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-3--create-a-second-sales-order-for-mathew-tolley">Task 3 – Create a second sales order for Mathew Tolley</h4>
+
+<ol>
+  <li>
+    <p>Create a second sales order for Mathew Tolley:</p>
+
+    <ol>
+      <li>
+        <p>Navigate to Accounts receivable &gt; Orders &gt; All sales orders or search
+for <strong>All sales orders</strong> by using the search function.</p>
+      </li>
+      <li>
+        <p>Select <strong>New</strong>.</p>
+      </li>
+      <li>
+        <p>In the Customer account field, select <strong>004009</strong> from the list.</p>
+      </li>
+      <li>
+        <p>Expand the <strong>Delivery</strong> fast tab. Note: You may need to scroll down the
+page.</p>
+      </li>
+      <li>
+        <p>In the Mode of delivery field, select <strong>Standard</strong> – Standard Service
+(retailer choice) from the list.</p>
+      </li>
+      <li>
+        <p>Select <strong>OK</strong>.</p>
+      </li>
+      <li>
+        <p>Expand the Sales order lines fast tab.</p>
+      </li>
+      <li>
+        <p>Select <strong>Add Line</strong> if necessary.</p>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>In the Item number field, select <strong>91065</strong> from the list.</p>
+  </li>
+  <li>
+    <p>Select <strong>Add Line</strong>.</p>
+  </li>
+  <li>
+    <p>In the Item number field, select <strong>91066</strong> from the list.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the action pane, select <strong>Complete</strong>.</p>
+  </li>
+  <li>
+    <p>On the Payments fast tab, select <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Payment method field, select <strong>1</strong> from the list.</p>
+  </li>
+  <li>
+    <p>In the Payment amount field, enter <strong>525.53</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK.</strong></p>
+  </li>
+  <li>
+    <p>Select <strong>Submit</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-4---create-a-third-sales-order-for-mathew-tolley">Task 4 - Create a third sales order for Mathew Tolley</h4>
+
+<ol>
+  <li>
+    <p>Create a third sales order for Mathew Tolley:</p>
+
+    <ol>
+      <li>
+        <p>Navigate to Accounts receivable &gt; Orders &gt; All sales orders or search
+for <strong>All sales orders</strong> by using the search function.</p>
+      </li>
+      <li>
+        <p>Select <strong>New</strong>.</p>
+      </li>
+      <li>
+        <p>In the Customer account field, select <strong>004009</strong> from the list.</p>
+      </li>
+      <li>
+        <p>Expand the <strong>Delivery</strong> fast tab. Note: You may need to scroll down the
+page.</p>
+      </li>
+      <li>
+        <p>In the Mode of delivery field, select <strong>Standard</strong> – Standard Service
+(retailer choice) from the list.</p>
+      </li>
+      <li>
+        <p>Select <strong>OK</strong>.</p>
+      </li>
+      <li>
+        <p>Expand the Sales order lines fast tab.</p>
+      </li>
+      <li>
+        <p>Select <strong>Add Line</strong> if necessary.</p>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>In the Item number field, select <strong>91067</strong> from the list.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the action pane, select <strong>Complete</strong>.</p>
+  </li>
+  <li>
+    <p>On the Payments fast tab, select <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Payment method field, select <strong>1</strong> from the list.</p>
+  </li>
+  <li>
+    <p>In the Payment amount field, enter <strong>225.23</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK.</strong></p>
+  </li>
+  <li>
+    <p>Select <strong>Submit</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-5--create-a-fourth-sales-order-for-mathew-tolley">Task 5 – Create a fourth sales order for Mathew Tolley</h4>
+
+<ol>
+  <li>
+    <p>Create a fourth sales order for Mathew Tolley:</p>
+
+    <ol>
+      <li>
+        <p>Navigate to Accounts receivable &gt; Orders &gt; All sales orders or search
+for <strong>All sales orders</strong> by using the search function.</p>
+      </li>
+      <li>
+        <p>Select <strong>New</strong>.</p>
+      </li>
+      <li>
+        <p>In the Customer account field, select <strong>004009</strong> from the list.</p>
+      </li>
+      <li>
+        <p>Expand the <strong>Delivery</strong> fast tab. Note: You may need to scroll down the
+page.</p>
+      </li>
+      <li>
+        <p>In the Mode of delivery field, select <strong>Standard</strong> – Standard Service
+(retailer choice) from the list.</p>
+      </li>
+      <li>
+        <p>Select <strong>OK</strong>.</p>
+      </li>
+      <li>
+        <p>Expand the Sales order lines fast tab.</p>
+      </li>
+      <li>
+        <p>Select <strong>Add Line</strong> if necessary.</p>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <p>In the Item number field, select <strong>91068</strong> from the list.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the action pane, select <strong>Complete</strong>.</p>
+  </li>
+  <li>
+    <p>On the Payments fast tab, select <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>In the Payment method field, select <strong>1</strong> from the list.</p>
+  </li>
+  <li>
+    <p>In the Payment amount field, enter <strong>273.49</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Submit</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-5--process-dom">Exercise 5 – Process DOM</h3>
+
+<ol>
+  <li>
+    <p>Launch Dynamics 365 Commerce.</p>
+  </li>
+  <li>
+    <p>Navigate to Retail and Commerce &gt; Distributed order management &gt; Batch
+processing &gt; DOM processor job setup or search for <strong>DOM processor job
+setup</strong> by using the search function.</p>
+  </li>
+  <li>
+    <p>In the fulfillment profile field, select the fulfillment profile you created
+in Exercise 2, step 4.</p>
+  </li>
+  <li>
+    <p>In the batch group field, <strong>remove</strong> the value <strong>DOMBatch</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>OK</strong> and it will execute the server operation.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-6--review-the-fulfillment-plan">Exercise 6 – Review the fulfillment plan</h3>
+
+<ol>
+  <li>
+    <p>Launch Dynamics 365 Commerce.</p>
+  </li>
+  <li>
+    <p>Navigate to Retail and Commerce &gt; Distributed order management &gt;
+Fulfillment plans or search for <strong>Fulfillment plans</strong> by using the search
+function. It will take some time; you may use the refresh arrow near the
+user settings icon.</p>
+  </li>
+  <li>
+    <p>Review each line in the Order details grid and ensure the Warehouse field on
+the Order Fulfillment Details grid matches the expected result for the
+scenario:</p>
+
+    <ul>
+      <li>
+        <p>Order 1 - SANFRANCIS</p>
+      </li>
+      <li>
+        <p>Order 2 - SANJOSEADV (Both order lines)</p>
+      </li>
+      <li>
+        <p>Order 3 – DC-CENTRAL</p>
+      </li>
+      <li>
+        <p>Order 4 – DC-CENTRAL</p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/MB-340-Dynamics-365-Commerce-Functional-Consultant" target="_blank" class="ml-2">
+                    MicrosoftLearning/MB-340-Dynamics-365-Commerce-Functional-Consultant
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D2483e2e3af6b99ed19355551ef947634d65bee8e.js"></script>
+
+
+
+</body></html>

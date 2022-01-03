@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            SC-200T00CN-Microsoft-Security-Operations-Analyst
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                SC-200T00CN-Microsoft-Security-Operations-Analyst
+            </a>
+            <a href="https://github.com/MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#任务-1创建搜寻查询">任务 1：创建搜寻查询</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="模块-8---实验室-1---练习-1---在-azure-sentinel-中执行威胁搜寻">模块 8 - 实验室 1 - 练习 1 - 在 Azure Sentinel 中执行威胁搜寻</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你是一位安全运营分析师，你所在公司已实现 Azure Sentinel。你收到了关于命令和控制（C2 或 C&amp;C）技术的威胁情报。  你需要执行搜寻并监视威胁。</p>
+
+<p><strong>重要提示：</strong> 本实验室使用的日志数据是在上一个模块中创建的。请查看练习 5 中 WIN1 服务器中的<strong>攻击 3</strong>。</p>
+
+<p><strong>备注</strong>：  你已在上一模块中体验过探索数据的过程，因此本实验室提供 KQL 语句供你开始操作。</p>
+
+<h3 id="任务-1创建搜寻查询">任务 1：创建搜寻查询</h3>
+
+<p>在此任务中，你将创建搜寻查询、为结果添加书签并创建 Livestream。</p>
+
+<ol>
+  <li>
+    <p>使用以下密码以管理员身份登录到 WIN1 虚拟机： <strong>Pa55w.rd</strong>。</p>
+  </li>
+  <li>
+    <p>在 Microsoft Edge 浏览器中，导航到 Azure 门户 (https://portal.azure.com)。</p>
+  </li>
+  <li>
+    <p>在“<strong>登录</strong>”对话框中，复制粘贴实验室托管提供者提供的租户电子<strong>邮件帐户</strong>，然后选择“<strong>下一步</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<strong>输入密码</strong>”对话框中，复制粘贴实验室托管提供者提供的<strong>租户密码</strong>，然后选择“<strong>登录</strong>”。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户的搜索栏中，键入“<em>Sentinel</em>”，然后选择“<strong>Azure Sentinel</strong>”。</p>
+  </li>
+  <li>
+    <p>选择 Azure Sentinel 工作区。</p>
+  </li>
+  <li>
+    <p>选择“<strong>日志</strong>”</p>
+  </li>
+  <li>
+    <p>在新查询 1 区域输入以下 KQL 语句：</p>
+  </li>
+</ol>
+
+<p><strong>重要提示：</strong> 请先在记事本中粘贴任何 KQL 查询，然后从这里复制到“<em>新查询 1</em>”日志窗口，以避免出现任何错误。</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-KQL">let lookback = 2d;
+DeviceEvents
+| where TimeGenerated &gt;= ago(lookback) 
+|&nbsp;where&nbsp;ActionType&nbsp;==&nbsp;"DnsQueryResponse"
+|&nbsp;extend&nbsp;c2&nbsp;=&nbsp;substring(tostring(AdditionalFields.DnsQueryString),0,indexof(tostring(AdditionalFields.DnsQueryString),"."))
+|&nbsp;where&nbsp;c2&nbsp;startswith&nbsp;"sub"
+|&nbsp;summarize&nbsp;count()&nbsp;by&nbsp;bin(TimeGenerated,&nbsp;3m),&nbsp;c2
+| where count_ &gt; 5
+|&nbsp;render&nbsp;timechart&nbsp;
+</code></pre>
+
+<p><a href="../Media/SC200_hunting1.png" target="_blank"><img src="../Media/SC200_hunting1.png" alt="屏幕截图"></a></p>
+
+<ol>
+  <li>
+    <p>该语句是为了提供一个可视化效果，用于在一致基础上检查 C2 信标输出。花点时间在 summarize 等运算符中将“3 分钟”设置调整为 30 秒。将 count_ &gt; 5 设置更改为其他阈值计数来观察影响。</p>
+  </li>
+  <li>
+    <p>你现已确定要向 C2 服务器发送信标的 DNS 请求。  接下来，请确定要发送信标的设备。  输入以下 KQL 语句：</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-KQL">let lookback = 2d;
+DeviceEvents
+| where TimeGenerated &gt;= ago(lookback) 
+|&nbsp;where&nbsp;ActionType&nbsp;==&nbsp;"DnsQueryResponse"
+|&nbsp;extend&nbsp;c2&nbsp;=&nbsp;substring(tostring(AdditionalFields.DnsQueryString),0,indexof(tostring(AdditionalFields.DnsQueryString),"."))
+|&nbsp;where&nbsp;c2&nbsp;startswith&nbsp;"sub"
+|&nbsp;summarize&nbsp;cnt=count()&nbsp;by&nbsp;bin(TimeGenerated,&nbsp;5m),&nbsp;c2, DeviceName
+| where cnt &gt; 15
+</code></pre>
+
+<p><a href="../Media/SC200_hunting2.png" target="_blank"><img src="../Media/SC200_hunting2.png" alt="屏幕截图"></a></p>
+
+<p><strong>备注</strong>： 生成的日志数据仅来自一台设备。</p>
+
+<ol>
+  <li>
+    <p>选择窗口右上角的“x”可关闭“日志”窗口，选择“<strong>确定</strong>”可放弃更改。再次选择 Azure Sentinel 工作区，并选择“威胁管理”区域下的“<strong>搜寻</strong>”页面。</p>
+  </li>
+  <li>
+    <p>从命令栏中选择“<strong>+ 新建查询</strong>”。</p>
+  </li>
+  <li>
+    <p>对于“<strong>自定义查询</strong>”，输入以下 KQL 语句：</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-KQL">let lookback = 2d;
+DeviceEvents
+| where TimeGenerated &gt;= ago(lookback) 
+|&nbsp;where&nbsp;ActionType&nbsp;==&nbsp;"DnsQueryResponse"
+|&nbsp;extend&nbsp;c2&nbsp;=&nbsp;substring(tostring(AdditionalFields.DnsQueryString),0,indexof(tostring(AdditionalFields.DnsQueryString),"."))
+|&nbsp;where&nbsp;c2&nbsp;startswith&nbsp;"sub"
+|&nbsp;summarize&nbsp;cnt=count()&nbsp;by&nbsp;bin(TimeGenerated,&nbsp;5m),&nbsp;c2, DeviceName
+| where cnt &gt; 15
+</code></pre>
+
+<ol>
+  <li>
+    <p>对于名称，输入“<em>C2 搜寻</em>”类型</p>
+  </li>
+  <li>
+    <p>在“<em>实体映射(预览)</em>”中，选择“<strong>+ 添加新实体</strong>”：</p>
+
+    <p>对于“<em>实体类型</em>”下拉列表，选择“<strong>主机</strong>”。
+对于“<em>标识符</em>”下拉列表，选择“<strong>主机名</strong>”。
+对于“<em>值</em>”下拉列表，选择“<strong>设备名</strong>”。</p>
+  </li>
+  <li>
+    <p>在“<em>策略和技术</em>”中，选择“<strong>命令和控制</strong>”。选择“<strong>创建</strong>”以创建搜寻查询。</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>在“Azure Sentinel</td>
+          <td>搜寻”边栏选项卡中，在列表中搜索刚刚创建的查询“<em>C2 搜寻</em>”。</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在列表中选择“<strong>C2 搜寻</strong>”。</p>
+  </li>
+  <li>
+    <p>选择页面右侧的“<strong>运行查询</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>结果计数显示在弹出窗口顶部。</p>
+  </li>
+  <li>
+    <p>选择“<strong>查看结果</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>选择结果中的第一行。</p>
+  </li>
+  <li>
+    <p>选择“<strong>添加书签</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>在“添加书签”边栏选项卡中，选择“<strong>创建</strong>”。</p>
+  </li>
+  <li>
+    <p>返回到 Azure Sentinel 门户中的“搜寻”页面（提示：向左滚动）。</p>
+  </li>
+  <li>
+    <p>选择“<strong>书签</strong>”选项卡。</p>
+  </li>
+  <li>
+    <p>选择刚刚在结果列表中创建的书签。</p>
+  </li>
+  <li>
+    <p>选择“<strong>调查</strong>”按钮。</p>
+  </li>
+  <li>
+    <p>浏览调查图。</p>
+  </li>
+  <li>
+    <p>选择右上角的“x”关闭窗口，返回到 Azure Sentinel 门户中的“搜寻”页面。</p>
+  </li>
+  <li>
+    <p>选择“<strong>查询</strong>”选项卡</p>
+  </li>
+  <li>
+    <p>再次搜索并选择“<strong>C2 搜寻</strong>”查询。</p>
+  </li>
+  <li>
+    <p>选择右侧行末尾的“<strong>…</strong>”，打开上下文菜单。</p>
+  </li>
+  <li>选择“<strong>添加到 livestream</strong>”。</li>
+</ol>
+
+<h1 id="继续进行练习-2">继续进行练习 2</h1>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst" target="_blank" class="ml-2">
+                    MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

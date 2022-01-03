@@ -1,0 +1,623 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104ZH-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104ZH-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#练习-1">练习 1</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-07---管理-azure-存储">实验室 07 - 管理 Azure 存储</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你需要评估可否使用 Azure 存储来存储当前位于本地数据存储中的文件。虽然不经常访问其中大部分文件，但也有一些例外。你希望将访问频率较低的文件放在价格较低的存储层中，以最大程度地降低存储成本。你还计划探索 Azure 存储提供的不同保护机制，包括网络访问、身份验证、授权和复制。最后，你想确定 Azure 文件服务有多适合用于托管本地文件共享。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>在本实验室中，你将：</p>
+
+<ul>
+  <li>任务 1：预配实验室环境</li>
+  <li>任务 2：创建和配置 Azure 存储帐户</li>
+  <li>任务 3：管理 Blob 存储</li>
+  <li>任务 4：管理 Azure 存储的身份验证和授权</li>
+  <li>任务 5：创建并配置 Azure 文件存储共享</li>
+  <li>任务 6：管理 Azure 存储的网络访问</li>
+</ul>
+
+<h2 id="预计用时40-分钟">预计用时：40 分钟</h2>
+
+<h2 id="体系结构图">体系结构图</h2>
+
+<p><a href="../media/lab07.png" target="_blank"><img src="../media/lab07.png" alt="图像"></a></p>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="练习-1">练习 1</h3>
+
+<h4 id="任务-1预配实验室环境">任务 1：预配实验室环境</h4>
+
+<p>在此任务中，你将部署一个 Azure 虚拟机，稍后将在本实验室中用到。</p>
+
+<ol>
+  <li>
+    <p>登录到 <a href="https://portal.azure.com">Azure 门户</a>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，单击 Azure 门户右上方的图标，打开 <strong>Azure Cloud Shell</strong>。</p>
+  </li>
+  <li>
+    <p>提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong> 时，选择 <strong>“PowerShell”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果这是第一次启动 <strong>Cloud Shell</strong>，并看到 <strong>“未装载任何存储”</strong> 消息，请选择在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的工具栏中，单击 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中，单击 <strong>“上传”</strong> 并将文件 <strong>\Allfiles\Labs\07\az104-07-vm-template.json</strong> 和 <strong>\Allfiles\Labs\07\az104-07-vm-parameters.json</strong> 上传到 Cloud Shell 主目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令，以创建将托管虚拟机的资源组（将 ‘[Azure_region]’ 占位符替换为你打算在其中部署 Azure 虚拟机的 Azure 区域的名称）</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 要列出 Azure 区域的名称，请运行 <code>(Get-AzLocation).Location</code>
+<strong>备注</strong>：应单独键入下面每个命令</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell"> $location = '[Azure_region]'
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">  $rgName = 'az104-07-rg0'
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell"> New-AzResourceGroup -Name $rgName -Location $location
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令，通过使用上传的模板和参数文件来部署虚拟机：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-07-vm-template.json `
+   -TemplateParameterFile $HOME/az104-07-vm-parameters.json `
+   -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请不要等待部署完成，而是继续执行下一个任务。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2创建和配置-azure-存储帐户">任务 2：创建和配置 Azure 存储帐户</h4>
+
+<p>在此任务中，你将创建和配置 Azure 存储帐户。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>存储帐户</strong>”，然后单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“基本设置”</strong> 选项卡上，指定以下设置（其他设置则保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>新</strong> 资源组名称 <strong>az104-07-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>存储帐户名称</td>
+          <td>由字母和数字组成、长度介于 3 到 24 之间的任意全局唯一名称</td>
+        </tr>
+        <tr>
+          <td>位置</td>
+          <td>可以在其中创建 Azure 存储帐户的 Azure 区域的名称</td>
+        </tr>
+        <tr>
+          <td>性能</td>
+          <td><strong>标准</strong></td>
+        </tr>
+        <tr>
+          <td>冗余</td>
+          <td><strong>异地冗余存储 (GRS)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步:  高级 &gt;”</strong>，在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“高级”</strong> 选项卡上，查看可用选项，接受默认设置，然后单击 <strong>“下一步: 网络 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“网络”</strong> 选项卡上查看可用选项，接受默认选项 <strong>“公共终结点(所有网络)”</strong>，然后单击 <strong>“下一步: 数据保护 &gt;”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建存储帐户”</strong> 边栏选项卡的 <strong>“数据保护”</strong> 选项卡中，查看可用选项，接受默认设置，然后单击 <strong>“查看 + 创建”</strong>，等待验证过程完成，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请等待存储帐户创建完成。该操作需约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“部署”</strong> 边栏选项卡上，单击 <strong>“前往资源”</strong>，以显示 <strong>“Azure 存储帐户”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“存储帐户”</strong> 边栏选项卡的 <strong>“数据管理”</strong> 部分，单击 <strong>“异地复制”</strong> 并记下辅助位置。</p>
+  </li>
+  <li>
+    <p>在“存储帐户”边栏选项卡的 <strong>“设置”</strong> 部分，选择 <strong>“配置”</strong>，在 <strong>“复制”</strong> 下拉列表中选择 <strong>“本地冗余存储(LRS)”</strong> 并保存更改。</p>
+  </li>
+  <li>
+    <p>切换回 <strong>“异地复制”</strong> 边栏选项卡，请注意，此时存储帐户只有主位置。</p>
+  </li>
+  <li>
+    <p>再次显示存储帐户的 <strong>“配置”</strong> 边栏选项卡，将 <strong>“访问层(默认)”</strong> 设置为 <strong>“冷”</strong> 并保存更改。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 对于不经常访问的数据，冷访问层是最佳选择。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-3管理-blob-存储">任务 3：管理 Blob 存储</h4>
+
+<p>在此任务中，你将创建 blob 容器并在其中上传 blob。</p>
+
+<ol>
+  <li>
+    <p>在“存储帐户”边栏选项卡上的 <strong>“数据存储”</strong> 部分，单击 <strong>“容器”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“+ 容器”</strong> 并使用以下设置创建容器：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-07-container</strong></td>
+        </tr>
+        <tr>
+          <td>公共访问级别</td>
+          <td><strong>专用（禁止匿名访问）</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在容器列表中，单击 <strong>az104-07-container</strong>，然后单击 <strong>“上传”</strong>。</p>
+  </li>
+  <li>
+    <p>浏览到实验室计算机上的 <strong>“\Allfiles\Labs\07\LICENSE”</strong>，然后单击 <strong>“打开”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“上传 blob”</strong> 边栏选项卡上，展开 <strong>“高级”</strong> 部分，并指定以下设置（其他设置则保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>身份验证类型</td>
+          <td><strong>帐户密钥</strong></td>
+        </tr>
+        <tr>
+          <td>blob 类型</td>
+          <td><strong>块 blob</strong></td>
+        </tr>
+        <tr>
+          <td>块大小</td>
+          <td><strong>4 MB</strong></td>
+        </tr>
+        <tr>
+          <td>访问层</td>
+          <td><strong>热</strong></td>
+        </tr>
+        <tr>
+          <td>上传到文件夹</td>
+          <td><strong>licenses</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可为每个 blob 设置访问层。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“上传”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请注意，上传时会自动创建一个名为 <strong>licenses</strong> 的子文件夹。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>返回到 <strong>az104-07-container</strong> 边栏选项卡，单击 <strong>licenses</strong>，然后单击 <strong>LICENSE</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>licenses/LICENSE</strong> 边栏选项卡上，查看可用选项。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你可以选择执行以下操作：下载 blob；更改其访问层（当前设置为 <strong>“冷”</strong>）；获得租约，这会将其租赁状态更改为 <strong>“锁定”</strong> （当前设置为 <strong>“解锁”</strong>）并保护 blob 不被修改或删除；以及分配自定义元数据（通过指定任意键/值对）。也可以在 Azure 门户界面中直接 <strong>“编辑”</strong> 文件，无需先下载。你还可以创建快照以及生成 SAS 令牌（将在下一个任务中探索此选项）。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4管理-azure-存储的身份验证和授权">任务 4：管理 Azure 存储的身份验证和授权</h4>
+
+<p>在此任务中，你将配置 Azure 存储的身份验证和授权。</p>
+
+<ol>
+  <li>
+    <p>在 <strong>“licenses/LICENSE”</strong> 边栏选项卡的 <strong>“概述”</strong> 选项卡上，单击 URL 条目旁边的 <strong>“复制到剪贴板”</strong> 按钮。</p>
+  </li>
+  <li>
+    <p>使用 InPrivate 模式打开另一个浏览器窗口，并导航到上一步中复制的 URL。</p>
+  </li>
+  <li>
+    <p>你应该可以看到一个 XML 格式的消息，显示 <strong>“ResourceNotFound”</strong> 或 <strong>“PublicAccessNotPermitted”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这很正常，因为你创建的容器将公共访问级别设置成了 <strong>“专用(禁止匿名访问)”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 InPrivate 模式浏览器窗口，返回到显示 Azure 存储容器 <strong>licenses/LICENSE</strong> 边栏选项卡的浏览器窗口，然后切换到 <strong>“生成 SAS”</strong> 选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>licenses/LICENSE</strong> 边栏选项卡的 <strong>“生成 SAS”</strong> 选项卡上，指定以下设置（其他设置则保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>签名密钥</td>
+          <td><strong>密钥 1</strong></td>
+        </tr>
+        <tr>
+          <td>权限</td>
+          <td><strong>读取</strong></td>
+        </tr>
+        <tr>
+          <td>开始日期</td>
+          <td>昨天的日期</td>
+        </tr>
+        <tr>
+          <td>开始时间</td>
+          <td>当前时间</td>
+        </tr>
+        <tr>
+          <td>到期日期</td>
+          <td>明天的日期</td>
+        </tr>
+        <tr>
+          <td>到期时间</td>
+          <td>当前时间</td>
+        </tr>
+        <tr>
+          <td>允许的 IP 地址</td>
+          <td>保留空白</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“生成 SAS 令牌和 URL”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“Blob SAS URL”</strong> 条目旁边的 <strong>“复制到剪贴板”</strong> 按钮。</p>
+  </li>
+  <li>
+    <p>使用 InPrivate 模式打开另一个浏览器窗口，并导航到上一步中复制的 URL。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 若使用 Microsoft Edge，则会显示 <strong>“MIT 许可证(MIT)”</strong> 页面。若使用 Chrome、Microsoft Edge (Chromium) 或 Firefox，则可下载文件并用记事本打开文件以查看内容。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这很正常，因为你现在的访问基于新生成的 SAS 令牌进行授权。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 保存 blob SAS URL。稍后将在本实验室用到它。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 InPrivate 模式浏览器窗口，返回到显示 Azure 存储容器 <strong>licenses/LICENSE</strong> 边栏选项卡的浏览器窗口，然后从中导航回 <strong>az104-07-container</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“身份验证方法”</strong> 标签旁边的 <strong>“切换到 Azure AD 用户帐户”</strong> 链接。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 更改身份验证方法时，可看到一个错误（错误为 <em>“你没有使用 Azure AD 的用户帐户列出数据的权限”</em>）。这符合预期。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：此时你没有权限更改身份验证方法。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>az104-07-container</strong> 边栏选项卡上，单击 <strong>“访问控制(IAM)”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加”</strong> 部分，单击 <strong>“添加角色分配”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加角色分配”</strong> 边栏选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>角色</td>
+          <td><strong>存储 blob 数据所有者</strong></td>
+        </tr>
+        <tr>
+          <td>分配对以下内容的访问权限</td>
+          <td><strong>用户、组或服务主体</strong></td>
+        </tr>
+        <tr>
+          <td>成员</td>
+          <td>你的用户帐户名称</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击“查看 + 分配”，然后完成查看和分配，返回到 <strong>az104-07-container</strong> 容器的“<strong>概述</strong>”边栏选项卡，并验证是否可将身份验证方法更改为“切换到 Azure AD 用户帐户”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 更改可能需要大约 5 分钟才生效。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-5创建并配置-azure-文件存储共享">任务 5：创建并配置 Azure 文件存储共享</h4>
+
+<p>在此任务中，你将创建和配置 Azure 文件存储共享。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 开始本任务前，请确保你在本实验室第一个任务中预配的虚拟机正在运行。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航回到你在本实验室第一个任务中创建的存储帐户的边栏选项卡，然后在 <strong>“数据存储”</strong> 部分，单击 <strong>“文件共享”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“+ 文件共享”</strong> 并使用以下设置创建文件共享：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-07-share</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击新创建的文件共享，然后点击 <strong>“连接”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“连接”</strong> 边栏选项卡上，确保选中 <strong>“Windows”</strong> 选项卡。下面你会发现一个带有脚本的灰色文本框，将鼠标悬停在该框右下角的页面图标上，并单击 <strong>“复制到剪贴板”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟机”</strong>，然后在虚拟机列表中，单击 <strong>az104-07-vm0</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>az104-07-vm0</strong> 边栏选项卡上的 <strong>“操作”</strong> 部分，单击 <strong>“运行命令”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-07-vm0 - 运行命令”</strong> 边栏选项卡上，单击 <strong>RunPowerShellScript</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“运行命令脚本”</strong> 边栏选项卡上，将先前在此任务中复制的脚本粘贴到 <strong>“PowerShell 脚本”</strong> 窗格并单击 <strong>“运行”</strong>。</p>
+  </li>
+  <li>
+    <p>验证脚本是否成功完成。</p>
+  </li>
+  <li>
+    <p>将 <strong>“PowerShell 脚本”</strong> 窗格中的内容替换为以下脚本，然后单击 <strong>“运行”</strong>：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">New-Item -Type Directory -Path 'Z:\az104-07-folder'
+
+New-Item -Type File -Path 'Z:\az104-07-folder\az-104-07-file.txt'
+</code></pre>
+  </li>
+  <li>
+    <p>验证脚本是否成功完成。</p>
+  </li>
+  <li>
+    <p>导航回到 <strong>az104-07-share</strong> 文件共享边栏选项卡，单击 <strong>“刷新”</strong>，并验证 <strong>az104-07-folder</strong> 出现在文件夹列表中。</p>
+  </li>
+  <li>
+    <p>单击 <strong>az104-07-folder</strong>，并验证 <strong>az104-07-file.txt</strong> 出现在文件列表中。</p>
+  </li>
+</ol>
+
+<h4 id="任务-6管理-azure-存储的网络访问">任务 6：管理 Azure 存储的网络访问</h4>
+
+<p>在此任务中，你将配置 Azure 存储的网络访问。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，导航回到你在本实验室第一个任务中创建的存储帐户的边栏选项卡，然后在 <strong>“安全 + 网络”</strong> 部分，单击 <strong>“网络”</strong>，然后单击 <strong>“防火墙和虚拟网络”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“所选网络”</strong> 选项，并查看启用此选项后可用的配置设置。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你可以使用这些设置和服务终结点来配置虚拟网络指定子网上的 Azure 虚拟机与存储帐户之间的直接连接。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击复选框 <strong>“添加客户端 IP 地址”</strong>，并保存更改。</p>
+  </li>
+  <li>
+    <p>使用 InPrivate 模式打开另一个浏览器窗口，然后导航到你在上一个任务中生成的 blob SAS URL。</p>
+  </li>
+  <li>
+    <p>系统随即显示 <strong>“MIT 许可证(MIT)”</strong> 页面的内容。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这很正常，因为你从客户端 IP 地址进行连接。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 InPrivate 模式浏览器窗口，返回到显示 Azure 存储容器的 <strong>“licenses/LICENSE”</strong> 边栏选项卡的浏览器窗口。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，单击 Azure 门户右上方的图标，打开 <strong>Azure Cloud Shell</strong>。</p>
+  </li>
+  <li>
+    <p>提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong> 时，选择 <strong>“PowerShell”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令，尝试从存储帐户的 <strong>az104-07-container</strong> 容器下载 LICENSE blob（将 <code>[blob SAS URL]</code> 占位符替换为你在上一个任务中生成的 blob SAS URL）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Invoke-WebRequest -URI '[blob SAS URL]'
+</code></pre>
+  </li>
+  <li>
+    <p>验证下载尝试是否失败。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你会收到消息 <strong>“授权失败: 该请求无权执行此操作”</strong>。这很正常，因为你连接的 IP 地址已分配给托管 Cloud Shell 实例的 Azure VM。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h4 id="清理资源">清理资源</h4>
+
+<blockquote>
+  <p><strong>备注</strong>： 请记得删除任何新创建而不会再使用的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，在 <strong>“Cloud Shell”</strong> 窗格中打开 <strong>“PowerShell”</strong> 会话。</p>
+  </li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-07*'
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-07*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该命令异步执行（由 -AsJob 参数确定），因此尽管此后可以立即在同一 PowerShell 会话中运行另一个 PowerShell 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本实验室中，你已：</p>
+
+<ul>
+  <li>预配实验室环境</li>
+  <li>创建和配置 Azure 存储帐户</li>
+  <li>管理 Blob 存储</li>
+  <li>管理 Azure 存储的身份验证和授权</li>
+  <li>创建和配置 Azure 文件存储共享</li>
+  <li>管理 Azure 存储的网络访问</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

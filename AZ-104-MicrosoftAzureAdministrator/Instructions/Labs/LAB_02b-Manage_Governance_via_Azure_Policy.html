@@ -1,0 +1,499 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D907526b117000ffdbc71b1bcc102e524d83415a3.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1">Exercise 1</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-02b---manage-governance-via-azure-policy">Lab 02b - Manage Governance via Azure Policy</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>In order to improve management of Azure resources in Contoso, you have been tasked with implementing the following functionality:</p>
+
+<ul>
+  <li>
+    <p>tagging resource groups that include only infrastructure resources (such as Cloud Shell storage accounts)</p>
+  </li>
+  <li>
+    <p>ensuring that only properly tagged infrastructure resources can be added to infrastructure resource groups</p>
+  </li>
+  <li>
+    <p>remediating any non-compliant resources</p>
+  </li>
+</ul>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>In this lab, we will:</p>
+
+<ul>
+  <li>Task 1: Create and assign tags via the Azure portal</li>
+  <li>Task 2: Enforce tagging via an Azure policy</li>
+  <li>Task 3: Apply tagging via an Azure policy</li>
+</ul>
+
+<h2 id="estimated-timing-30-minutes">Estimated timing: 30 minutes</h2>
+
+<h2 id="architecture-diagram">Architecture diagram</h2>
+
+<p><a href="../media/lab02b.png" target="_blank"><img src="../media/lab02b.png" alt="image"></a></p>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="exercise-1">Exercise 1</h3>
+
+<h4 id="task-1-assign-tags-via-the-azure-portal">Task 1: Assign tags via the Azure portal</h4>
+
+<p>In this task, you will create and assign a tag to an Azure resource group via the Azure portal.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, start a <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and click <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to identify the name of the storage account used by Cloud Shell:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">df
+</code></pre>
+  </li>
+  <li>
+    <p>In the output of the command, note the first part of the fully qualified path designating the Cloud Shell home drive mount (marked here as <code>xxxxxxxxxxxxxx</code>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs cpp"><span class="hljs-comment"><span class="hljs-comment">//xxxxxxxxxxxxxx.file.core.windows.net/cloudshell   (..)  /usr/csuser/clouddrive</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>In the Azure portal, search and select <strong>Storage accounts</strong> and, in the list of the storage accounts, click the entry representing the storage account you identified in the previous step.</p>
+  </li>
+  <li>
+    <p>On the storage account blade, click the link representing the name of the resource group containing the storage account.</p>
+
+    <p><strong>Note</strong>: note what resource group the storage account is in, you’ll need it later in the lab.</p>
+  </li>
+  <li>
+    <p>On the resource group blade, click <strong>Tags</strong>.</p>
+  </li>
+  <li>
+    <p>Create a tag with the following settings and Apply your change:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>Role</strong></td>
+        </tr>
+        <tr>
+          <td>Value</td>
+          <td><strong>Infra</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Navigate back to the storage account blade. Review the <strong>Overview</strong> information and note that the new tag was not automatically assigned to the storage account.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-enforce-tagging-via-an-azure-policy">Task 2: Enforce tagging via an Azure policy</h4>
+
+<p>In this task, you will assign the built-in <em>Require a tag and its value on resources</em> policy to the resource group and evaluate the outcome.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Policy</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Authoring</strong> section, click <strong>Definitions</strong>. Take a moment to browse through the list of built-in policy definitions that are available for you to use. List all built-in policies that involve the use of tags by selecting the <strong>Tags</strong> entry (and de-selecting all other entries) in the <strong>Category</strong> drop-down list.</p>
+  </li>
+  <li>
+    <p>Click the entry representing the <strong>Require a tag and its value on resources</strong> built-in policy and review its definition.</p>
+  </li>
+  <li>
+    <p>On the <strong>Require a tag and its value on resources</strong> built-in policy definition blade, click <strong>Assign</strong>.</p>
+  </li>
+  <li>
+    <p>Specify the <strong>Scope</strong> by clicking the ellipsis button and selecting the following values:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource Group</td>
+          <td>the name of the resource group containing the Cloud Shell account you identified in the previous task</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: A scope determines the resources or resource groups where the policy assignment takes effect. You could assign policies on the management group, subscription, or resource group level. You also have the option of specifying exclusions, such as individual subscriptions, resource groups, or resources (depending on the assignment scope).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Configure the <strong>Basics</strong> properties of the assignment by specifying the following settings (leave others with their defaults):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Assignment name</td>
+          <td><strong>Require Role tag with Infra value</strong></td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td><strong>Require Role tag with Infra value for all resources in the Cloud Shell resource group</strong></td>
+        </tr>
+        <tr>
+          <td>Policy enforcement</td>
+          <td>Enabled</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>Assignment name</strong> is automatically populated with the policy name you selected, but you can change it. You can also add an optional <strong>Description</strong>. <strong>Assigned by</strong> is automatically populated based on the user name creating the assignment.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Next</strong> and set <strong>Parameters</strong> to the following values:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Tag Name</td>
+          <td><strong>Role</strong></td>
+        </tr>
+        <tr>
+          <td>Tag Value</td>
+          <td><strong>Infra</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next</strong> and review the <strong>Remediation</strong> tab. Leave the <strong>Create a Managed Identity</strong> checkbox unchecked.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This setting can be used when the policy or initiative includes the <strong>deployIfNotExists</strong> or <strong>Modify</strong> effect.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Review + Create</strong> and then click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Now you will verify that the new policy assignment is in effect by attempting to create another Azure Storage account in the resource group without explicitly adding the required tag.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: It might take between 5 and 15 minutes for the policy to take effect.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Navigate back to the blade of the resource group hosting the storage account used for the Cloud Shell home drive, which you identified in the previous task.</p>
+  </li>
+  <li>
+    <p>On the resource group blade, click <strong>+ Create</strong> and then search for <strong>Storage Account</strong>, and click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create storage account</strong> blade, verify that you are using the Resource Group that the Policy was applied to and specify the following settings (leave others with their defaults), click <strong>Review + create</strong> and then click <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Storage account name</td>
+          <td>any globally unique combination of between 3 and 24 lower case letters and digits, starting with a letter</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Once you create the deployment, you should see the <strong>Deployment failed</strong> message in the <strong>Notifications</strong> list of the portal. From the <strong>Notifications</strong> list, navigate to the deployment overview and click the <strong>Deployment failed. Click here for details</strong> message to identify the reason for the failure.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify whether the error message states that the resource deployment was disallowed by the policy.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: By clicking the <strong>Tags</strong> tab, you can find more details about the error, including the name of the role definition <strong>Require Role tag with Infra value</strong>. The deployment failed because the storage account you attempted to create did not have a tag named <strong>Role</strong> with its value set to <strong>Infra</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-apply-tagging-via-an-azure-policy">Task 3: Apply tagging via an Azure policy</h4>
+
+<p>In this task, we will use a different policy definition to remediate any non-compliant resources.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Policy</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Authoring</strong> section, click <strong>Assignments</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of assignments, right click the ellipsis icon in the row representing the <strong>Require Role tag with Infra value</strong> policy assignment and use the <strong>Delete assignment</strong> menu item to delete the assignment.</p>
+  </li>
+  <li>
+    <p>Click <strong>Assign policy</strong> and specify the <strong>Scope</strong> by clicking the ellipsis button and selecting the following values:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource Group</td>
+          <td>the name of the resource group containing the Cloud Shell account you identified in the first task</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>To specify the <strong>Policy definition</strong>, click the ellipsis button and then search for and select <strong>Inherit a tag from the resource group if missing</strong>.</p>
+  </li>
+  <li>
+    <p>Configure the remaining <strong>Basics</strong> properties of the assignment by specifying the following settings (leave others with their defaults):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Assignment name</td>
+          <td><strong>Inherit the Role tag and its Infra value from the Cloud Shell resource group if missing</strong></td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td><strong>Inherit the Role tag and its Infra value from the Cloud Shell resource group if missing</strong></td>
+        </tr>
+        <tr>
+          <td>Policy enforcement</td>
+          <td>Enabled</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next</strong> and set <strong>Parameters</strong> to the following values:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Tag Name</td>
+          <td><strong>Role</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next</strong> and, on the <strong>Remediation</strong> tab, configure the following settings (leave others with their defaults):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Create a remediation task</td>
+          <td>enabled</td>
+        </tr>
+        <tr>
+          <td>Policy to remediate</td>
+          <td><strong>Inherit a tag from the resource group if missing</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: This policy definition includes the <strong>Modify</strong> effect.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click <strong>Review + Create</strong> and then click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: To verify that the new policy assignment is in effect, you will create another Azure Storage account in the same resource group without explicitly adding the required tag.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: It might take between 5 and 15 minutes for the policy to take effect.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Navigate back to the blade of the resource group hosting the storage account used for the Cloud Shell home drive, which you identified in the first task.</p>
+  </li>
+  <li>
+    <p>On the resource group blade, click <strong>+ Create</strong> and then search for <strong>Storage Account</strong>, and click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create storage account</strong> blade, verify that you are using the Resource Group that the Policy was applied to and specify the following settings (leave others with their defaults) and click <strong>Review + create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Storage account name</td>
+          <td>any globally unique combination of between 3 and 24 lower case letters and digits, starting with a letter</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Verify that this time the validation passed and click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>Once the new storage account is provisioned, click <strong>Go to resource</strong> button and, on the <strong>Overview</strong> blade of the newly created storage account, note that the tag <strong>Role</strong> with the value <strong>Infra</strong> has been automatically assigned to the resource.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-clean-up-resources">Task 4: Clean up resources</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>Note</strong>: Removing unused resources ensures you will not see unexpected charges, although keep in mind that Azure policies do not incur extra cost.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the portal, search for and select <strong>Policy</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Authoring</strong> section, click <strong>Assignments</strong>, click the ellipsis icon to the right of the assignment you created in the previous task and click <strong>Delete assignment</strong>.</p>
+  </li>
+  <li>
+    <p>In the portal, search for and select <strong>Storage accounts</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of storage accounts, select the resource group corresponding to the storage account you created in the last task of this lab. Select <strong>Tags</strong> and click <strong>Delete</strong> (Trash can to the right) to the <strong>Role:Infra</strong> tag and press <strong>Apply</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Delete</strong>, when prompted for the confirmation, in the <strong>Delete storage account</strong> blade, type the name of the storage account to confirm and click <strong>Delete</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this lab, you have:</p>
+
+<ul>
+  <li>Created and assigned tags via the Azure portal</li>
+  <li>Enforced tagging via an Azure policy</li>
+  <li>Applied tagging via an Azure policy</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D907526b117000ffdbc71b1bcc102e524d83415a3.js"></script>
+
+
+
+</body></html>

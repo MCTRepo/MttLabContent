@@ -1,0 +1,499 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#create-manufacturingvm">Create ManufacturingVM</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m01-unit-8-connect-two-azure-virtual-networks-using-global-virtual-network-peering">M01-Unit 8 Connect two Azure Virtual Networks using global virtual network peering</h1>
+
+<h2 id="exercise-scenario">Exercise scenario</h2>
+<p>In this unit, you will configure connectivity between the CoreServicesVnet and the ManufacturingVnet by adding peerings to allow traffic flow.</p>
+
+<p>In this unit, you will:</p>
+
+<ul>
+  <li>Task 1: Create a Virtual Machine to test the configuration</li>
+  <li>Task 2: Connect to the Test VMs using RDP</li>
+  <li>Task 3: Test the connection between the VMs</li>
+  <li>Task 4: Create VNet peerings between CoreServicesVnet and ManufacturingVnet</li>
+  <li>Task 5: Test the connection between the VMs</li>
+  <li>Task 6: Clean up resources</li>
+</ul>
+
+<h2 id="task-1-create-a-virtual-machine-to-test-the-configuration">Task 1: Create a Virtual Machine to test the configuration</h2>
+
+<p>In this section, you will create a test VM on the Manufacturing VNet to test if you can access resources inside another Azure virtual network from your ManufacturingVnet.</p>
+
+<h3 id="create-manufacturingvm">Create ManufacturingVM</h3>
+
+<ol>
+  <li>
+    <p>On the Azure home page, using the global search type <strong>Virtual Machines</strong> and select virtual machines under services.</p>
+  </li>
+  <li>
+    <p>In Virtual Machines, select <strong>+ Create; + Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>Use the information in the following table to create your VM.</p>
+  </li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Tab</strong></th>
+      <th><strong>Option</strong></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Basics</td>
+      <td>Resource group</td>
+      <td>ContosoResourceGroup</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Virtual machine name</td>
+      <td>ManufacturingVM</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Region</td>
+      <td>West Europe</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Availability options</td>
+      <td>No infrastructure redundancy required</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Image</td>
+      <td>Windows Server 2022 Datacenter- Gen1</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Azure Spot instance</td>
+      <td>Not selected</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Size</td>
+      <td>Standard_D2s_v3 - 2vcpus, 8GiB memory</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Username</td>
+      <td>TestUser</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Password</td>
+      <td>TestPa$$w0rd!</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Public inbound ports</td>
+      <td>Allow selected ports</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Select inbound ports</td>
+      <td>RDP (3389)</td>
+    </tr>
+    <tr>
+      <td>Disks</td>
+      <td>No changes required</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Networking</td>
+      <td>Virtual network</td>
+      <td>ManufacturingVnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subnet</td>
+      <td>ManufacturingSystemSubnet (10.30.10.0/24)</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Public IP</td>
+      <td>(new) ManufacturingVM-ip</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>NIC network security group</td>
+      <td>Basic</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Public inbound ports</td>
+      <td>Allow selected ports</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Select inbound ports</td>
+      <td>RDP (3389)</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Load balancing</td>
+      <td>Not selected</td>
+    </tr>
+    <tr>
+      <td>Management</td>
+      <td>No changes required</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Advanced</td>
+      <td>No changes required</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Tags</td>
+      <td>No changes required</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>Review + create</td>
+      <td>Review your settings and select Create</td>
+      <td>&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li>When the deployment is complete, select <strong>Go to resource</strong>.</li>
+</ol>
+
+<h2 id="task-2-connect-to-the-test-vms-using-rdp">Task 2: Connect to the Test VMs using RDP</h2>
+
+<ol>
+  <li>
+    <p>On the Azure Portal home page, select <strong>Virtual Machines</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>ManufacturingVM</strong>.</p>
+  </li>
+  <li>
+    <p>In ManufacturingVM, select <strong>Connect &gt; RDP</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>In ManufacturingVM</td>
+          <td>Connect, select <strong>Download RDP file</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Save the RDP file to your desktop.</p>
+  </li>
+  <li>
+    <p>Connect to ManufacturingVM using the RDP file, and the username <strong>TestUser</strong> and the password <strong>TestPa$w0rd!</strong>.</p>
+  </li>
+  <li>
+    <p>On the Azure Portal home page, select <strong>Virtual Machines</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>TestVM1</strong>.</p>
+  </li>
+  <li>
+    <p>In TestVM1, select <strong>Connect &gt; RDP</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>In TestVM1</td>
+          <td>Connect, select <strong>Download RDP file</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Save the RDP file to your desktop.</p>
+  </li>
+  <li>
+    <p>Connect to TestVM1 using the RDP file, and the username <strong>TestUser</strong> and the password <strong>TestPa$w0rd!</strong>.</p>
+  </li>
+  <li>
+    <p>On both VMs, in <strong>Choose privacy settings for your device</strong>, select <strong>Accept</strong>.</p>
+  </li>
+  <li>
+    <p>On both VMs, in <strong>Networks</strong>, select <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>On TestVM1, open a PowerShell prompt, and run the following command: ipconfig</p>
+  </li>
+  <li>Note the IPv4 address.</li>
+</ol>
+
+<h2 id="task-3-test-the-connection-between-the-vms">Task 3: Test the connection between the VMs</h2>
+
+<ol>
+  <li>
+    <p>On the ManufacturingVM, open a PowerShell prompt.</p>
+  </li>
+  <li>
+    <p>Use the following command to verify that there is no connection to TestVM1 on CoreServicesVnet. Be sure to use the IPv4 address for TestVM1.</p>
+  </li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th>PowerShell</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Test-NetConnection 10.20.20.4 -port 3389</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li>The test connection should fail, and you will see a result similar to the following:
+<a href="../media/test-netconnection-fail.png" target="_blank"><img src="../media/test-netconnection-fail.png" alt="PowerShell window with Test-NetConnection 10.20.20.4 -port 3389 showing failed "></a></li>
+</ol>
+
+<h2 id="task-4-create-vnet-peerings-between-coreservicesvnet-and-manufacturingvnet">Task 4: Create VNet peerings between CoreServicesVnet and ManufacturingVnet</h2>
+
+<ol>
+  <li>
+    <p>On the Azure home page, select <strong>Virtual Networks</strong>, and then select <strong>CoreServicesVnet</strong>.</p>
+  </li>
+  <li>
+    <p>In CoreServicesVnet, under <strong>Settings</strong>, select <strong>Peerings</strong>.
+<a href="../media/create-peering-on-coreservicesvnet.png" target="_blank"><img src="../media/create-peering-on-coreservicesvnet.png" alt="screen shot of core services VNet Peering settings "></a></p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On CoreServicesVnet</td>
+          <td>Peerings, select <strong>+ Add</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Use the information in the following table to create the peering.</li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Section</strong></th>
+      <th><strong>Option</strong></th>
+      <th><strong>Value</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>This virtual network</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Peering link name</td>
+      <td>CoreServicesVnet-to-ManufacturingVnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Traffic to remote virtual network</td>
+      <td>Allow (default)</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Traffic forwarded from remote virtual network</td>
+      <td>Allow (default)</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Virtual network gateway or Route Server</td>
+      <td>None (default)</td>
+    </tr>
+    <tr>
+      <td>Remote virtual network</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Peering link name</td>
+      <td>ManufacturingVnet-to-CoreServicesVnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Virtual network deployment model</td>
+      <td>Resource manager</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>I know my resource ID</td>
+      <td>Not selected</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Subscription</td>
+      <td>MOC Subscription-lodxxxxxxxx</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Virtual network</td>
+      <td>ManufacturingVnet</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Traffic to remote virtual network</td>
+      <td>Allow (default)</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Traffic forwarded from remote virtual network</td>
+      <td>Allow (default)</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>Virtual network gateway or Route Server</td>
+      <td>None (default)</td>
+    </tr>
+    <tr>
+      <td>Review your settings and select Add.</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>In CoreServicesVnet</td>
+          <td>Peerings, verify that the <strong>CoreServicesVnet-to-ManufacturingVnet</strong> peering is listed.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Under Virtual networks, select <strong>ManufacturingVnet</strong>, and verify the <strong>ManufacturingVnet-to-CoreServicesVnet</strong> peering is listed.</li>
+</ol>
+
+<h2 id="task-5-test-the-connection-between-the-vms">Task 5: Test the connection between the VMs</h2>
+
+<ol>
+  <li>
+    <p>On the ManufacturingVM, open a PowerShell prompt.</p>
+  </li>
+  <li>
+    <p>Use the following command to verify that there is now a connection to TestVM1 on CoreServicesVnet.</p>
+  </li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th>PowerShell</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Test-NetConnection 10.20.20.4 -port 3389</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li>The test connection should succeed, and you will see a result similar to the following:
+<a href="../media/test-connection-succeeded.png" target="_blank"><img src="../media/test-connection-succeeded.png" alt="Powershell window with Test-NetConnection 10.20.20.4 -port 3389 showing TCP test succeeded: true"></a></li>
+</ol>
+
+<p>Congratulations! You have successful configured connectivity between VNets by adding peerings.</p>
+
+<h2 id="task-6-clean-up-resources">Task 6: Clean up resources</h2>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane. (Create Cloud Shell storage if needed, using default settings.)</p>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Remove-AzResourceGroup -Name 'ContosoResourceGroup' -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the -AsJob parameter), so while you will be able to run another PowerShell command immediately afterwards within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,639 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="使用计算机视觉分析图像">使用计算机视觉分析图像</h1>
+
+<p>计算机视觉是一种人工智能功能，可支持软件系统通过分析图像来解释视觉输入。在 Microsoft Azure 中，<strong>计算机视觉</strong>认知服务提供用于完成常见计算机视觉任务的预生成模型，包括分析图像以建议描述文字和标记，以及检测常见物体、地标、名人、品牌和是否存在成人内容。还可使用计算机视觉服务来分析图像颜色和格式，并生成“智能裁剪”的缩略图图像。</p>
+
+<h2 id="克隆本课程的存储库">克隆本课程的存储库</h2>
+
+<p>如果尚未将 <strong>AI-102-AIEngineer</strong> 代码存储库克隆到你要在此实验室中使用的环境，请按照以下步骤克隆它。否则，请在 Visual Studio Code 中打开克隆的文件夹。</p>
+
+<ol>
+  <li>启动 Visual Studio Code。</li>
+  <li>打开面板 (SHIFT+CTRL+P) 并运行 <strong>Git: Clone</strong> 命令，将 <code>https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution</code> 存储库克隆到本地文件夹（具体克隆到哪个文件夹无关紧要）。</li>
+  <li>克隆存储库后，在 Visual Studio Code 中打开文件夹。</li>
+  <li>
+    <p>等待其他文件安装完毕，以支持存储库中的 C# 代码项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果系统提示你添加生成和调试所需的资产，请选择 <strong>“以后再说”</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="预配认知服务资源">预配认知服务资源</h2>
+
+<p>如果你的订阅中还没有<strong>认知服务</strong>资源，需要预配一个。</p>
+
+<ol>
+  <li>打开 Azure 门户 <code>https://portal.azure.com</code>，使用与你的 Azure 订阅关联的 Microsoft 帐户登录。</li>
+  <li>选择 <strong>“＋创建资源”</strong> 按钮，搜索 <em>“认知服务”</em>，并使用以下设置创建一个<strong>认知服务</strong> 资源：
+    <ul>
+      <li><strong>订阅</strong>： <em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>： <em>选择或创建一个资源组（如果你使用的是受限订阅，则可能无权创建新资源组，在此情况下，可使用一个已提供的资源组）</em></li>
+      <li><strong>区域</strong>： <em>选择任何可用区域</em></li>
+      <li><strong>名称</strong>： <em>输入唯一名称</em></li>
+      <li><strong>定价层</strong>：标准 S0</li>
+    </ul>
+  </li>
+  <li>选中所需复选框并创建资源。</li>
+  <li>等待部署完成，然后查看部署详细信息。</li>
+  <li>部署资源后，转到该资源并查看其 <strong>“密钥和终结点”</strong> 页面。你将在下一个过程中用到此页面中的终结点和其中一个密钥。</li>
+</ol>
+
+<h2 id="准备使用计算机视觉-sdk">准备使用计算机视觉 SDK</h2>
+
+<p>在此练习中，你将完成一个已部分实现的客户端应用程序，该应用程序使用计算机视觉 SDK 来分析图像。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 可选择将该 SDK 用于 <strong>C#</strong> 或 <strong>Python</strong>。在下面的步骤中，请执行适用于你的语言首选项的操作。</p>
+</blockquote>
+
+<ol>
+  <li>在 Visual Studio Code 的 <strong>“资源管理器”</strong> 窗格中，浏览到 <strong>15-computer-vision</strong> 文件夹，并根据你的语言首选项展开 <strong>C-Sharp</strong> 文件夹或 <strong>Python</strong> 文件夹。</li>
+  <li>右键单击 <strong>image-analysis</strong> 文件夹，并打开集成终端。然后通过运行适用于你的语言首选项的命令，安装计算机视觉 SDK 包：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.ComputerVision</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 6<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-computervision==<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">7</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+
+<ol>
+  <li>查看 <strong>image-analysis</strong> 文件夹的内容，并注意其中包含一个配置设置文件：
+    <ul>
+      <li><strong>C#</strong>： appsettings.json</li>
+      <li><strong>Python</strong>： .env</li>
+    </ul>
+
+    <p>打开配置文件，然后更新其中包含的配置值，以反映认知服务资源的终<strong>结点</strong>和身份验证<strong>密钥</strong>。保存更改。</p>
+  </li>
+  <li>
+    <p>请注意，<strong>image-analysis</strong> 文件夹中包含客户端应用程序的代码文件：</p>
+
+    <ul>
+      <li><strong>C#</strong>： Program.cs</li>
+      <li><strong>Python</strong>： image-analysis.py</li>
+    </ul>
+
+    <p>打开代码文件，并在顶部的现有命名空间引用下找到注释 <strong>“导入命名空间”</strong>。然后在此注释下添加以下特定于语言的代码，以导入使用计算机视觉 SDK 所需的命名空间：</p>
+  </li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-C# hljs"><span class="hljs-comment"><span class="hljs-comment">// import namespaces</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># import namespaces</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.computervision <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> ComputerVisionClient
+<span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.computervision.models <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> VisualFeatureTypes
+<span class="hljs-keyword"><span class="hljs-keyword">from</span></span> msrest.authentication <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> CognitiveServicesCredentials
+</code></pre>
+
+<h2 id="查看要分析的图像">查看要分析的图像</h2>
+
+<p>在此练习中，你将使用计算机视觉服务来分析多张图像。</p>
+
+<ol>
+  <li>在 Visual Studio Code 中，展开 <strong>image-vision</strong> 文件夹以及其中包含的 <strong>images</strong> 文件夹。</li>
+  <li>依次选择每个图像文件，以在 Visual Studio Code 中查看它们。</li>
+</ol>
+
+<h2 id="分析图像以建议描述文字">分析图像以建议描述文字</h2>
+
+<p>现在，你已准备好使用 SDK 来调用计算机视觉服务并分析图像。</p>
+
+<ol>
+  <li>在客户端应用程序的代码文件（<strong>Program.cs</strong> 或 <strong>image-analysis.py</strong>）中，可在 <strong>Main</strong> 函数中看到已提供用于加载配置设置的代码。然后查找注释 <strong>“对计算机视觉对象客户端进行身份验证”</strong>。然后在此注释下添加以下特定于语言的代码，以创建计算机视觉对象客户端对象并对其进行身份验证：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-C# hljs"><span class="hljs-comment"><span class="hljs-comment">// Authenticate Computer Vision client</span></span>
+ApiKeyServiceClientCredentials credentials = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ApiKeyServiceClientCredentials(cogSvcKey);
+cvClient = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ComputerVisionClient(credentials)
+{
+    Endpoint = cogSvcEndpoint
+};
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Authenticate Computer Vision client</span></span>
+credential = CognitiveServicesCredentials(cog_key) 
+cv_client = ComputerVisionClient(cog_endpoint, credential)
+</code></pre>
+
+<ol>
+  <li>
+    <p>在 <strong>Main</strong> 函数中，可在你刚刚添加的代码下看到，代码指定了图像文件的路径，然后将图像路径传递给另外两个函数（<strong>AnalyzeImage</strong> 和 <strong>GetThumbnail</strong>）。这两个函数尚未完全实现。</p>
+  </li>
+  <li>
+    <p>在 <strong>AnalyzeImage</strong> 函数的注释 <strong>“指定要检索的特征”</strong> 下，添加以下代码：</p>
+  </li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-C# hljs"><span class="hljs-comment"><span class="hljs-comment">// Specify features to be retrieved</span></span>
+List&lt;VisualFeatureTypes?&gt; features = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;VisualFeatureTypes?&gt;()
+{
+    VisualFeatureTypes.Description,
+    VisualFeatureTypes.Tags,
+    VisualFeatureTypes.Categories,
+    VisualFeatureTypes.Brands,
+    VisualFeatureTypes.Objects,
+    VisualFeatureTypes.Adult
+};
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Specify features to be retrieved</span></span>
+features = [VisualFeatureTypes.description,
+            VisualFeatureTypes.tags,
+            VisualFeatureTypes.categories,
+            VisualFeatureTypes.brands,
+            VisualFeatureTypes.objects,
+            VisualFeatureTypes.adult]
+</code></pre>
+
+<ol>
+  <li>在 <strong>AnalyzeImage</strong> 函数的注释 <strong>“获取图像分析”</strong> 下，添加以下代码（包括指示你稍后将在何处添加更多代码的注释。）：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get image analysis</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{    
+    var analysis = await cvClient.AnalyzeImageInStreamAsync(imageData, features);
+
+    <span class="hljs-comment"><span class="hljs-comment">// get image captions</span></span>
+    foreach (var caption in analysis.Description.Captions)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"Description: {caption.Text} (confidence: {caption.Confidence.ToString("</span></span>P<span class="hljs-string"><span class="hljs-string">")})"</span></span>);
+    }
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get image tags</span></span>
+
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get image categories</span></span>
+
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get brands in the image</span></span>
+
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get objects in the image</span></span>
+
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get moderation ratings</span></span>
+    
+
+}            
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get image analysis</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    analysis = cv_client.analyze_image_in_stream(image_data , features)
+
+<span class="hljs-comment"><span class="hljs-comment"># Get image description</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> caption <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> analysis.description.captions:
+    print(<span class="hljs-string"><span class="hljs-string">"Description: '{}' (confidence: {:.2f}%)"</span></span>.format(caption.text, caption.confidence * <span class="hljs-number"><span class="hljs-number">100</span></span>))
+
+<span class="hljs-comment"><span class="hljs-comment"># Get image tags</span></span>
+
+
+<span class="hljs-comment"><span class="hljs-comment"># Get image categories </span></span>
+
+
+<span class="hljs-comment"><span class="hljs-comment"># Get brands in the image</span></span>
+
+
+<span class="hljs-comment"><span class="hljs-comment"># Get objects in the image</span></span>
+
+
+<span class="hljs-comment"><span class="hljs-comment"># Get moderation ratings</span></span>
+
+</code></pre>
+
+<ol>
+  <li>保存你的更改并返回到 <strong>image-analysis</strong> 文件夹的集成终端，然后输入以下命令以使用参数 <strong>images/street.jpg</strong> 运行程序：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run images/street.jpg
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">python</span></span> image-analysis.py images/street.jpg
+</code></pre>
+
+<ol>
+  <li>观察输出，其中应包括图像 <strong>street.jpg</strong> 的建议描述文字。</li>
+  <li>再次运行程序，但此次使用参数 <strong>images/building.jpg</strong>，以查看为图像 <strong>building.jpg</strong> 生成的描述文字。</li>
+  <li>重复前面的步骤，为文件 <strong>images/person.jpg</strong> 生成描述文字。</li>
+</ol>
+
+<h2 id="获取图像的建议标记">获取图像的建议标记</h2>
+
+<p>这有时可用于标识相关标记，这<em>些标</em>记提供了与图像内容有关的线索。</p>
+
+<ol>
+  <li>在 <strong>AnalyzeImage</strong> 函数的注释 <strong>“获取图像标记”</strong> 下，添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get image tags</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (analysis.Tags.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+{
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Tags:"</span></span>);
+    foreach (var tag in analysis.Tags)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" -{tag.Name} (confidence: {tag.Confidence.ToString("</span></span>P<span class="hljs-string"><span class="hljs-string">")})"</span></span>);
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get image tags</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (len(analysis.tags) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>):
+    print(<span class="hljs-string"><span class="hljs-string">"Tags: "</span></span>)
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> tag <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> analysis.tags:
+        print(<span class="hljs-string"><span class="hljs-string">" -'{}' (confidence: {:.2f}%)"</span></span>.format(tag.name, tag.confidence * <span class="hljs-number"><span class="hljs-number">100</span></span>))
+</code></pre>
+
+<ol>
+  <li>保存更改，并针对 <strong>images</strong> 文件夹中的每个图像文件运行一次程序，注意到除了图像描述文字外，还会显示建议的标记列表。</li>
+</ol>
+
+<h2 id="获取图像类别">获取图像类别</h2>
+
+<p>计算机视觉服务可建议图像的<em>类别</em>，并且可标识每个类别中的知名地标或名人。</p>
+
+<ol>
+  <li>在 <strong>AnalyzeImage</strong> 函数的注释 <strong>“获取图像类别（包括名人和地标）”</strong> 下，添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get image categories (including celebrities and landmarks)</span></span>
+List&lt;LandmarksModel&gt; landmarks = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;LandmarksModel&gt; {};
+List&lt;CelebritiesModel&gt; celebrities = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;CelebritiesModel&gt; {};
+Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Categories:"</span></span>);
+foreach (var category in analysis.Categories)
+{
+    <span class="hljs-comment"><span class="hljs-comment">// Print the category</span></span>
+    Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" -{category.Name} (confidence: {category.Score.ToString("</span></span>P<span class="hljs-string"><span class="hljs-string">")})"</span></span>);
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get landmarks in this category</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (category.Detail?.Landmarks != null)
+    {
+        foreach (LandmarksModel landmark in category.Detail.Landmarks)
+        {
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (!landmarks.Any(item =&gt; item.Name == landmark.Name))
+            {
+                landmarks.Add(landmark);
+            }
+        }
+    }
+
+    <span class="hljs-comment"><span class="hljs-comment">// Get celebrities in this category</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (category.Detail?.Celebrities != null)
+    {
+        foreach (CelebritiesModel celebrity in category.Detail.Celebrities)
+        {
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (!celebrities.Any(item =&gt; item.Name == celebrity.Name))
+            {
+                celebrities.Add(celebrity);
+            }
+        }
+    }
+}
+
+<span class="hljs-comment"><span class="hljs-comment">// If there were landmarks, list them</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (landmarks.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+{
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Landmarks:"</span></span>);
+    foreach(LandmarksModel landmark in landmarks)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" -{landmark.Name} (confidence: {landmark.Confidence.ToString("</span></span>P<span class="hljs-string"><span class="hljs-string">")})"</span></span>);
+    }
+}
+
+<span class="hljs-comment"><span class="hljs-comment">// If there were celebrities, list them</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (celebrities.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+{
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Celebrities:"</span></span>);
+    foreach(CelebritiesModel celebrity in celebrities)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" -{celebrity.Name} (confidence: {celebrity.Confidence.ToString("</span></span>P<span class="hljs-string"><span class="hljs-string">")})"</span></span>);
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get image categories (including celebrities and landmarks)</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (len(analysis.categories) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>):
+    print(<span class="hljs-string"><span class="hljs-string">"Categories:"</span></span>)
+    landmarks = []
+    celebrities = []
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> category <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> analysis.categories:
+        <span class="hljs-comment"><span class="hljs-comment"># Print the category</span></span>
+        print(<span class="hljs-string"><span class="hljs-string">" -'{}' (confidence: {:.2f}%)"</span></span>.format(category.name, category.score * <span class="hljs-number"><span class="hljs-number">100</span></span>))
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> category.detail:
+            <span class="hljs-comment"><span class="hljs-comment"># Get landmarks in this category</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> category.detail.landmarks:
+                <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> landmark <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> category.detail.landmarks:
+                    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> landmark <span class="hljs-keyword"><span class="hljs-keyword">not</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> landmarks:
+                        landmarks.append(landmark)
+
+            <span class="hljs-comment"><span class="hljs-comment"># Get celebrities in this category</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> category.detail.celebrities:
+                <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> celebrity <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> category.detail.celebrities:
+                    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> celebrity <span class="hljs-keyword"><span class="hljs-keyword">not</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> celebrities:
+                        celebrities.append(celebrity)
+
+    <span class="hljs-comment"><span class="hljs-comment"># If there were landmarks, list them</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(landmarks) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+        print(<span class="hljs-string"><span class="hljs-string">"Landmarks:"</span></span>)
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> landmark <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> landmarks:
+            print(<span class="hljs-string"><span class="hljs-string">" -'{}' (confidence: {:.2f}%)"</span></span>.format(landmark.name, landmark.confidence * <span class="hljs-number"><span class="hljs-number">100</span></span>))
+
+    <span class="hljs-comment"><span class="hljs-comment"># If there were celebrities, list them</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(celebrities) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+        print(<span class="hljs-string"><span class="hljs-string">"Celebrities:"</span></span>)
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> celebrity <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> celebrities:
+            print(<span class="hljs-string"><span class="hljs-string">" -'{}' (confidence: {:.2f}%)"</span></span>.format(celebrity.name, celebrity.confidence * <span class="hljs-number"><span class="hljs-number">100</span></span>))
+
+</code></pre>
+
+<ol>
+  <li>保存更改，并针对 <strong>images</strong> 文件夹中的每个图像文件运行一次程序，注意到除了图像描述文字和标记外，还会显示建议的类别以及任何已识别的地标或名人（尤其是图像 <strong>building.jpg</strong> 和 <strong>person.jpg</strong> 中的地标和名人）。</li>
+</ol>
+
+<h2 id="获取图像中的品牌">获取图像中的品牌</h2>
+
+<p>可通过可视方式从徽标中识别某些品牌，即使徽标中未显示品牌名称也是如此。计算机视觉服务经过训练，可识别数千个知名品牌。</p>
+
+<ol>
+  <li>在 <strong>AnalyzeImage</strong> 函数的注释 <strong>“获取图像中的品牌”</strong> 下，添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get brands in the image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (analysis.Brands.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+{
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Brands:"</span></span>);
+    foreach (var brand in analysis.Brands)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" -{brand.Name} (confidence: {brand.Confidence.ToString("</span></span>P<span class="hljs-string"><span class="hljs-string">")})"</span></span>);
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get brands in the image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (len(analysis.brands) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>):
+    print(<span class="hljs-string"><span class="hljs-string">"Brands: "</span></span>)
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> brand <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> analysis.brands:
+        print(<span class="hljs-string"><span class="hljs-string">" -'{}' (confidence: {:.2f}%)"</span></span>.format(brand.name, brand.confidence * <span class="hljs-number"><span class="hljs-number">100</span></span>))
+</code></pre>
+
+<ol>
+  <li>保存更改，并针对 <strong>images</strong> 文件夹中的每个图像文件运行一次程序，注意识别的任何品牌（尤其是图像 <strong>person.jpg</strong> 中的品牌）。</li>
+</ol>
+
+<h2 id="检测图像中的物体并指示其位置">检测图像中的物体并指示其位置</h2>
+
+<p><em>物体检测</em>是计算机视觉服务的一种特定形式，可识别图像中的各个物体，并使用边界框指示其位置。</p>
+
+<ol>
+  <li>在 <strong>AnalyzeImage</strong> 函数的注释 <strong>“获取图像中的物体”</strong> 下，添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get objects in the image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (analysis.Objects.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+{
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Objects in image:"</span></span>);
+
+    <span class="hljs-comment"><span class="hljs-comment">// Prepare image for drawing</span></span>
+    Image image = Image.FromFile(imageFile);
+    Graphics graphics = Graphics.FromImage(image);
+    Pen pen = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.Cyan, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+    Font font = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Font(<span class="hljs-string"><span class="hljs-string">"Arial"</span></span>, <span class="hljs-number"><span class="hljs-number">16</span></span>);
+    SolidBrush brush = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SolidBrush(Color.Black);
+
+    foreach (var detectedObject in analysis.Objects)
+    {
+        <span class="hljs-comment"><span class="hljs-comment">// Print object name</span></span>
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" -{detectedObject.ObjectProperty} (confidence: {detectedObject.Confidence.ToString("</span></span>P<span class="hljs-string"><span class="hljs-string">")})"</span></span>);
+
+        <span class="hljs-comment"><span class="hljs-comment">// Draw object bounding box</span></span>
+        var r = detectedObject.Rectangle;
+        Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r.X, r.Y, r.W, r.H);
+        graphics.DrawRectangle(pen, rect);
+        graphics.DrawString(detectedObject.ObjectProperty,font,brush,r.X, r.Y);
+
+    }
+    <span class="hljs-comment"><span class="hljs-comment">// Save annotated image</span></span>
+    String output_file = <span class="hljs-string"><span class="hljs-string">"objects.jpg"</span></span>;
+    image.Save(output_file);
+    Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"  Results saved in "</span></span> + output_file);   
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get objects in the image</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(analysis.objects) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+    print(<span class="hljs-string"><span class="hljs-string">"Objects in image:"</span></span>)
+
+    <span class="hljs-comment"><span class="hljs-comment"># Prepare image for drawing</span></span>
+    fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">8</span></span>))
+    plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+    image = Image.open(image_file)
+    draw = ImageDraw.Draw(image)
+    color = <span class="hljs-string"><span class="hljs-string">'cyan'</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> detected_object <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> analysis.objects:
+        <span class="hljs-comment"><span class="hljs-comment"># Print object name</span></span>
+        print(<span class="hljs-string"><span class="hljs-string">" -{} (confidence: {:.2f}%)"</span></span>.format(detected_object.object_property, detected_object.confidence * <span class="hljs-number"><span class="hljs-number">100</span></span>))
+        
+        <span class="hljs-comment"><span class="hljs-comment"># Draw object bounding box</span></span>
+        r = detected_object.rectangle
+        bounding_box = ((r.x, r.y), (r.x + r.w, r.y + r.h))
+        draw.rectangle(bounding_box, outline=color, width=<span class="hljs-number"><span class="hljs-number">3</span></span>)
+        plt.annotate(detected_object.object_property,(r.x, r.y), backgroundcolor=color)
+    <span class="hljs-comment"><span class="hljs-comment"># Save annotated image</span></span>
+    plt.imshow(image)
+    outputfile = <span class="hljs-string"><span class="hljs-string">'objects.jpg'</span></span>
+    fig.savefig(outputfile)
+    print(<span class="hljs-string"><span class="hljs-string">'  Results saved in'</span></span>, outputfile)
+</code></pre>
+
+<ol>
+  <li>保存更改，并针对 <strong>images</strong> 文件夹中的每个图像文件运行一次程序，注意检测到的任何物体。在每次运行后，查看在代码文件所在的同一文件夹中生成的 <strong>objects.jpg</strong> 文件，以查看带有批注的物体。</li>
+</ol>
+
+<h2 id="获取图像的审核评级">获取图像的审核评级</h2>
+
+<p>一些图像可能并非适合所有受众，你可能需要进行一些审核，以识别成人或暴力性质的图像。</p>
+
+<ol>
+  <li>在 <strong>AnalyzeImage</strong> 函数的注释 <strong>“获取审核评级”</strong> 下，添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Get moderation ratings</span></span>
+<span class="hljs-built_in"><span class="hljs-built_in">string</span></span> ratings = $<span class="hljs-string"><span class="hljs-string">"Ratings:\n -Adult: {analysis.Adult.IsAdultContent}\n -Racy: {analysis.Adult.IsRacyContent}\n -Gore: {analysis.Adult.IsGoryContent}"</span></span>;
+Console.WriteLine(ratings);
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Get moderation ratings</span></span>
+ratings = <span class="hljs-string"><span class="hljs-string">'Ratings:\n -Adult: {}\n -Racy: {}\n -Gore: {}'</span></span>.format(analysis.adult.is_adult_content,
+                                                                    analysis.adult.is_racy_content,
+                                                                    analysis.adult.is_gory_content)
+print(ratings)
+</code></pre>
+
+<ol>
+  <li>保存更改，并针对 <strong>images</strong> 文件夹中的每个图像文件运行一次程序，注意每张图像的评级。</li>
+</ol>
+
+<blockquote>
+  <p><strong>备注</strong>： 在前面的任务中，你使用了单种方法来分析图像，然后逐步添加代码来分析和显示结果。SDK 还提供了用于建议描述文字、识别标记和检测物体等的单独方法，这意味着你可使用最适合的方法来仅返回所需信息，减少需要返回的数据有效负载的大小。有关更多详细信息，请参阅 <a href="https://docs.microsoft.com/dotnet/api/overview/azure/cognitiveservices/client/computervision?view=azure-dotnet">.NET SDK 文档</a> 或 <a href="https://docs.microsoft.com/python/api/overview/azure/cognitiveservices/computervision?view=azure-python">Python SDK 文档</a>。</p>
+</blockquote>
+
+<h2 id="生成缩略图图像">生成缩略图图像</h2>
+
+<p>在某些情况下，你可能需要创建较小的图像（即<em>缩略图</em>），将其裁剪为在新的图像尺寸中包含主要视觉主体。</p>
+
+<ol>
+  <li>在代码文件中查找 <strong>GetThumbnail</strong> 函数，在注释 <strong>“生成缩略图”</strong> 下添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// Generate a thumbnail</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{
+    <span class="hljs-comment"><span class="hljs-comment">// Get thumbnail data</span></span>
+    var thumbnailStream = await cvClient.GenerateThumbnailInStreamAsync(<span class="hljs-number"><span class="hljs-number">100</span></span>, <span class="hljs-number"><span class="hljs-number">100</span></span>,imageData, <span class="hljs-literal"><span class="hljs-literal">true</span></span>);
+
+    <span class="hljs-comment"><span class="hljs-comment">// Save thumbnail image</span></span>
+    <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> thumbnailFileName = <span class="hljs-string"><span class="hljs-string">"thumbnail.png"</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (Stream thumbnailFile = File.Create(thumbnailFileName))
+    {
+        thumbnailStream.CopyTo(thumbnailFile);
+    }
+
+    Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"Thumbnail saved in {thumbnailFileName}"</span></span>);
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># Generate a thumbnail</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    <span class="hljs-comment"><span class="hljs-comment"># Get thumbnail data</span></span>
+    thumbnail_stream = cv_client.generate_thumbnail_in_stream(<span class="hljs-number"><span class="hljs-number">100</span></span>, <span class="hljs-number"><span class="hljs-number">100</span></span>, image_data, <span class="hljs-keyword"><span class="hljs-keyword">True</span></span>)
+
+<span class="hljs-comment"><span class="hljs-comment"># Save thumbnail image</span></span>
+thumbnail_file_name = <span class="hljs-string"><span class="hljs-string">'thumbnail.png'</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(thumbnail_file_name, <span class="hljs-string"><span class="hljs-string">"wb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> thumbnail_file:
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> chunk <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> thumbnail_stream:
+        thumbnail_file.write(chunk)
+
+print(<span class="hljs-string"><span class="hljs-string">'Thumbnail saved in.'</span></span>, thumbnail_file_name)
+</code></pre>
+
+<ol>
+  <li>保存更改，并针对 <strong>images</strong> 文件夹中的每个图像文件运行一次程序，打开在每张图像的代码文件所在的同一文件夹中生成的 <strong>thumbnail.jpg</strong> 文件。</li>
+</ol>
+
+<h2 id="更多信息">更多信息</h2>
+
+<p>在此练习中，你探索了计算机视觉服务的一些图像分析和操作功能。该服务器还包括用于读取文本、检测人脸和完成其他计算机视觉任务的功能。</p>
+
+<p>有关使用<strong>计算机视觉</strong>服务的详细信息，请参阅<a href="https://docs.microsoft.com/azure/cognitive-services/computer-vision/">计算机视觉文档</a>。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

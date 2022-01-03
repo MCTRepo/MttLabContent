@@ -1,0 +1,456 @@
+<!DOCTYPE html><html lang="en-US"><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>实验室 9：在 Direct Line 中测试机器人 | AI-100ZH-Design-Implement-Azure-AISol</title>
+<meta name="generator" content="Jekyll v3.9.0">
+<meta property="og:title" content="实验室 9：在 Direct Line 中测试机器人">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="AI100T01A ILT 课程的实验文件">
+<meta property="og:description" content="AI100T01A ILT 课程的实验文件">
+<link rel="canonical" href="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab9-Test_Bots_DirectLine/02-Test_Bots_DirectLine.html">
+<meta property="og:url" content="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab9-Test_Bots_DirectLine/02-Test_Bots_DirectLine.html">
+<meta property="og:site_name" content="AI-100ZH-Design-Implement-Azure-AISol">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="实验室 9：在 Direct Line 中测试机器人">
+<script type="application/ld+json">
+{"description":"AI100T01A ILT 课程的实验文件","url":"https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab9-Test_Bots_DirectLine/02-Test_Bots_DirectLine.html","@type":"WebPage","headline":"实验室 9：在 Direct Line 中测试机器人","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <style class="anchorjs"></style><link rel="stylesheet" href="../assets/css/style_v%3D3a0ab1c74f6d3ca7c17e819da8185129fa5047f9.css">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/AI-100ZH-Design-Implement-Azure-AISol/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="../">AI-100ZH-Design-Implement-Azure-AISol</a></h1>
+      
+
+      <h1 id="实验室-9在-direct-line-中测试机器人">实验室 9：在 Direct Line 中测试机器人</h1>
+
+<h2 id="简介">简介<a class="anchorjs-link " href="#简介" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>在某些情况下，可能需要直接与机器人通信。例如，你可能希望使用托管机器人执行功能测试。可以使用 <a href="https://docs.microsoft.com/zh-cn/bot-framework/rest-api/bot-framework-rest-direct-line-3-0-concepts">Direct Line API</a> 来执行机器人与你自己的客户端应用程序之间的通信。</p>
+
+<p>此外，有时你可能希望使用其他通道或进一步自定义机器人。在这种情况下，你可以使用 Direct Line 与自定义机器人进行通信。</p>
+
+<p>Microsoft Bot Framework Direct Line 机器人是可以使用自己设计的自定义客户端运行的机器人。Direct Line 机器人类似于普通机器人。它们只是不需要使用提供的通道。可以按你的期望编写 Direct Line 客户端。你可以编写 Android 客户端、iOS 客户端，甚至是基于控制台的客户端应用程序。</p>
+
+<p>此动手实验引入了与 Direct Line API 相关的主要概念。</p>
+
+<h2 id="实验-90先决条件">实验 9.0：先决条件：<a class="anchorjs-link " href="#实验-90先决条件" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>本实验假定你已在<a href="../Lab3-Basic_Filter_Bot/02-Basic_Filter_Bot.html">实验 3</a> 中生成并发布了机器人。建议执行该实验，这样才能成功完成其后续实验。如果没有执行该实验，可以仔细阅读所有练习，并根据需要查看一些代码或者将代码用于自己的应用程序中。</p>
+
+<p>我们还假设你已完成了<a href="../Lab4-Log_Chat/02-Logging_Chat.html">实验 4</a>，不过，即使你未完成记录实验，也能完成本实验。</p>
+
+<h3 id="收集密钥">收集密钥<a class="anchorjs-link " href="#收集密钥" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>在前几个试验课程中，我们已收集各种密钥。如果将初学者项目作为起点，则将需要其中的大多数密钥。</p>
+
+<blockquote>
+  <p><em>密钥</em></p>
+
+  <ul>
+    <li>认知服务 API URL：</li>
+    <li>认知服务 API 密钥：</li>
+    <li>LUIS API 终结点：</li>
+    <li>LUIS API 密钥：</li>
+    <li>LUIS API 应用 ID：</li>
+    <li>机器人应用名称：</li>
+    <li>机器人应用 ID：</li>
+    <li>机器人应用密码：</li>
+    <li>Azure 存储连接字符串：</li>
+    <li>Cosmos DB URL：</li>
+    <li>Cosmos DB 密钥：</li>
+    <li>DirectLine 密钥：</li>
+  </ul>
+</blockquote>
+
+<p>请确保使用所有必要值更新 <strong>“appsettings.json”</strong> 文件。</p>
+
+<h2 id="实验-91发布机器人">实验 9.1：发布机器人<a class="anchorjs-link " href="#实验-91发布机器人" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>
+    <p>打开 <strong>“PictureBot”</strong> 解决方案</p>
+  </li>
+  <li>
+    <p>右键单击项目并选择 <strong>“发布”</strong>。</p>
+  </li>
+  <li>
+    <p>在发布对话框中，选择 <strong>“选择现有”</strong>，然后选择 <strong>“发布”</strong></p>
+  </li>
+  <li>
+    <p>如果出现提示，请使用在实验中使用的帐户登录</p>
+  </li>
+  <li>
+    <p>选择一直在使用的订阅</p>
+  </li>
+  <li>
+    <p>展开资源组，然后选择我们在实验 3 中创建的 Picture Bot 应用服务</p>
+  </li>
+  <li>
+    <p>选择 <strong>“确定”</strong></p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>注</strong>：根据进入此实验时采用的路径，在进行以下测试时可能需要第二次发布，以获取 Echo Bot 服务。  重新发布机器人，仅在这次更改发布设置以删除现有文件。</p>
+</blockquote>
+
+<h2 id="实验-92设置-direct-line-通道">实验 9.2：设置 Direct Line 通道<a class="anchorjs-link " href="#实验-92设置-direct-line-通道" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>
+    <p>在门户中，找到已发布的 PictureBot <strong>Web 应用机器人</strong>，并导航到 <strong>“通道”</strong> 选项卡。</p>
+  </li>
+  <li>
+    <p>选择“Direct Line”图标（看起来像地球仪）。你将看到显示 <strong>“默认网站”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“机密密钥”</strong> 处选择 <strong>“显示”</strong>，并将其中某个密钥存储在记事本中或者记录密钥的任何位置。</p>
+  </li>
+</ol>
+
+<p>你可以阅读有关<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-service-channel-connect-directline?view=azure-bot-service-4.0">启用 Direct Line 通道</a>以及<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/rest-api/bot-framework-rest-direct-line-3-0-authentication?view=azure-bot-service-3.0#secrets-and-tokens">机密和令牌</a>的详细说明。</p>
+
+<h2 id="实验-93创建控制台应用程序">实验 9.3：创建控制台应用程序<a class="anchorjs-link " href="#实验-93创建控制台应用程序" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>我们将创建一个控制台应用程序，帮助我们了解如何使用 Direct Line 直接连接到机器人。我们将创建的控制台客户端应用程序会在两个会话中运行。主会话接受用户输入并将消息发送给机器人。辅助会话每秒轮询一次机器人以检索来自机器人的任何消息，然后显示收到的消息。</p>
+
+<blockquote>
+  <p><strong>注</strong>：已按<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-howto-direct-line?view=azure-bot-service-4.0&amp;tabs=cscreatebot%2Ccsclientapp%2Ccsrunclient">文档中的最佳做法</a>修改了此处的说明和代码。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>如果尚未打开，请在 Visual Studio 中打开 <strong>“PictureBot”</strong> 解决方案</p>
+  </li>
+  <li>
+    <p>在解决方案资源管理器中右键单击解决方案，然后选择 <strong>“添加”&gt;“新项目”</strong>。</p>
+  </li>
+  <li>
+    <p>搜索 <strong>“控制台应用 (.NET Core)”</strong>，选择它并选择 <strong>“下一步”</strong></p>
+  </li>
+  <li>
+    <p>在名称处输入 <strong>“PictureBotDL”</strong></p>
+  </li>
+  <li>
+    <p>选择 <strong>“创建”</strong>。</p>
+  </li>
+</ol>
+
+<h3 id="将-nuget-包添加到-picturebotdl">将 NuGet 包添加到 PictureBotDL<a class="anchorjs-link " href="#将-nuget-包添加到-picturebotdl" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<ol>
+  <li>
+    <p>右键单击 PictureBotDL 项目并选择 <strong>“管理 NuGet 包”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“浏览”</strong> 选项卡中，搜索并安装/更新以下内容：</p>
+
+    <ul>
+      <li>Microsoft.Bot.Connector.DirectLine</li>
+      <li>Microsoft.Rest.ClientRuntime</li>
+    </ul>
+  </li>
+  <li>
+    <p>打开 <strong>“Program.cs”</strong></p>
+  </li>
+  <li>
+    <p>将 <strong>“Program.cs”</strong> （位于 PictureBotDL 中）的内容替换为以下内容：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">System</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Diagnostics</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Linq</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">System.Threading.Tasks</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Microsoft.Bot.Connector.DirectLine</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Newtonsoft.Json</span><span class="p">;</span>
+ <span class="k">using</span> <span class="nn">Activity</span> <span class="p">=</span> <span class="n">Microsoft</span><span class="p">.</span><span class="n">Bot</span><span class="p">.</span><span class="n">Connector</span><span class="p">.</span><span class="n">DirectLine</span><span class="p">.</span><span class="n">Activity</span><span class="p">;</span>
+
+ <span class="k">namespace</span> <span class="nn">PictureBotDL</span>
+ <span class="p">{</span>
+     <span class="k">class</span> <span class="nc">Program</span>
+     <span class="p">{</span>
+         <span class="c1">// ************</span>
+         <span class="c1">// Replace the following values with your Direct Line secret and the name of your bot resource ID.</span>
+         <span class="c1">//*************</span>
+         <span class="k">private</span> <span class="k">static</span> <span class="kt">string</span> <span class="n">directLineSecret</span> <span class="p">=</span> <span class="s">"YourDLSecret"</span><span class="p">;</span>
+         <span class="k">private</span> <span class="k">static</span> <span class="kt">string</span> <span class="n">botId</span> <span class="p">=</span> <span class="s">"YourBotServiceName"</span><span class="p">;</span>
+
+         <span class="c1">// This gives a name to the bot user.</span>
+         <span class="k">private</span> <span class="k">static</span> <span class="kt">string</span> <span class="n">fromUser</span> <span class="p">=</span> <span class="s">"PictureBotSampleUser"</span><span class="p">;</span>
+
+         <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="kt">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="nf">StartBotConversation</span><span class="p">().</span><span class="nf">Wait</span><span class="p">();</span>
+         <span class="p">}</span>
+
+
+         <span class="c1">/// &lt;summary&gt;</span>
+         <span class="c1">/// Drives the user's conversation with the bot.</span>
+         <span class="c1">/// &lt;/summary&gt;</span>
+         <span class="c1">/// &lt;returns&gt;&lt;/returns&gt;</span>
+         <span class="k">private</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">StartBotConversation</span><span class="p">()</span>
+         <span class="p">{</span>
+             <span class="c1">// Create a new Direct Line client.</span>
+             <span class="n">DirectLineClient</span> <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">DirectLineClient</span><span class="p">(</span><span class="n">directLineSecret</span><span class="p">);</span>
+
+             <span class="c1">// Start the conversation.</span>
+             <span class="kt">var</span> <span class="n">conversation</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">Conversations</span><span class="p">.</span><span class="nf">StartConversationAsync</span><span class="p">();</span>
+
+             <span class="c1">// Start the bot message reader in a separate thread.</span>
+             <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="n">Threading</span><span class="p">.</span><span class="nf">Thread</span><span class="p">(</span><span class="k">async</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="k">await</span> <span class="nf">ReadBotMessagesAsync</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">conversation</span><span class="p">.</span><span class="n">ConversationId</span><span class="p">)).</span><span class="nf">Start</span><span class="p">();</span>
+
+             <span class="c1">// Prompt the user to start talking to the bot.</span>
+             <span class="n">Console</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="s">"Conversation ID: "</span> <span class="p">+</span> <span class="n">conversation</span><span class="p">.</span><span class="n">ConversationId</span> <span class="p">+</span> <span class="n">Environment</span><span class="p">.</span><span class="n">NewLine</span><span class="p">);</span>
+             <span class="n">Console</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="s">"Type your message (or \"exit\" to end): "</span><span class="p">);</span>
+
+             <span class="c1">// Loop until the user chooses to exit this loop.</span>
+             <span class="k">while</span> <span class="p">(</span><span class="k">true</span><span class="p">)</span>
+             <span class="p">{</span>
+                 <span class="c1">// Accept the input from the user.</span>
+                 <span class="kt">string</span> <span class="n">input</span> <span class="p">=</span> <span class="n">Console</span><span class="p">.</span><span class="nf">ReadLine</span><span class="p">().</span><span class="nf">Trim</span><span class="p">();</span>
+
+                 <span class="c1">// Check to see if the user wants to exit.</span>
+                 <span class="k">if</span> <span class="p">(</span><span class="n">input</span><span class="p">.</span><span class="nf">ToLower</span><span class="p">()</span> <span class="p">==</span> <span class="s">"exit"</span><span class="p">)</span>
+                 <span class="p">{</span>
+                     <span class="c1">// Exit the app if the user requests it.</span>
+                     <span class="k">break</span><span class="p">;</span>
+                 <span class="p">}</span>
+                 <span class="k">else</span>
+                 <span class="p">{</span>
+                     <span class="k">if</span> <span class="p">(</span><span class="n">input</span><span class="p">.</span><span class="n">Length</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">)</span>
+                     <span class="p">{</span>
+                         <span class="c1">// Create a message activity with the text the user entered.</span>
+                         <span class="n">Activity</span> <span class="n">userMessage</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Activity</span>
+                         <span class="p">{</span>
+                             <span class="n">From</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">ChannelAccount</span><span class="p">(</span><span class="n">fromUser</span><span class="p">),</span>
+                             <span class="n">Text</span> <span class="p">=</span> <span class="n">input</span><span class="p">,</span>
+                             <span class="n">Type</span> <span class="p">=</span> <span class="n">ActivityTypes</span><span class="p">.</span><span class="n">Message</span>
+                         <span class="p">};</span>
+
+                         <span class="c1">// Send the message activity to the bot.</span>
+                         <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">Conversations</span><span class="p">.</span><span class="nf">PostActivityAsync</span><span class="p">(</span><span class="n">conversation</span><span class="p">.</span><span class="n">ConversationId</span><span class="p">,</span> <span class="n">userMessage</span><span class="p">);</span>
+                     <span class="p">}</span>
+                 <span class="p">}</span>
+             <span class="p">}</span>
+         <span class="p">}</span>
+
+
+         <span class="c1">/// &lt;summary&gt;</span>
+         <span class="c1">/// Polls the bot continuously and retrieves messages sent by the bot to the client.</span>
+         <span class="c1">/// &lt;/summary&gt;</span>
+         <span class="c1">/// &lt;param name="client"&gt;The Direct Line client.&lt;/param&gt;</span>
+         <span class="c1">/// &lt;param name="conversationId"&gt;The conversation ID.&lt;/param&gt;</span>
+         <span class="c1">/// &lt;returns&gt;&lt;/returns&gt;</span>
+         <span class="k">private</span> <span class="k">static</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ReadBotMessagesAsync</span><span class="p">(</span><span class="n">DirectLineClient</span> <span class="n">client</span><span class="p">,</span> <span class="kt">string</span> <span class="n">conversationId</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="kt">string</span> <span class="n">watermark</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+
+             <span class="c1">// Poll the bot for replies once per second.</span>
+             <span class="k">while</span> <span class="p">(</span><span class="k">true</span><span class="p">)</span>
+             <span class="p">{</span>
+                 <span class="c1">// Retrieve the activity set from the bot.</span>
+                 <span class="kt">var</span> <span class="n">activitySet</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">Conversations</span><span class="p">.</span><span class="nf">GetActivitiesAsync</span><span class="p">(</span><span class="n">conversationId</span><span class="p">,</span> <span class="n">watermark</span><span class="p">);</span>
+                 <span class="n">watermark</span> <span class="p">=</span> <span class="n">activitySet</span><span class="p">?.</span><span class="n">Watermark</span><span class="p">;</span>
+
+                 <span class="c1">// Extract the activies sent from our bot.</span>
+                 <span class="kt">var</span> <span class="n">activities</span> <span class="p">=</span> <span class="k">from</span> <span class="n">x</span> <span class="k">in</span> <span class="n">activitySet</span><span class="p">.</span><span class="n">Activities</span>
+                                 <span class="k">where</span> <span class="n">x</span><span class="p">.</span><span class="n">From</span><span class="p">.</span><span class="n">Id</span> <span class="p">==</span> <span class="n">botId</span>
+                                 <span class="k">select</span> <span class="n">x</span><span class="p">;</span>
+
+                 <span class="c1">// Analyze each activity in the activity set.</span>
+                 <span class="k">foreach</span> <span class="p">(</span><span class="n">Activity</span> <span class="n">activity</span> <span class="k">in</span> <span class="n">activities</span><span class="p">)</span>
+                 <span class="p">{</span>
+                     <span class="c1">// Display the text of the activity.</span>
+                     <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">activity</span><span class="p">.</span><span class="n">Text</span><span class="p">);</span>
+
+                     <span class="c1">// Are there any attachments?</span>
+                     <span class="k">if</span> <span class="p">(</span><span class="n">activity</span><span class="p">.</span><span class="n">Attachments</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+                     <span class="p">{</span>
+                         <span class="c1">// Extract each attachment from the activity.</span>
+                         <span class="k">foreach</span> <span class="p">(</span><span class="n">Attachment</span> <span class="n">attachment</span> <span class="k">in</span> <span class="n">activity</span><span class="p">.</span><span class="n">Attachments</span><span class="p">)</span>
+                         <span class="p">{</span>
+                             <span class="k">switch</span> <span class="p">(</span><span class="n">attachment</span><span class="p">.</span><span class="n">ContentType</span><span class="p">)</span>
+                             <span class="p">{</span>
+                                 <span class="c1">// Display a hero card.</span>
+                                 <span class="k">case</span> <span class="s">"application/vnd.microsoft.card.hero"</span><span class="p">:</span>
+                                     <span class="nf">RenderHeroCard</span><span class="p">(</span><span class="n">attachment</span><span class="p">);</span>
+                                     <span class="k">break</span><span class="p">;</span>
+
+                                 <span class="c1">// Display the image in a browser.</span>
+                                 <span class="k">case</span> <span class="s">"image/png"</span><span class="p">:</span>
+                                     <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">$"Opening the requested image '</span><span class="p">{</span><span class="n">attachment</span><span class="p">.</span><span class="n">ContentUrl</span><span class="p">}</span><span class="s">'"</span><span class="p">);</span>
+                                     <span class="n">Process</span><span class="p">.</span><span class="nf">Start</span><span class="p">(</span><span class="n">attachment</span><span class="p">.</span><span class="n">ContentUrl</span><span class="p">);</span>
+                                     <span class="k">break</span><span class="p">;</span>
+                             <span class="p">}</span>
+                         <span class="p">}</span>
+                     <span class="p">}</span>
+
+                 <span class="p">}</span>
+
+                 <span class="c1">// Wait for one second before polling the bot again.</span>
+                 <span class="k">await</span> <span class="n">Task</span><span class="p">.</span><span class="nf">Delay</span><span class="p">(</span><span class="n">TimeSpan</span><span class="p">.</span><span class="nf">FromSeconds</span><span class="p">(</span><span class="m">1</span><span class="p">)).</span><span class="nf">ConfigureAwait</span><span class="p">(</span><span class="k">false</span><span class="p">);</span>
+             <span class="p">}</span>
+         <span class="p">}</span>
+
+
+         <span class="c1">/// &lt;summary&gt;</span>
+         <span class="c1">/// Displays the hero card on the console.</span>
+         <span class="c1">/// &lt;/summary&gt;</span>
+         <span class="c1">/// &lt;param name="attachment"&gt;The attachment that contains the hero card.&lt;/param&gt;</span>
+         <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">RenderHeroCard</span><span class="p">(</span><span class="n">Attachment</span> <span class="n">attachment</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="k">const</span> <span class="kt">int</span> <span class="n">Width</span> <span class="p">=</span> <span class="m">70</span><span class="p">;</span>
+             <span class="c1">// Function to center a string between asterisks.</span>
+             <span class="n">Func</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">&gt;</span> <span class="n">contentLine</span> <span class="p">=</span> <span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="kt">string</span><span class="p">.</span><span class="nf">Format</span><span class="p">(</span><span class="s">$"0}"</span><span class="p">,</span> <span class="kt">string</span><span class="p">.</span><span class="nf">Format</span><span class="p">(</span><span class="s">"{0,"</span> <span class="p">+</span> <span class="p">((</span><span class="n">Width</span> <span class="p">+</span> <span class="n">content</span><span class="p">.</span><span class="n">Length</span><span class="p">)</span> <span class="p">/</span> <span class="m">2</span><span class="p">).</span><span class="nf">ToString</span><span class="p">()</span> <span class="p">+</span> <span class="s">"}"</span><span class="p">,</span> <span class="n">content</span><span class="p">));</span>
+
+             <span class="c1">// Extract the hero card data.</span>
+             <span class="kt">var</span> <span class="n">heroCard</span> <span class="p">=</span> <span class="n">JsonConvert</span><span class="p">.</span><span class="n">DeserializeObject</span><span class="p">&lt;</span><span class="n">HeroCard</span><span class="p">&gt;(</span><span class="n">attachment</span><span class="p">.</span><span class="n">Content</span><span class="p">.</span><span class="nf">ToString</span><span class="p">());</span>
+
+             <span class="c1">// Display the hero card.</span>
+             <span class="k">if</span> <span class="p">(</span><span class="n">heroCard</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+             <span class="p">{</span>
+                 <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"/{0}"</span><span class="p">,</span> <span class="k">new</span> <span class="kt">string</span><span class="p">(</span><span class="sc">'*'</span><span class="p">,</span> <span class="n">Width</span> <span class="p">+</span> <span class="m">1</span><span class="p">));</span>
+                 <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"*{0}*"</span><span class="p">,</span> <span class="nf">contentLine</span><span class="p">(</span><span class="n">heroCard</span><span class="p">.</span><span class="n">Title</span><span class="p">));</span>
+                 <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"*{0}*"</span><span class="p">,</span> <span class="k">new</span> <span class="kt">string</span><span class="p">(</span><span class="sc">' '</span><span class="p">,</span> <span class="n">Width</span><span class="p">));</span>
+                 <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"*{0}*"</span><span class="p">,</span> <span class="nf">contentLine</span><span class="p">(</span><span class="n">heroCard</span><span class="p">.</span><span class="n">Text</span><span class="p">));</span>
+                 <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"{0}/"</span><span class="p">,</span> <span class="k">new</span> <span class="kt">string</span><span class="p">(</span><span class="sc">'*'</span><span class="p">,</span> <span class="n">Width</span> <span class="p">+</span> <span class="m">1</span><span class="p">));</span>
+             <span class="p">}</span>
+         <span class="p">}</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+
+    <blockquote>
+      <p><strong>注</strong>：此代码根据<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-howto-direct-line?view=azure-bot-service-4.0&amp;tabs=cscreatebot%2Ccsclientapp%2Ccsrunclient#create-the-console-client-app">文档</a>稍作了修改，以便包含我们在接下来的实验部分中将使用的一些内容。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“Program.cs”</strong> 中，使用自己的特定值更新 Direct Line 机密和机器人 ID。</p>
+  </li>
+</ol>
+
+<p>花些时间查看这段示例代码。这对确保了解如何连接 PictureBot 并获得响应非常有益。</p>
+
+<h3 id="运行应用">运行应用<a class="anchorjs-link " href="#运行应用" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<ol>
+  <li>
+    <p>右键单击 <strong>“PictureBotDL”</strong> 项目并选择 <strong>“设置为启动项目”</strong>。</p>
+  </li>
+  <li>
+    <p>接着按 <strong>F5</strong>以运行应用。</p>
+  </li>
+  <li>
+    <p>使用命令行应用程序与机器人进行对话</p>
+
+    <p><img src="../images/consoleapp.png" alt="控制台应用"></p>
+
+    <blockquote>
+      <p><strong>注</strong>：如果没有得到回应，则机器人可能出错。使用 Bot Emulator 在本地测试机器人，修复所有问题，然后再次发布。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<p>急智测验 - 如何显示对话 ID？我们将在后面的部分中了解需要这样做的原因。</p>
+
+<h2 id="实验-94使用-http-get-检索消息">实验 9.4：使用 HTTP Get 检索消息<a class="anchorjs-link " href="#实验-94使用-http-get-检索消息" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>我们拥有对话 ID，所以可以使用 HTTP Get 检索用户和机器人的消息。如果熟练 Rest 客户端且经验丰富，请随意使用自己偏好的工具。</p>
+
+<p>在本实验中，我们将演练如何使用 Postman（基于 Web 的客户端）来检索消息。</p>
+
+<h3 id="下载-postman">下载 Postman<a class="anchorjs-link " href="#下载-postman" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<ol>
+  <li><a href="https://www.getpostman.com/apps">下载适用于自己的平台的本机应用</a>。你可能需要创建一个简单的帐户。</li>
+</ol>
+
+<h3 id="测试应用">测试应用<a class="anchorjs-link " href="#测试应用" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<p>使用 Direct Line API，客户端可以通过发出 HTTP Post 请求向机器人发送消息。还可以通过 WebSocket 流或发出 HTTP GET 请求来接收来自机器人的消息。在本实验中，我们将了解如何使用 HTTP Get 选项接收消息。</p>
+
+<p>我们发出 GET 请求。还需要确保标头包含标头名称（<strong>授权</strong>）和标头值（持有者 <strong>YourDirectLineSecret</strong>）。另外，我们将通过在请求中将 {conversationId} 替换为当前对话 ID，调用控制台应用中的现有对话：<code class="language-plaintext highlighter-rouge">https://directline.botframework.com/api/conversations/{conversationId}/messages</code>。</p>
+
+<p>使用 Postman，配置相当轻松：</p>
+
+<ul>
+  <li>使用下拉列表将请求更改为“GET”类型。</li>
+  <li>在请求 URL 中输入对话 ID。</li>
+  <li>将授权更改为“持有者令牌”类型并在“令牌”框中输入 Direct Line 机密。</li>
+</ul>
+
+<p><img src="../images/bearer.png" alt="持有者令牌"></p>
+
+<ol>
+  <li>
+    <p>打开 <strong>“Postman”</strong></p>
+  </li>
+  <li>
+    <p>请务必在类型处选择 <strong>“GET”</strong></p>
+  </li>
+  <li>
+    <p>在 URL 处输入 “<strong>https://directline.botframework.com/api/conversations/{conversationId}/messages</strong>” 请务必将其中的 converstationId 替换为你的特定对话 ID</p>
+  </li>
+  <li>
+    <p>选择 <strong>“授权”</strong>，在类型处选择 <strong>“持有者令牌”</strong></p>
+  </li>
+  <li>
+    <p>将值设置为 <strong>“{你的 Direct Line 机密}”</strong></p>
+  </li>
+  <li>
+    <p>最后，选择 <strong>“发送”</strong>。</p>
+  </li>
+  <li>
+    <p>检查结果。</p>
+  </li>
+  <li>
+    <p>新建与控制台应用的对话，务必搜索图片。</p>
+  </li>
+  <li>
+    <p>使用新的对话 ID 通过 Postman 创建新请求。</p>
+  </li>
+  <li>
+    <p>检查返回的响应。  应该能看到图像 URL 显示在响应的图像数组中。</p>
+
+    <p><img src="../images/imagesarray.png" alt="图像数组示例"></p>
+  </li>
+</ol>
+
+<h2 id="延伸阅读">延伸阅读<a class="anchorjs-link " href="#延伸阅读" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>有额外的时间吗？能否从终端利用 curl（下载链接：https://curl.haxx.se/download.html） 来检索对话（就像对 Postman 执行的操作那样）？</p>
+
+<blockquote>
+  <p>提示：命令可能类似于 <code class="language-plaintext highlighter-rouge">curl -H "Authorization:Bearer {SecretKey}" https://directline.botframework.com/api/conversations/{conversationId}/messages -XGET</code></p>
+</blockquote>
+
+<h2 id="资源">资源<a class="anchorjs-link " href="#资源" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="https://docs.microsoft.com/zh-cn/bot-framework/rest-api/bot-framework-rest-direct-line-3-0-concepts">Direct Line API</a></li>
+</ul>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  
+
+</body></html>

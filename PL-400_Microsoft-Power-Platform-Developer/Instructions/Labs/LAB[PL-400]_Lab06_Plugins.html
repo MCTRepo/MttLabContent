@@ -1,0 +1,1247 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            PL-400_Microsoft-Power-Platform-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                PL-400_Microsoft-Power-Platform-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <blockquote>
+  <p>[!NOTE]
+Effective November 2020:</p>
+  <ul>
+    <li>Common Data Service has been renamed to Microsoft Dataverse. <a href="https://aka.ms/PAuAppBlog">Learn more</a></li>
+    <li>Some terminology in Microsoft Dataverse has been updated. For example, <em>Table</em> is now <em>table</em> and <em>Column</em> is now <em>column</em>. <a href="https://go.microsoft.com/fwlink/?linkid=2147247">Learn more</a></li>
+  </ul>
+
+  <p>This content will be updated soon to reflect the latest terminology.</p>
+</blockquote>
+
+<h2 id="lab-06--plug-ins">Lab 06 – Plug-ins</h2>
+
+<h1 id="scenario">Scenario</h1>
+
+<p>A regional building department issues and tracks permits for new buildings and updates for remodeling of existing buildings. Throughout this course you will build applications and automation to enable the regional building department to manage the permitting process. This will be an end-to-end solution which will help you understand the overall process flow.</p>
+
+<p>In this lab you will build two plugins. The first plugin will run when a new permit record is created, and it will check that there are no other permits that exists for the build sites that are “locked”. If a locked permit is found, the plugin will block the creation of this new permit. The second plugin will hook up and run when the Lock Permit custom action is invoked. In the prior module we defined the custom action, and now with the plugin step registered on execution of the custom action, it will now perform the lock permit business logic.</p>
+
+<h1 id="high-level-lab-steps">High-level lab steps</h1>
+
+<p>As part of building the plugins, you will complete the following activities.</p>
+
+<ul>
+  <li>
+    <p>Create two plugins using a common provided base class</p>
+  </li>
+  <li>
+    <p>Implement logic to work with a plugin registered on an Table event</p>
+  </li>
+  <li>
+    <p>Implement logic to work with a plugin registered on a custom action event</p>
+  </li>
+  <li>
+    <p>Deploy the plugins and associate them with your solution</p>
+  </li>
+  <li>
+    <p>Use the plugin trace log to see traces from the plugin</p>
+  </li>
+  <li>
+    <p>Debug the plugin on your local computer</p>
+  </li>
+</ul>
+
+<h2 id="things-to-consider-before-you-begin">Things to consider before you begin</h2>
+
+<ul>
+  <li>
+    <p>Do we know what events will trigger our plugins?</p>
+  </li>
+  <li>
+    <p>Could what we are doing with the plugin, be done using Power Automate?</p>
+  </li>
+  <li>
+    <p>Remember to continue working in your DEVELOPMENT environment. We’ll move everything to production soon.</p>
+  </li>
+</ul>
+
+<p>‎</p>
+
+<h1 id="exercise-1-block-new-permit-creation-plugin">Exercise #1: Block New Permit Creation Plugin</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will create a plugin that will run on create permit. This plugin will check if there are any locked permits for the selected build site of the new permit and block the creation of the new permit.</p>
+
+<h2 id="task-1-create-the-plugin">Task #1: Create the plugin</h2>
+
+<ol>
+  <li>
+    <p>Create a Visual Studio project</p>
+
+    <ul>
+      <li>
+        <p>Start <strong>Visual Studio</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>File &gt; New &gt; Project</strong>.</p>
+      </li>
+      <li>
+        <p>Select <strong>Class Library (.NET Framework)</strong> and click <strong>Next</strong>. Make sure you have selected the one with C#.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image1.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image1.png" alt="Project type - screenshot"></a></p>
+
+    <ul>
+      <li>Enter <strong>ContosoPackageProject</strong> for <strong>Project Name</strong>, select a location to save the project, select <strong>.NET Framework 4.6.2</strong> for <strong>Framework</strong>, and then select <strong>Create</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image2.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image2.png" alt="Project configuration - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add NuGet packages</p>
+
+    <ul>
+      <li>Right click on the project name and select <strong>Manage NuGet Packages</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image3.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image3.png" alt="Mange NuGet packages - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>Browse</strong> tab.</p>
+      </li>
+      <li>
+        <p>Search for <strong>microsoft.CrmSdk.CoreAssemblies</strong>.</p>
+      </li>
+      <li>
+        <p>Select <strong>Microsoft.crmsdk.coreassemblies</strong> (one authored by Microsoft)and click <strong>Install</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image4.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image4.png" alt="Install package - screenshot"></a></p>
+
+    <ul>
+      <li>Read the license terms and then select <strong>I agree</strong> if you agree.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Delete Class1 and create new class file for the plugin</p>
+
+    <ul>
+      <li>
+        <p>Right click on <strong>Class1.cs</strong> and <strong>Delete.</strong> Click <strong>OK</strong> on the warning to delete this permanently.</p>
+      </li>
+      <li>
+        <p>Right on the project and select <strong>Add &gt; Class</strong>.</p>
+      </li>
+      <li>
+        <p>Enter <strong>PreOperationPermitCreate</strong> for <strong>Name</strong> and click <strong>Add</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image5.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image5.png" alt="Create class - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add <strong>PluginBase</strong> file to the project.</p>
+
+    <ul>
+      <li>
+        <p>Locate the <strong>PluginBase</strong> file in the lab resources folder.</p>
+      </li>
+      <li>
+        <p>Drag the <strong>PluginBase</strong> file to your Visual Studio project. Make sure that the file now exists in the folder structure.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image6.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image6.png" alt="Add class - screenshot"></a></p>
+
+    <ul>
+      <li>Review the <strong>PluginBase</strong> class. This class inherits from IPlugin.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image7.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image7.png" alt="Class inheritance - screenshot"></a></p>
+  </li>
+</ol>
+
+<p>Close the <strong>PluginBase</strong> file.</p>
+
+<ol>
+  <li>
+    <p>Add <strong>using statements</strong> to the <strong>PreOperationPermitCreate</strong> class, make the class <strong>public</strong>, and inherit from <strong>PuginBase</strong></p>
+
+    <ul>
+      <li>
+        <p>Add the using statement below to the <strong>PreOperationPermitCreate</strong> class.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Xrm</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Sdk</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Xrm</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Sdk</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Query</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">ContosoPackagePoject</span></span>;
+</code></pre>
+      </li>
+      <li>
+        <p>Make the <strong>PreOperationPermitCreate</strong> public and <strong>inherit</strong> from <strong>PluginBase</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image8.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image8.png" alt="class declaration - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Override the ExecuteCDSPlugin method and get the Target Table and the Build Site Table reference.</p>
+
+    <ul>
+      <li>
+        <p>To override the <strong>ExecuteCDSPlugin</strong> method, add the code below to the <strong>PreOperationPermitCreate</strong> method.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs cs">  <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">protected</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">override</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">ExecuteCDSPlugin</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">LocalPluginContext localcontext</span></span></span><span class="hljs-function">)
+
+  </span></span>{
+
+  <span class="hljs-keyword"><span class="hljs-keyword">base</span></span>.ExecuteCDSPlugin(localcontext);
+
+  }
+</code></pre>
+      </li>
+      <li>
+        <p>To get the <strong>Target</strong> Table, add the code below inside the ExecuteCDSPlugin method.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> permitEntity = localcontext.PluginExecutionContext.InputParameters[<span class="hljs-string"><span class="hljs-string">"Target"</span></span>] <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> Entity;
+</code></pre>
+      </li>
+      <li>
+        <p>To get the Build Site Table reference, add the below code after <strong>permitEntity</strong> variable definition.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> buildSiteRef = permitEntity[<span class="hljs-string"><span class="hljs-string">"contoso_buildsite"</span></span>] <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> EntityReference;
+</code></pre>
+      </li>
+      <li>
+        <p>To add Trace Messages, add the below mentioned code after <strong>buildSiteRef</strong> variable definition.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">localcontext</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Trace</span></span>("<span class="hljs-selector-tag"><span class="hljs-selector-tag">Primary</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Entity</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Id</span></span>: " + <span class="hljs-selector-tag"><span class="hljs-selector-tag">permitEntity</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Id</span></span>);
+
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">localcontext</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Trace</span></span>("<span class="hljs-selector-tag"><span class="hljs-selector-tag">Build</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Site</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Entity</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Id</span></span>: " + <span class="hljs-selector-tag"><span class="hljs-selector-tag">buildSiteRef</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Id</span></span>);
+</code></pre>
+      </li>
+    </ul>
+
+    <ol>
+      <li>
+        <p>Create Fetch xml and that will get the count of locked permits matching the build site id and call retrieve multiple.</p>
+
+        <ul>
+          <li>
+            <p>Create the <strong>FetchXML</strong> string.</p>
+
+            <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs xml">  string fetchString = "<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">fetch</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">output-format</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'xml-platform'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">distinct</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'false'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">version</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'1.0'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">mapping</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'logical'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">aggregate</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'true'</span></span></span><span class="hljs-tag">&gt;</span></span><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">entity</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'contoso_permit'</span></span></span><span class="hljs-tag">&gt;</span></span><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">attribute</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'contoso_permitid'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">alias</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'Count'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">aggregate</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'count'</span></span></span><span class="hljs-tag"> /&gt;</span></span><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">filter</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">type</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'and'</span></span></span><span class="hljs-tag"> &gt;</span></span><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">condition</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">attribute</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'contoso_buildsite'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">uitype</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'contoso_buildsite'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">operator</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'eq'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">value</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'{" + buildSiteRef.Id + "}'</span></span></span><span class="hljs-tag">/&gt;</span></span><span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">condition</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">attribute</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'statuscode'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">operator</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'eq'</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">value</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">'463270000'</span></span></span><span class="hljs-tag">/&gt;</span></span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">filter</span></span></span><span class="hljs-tag">&gt;</span></span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">entity</span></span></span><span class="hljs-tag">&gt;</span></span><span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">fetch</span></span></span><span class="hljs-tag">&gt;</span></span>";
+</code></pre>
+          </li>
+          <li>
+            <p>Call RetrieveMultiple and add Trace Message.</p>
+
+            <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs cs">  localcontext.Trace(<span class="hljs-string"><span class="hljs-string">"Calling RetrieveMultiple for locked permits"</span></span>);
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> response = localcontext.OrganizationService.RetrieveMultiple(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> FetchExpression(fetchString));
+</code></pre>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p>Get the locked Permit Count and throw InvalidPluginExecutionException if the <strong>Count</strong> is more than 0</p>
+
+        <ul>
+          <li>
+            <p>Get the locker permits <strong>Count</strong>.</p>
+
+            <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs markdown">  int lockedPermitCount = (int)((AliasedValue)response.Tables[<span class="hljs-string"><span class="hljs-string">0</span></span>][<span class="hljs-symbol"><span class="hljs-symbol">"Count"</span></span>]).Value;
+</code></pre>
+          </li>
+        </ul>
+      </li>
+    </ol>
+
+    <ul>
+      <li>
+        <p>Add Trace Message, check if the <strong>Count</strong> is more than <strong>0</strong> and throw <strong>InvalidPluginExecutionException</strong> if it is more than <strong>0</strong>.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs coffeescript">  localcontext.Trace(<span class="hljs-string"><span class="hljs-string">"Locket Permit count : "</span></span> + lockedPermitCount);
+  <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (lockedPermitCount &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+  {
+  <span class="hljs-keyword"><span class="hljs-keyword">throw</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> InvalidPluginExecutionException(<span class="hljs-string"><span class="hljs-string">"Too many locked permits for build site"</span></span>);
+  }
+</code></pre>
+      </li>
+      <li>
+        <p>The ExecuteCDSPlugin method should now look like the image below.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image9.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image9.png" alt="Execute CDS Plugin method - screenshot"></a></p>
+
+    <ul>
+      <li>Build the project and make sure it succeeds. To build the project, right click on the project and select <strong>Build</strong>. Check the output and make sure that the build is succeeded. If it does not, go back and review your work compared the steps documented here.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="task-2-deploy-the-plugin">Task #2: Deploy the plugin</h2>
+
+<ol>
+  <li>
+    <p>Create strong name key.</p>
+
+    <ul>
+      <li>Right click on the <strong>Project</strong> and select <strong>Properties</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image10.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image10.png" alt="Project properties - screenshot"></a></p>
+
+    <ul>
+      <li>Select the <strong>Signing</strong> tab, check the <strong>Sign the assembly</strong> checkbox and select <strong>&lt;New…&gt;</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image11.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image11.png" alt="Project signing - screenshot"></a></p>
+
+    <ul>
+      <li>Enter <strong>contoso.snk</strong> for <strong>Name</strong>, uncheck the Protect with a <strong>Password</strong> checkbox, and click <strong>OK</strong>. Note: In case you get an access denied while creating the signature, close Visual Studio and run it in administrator mode to successfully complete this step.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image12.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image12.png" alt="Project signing key - screenshot"></a></p>
+
+    <ul>
+      <li>Rebuild the project. Make sure the project is rebuilt successfully.</li>
+    </ul>
+  </li>
+  <li>
+    <p>If you don’t have CDS/Dynamics 365 SDK tools downloaded already, download them using the following method:</p>
+
+    <ul>
+      <li>
+        <p>Navigate to <a href="https://xrm.tools/SDK">https://xrm.tools/SDK</a></p>
+      </li>
+      <li>
+        <p>Click <strong>Download SDK Zip File</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image13.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image13.png" alt="Download SDK - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Save the zip file on your machine.</p>
+      </li>
+      <li>
+        <p>Right click on the downloaded <strong>sdk.zip</strong> file and select <strong>Properties</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image14.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image14.png" alt="File properties - screenshot"></a></p>
+
+    <ul>
+      <li>Check the <strong>Unblock</strong> checkbox and click Apply.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image15.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image15.png" alt="Unblock file - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>OK</strong>.</p>
+      </li>
+      <li>
+        <p>Right click on the <strong>sdk.zip</strong> file again and select <strong>Extract All</strong>.</p>
+      </li>
+      <li>
+        <p>Complete extracting.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Start the plugin registration tool and sign in.</p>
+
+    <ul>
+      <li>
+        <p>Open the <strong>sdk</strong> folder you extracted and click to open the <strong>PluginRegistration</strong> folder.</p>
+      </li>
+      <li>
+        <p>Locate <strong>PluginRegistration.exe</strong> and double click to start. This will open a new window.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image16.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image16.png" alt="Start plugin registration tool - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Connect to your org.</p>
+
+    <ul>
+      <li>Click <strong>Create New Connection</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image17.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image17.png" alt="New connection - screenshot"></a></p>
+  </li>
+</ol>
+
+<ul>
+  <li>
+    <p>Select <strong>Office 365</strong> and check the <strong>Display List of available organization</strong> and <strong>Show Advanced</strong> checkboxes. Select <strong>Online Region</strong> where your organization is located. If you are unsure what region to select, select <strong>Don’t Know</strong>.</p>
+  </li>
+  <li>
+    <p>Provide your <strong>Microsoft Dataverse</strong> credentials and click <strong>Login</strong>.</p>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image18.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image18.png" alt="Provide credentials - screenshot"></a></p>
+
+    <ul>
+      <li>Select the <strong>Dev</strong> environment and click <strong>Login</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image19.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image19.png" alt="Select environment - screenshot"></a></p>
+  </li>
+</ul>
+
+<ol>
+  <li>
+    <p>Register new assembly</p>
+
+    <ul>
+      <li>Click <strong>Register</strong> and select <strong>Register</strong> <strong>New Assembly</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image20.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image20.png" alt="Register new assembly - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>…</strong> to browse.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image21.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image21.png" alt="Register new assembly - screenshot"></a></p>
+
+    <ul>
+      <li>Browse to the bin/<strong>debug</strong> folder of your plugin project (<strong>ContosoPackageProject</strong>), select the <strong>ContosoPackageProject</strong>.dll file and click <strong>Open</strong>.<br>
+‎<strong>Path:</strong> PathToFolder/ContosoPackageProject/ContosoPackageProject/bin/Debug</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image22.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image22.png" alt="Select .dll file - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Register Selected Plugins</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image23.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image23.png" alt="Register plugin - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>OK</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image24.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image24.png" alt="Registration popup - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Register new step</p>
+
+    <ul>
+      <li>
+        <p>Select the assembly you just registered.</p>
+      </li>
+      <li>
+        <p>Click <strong>Register</strong> and select <strong>Register</strong> <strong>New Step</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image25.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image25.png" alt="Register new step - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Enter <strong>Create</strong> for <strong>Message</strong>.</p>
+      </li>
+      <li>
+        <p>Enter <strong>contoso_permit</strong> for <strong>Primary Table</strong>.</p>
+      </li>
+      <li>
+        <p>Select <strong>PreOperation</strong> from dropdown for <strong>Event Pipeline Stage of Execution</strong> and click <strong>Register New Step</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image26.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image26.png" alt="Register step - screenshot"></a></p>
+
+    <ul>
+      <li>Step should now be registered in the assembly plugin.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image27.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image27.png" alt="Registered step - screenshot"></a></p>
+  </li>
+</ol>
+
+<p>‎</p>
+
+<h1 id="exercise-2-create-custom-action-plugin">Exercise #2: Create Custom Action Plugin</h1>
+
+<p><strong>Objective</strong>: In this exercise, you will create and register a plugin that will be invoked when the lock permit custom action is used. This plugin will be used to implement the business logic of locking the permit. Specifically, it will update the permit to indicate it is locked and then cancel any pending inspections.<br>
+‎<strong>Note:</strong> If you did not create the custom action in a prior lab, look in your resources folder for how to add it here before you proceed.</p>
+
+<h2 id="task-1-add-a-new-plugin-to-the-project">Task #1: Add a new plugin to the project</h2>
+
+<ol>
+  <li>
+    <p>Add new class to the project and name it <strong>LockPermitCancelInspections</strong></p>
+
+    <ul>
+      <li>Right on the project and select <strong>Add &gt; Class</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image28.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image28.png" alt="Add class to project - screenshot"></a></p>
+
+    <ul>
+      <li>Enter <strong>LockPermitCancelInspections</strong> for <strong>Name</strong> and click <strong>Add</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image29.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image29.png" alt="Add class - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add <strong>using statements</strong> to the <strong>LockPermitCancelInspections</strong> class, make the class <strong>public</strong>, and inherit from <strong>PuginBase</strong></p>
+
+    <ul>
+      <li>
+        <p>Add the using statement below to the <strong>LockPermitCancelInspections</strong> class.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Xrm</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Sdk</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Text</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.RegularExpressions</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">ContosoPackagePoject</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Xrm</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Sdk</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Query</span></span>;
+</code></pre>
+      </li>
+      <li>
+        <p>Make the <strong>LockPermitCancelInspections</strong> public and <strong>inherit</strong> from <strong>PluginBase</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image30.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image30.png" alt="Add using statements and edit class - screenshot"></a></p>
+  </li>
+  <li>
+    <p>To override the ExecuteCDSPlugin method and get the reason value from the input parameter.</p>
+
+    <ul>
+      <li>
+        <p>Override the <strong>ExecuteCDSPlugin</strong> method. Add the code below inside the <strong>LockPermitCancelInspections</strong> method.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs cs">  <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">protected</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">override</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">ExecuteCDSPlugin</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">LocalPluginContext localcontext</span></span></span><span class="hljs-function">)
+  </span></span>{
+  <span class="hljs-keyword"><span class="hljs-keyword">base</span></span>.ExecuteCDSPlugin(localcontext);
+  }
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Get the target Table reference, Table, set status reason to lock, and update the permit record.</p>
+
+    <ul>
+      <li>
+        <p>Get the target <strong>Table Reference</strong> and <strong>Table</strong>.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> permitEntityRef = localcontext.PluginExecutionContext.InputParameters[<span class="hljs-string"><span class="hljs-string">"Target"</span></span>] <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> EntityReference;
+  Entity permitEntity = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Entity(permitEntityRef.LogicalName, permitEntityRef.Id);
+</code></pre>
+      </li>
+      <li>
+        <p>Add <strong>Trace</strong> message and Set the <strong>Status Reason</strong> to <strong>Lock</strong>. 463270000 is the lock value of the Status Reason option-set and statuscode is the name of the status reason Column.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs coffeescript">  localcontext.Trace(<span class="hljs-string"><span class="hljs-string">"Updating Permit Id : "</span></span> + permitEntityRef.Id);
+  permitEntity[<span class="hljs-string"><span class="hljs-string">"statuscode"</span></span>] = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> OptionSetValue(<span class="hljs-number"><span class="hljs-number">463270000</span></span>);
+</code></pre>
+      </li>
+      <li>
+        <p>Update the <strong>Permit</strong> record and add <strong>Trace</strong> message.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">localcontext</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.OrganizationService</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Update</span></span>(<span class="hljs-selector-tag"><span class="hljs-selector-tag">permitEntity</span></span>);
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">localcontext</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Trace</span></span>("<span class="hljs-selector-tag"><span class="hljs-selector-tag">Updated</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Permit</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Id</span></span> " + <span class="hljs-selector-tag"><span class="hljs-selector-tag">permitEntityRef</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Id</span></span>);
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image31.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image31.png" alt="Execute plugin method - screenshot"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-2-get-related-inspections-and-cancel">Task #2: Get Related Inspections and Cancel</h2>
+
+<ol>
+  <li>
+    <p>Create query and condition expressions.</p>
+
+    <ul>
+      <li>
+        <p>Create the <strong>QueryExpression</strong>. Add the code below to the <strong>ExecuteCDSPlugin</strong> method.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs coffeescript">  QueryExpression qe = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> QueryExpression();
+  qe.EntityName = <span class="hljs-string"><span class="hljs-string">"contoso_inspection"</span></span>;
+  qe.ColumnSet = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ColumnSet(<span class="hljs-string"><span class="hljs-string">"statuscode"</span></span>);
+</code></pre>
+      </li>
+      <li>
+        <p>Create the <strong>ConditionExpression</strong>.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs coffeescript">  ConditionExpression condition = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ConditionExpression();
+  condition.Operator = ConditionOperator.Equal;
+  condition.AttributeName = <span class="hljs-string"><span class="hljs-string">"contoso_permit"</span></span>;
+  condition.Values.Add(permitEntityRef.Id);
+</code></pre>
+      </li>
+      <li>
+        <p>Set the <strong>Criteria</strong> of the query.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs php">  qe.Criteria = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> FilterExpression(LogicalOperator.<span class="hljs-keyword"><span class="hljs-keyword">And</span></span>);
+</code></pre>
+      </li>
+      <li>
+        <p>Add the <strong>ConditionExpression</strong> to the <strong>Criteria</strong> of the <strong>QueryExpression</strong>.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">qe</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Criteria</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Conditions</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Add</span></span>(<span class="hljs-selector-tag"><span class="hljs-selector-tag">condition</span></span>);
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image32.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image32.png" alt="Execute plugin method after update - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Retrieve the inspections and iterate through the returned Tables.</p>
+
+    <ul>
+      <li>
+        <p>Retrieve the <strong>Inspections</strong> and add <strong>Trace</strong> messages.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs cs">  localcontext.Trace(<span class="hljs-string"><span class="hljs-string">"Retrieving inspections for Permit Id "</span></span> + permitEntityRef.Id);
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> inspectionsResult = localcontext.OrganizationService.RetrieveMultiple(qe);
+  localcontext.Trace(<span class="hljs-string"><span class="hljs-string">"Retrievied "</span></span> + inspectionsResult.TotalRecordCount + <span class="hljs-string"><span class="hljs-string">" inspection records"</span></span>);
+</code></pre>
+      </li>
+      <li>
+        <p>Create a <strong>variable</strong> that will keep track of the canceled <strong>Inspections</strong> count and Iterate through the returned Tables.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> canceledInspectionsCount = <span class="hljs-number"><span class="hljs-number">0</span></span>;
+  <span class="hljs-keyword"><span class="hljs-keyword">foreach</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">var</span></span> inspection <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> inspectionsResult.Entities)
+  {          
+
+  }
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Retrieve the selected status reason option and check if it is set to new request or pending.</p>
+
+    <ul>
+      <li>
+        <p>Get the currently selected value of the <strong>Status Reason</strong> option-set. Add the code below inside the <strong>foreach</strong> loop.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="hljs cs">      <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> currentValue = inspection.GetAttributeValue&lt;OptionSetValue&gt;(<span class="hljs-string"><span class="hljs-string">"statuscode"</span></span>);
+</code></pre>
+      </li>
+      <li>
+        <p>Check if the selected option is <strong>New Request</strong> or <strong>Pending</strong> and increment the count. 1 is the value of the New Request option and 463270000 id the value of the Pending option. This should be placed inside the foreach loop.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="hljs ruby">  <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (currentValue.Value == <span class="hljs-number"><span class="hljs-number">1</span></span> <span class="hljs-params"><span class="hljs-params">||</span></span> currentValue.Value == <span class="hljs-number"><span class="hljs-number">463270000</span></span>)
+  {
+  canceledInspectionsCount++;
+  }
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Cancel the inspections that are pending or new request</p>
+
+    <ul>
+      <li>
+        <p>Set the <strong>Status Reason</strong> selected value to <strong>Canceled</strong>. Add the code below inside the if statement inside the foreach loop. Make sure that 463270003 is the value for <strong>Canceled</strong> <strong>Status Reason</strong> in the <strong>Inspections</strong> Table. If this differs, please update the value with actual value for <strong>Canceled Status Reason</strong>.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs coffeescript">      inspection[<span class="hljs-string"><span class="hljs-string">"statuscode"</span></span>] = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> OptionSetValue(<span class="hljs-number"><span class="hljs-number">463270003</span></span>);
+</code></pre>
+      </li>
+      <li>
+        <p>Update the <strong>Inspection</strong> and add <strong>Trace</strong> messages.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">localcontext</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Trace</span></span>("<span class="hljs-selector-tag"><span class="hljs-selector-tag">Canceling</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">inspection</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Id</span></span> : " + <span class="hljs-selector-tag"><span class="hljs-selector-tag">inspection</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Id</span></span>);
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">localcontext</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.OrganizationService</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Update</span></span>(<span class="hljs-selector-tag"><span class="hljs-selector-tag">inspection</span></span>);
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">localcontext</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Trace</span></span>("<span class="hljs-selector-tag"><span class="hljs-selector-tag">Canceled</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">inspection</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Id</span></span> : " + <span class="hljs-selector-tag"><span class="hljs-selector-tag">inspection</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Id</span></span>);
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image33.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image33.png" alt="Foreach section of the execute plugin method - screenshot"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-3-set-output-parameter-and-create-note-record">Task #3: Set Output Parameter and Create Note Record</h2>
+
+<ol>
+  <li>
+    <p>Check if at least one Inspection was canceled and CanceledInspectionsCount output Parameter.</p>
+
+    <ul>
+      <li>
+        <p>Check if at least one <strong>Inspection</strong> was canceled. Add the code below after the <strong>foreach</strong> loop.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="hljs bash">  <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (canceledInspectionsCount &gt; 0)
+  {           
+
+  }
+</code></pre>
+      </li>
+      <li>
+        <p>Set the <strong>CanceledInspectionsCount</strong> output parameter. Add the code below inside the if statement outside the foreach loop.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="hljs apache">  <span class="hljs-attribute"><span class="hljs-attribute">localcontext</span></span>.PluginExecutionContext.OutputParameters[<span class="hljs-string"><span class="hljs-string">"CanceledInspectionsCount"</span></span>] = canceledInspectionsCount + <span class="hljs-string"><span class="hljs-string">" Inspections were canceled"</span></span>;
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image34.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image34.png" alt="Set output parameter - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Check if the Input Parameters contain Reason and Create the Note record.</p>
+
+    <ul>
+      <li>
+        <p>Check if <strong>Reason</strong> contains in the <strong>InputParameters</strong>. Add the code below after the last if statement.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">if</span></span> (<span class="hljs-selector-tag"><span class="hljs-selector-tag">localcontext</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.PluginExecutionContext</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.InputParameters</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.ContainsKey</span></span>("<span class="hljs-selector-tag"><span class="hljs-selector-tag">Reason</span></span>"))
+  {
+
+  }
+</code></pre>
+      </li>
+      <li>
+        <p>Build the <strong>Note</strong> record and add <strong>Trace Message</strong>. Add the code below inside the if statement.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="hljs coffeescript">  localcontext.Trace(<span class="hljs-string"><span class="hljs-string">"building a note reocord"</span></span>);
+  Entity note = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Entity(<span class="hljs-string"><span class="hljs-string">"annotation"</span></span>);
+  note[<span class="hljs-string"><span class="hljs-string">"subject"</span></span>] = <span class="hljs-string"><span class="hljs-string">"Permit Locked"</span></span>;
+  note[<span class="hljs-string"><span class="hljs-string">"notetext"</span></span>] = <span class="hljs-string"><span class="hljs-string">"Reason for locking this permit: "</span></span> + localcontext.PluginExecutionContext.InputParameters[<span class="hljs-string"><span class="hljs-string">"Reason"</span></span>];
+  note[<span class="hljs-string"><span class="hljs-string">"objectid"</span></span>] = permitEntityRef;
+  note[<span class="hljs-string"><span class="hljs-string">"objecttypecode"</span></span>] = permitEntityRef.LogicalName;
+</code></pre>
+      </li>
+      <li>
+        <p>Add Trace Message and create the Note record.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="hljs cs">  localcontext.Trace(<span class="hljs-string"><span class="hljs-string">"Creating a note reocord"</span></span>);
+  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> createdNoteId = localcontext.OrganizationService.Create(note);
+</code></pre>
+      </li>
+      <li>
+        <p>Check if the Note record was created and add Trace Message.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="hljs php">  <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (createdNoteId != Guid.<span class="hljs-keyword"><span class="hljs-keyword">Empty</span></span>)
+  localcontext.Trace(<span class="hljs-string"><span class="hljs-string">"Note record was created"</span></span>);
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image35.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image35.png" alt="Create not record - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Build plugin by right clicking on the project and select <strong>Build</strong> and make sure the build succeeds.</p>
+  </li>
+</ol>
+
+<h2 id="task-4-deploy-plugin">Task #4: Deploy Plugin</h2>
+
+<ol>
+  <li>
+    <p>If you do not have the plugin registration tool running already, follow instructions in Exercise #1, Task #2 to run the tool and connect to the organization.</p>
+  </li>
+  <li>
+    <p>Update the assembly</p>
+
+    <ul>
+      <li>Select <strong>ContosoPackageProject</strong> and click <strong>Update</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image36.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image36.png" alt="Update assembly - screenshot"></a></p>
+
+    <ul>
+      <li>Click … to <strong>Browse</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image37.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image37.png" alt="Browse for assembly - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Browse to the <strong>debug</strong> folder of your plugin project, select the <strong>ContosoPackageProject</strong>.dll file and click <strong>Open</strong>.</p>
+      </li>
+      <li>
+        <p>Check <strong>Select All</strong> checkbox and click <strong>Update Selected Plugins</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image38.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image38.png" alt="Update plugins - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>OK</strong>.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Register new step</p>
+
+    <ul>
+      <li>
+        <p>Select the assembly (ContosoPackageProject.LockPermitCancelInspections).</p>
+      </li>
+      <li>
+        <p>Click <strong>Register</strong> and select <strong>Register</strong> <strong>New Step</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image39.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image39.png" alt="Register new step - screenshot"></a></p>
+
+    <ul>
+      <li>Enter <strong>contoso</strong> in the <strong>Message</strong> textbox and select <strong>contoso_LockPermit</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image40.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image40.png" alt="Select message and primary Table - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Enter <strong>contoso_permit</strong> for <strong>Primary Table</strong>.</p>
+      </li>
+      <li>
+        <p>Make sure that Event Handler is selected for <strong>LockPermitCancelInspections</strong> plugin.</p>
+      </li>
+      <li>
+        <p>Select <strong>PreOperation</strong> from dropdown for <strong>Event Pipeline Stage of Execution</strong> and click <strong>Register New Step</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image41.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image41.png" alt="Register new step - screenshot"></a></p>
+
+    <ul>
+      <li>Step should now be registered in the assembly.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image42.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image42.png" alt="Registered step - screenshot"></a></p>
+  </li>
+</ol>
+
+<h1 id="exercise-3-test-plugins">Exercise #3: Test Plugins</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will test the plugins you created.</p>
+
+<h2 id="task-1-test-lock-plugin">Task #1: Test Lock Plugin</h2>
+
+<ol>
+  <li>
+    <p>Add Plugin Assembly and Plugin - step to the Permit Management solution <br>
+‎</p>
+
+    <p><strong>Note</strong>: This is only required to be done after deploying it first time to ensure that when the project solution is moved to the production environments, the plugins and the registered steps are included.</p>
+
+    <ul>
+      <li>
+        <p>Sign in to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you have the <strong>Dev</strong> environment selected.</p>
+      </li>
+      <li>
+        <p>Select <strong>Solution</strong> and click to open the <strong>Permit Management</strong> solution.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image43.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image43.png" alt="Open solution - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <table>
+          <tbody>
+            <tr>
+              <td>Click **Add Existing</td>
+              <td>Other</td>
+              <td>Plugin Assembly**.</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image44.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image44.png" alt="Add existing plugin - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>ContosoPackageProject</strong> and click <strong>Add</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image45.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image45.png" alt="Add plug in assembly - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <table>
+          <tbody>
+            <tr>
+              <td>Click **Add Existing</td>
+              <td>Other</td>
+              <td>Plug-in step**.</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image46.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image46.png" alt="Add existing plugin step - screenshot"></a></p>
+
+    <ul>
+      <li>Select both SDK Messages you created and click <strong>Add</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image47.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image47.png" alt="Select steps and add - screenshot"></a></p>
+
+    <ul>
+      <li>Now, open the <strong>Permit</strong> Table and click <strong>Settings</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image48.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image48.png" alt="Table settings - screenshot"></a></p>
+
+    <ul>
+      <li>Check <strong>Enable Attachments and Notes,</strong> and then click <strong>Done</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image49.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image49.png" alt="Enable attachments for Table - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Okay</strong>.</p>
+      </li>
+      <li>
+        <p>Finally, select <strong>Save Table</strong>.</p>
+      </li>
+      <li>
+        <p>Select <strong>Solutions</strong> and click <strong>Publish All Customizations</strong>.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Start the Permit Management application and enable Plugin Tracing</p>
+
+    <ul>
+      <li>
+        <p>Select <strong>Apps</strong>.</p>
+      </li>
+      <li>
+        <p>Click to open the <strong>Permit Management</strong> application.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image50.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image50.png" alt="Start application - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Settings</strong> and select <strong>Advanced Settings</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image51.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image51.png" alt="Advanced settings - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Settings</strong> and select <strong>Administration</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image52.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image52.png" alt="Administration - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>System Settings</strong>.</p>
+      </li>
+      <li>
+        <p>Select <strong>Customization</strong> tab.</p>
+      </li>
+      <li>
+        <p>Set Enable Plugin Logging to Plugin Trace Log to <strong>All</strong> and click <strong>OK</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image53.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image53.png" alt="Enable plugin logging - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Create test record</p>
+
+    <ul>
+      <li>
+        <p>Go back to the <strong>Permit Management</strong> application.</p>
+      </li>
+      <li>
+        <p>Select <strong>Inspections</strong>.</p>
+      </li>
+      <li>
+        <p>You should have two inspections one <strong>Failed</strong> and one <strong>Passed</strong>. If not, open them and update the records.</p>
+      </li>
+      <li>
+        <p>Click <strong>New</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image54.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image54.png" alt="Create new inspection record - screenshot"></a></p>
+
+    <ul>
+      <li>Enter <strong>Plumbing Inspection</strong> for <strong>Name</strong>, select <strong>Initial Inspection</strong> for <strong>Type</strong>, select a permit, provide <strong>Schedule Data</strong>, select <strong>Pending</strong> for <strong>Status Reason</strong>, and click <strong>Save</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image55.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image55.png" alt="Create inspection record - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>New</strong> again.</p>
+      </li>
+      <li>
+        <p>Enter <strong>Mechanical Inspection</strong> for <strong>Name</strong>, select <strong>Initial Inspection</strong> for <strong>Type</strong>, select a permit, provide <strong>Schedule Date</strong>, select <strong>New Request</strong> for <strong>Status Reason</strong>, and click <strong>Save</strong>.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Lock Permit.</p>
+
+    <ul>
+      <li>
+        <p>Select <strong>Inspections</strong>.</p>
+      </li>
+      <li>
+        <p>Make sure you have four inspection records and with various Status Reason value.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image56.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image56.png" alt="Inspection records - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select <strong>Permits</strong>.</p>
+      </li>
+      <li>
+        <p>Click to open the <strong>Test Permit</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image57.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image57.png" alt="Open permit record - screenshot"></a></p>
+
+    <ul>
+      <li>Make sure the Status Reason is set to Active and click <strong>Lock Permit</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image58.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image58.png" alt="Lock permit record - screenshot"></a></p>
+
+    <ul>
+      <li>The Custom Action should run. Click <strong>Refresh</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image59.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image59.png" alt="Refresh record - screenshot"></a></p>
+
+    <ul>
+      <li>The <strong>Status Reason</strong> value should change to <strong>Locked</strong></li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image60.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image60.png" alt="Locked record - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Check if the Pending and New Request Inspections get canceled</p>
+
+    <ul>
+      <li>
+        <p>Select Inspections.</p>
+      </li>
+      <li>
+        <p>You should now have two canceled inspections.<br>
+‎</p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<p><strong>If you completed the PCF module:</strong>
+    <a href="../L06/Static/Mod_01_Plugin_image61.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image61.png" alt="Inspection timeline control - screenshot"></a></p>
+
+<p><strong>If you did not complete the PCF module:</strong>
+    <a href="../L06/Static/Mod_01_Plugin_image62.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image62.png" alt="Active inspections view - screenshot"></a></p>
+
+<ol>
+  <li>
+    <p>Check if the Note record was created.</p>
+
+    <ul>
+      <li>Click <strong>Advanced Find</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image63.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image63.png" alt="Advanced find - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Notes</strong> and click <strong>Results</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image64.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image64.png" alt="notes results - screenshot"></a></p>
+
+    <ul>
+      <li>You should at least one <strong>Note</strong> record. Click to open the <strong>Note</strong> record.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image65.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image65.png" alt="Open note record - screenshot"></a></p>
+
+    <ul>
+      <li>The Regarding Column should be set to the Permit you locked.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image66.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image66.png" alt="Note record details - screenshot"></a></p>
+
+    <ul>
+      <li>Close the <strong>Note</strong> record. Close <strong>Advanced Find</strong>.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="task-2-test-restrict-new-permit-creation-plugin">Task #2: Test Restrict New Permit Creation Plugin</h2>
+
+<ol>
+  <li>
+    <p>Try to create new Permit record for the One Microsoft Way Build Site</p>
+
+    <ul>
+      <li>
+        <p>Select <strong>Permits</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>New</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image67.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image67.png" alt="Create new permit - screenshot"></a></p>
+
+    <ul>
+      <li>Provide the information below and click <strong>Save</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image68.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image68.png" alt="Save new permit - screenshot"></a></p>
+
+    <ul>
+      <li>You should get the error below. Click <strong>OK</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image69.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image69.png" alt="Record locked message - screenshot"></a></p>
+
+    <ul>
+      <li>The record should not get created.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image70.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image70.png" alt="Unsaved changes - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select <strong>Permits</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Discard</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image71.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image71.png" alt="Discard changes - screenshot"></a></p>
+
+    <ul>
+      <li>You should have only one Permit record.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image72.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image72.png" alt="Permits list - screenshot"></a></p>
+  </li>
+</ol>
+
+<p>‎</p>
+
+<h1 id="exercise-4-plugin-trace-log-and-debugging">Exercise #4: Plugin Trace Log and Debugging</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will check the Plugin Trace log and debug the plugins</p>
+
+<h2 id="task-1-plugin-trace-log">Task #1: Plugin Trace Log</h2>
+
+<ol>
+  <li>
+    <p>Open Plugin trace Log.</p>
+
+    <ul>
+      <li>
+        <p>Go back to the Permit Management application.</p>
+      </li>
+      <li>
+        <p>Click <strong>Settings</strong> and select <strong>Advanced Settings</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image73.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image73.png" alt="Advanced settings - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Settings</strong> and select <strong>Plugin Trace Log</strong>.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image74.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image74.png" alt="Plug-in trace log - screenshot"></a></p>
+
+    <ul>
+      <li>You should see at least two logs.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image75.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image75.png" alt="Plug-in trace logs list - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Open the log and see what was logged.</p>
+
+    <ul>
+      <li>Click to open the Lock Permit log.</li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image76.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image76.png" alt="Open log - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Scroll down to the Execution section.</p>
+      </li>
+      <li>
+        <p>Examine your Trace messages.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L06/Static/Mod_01_Plugin_image77.png" target="_blank"><img src="../L06/Static/Mod_01_Plugin_image77.png" alt="Trace message - screenshot"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-2-debugging-plugins-optional">Task #2: Debugging Plugins (Optional)</h2>
+
+<p>Follow these steps to debug your plugins <a href="https://docs.microsoft.com/en-us/powerapps/developer/common-data-service/tutorial-debug-plug-in">https://docs.microsoft.com/en-us/powerapps/developer/common-data-service/tutorial-debug-plug-in</a></p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.js"></script>
+
+
+
+</body></html>

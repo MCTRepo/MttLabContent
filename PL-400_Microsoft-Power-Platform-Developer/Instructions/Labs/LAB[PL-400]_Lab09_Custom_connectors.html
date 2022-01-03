@@ -1,0 +1,996 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            PL-400_Microsoft-Power-Platform-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                PL-400_Microsoft-Power-Platform-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <blockquote>
+  <p>[!NOTE]
+Effective November 2020:</p>
+  <ul>
+    <li>Common Data Service has been renamed to Microsoft Dataverse. <a href="https://aka.ms/PAuAppBlog">Learn more</a></li>
+    <li>Some terminology in Microsoft Dataverse has been updated. For example, <em>Table</em> is now <em>table</em> and <em>Column</em> is now <em>column</em>. <a href="https://go.microsoft.com/fwlink/?linkid=2147247">Learn more</a></li>
+  </ul>
+
+  <p>This content will be updated soon to reflect the latest terminology.</p>
+</blockquote>
+
+<h2 id="lab-09--custom-connector">Lab 09 – Custom Connector</h2>
+
+<h1 id="scenario">Scenario</h1>
+
+<p>A regional building department issues and tracks permits for new buildings and updates for remodeling of existing buildings. Throughout this course you will build applications and automation to enable the regional building department to manage the permitting process. This will be an end-to-end solution which will help you understand the overall process flow.</p>
+
+<p>In this lab you will build a custom connector that can be used from Power Apps and Power Automate. Custom connectors describe existing APIs and allow them to be used easily. In this lab, you will build an API that has common calculations used by inspectors so that they can be used by applications. After building the API, you will create a custom connector definition to make it available to Power Apps and Power Automate.</p>
+
+<p>The connector could have multiple actions defined on it. However, for our lab we will define a single action <strong>Get Required CPM</strong> – where CPM stands for Cubic <n> Per Minute. In some regions this would be Cubic Feet Per Minute, and in others it could be Cubic Meters Per Minute. The action we are building will take the dimensions of a room and the number of air exchanges required by policy. The action logic will calculate the required CPM for that configuration. If you want, you can add additional actions to support other inspection type scenarios to the API and the custom connector.</n></p>
+
+<p>After building the API and the custom connector you will modify the inspector app to add the user experience to use the connector. You will use the same connector and invoke an action from Power Automate.</p>
+
+<h1 id="high-level-lab-steps">High-level lab steps</h1>
+
+<p>As part of configuring the custom connector, you will complete the following</p>
+
+<ul>
+  <li>
+    <p>Create an Azure function that implements the CPM API</p>
+  </li>
+  <li>
+    <p>Create a custom connector in a solution</p>
+  </li>
+  <li>
+    <p>Configure the security and actions on the custom connector</p>
+  </li>
+  <li>
+    <p>Test the custom connector</p>
+  </li>
+  <li>
+    <p>Configure a Power Apps canvas app to use the connector</p>
+  </li>
+  <li>
+    <p>Configure a Power Automate to use the connector</p>
+  </li>
+</ul>
+
+<h2 id="things-to-consider-before-you-begin">Things to consider before you begin</h2>
+
+<ul>
+  <li>
+    <p>Is there a standard approved connector already available that can be used?</p>
+  </li>
+  <li>
+    <p>What security will we use in our connector?</p>
+  </li>
+  <li>
+    <p>What are possible triggers and actions of the connector?</p>
+  </li>
+  <li>
+    <p>Are there any API rate limits that could potentially affect the connector?</p>
+  </li>
+</ul>
+
+<h1 id="exercise-1-create-the-azure-function">Exercise #1: Create the Azure Function</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will create an Azure function app and the function that will calculate the CPM.</p>
+
+<h2 id="task-1-create-cpm-calculation-function">Task #1: Create CPM Calculation Function</h2>
+
+<ol>
+  <li>
+    <p>Create the function app</p>
+
+    <ul>
+      <li>
+        <p>Sign in to <a href="https://portal.azure.com/">Azure portal</a></p>
+      </li>
+      <li>
+        <p>Click <strong>Create a Resource</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image1.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image1.png" alt="Create new resource - screenshot"></a></p>
+
+    <ul>
+      <li>Search for <strong>Function</strong> and select <strong>Function App</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image2.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image2.png" alt="Select function app - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Create</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image3.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image3.png" alt="Create function app - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Enter <strong>CPMCalculator</strong> for <strong>App Name</strong>. Provide a unique name, if CPMCalculator is not available.</p>
+      </li>
+      <li>
+        <p>Create <strong>New Resource Group</strong>. You may select an existing Resource Group if you already created one for this course.</p>
+      </li>
+      <li>
+        <p>Select <strong>.NET Core</strong> for <strong>Runtime Stack</strong>, select your <strong>Region</strong> and click <strong>Review + Create</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image4.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image4.png" alt="Create review function application - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Create</strong>. Wait for the function app to be created</li>
+    </ul>
+  </li>
+  <li>
+    <p>Create function</p>
+
+    <ul>
+      <li>Click <strong>Go to Resource</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image5.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image5.png" alt="Go to resource - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Functions</strong> and click <strong>+ Add</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image6.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image6.png" alt="Add function - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select <strong>HTTP trigger</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Create Function.</strong></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Add the <strong>Using Statements</strong> and <strong>CRMCalcRequest</strong> class to the function.</p>
+
+    <ul>
+      <li>Select <strong>Code + Test</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image7.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image7.png" alt="Code and test - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Add the Using Statements below to the function.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Extensions</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Logging</span></span>;
+  <span class="hljs-selector-tag"><span class="hljs-selector-tag">using</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Newtonsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Json</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Linq</span></span>;
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image8.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image8.png" alt="Add using statements - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Add the public class below to the function. This will describe the request that will be sent from the applications using the API.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs cpp">  <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">CPMCalcRequest</span></span></span><span class="hljs-class">
+  {</span></span>
+      <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> Width=<span class="hljs-number"><span class="hljs-number">0</span></span>;
+      <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> Height=<span class="hljs-number"><span class="hljs-number">0</span></span>;
+      <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> Length=<span class="hljs-number"><span class="hljs-number">0</span></span>;
+      <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> AirChanges=<span class="hljs-number"><span class="hljs-number">0</span></span>;
+  }
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image9.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image9.png" alt="Add class - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Clean up the Run method</p>
+
+    <ul>
+      <li>
+        <p>Go to the <strong>Run</strong> method.</p>
+      </li>
+      <li>
+        <p>Remove everything but the log line from the <strong>Run</strong> method.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image10.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image10.png" alt="Edit run method - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Get the Request body and deserialize it as <strong>CRMCalcRequest</strong></p>
+
+    <ul>
+      <li>
+        <p>Get the request <strong>Body</strong> from the request argument. Add the code below inside the <strong>Run</strong> method.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> requestBody = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> StreamReader(req.Body).ReadToEndAsync();
+</code></pre>
+      </li>
+      <li>
+        <p>Deserialize the request body. Add the code below inside the <strong>Run</strong> method.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs xml">  CPMCalcRequest calcReq = JsonConvert.DeserializeObject<span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">CPMCalcRequest</span></span></span><span class="hljs-tag">&gt;</span></span>(requestBody);
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image11.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image11.png" alt="Add code to run method - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Calculate the CPM and return it form the Run method</p>
+
+    <ul>
+      <li>
+        <p>Calculate the <strong>CPM</strong> and log the calculated value. Add the code below inside the <strong>Run</strong> method.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs cpp">  var cpm = ((calcReq.Width*calcReq.Height*calcReq.Length) * calcReq.AirChanges) / <span class="hljs-number"><span class="hljs-number">60</span></span>;
+  <span class="hljs-built_in"><span class="hljs-built_in">log</span></span>.LogInformation(<span class="hljs-string"><span class="hljs-string">"CPM "</span></span> + cpm);
+</code></pre>
+      </li>
+      <li>
+        <p>Return the calculated <strong>CPM</strong>. Add the code below inside the Run method.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> (ActionResult)<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> OkObjectResult(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span>{
+      CPM = cpm
+  });
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image12.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image12.png" alt="Updated run method - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Save</strong> to save your changes.</p>
+  </li>
+  <li>
+    <p>Copy the Function URL.</p>
+
+    <ul>
+      <li>Click <strong>Get Function URL</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image13.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image13.png" alt="Get function URL - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Copy</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image14.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image14.png" alt="Copy function URL - screenshot"></a></p>
+
+    <ul>
+      <li>Keep the URL you copied on a notepad. You will need this URL while creating the custom connector.</li>
+    </ul>
+  </li>
+</ol>
+
+<h1 id="exercise-2-create-the-custom-connector">Exercise #2: Create the Custom Connector</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will create the Custom Connector. This same approach could be used to describe any existing API you create or that has been created by any 3<sup data-htmlnode>rd</sup> parties and an existing connector for that service is unavailable.</p>
+
+<h2 id="task-1-create-the-custom-connector">Task #1: Create the Custom Connector</h2>
+
+<ol>
+  <li>
+    <p>Open the Permit Management solution</p>
+
+    <ul>
+      <li>
+        <p>Sign in to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you are in the <strong>Dev</strong> environment.</p>
+      </li>
+      <li>
+        <p>Select <strong>Solutions</strong>.</p>
+      </li>
+      <li>
+        <p>Click to open the <strong>Permit Management</strong> solution.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image15.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image15.png" alt="Open solution - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Create Custom Connector</p>
+
+    <ul>
+      <li>Click <strong>+ New</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image16.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image16.png" alt="Create new component - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <table>
+          <tbody>
+            <tr>
+              <td>Select **Other</td>
+              <td>Custom Connector**.</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image17.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image17.png" alt="Create new custom connector - screenshot"></a></p>
+
+    <ul>
+      <li>Change the <strong>Connector</strong> <strong>Name</strong> from <strong>Untitled</strong> to <strong>CPM Calculator</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image18.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image18.png" alt="Rename custom connector - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Locate the <strong>Host</strong> Column and paste the <strong>Function URL</strong> you copied in Exercise 1.</p>
+      </li>
+      <li>
+        <p>Remove https:// and everything after .net.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image19.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image19.png" alt="Paste host URL - screenshot "></a></p>
+  </li>
+  <li>
+    <p>Select API key for security and create the connector</p>
+
+    <ul>
+      <li>Advance to <strong>Security</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image20.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image20.png" alt="Select security - screenshot "></a></p>
+
+    <ul>
+      <li>Select <strong>API Key</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image21.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image21.png" alt="Select API key - screenshot"></a></p>
+
+    <ul>
+      <li>Enter <strong>API Key</strong> for <strong>Parameter Label</strong>, <strong>code</strong> for <strong>Parameter Name</strong>, and select <strong>Query</strong> for <strong>Parameter Location</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image22.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image22.png" alt="API key - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Create Connector</p>
+
+    <ul>
+      <li>Advance to <strong>Definition</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image23.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image23.png" alt="Definition - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Create Connector</strong> and wait for the connector to be created.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image24.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image24.png" alt="Create connector - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Create Action</p>
+
+    <ul>
+      <li>Click <strong>New Action</strong>. The action describes each operation that the API has. These can be manually defined like we are doing here or can be imported from Open API or Postman collection files for larger APIs.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image25.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image25.png" alt="Create new action - screenshot"></a></p>
+
+    <ul>
+      <li>Enter <strong>CPM Calculator</strong> for <strong>Summary</strong>, <strong>Calculates CPM</strong> for <strong>Description</strong>, and <strong>GetRequiredCPM</strong> for <strong>Operation ID</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image26.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image26.png" alt="Action information - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Import request from sample</p>
+
+    <ul>
+      <li>Click <strong>+ Import from Sample</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image27.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image27.png" alt="Import request from sample - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select <strong>Post</strong> for <strong>Verb</strong>.</p>
+      </li>
+      <li>
+        <p>Paste the function <strong>URL</strong> from your notepad and remove everything after <strong>HttpTrigger1</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image28.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image28.png" alt="Paste URL - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Paste the json below in the <strong>Body</strong> field and click <strong>Import</strong>.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs json">  {
+      <span class="hljs-attr"><span class="hljs-attr">"Width"</span></span>: <span class="hljs-number"><span class="hljs-number">15</span></span>,
+      <span class="hljs-attr"><span class="hljs-attr">"Height"</span></span>: <span class="hljs-number"><span class="hljs-number">8</span></span>,
+      <span class="hljs-attr"><span class="hljs-attr">"Length"</span></span>:<span class="hljs-number"><span class="hljs-number">20</span></span>,
+      <span class="hljs-attr"><span class="hljs-attr">"AirChanges"</span></span>:<span class="hljs-number"><span class="hljs-number">8</span></span>
+  }
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image29.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image29.png" alt="Import sample - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add Default response</p>
+
+    <ul>
+      <li>Scroll down to the <strong>Response</strong> section and click <strong>+ Add Default Response</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image30.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image30.png" alt="Add default response - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Paste the json below in the <strong>Body</strong> and click <strong>Import</strong>.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs json">  {<span class="hljs-attr"><span class="hljs-attr">"cpm"</span></span>:<span class="hljs-number"><span class="hljs-number">200</span></span>}
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image31.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image31.png" alt="Import response - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Update Connector</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image32.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image32.png" alt="Update connector - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Test the connector</p>
+
+    <ul>
+      <li>Advance to Test.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image33.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image33.png" alt="Select test - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>New Connection</strong>. This will open a New window.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image34.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image34.png" alt="New connection - screenshot"></a></p>
+
+    <ul>
+      <li>Go to your notepad and copy only the value of the <strong>code</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image35.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image35.png" alt="Copy key - screenshot"></a></p>
+
+    <ul>
+      <li>Go back to the connector, paste the value you copied, and click <strong>Create Connection</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image36.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image36.png" alt="Create connection - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Refresh the connections and select newly created connection.</p>
+      </li>
+      <li>
+        <p>Provide values for <strong>Width</strong>, <strong>Height</strong>, <strong>Length</strong>, and <strong>AirChanges</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Test Operation</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image37.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image37.png" alt="Test operation - screenshot"></a></p>
+
+    <ul>
+      <li>You should get a CPM value back.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image38.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image38.png" alt="Response value - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Close the window and go back to Solution window and click <strong>Done.</strong></p>
+      </li>
+      <li>
+        <p>Click <strong>Publish all Customizations.</strong></p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<p>‎</p>
+
+<h1 id="exercise-3-test-connector">Exercise #3 Test Connector</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will use the Custom Connector from a Power 9Apps canvas app and a Power Automate.</p>
+
+<h2 id="task-1-test-on-canvas-app">Task #1: Test on Canvas App</h2>
+
+<ol>
+  <li>
+    <p>Open the Permit Management solution</p>
+
+    <ul>
+      <li>
+        <p>Sign in to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you are in the <strong>Dev</strong> environment.</p>
+      </li>
+      <li>
+        <p>Select <strong>Solutions.</strong></p>
+      </li>
+      <li>
+        <p>Click to open the <strong>Permit Management</strong> solution.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Open the Inspector canvas application in edit mode</p>
+
+    <ul>
+      <li>
+        <p>Locate the <strong>Inspector Canvas App</strong>.</p>
+      </li>
+      <li>
+        <p>Click on the <strong>… More Commands</strong> button and select <strong>Edit</strong>. This will open the app in a New window.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image39.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image39.png" alt="Edit application - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add new screen to the application</p>
+
+    <ul>
+      <li>Click <strong>New Screen</strong> and select <strong>Blank</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image40.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image40.png" alt="New blank screen - screenshot "></a></p>
+
+    <ul>
+      <li>Rename the screen <strong>CPM Calc Screen</strong></li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image41.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image41.png" alt="Rename screen - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add Input Text to the new screen</p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>CPM Calc Screen</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Insert</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image42.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image42.png" alt="Insert button screenshot"></a></p>
+
+    <ul>
+      <li>Drag and drop <strong>Text Input</strong> to the screen.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image43.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image43.png" alt="Add control to screens - screenshot "></a></p>
+
+    <ul>
+      <li>Select the <strong>Tree View</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image44.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image44.png" alt="Select tree view - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Rename the Text Input <strong>Width Text</strong>.</p>
+      </li>
+      <li>
+        <p>Remove the <strong>Default</strong> property of the <strong>Width</strong> text input.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image45.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image45.png" alt="Remove default value - svreenshot"></a></p>
+
+    <ul>
+      <li>Change the <strong>HintText</strong> property of the <strong>Width</strong> text input to <strong>Provide Width</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image46.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image46.png" alt="Provide hint text - screenshot"></a></p>
+
+    <ul>
+      <li>The <strong>Width Text</strong> input should now look like the image below.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image47.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image47.png" alt="Width text - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add Height, Length, and Air Change Input Text controls</p>
+
+    <ul>
+      <li>Copy the <strong>Width Text</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image48.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image48.png" alt="Copy input text - screenshot"></a></p>
+
+    <ul>
+      <li>Paste the text input you copied to the <strong>CPM Calc Screen.</strong></li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image49.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image49.png" alt="Paste text input - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Paste the text input you copied to the <strong>CPM Calc Screen</strong> two more times.</p>
+      </li>
+      <li>
+        <p>The <strong>CPMCalcScreen</strong> should now have total of four text inputs.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image50.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image50.png" alt="Text input controls - screenshot"></a></p>
+
+    <ul>
+      <li>Rename the input text controls <strong>Height Text</strong>, <strong>Length Text</strong>, and <strong>Air Change Text</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image51.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image51.png" alt="Rename controls - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Change the <strong>HintText</strong> for the three text inputs you renamed to <strong>Provide Height</strong>, <strong>Provide Length</strong>, and <strong>Provide Air Change</strong>, respectively.</p>
+      </li>
+      <li>
+        <p>Resize and reposition the text inputs as shown in the image below.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image52.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image52.png" alt="Input text control layout - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add button</p>
+
+    <ul>
+      <li>Go to the <strong>Insert</strong> tab and click Button.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image53.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image53.png" alt="Insert button - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Rename the Button <strong>Calculate Button</strong>.</p>
+      </li>
+      <li>
+        <p>Change the <strong>Calculate Button Text</strong> value to <strong>Submit</strong>.</p>
+      </li>
+      <li>
+        <p>Resize and reposition the button as shown in the image below.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image54.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image54.png" alt="Reposition button - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add the result label to the screen</p>
+
+    <ul>
+      <li>
+        <p>Go to the <strong>Insert</strong> tab and click Label</p>
+      </li>
+      <li>
+        <p>Rename the Label <strong>Result Label</strong>.</p>
+      </li>
+      <li>
+        <p>Place the label to the right of the text inputs.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image55.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image55.png" alt="Control layout - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add the Custom Connector to the application.</p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>Data Sources</strong> tab.</p>
+      </li>
+      <li>
+        <p>Expand <strong>Connectors</strong>.</p>
+      </li>
+      <li>
+        <p>Click the <strong>CPM Connector</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image56.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image56.png" alt="CPM Calculator connector - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>CPM Calculator</strong> again.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image57.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image57.png" alt="Select CPM Calculator connector - screenshot"></a></p>
+
+    <ul>
+      <li>The <strong>CPM Calculator</strong> should now be listed in the <strong>In your App</strong> section.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image58.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image58.png" alt="Added connector - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Get the calculated value when the button is clicked</p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>Calculate Button</strong>.</p>
+      </li>
+      <li>
+        <p>Set the <strong>OnSelect</strong> value of the <strong>Calculate Button</strong> to the formula below.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs css">  <span class="hljs-selector-tag"><span class="hljs-selector-tag">Set</span></span>(<span class="hljs-selector-tag"><span class="hljs-selector-tag">CalculatedValue</span></span>, <span class="hljs-selector-tag"><span class="hljs-selector-tag">Concatenate</span></span>("<span class="hljs-selector-tag"><span class="hljs-selector-tag">Calculated</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">CPM</span></span> ", <span class="hljs-selector-tag"><span class="hljs-selector-tag">Text</span></span>(<span class="hljs-selector-tag"><span class="hljs-selector-tag">Defaulttitle</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.GetRequiredCPM</span></span>({<span class="hljs-attribute"><span class="hljs-attribute">Width</span></span>: <span class="hljs-string"><span class="hljs-string">'Width Text'</span></span>.Text, Height: <span class="hljs-string"><span class="hljs-string">'Height Text'</span></span>.Text, Length: <span class="hljs-string"><span class="hljs-string">'Length Text'</span></span>.Text, AirChanges: <span class="hljs-string"><span class="hljs-string">'Air Change Text'</span></span>.Text})<span class="hljs-selector-class"><span class="hljs-selector-class">.cpm</span></span>)))
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image59.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image59.png" alt="On-Select formula - screenshot"></a></p>
+
+    <ul>
+      <li>Select the <strong>Result Label</strong> and set the <strong>Text</strong> value to the <strong>CalculatedValue</strong> variable.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image60.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image60.png" alt="Label text value - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add navigation button to the Main screen</p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>Main Screen</strong>.</p>
+      </li>
+      <li>
+        <p>Go to the <strong>Insert</strong> tab and click <strong>Button</strong>.</p>
+      </li>
+      <li>
+        <p>Rename the Button <strong>CPM Button</strong>.</p>
+      </li>
+      <li>
+        <p>Change the <strong>CPM Button</strong> <strong>Text</strong> value to <strong>CPM Calculator</strong>.</p>
+      </li>
+      <li>
+        <p>Place the button on the bottom right of the <strong>Main Screen</strong>.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Steps to navigate to the CPM Calc Screens</p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>CPM Calculator</strong>.</p>
+      </li>
+      <li>
+        <p>Set the <strong>OnSelect</strong> value of the <strong>CPM Calculator</strong> to the formula below.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs javascript">  <span class="hljs-built_in"><span class="hljs-built_in">Set</span></span>(CalculatedValue, <span class="hljs-string"><span class="hljs-string">""</span></span>); Navigate(<span class="hljs-string"><span class="hljs-string">'CPM Calc Screen'</span></span>, ScreenTransition.None)
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image61.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image61.png" alt="On-Select formula - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Run the Application</p>
+
+    <ul>
+      <li>Select the <strong>Main Screen</strong> and click <strong>Preview the App</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image62.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image62.png" alt="Preview app - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click on <strong>CPM Calculator</strong> button.</p>
+      </li>
+      <li>
+        <p>The CPM Calculator screen should load.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image63.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image63.png" alt="Calculator page - screenshot"></a></p>
+
+    <ul>
+      <li>Provide values and click <strong>Submit</strong>. You can notice the loading dots on top of the screen, which confirms that the request has been initiated.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image64.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image64.png" alt="Submit form - screenshot"></a></p>
+
+    <ul>
+      <li>The <strong>Result Label</strong> should show the calculated result from the Custom Connector.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image65.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image65.png" alt="Calculation result - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Close the Preview.</p>
+      </li>
+      <li>
+        <p>Click <strong>File</strong> and <strong>Save</strong>.</p>
+      </li>
+      <li>
+        <p><strong>Publish</strong> the changes to the application.</p>
+      </li>
+      <li>
+        <p>Click <strong>Close</strong>.</p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<p>Click <strong>Done</strong> on the other window for the solution.</p>
+
+<h2 id="task-2-test-on-flow">Task #2: Test on Flow</h2>
+
+<ol>
+  <li>
+    <p>Open the Permit Management solution</p>
+
+    <ul>
+      <li>
+        <p>Sign in to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you are in the <strong>Dev</strong> environment.</p>
+      </li>
+      <li>
+        <p>Select <strong>Solutions</strong>.</p>
+      </li>
+      <li>
+        <p>Click to open the <strong>Permit Management</strong> solution.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Create Flow and add trigger.</p>
+
+    <ul>
+      <li>Click <strong>New</strong> and select <strong>Flow</strong>. This will open a New window.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image66.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image66.png" alt="Create new flow - screenshot"></a></p>
+
+    <ul>
+      <li>Search for <strong>Manually</strong> and select <strong>Manually Trigger Flow</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image67.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image67.png" alt="Select trigger - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add a step that will use the Custom Connector</p>
+
+    <ul>
+      <li>Click <strong>+ New Step</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image68.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image68.png" alt="Add new step - screenshot"></a></p>
+
+    <ul>
+      <li>Select the <strong>Custom</strong> tab and click <strong>CPM Calculator</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image69.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image69.png" alt="Select custom connector - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>CPM Calculator</strong> action.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image70.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image70.png" alt="Select action - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Provide values and save</p>
+
+    <ul>
+      <li>Enter 18 for Width, 10 for Height, 18 for Length, 30 for AirChanges, and click <strong>Save</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image71.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image71.png" alt="Save flow - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Test the Flow</p>
+
+    <ul>
+      <li>Click <strong>Test</strong>.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image72.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image72.png" alt="Test connector - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select <strong>I will Perform the Trigger</strong> and click <strong>Save &amp;</strong> <strong>Test</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Continue</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image73.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image73.png" alt="Continue with test - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Run Flow</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Done.</strong> The Flow should run successfully. In the Flow run history, expand the CPM Calculator action.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image74.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image74.png" alt="Succeeded run - screenshot"></a></p>
+
+    <ul>
+      <li>You should be able to see the calculated result from the custom connector in the output of the action.</li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image75.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image75.png" alt="Result value - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Close the window and go back to Solution window. Click <strong>Done.</strong></p>
+      </li>
+      <li>
+        <p>Click <strong>Publish all Customizations.</strong></p>
+      </li>
+      <li>
+        <p>If you finish early, try adding input values to the Manual Button trigger for the room dimensions and use those to call the custom connector. You could also use the notification connector to send the user the required CPM. Finally, if you want to test this in a real device install the Power Automate mobile application.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L09/Static/Mod_2_Custom_Connector_image76.png" target="_blank"><img src="../L09/Static/Mod_2_Custom_Connector_image76.png" alt="Flow using input values - screenshot"></a></p>
+  </li>
+</ol>
+
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.js"></script>
+
+
+
+</body></html>

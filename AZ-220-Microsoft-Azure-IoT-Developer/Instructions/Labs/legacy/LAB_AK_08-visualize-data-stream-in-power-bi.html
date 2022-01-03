@@ -1,0 +1,1035 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../../assets/css/style_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../../">
+                AZ-220-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#make-a-call-to-a-built-in-machine-learning-model">Make a Call to a Built-in Machine Learning Model</a></li><li class="nav-item"><a class="nav-link" href="#visualize-data-using-power-bi">Visualize data using Power BI</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-sign-up-for-power-bi">Exercise 2: Sign Up For Power BI</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-generate-telemetry-from-simulated-device">Exercise 3: Generate Telemetry from Simulated Device</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-create-an-azure-event-hubs-service">Exercise 4: Create an Azure Event Hubs service</a></li><li class="nav-item"><a class="nav-link" href="#exercise-5-create-real-time-message-route">Exercise 5: Create Real-Time Message Route</a></li><li class="nav-item"><a class="nav-link" href="#exercise-6-add-telemetry-route">Exercise 6: Add Telemetry Route</a></li><li class="nav-item"><a class="nav-link" href="#exercise-7-create-a-power-bi-dashboard">Exercise 7: Create a Power BI Dashboard</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="visualize-a-data-stream-in-power-bi">Visualize a Data Stream in Power BI</h1>
+
+<blockquote>
+  <p><strong>IMPORTANT</strong>: This lab has several service prerequisites that are not related to the Azure subscription you were given for the course:</p>
+
+  <ol>
+    <li>The ability to sign in to a “Work or School Account” (Azure Active Directory account)</li>
+    <li>You must know your account sign-in name, which may not match your e-mail address.</li>
+    <li>Access to Power BI, which could be through:
+      <ol>
+        <li>An existing Power BI account</li>
+        <li>The ability to sign up for Power BI - some organizations block this.</li>
+      </ol>
+    </li>
+  </ol>
+
+  <p>The first lab exercise will validate your ability to access Power BI.  If you are not successful in the first exercise, you will not be able to complete the lab, as there is no quick workaround for blocked access to a work or school account.</p>
+</blockquote>
+
+<h2 id="lab-scenario">Lab Scenario</h2>
+
+<p>You have developed a simulated IoT device that generates vibration data and other telemetry outputs that are representative of the conveyor belt system used in Contoso’s cheese packaging process. You have built and tested a logging route that sends data to Azure Blob storage. You will now start work on a new route within IoT hub that will send telemetry data to an Azure Event Hubs service.</p>
+
+<p>The primary difference between Azure IoT Hub and Azure Event Hubs is that Event Hubs is designed for big data streaming, while IoT hub is optimized for an IoT solution. Both services support ingestion of data with low latency and high reliability. Since Azure Event Hubs provides an input to Stream Analytics in a manner that is similar to IoT hub, your choice of Event Hubs in this case allows you explore an additional Azure service option within your solution.</p>
+
+<h3 id="make-a-call-to-a-built-in-machine-learning-model">Make a Call to a Built-in Machine Learning Model</h3>
+
+<p>In this lab, you will be calling a built-in Machine Learning (ML) function named <code>AnomalyDetection_SpikeAndDip</code>. The <code>AnomalyDetection_SpikeAndDip</code> function uses a sliding window to analyze data for anomalies. The sliding window could be, for example, the most recent two minutes of telemetry data. The window advances in near real-time with the flow of telemetry. Generally speaking, if the size of the sliding window is increased to include more data, the accuracy of anomaly detection will increase as well (however, the latency also increases, so a balance must be found).</p>
+
+<p>The function establishes a “normal” range for the data and then uses it to identify anomalies and assign a rating. It works like this: as the function continues to monitor the flow of data, the algorithm establishes a normal range of values, then compares new values against those norms. The result is a score for each value, expressed as a percentage that determines the confidence level that the given value is anomalous. As you may expect, low confidence levels can be ignored, but you may wonder what percentage confidence value is acceptable. In your query, you will set this tipping point at 95%.</p>
+
+<p>There are always complications, like when there are gaps in the data (the conveyor belt stops for a while, perhaps). The algorithm handles voids in the data by imputing values.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: In statistics, imputation is the process of replacing missing data with substituted values. You can learn more about imputations <a href="https://en.wikipedia.org/wiki/Imputation_%28statistics%29">here</a>.</p>
+</blockquote>
+
+<p>Spikes and dips in telemetry data are temporary anomalies. However, since you are simulating vibration data using sine waves, you can expect a period of “normal” values followed by a high or low value that triggers an anomaly alert. An operator may look for a cluster of anomalies occurring in a short time span, which would signal that something is wrong.</p>
+
+<p>There are other built-in ML models, such as a model for detecting trends. We don’t include these models as part of this module, but the student is encouraged to investigate further.</p>
+
+<h3 id="visualize-data-using-power-bi">Visualize data using Power BI</h3>
+
+<p>Visualizing numerical data, especially volumes of it, is a challenge in itself. How can we alert a human operator of the sequence of anomalies that infer something is wrong?</p>
+
+<p>The solution we use in this module is to use some built-in functionality of Power BI along with the ability of Azure Stream Analytics to send data in a real-time format that Power BI can ingest.</p>
+
+<p>We use the dashboard feature of Power BI to create a number of tiles. One tile contains the actual vibration measurement. Another tile is a gauge, showing from 0.0 to 1.0 the confidence level that the value is an anomaly. A third tile indicates if the 95% confidence level is reached. Finally, the fourth tile shows the number of anomalies detected over the past hour. By including time as the x-axis, this tile makes it clear if a clutch of anomalies were detected in short succession as they will be clustered together horizontally.</p>
+
+<p>The fourth tile allows you to compare the anomalies with the red text in the telemetry console window. Is there a cluster of anomalies being detected when forced, or increasing, or both, vibrations are in action?</p>
+
+<p>The following resources will be created:</p>
+
+<p><a href="media/LAB_AK_08-architecture.png/" target="_blank"><img src="media/LAB_AK_08-architecture.png/" alt="Lab 8 Architecture"></a></p>
+
+<h2 id="in-this-lab">In This Lab</h2>
+
+<p>In this lab, you will complete the following activities:</p>
+
+<ul>
+  <li>Verify that the lab prerequisites are met (that you have the required Azure resources)</li>
+  <li>Sign-up for Power BI</li>
+  <li>Generate Telemetry from Simulated Device</li>
+  <li>Analyze Telemetry in Real-Time</li>
+  <li>Create an Azure Event Hubs service</li>
+  <li>Create a Real-time Message Route</li>
+  <li>Add a Telemetry Route to IoT hub</li>
+  <li>Create a Power BI dashboard to visualize data anomalies</li>
+</ul>
+
+<p>Let’s create the Event Hub, create the second route, update the SQL query, create a Power BI dashboard, and let it all run!</p>
+
+<h2 id="lab-instructions">Lab Instructions</h2>
+
+<h3 id="exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</h3>
+
+<p>This lab assumes the following Azure resources are available:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Resource Type</th>
+      <th style="text-align: left">Resource Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Resource Group</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Hub</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Device ID</td>
+      <td style="text-align: left">sensor-v-3000</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Storage Account Name</td>
+      <td style="text-align: left">vibrationstore{your-id}</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Storage Container</td>
+      <td style="text-align: left">vibrationcontainer</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Event Hub Namespace</td>
+      <td style="text-align: left">vibrationNamespace{your-id}</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Event Hub Name</td>
+      <td style="text-align: left">vibrationeventhubinstance</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Streaming Job</td>
+      <td style="text-align: left">vibrationJob</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Streaming Job Input</td>
+      <td style="text-align: left">vibrationInput</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Streaming Job Output</td>
+      <td style="text-align: left">vibrationOutput</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Streaming Job Transformation</td>
+      <td style="text-align: left">VibrationJobTransformation</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To ensure these resources are available, complete the following tasks.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Deploy to Azure</strong>:</p>
+
+    <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoftLearning%2FAZ-220-Microsoft-Azure-IoT-Developer%2Fbicep%2FAllfiles%2FARM%2Flab08.json"><a href="media/deploytoazure.png/" target="_blank"><img src="media/deploytoazure.png/" alt="Deploy To Azure"></a></a></p>
+  </li>
+  <li>
+    <p>If prompted, login to the <strong>Azure Portal</strong>.</p>
+
+    <p>The <strong>Custom deployment</strong> page will be displayed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Project details</strong>, in the <strong>Subscription</strong> dropdown, ensure that the Azure subscription that you intend to use for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, select <strong>rg-az220</strong>.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If <strong>rg-az220</strong> is not listed:</p>
+
+      <ol>
+        <li>Under the <strong>Resource group</strong> dropdown, click <strong>Create new</strong>.</li>
+        <li>Under <strong>Name</strong>, enter <strong>rg-az220</strong>.</li>
+        <li>Click <strong>OK</strong>.</li>
+      </ol>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, in the <strong>Region</strong> dropdown, select the region closest to you.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If the <strong>rg-az220</strong> group already exists, the <strong>Region</strong> field is set to the region used by the resource group and is read-only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Your ID</strong> field, enter the unique ID you created in Exercise 1.</p>
+  </li>
+  <li>
+    <p>In the <strong>Course ID</strong> field, enter <strong>az220</strong>.</p>
+  </li>
+  <li>
+    <p>To validate the template, click <strong>Review and create</strong>.</p>
+  </li>
+  <li>
+    <p>If validation passes, click <strong>Create</strong>.</p>
+
+    <p>The deployment will start.</p>
+  </li>
+  <li>
+    <p>Once the deployment has completed, in the left navigation area, to review any output values from the template,  click <strong>Outputs</strong>.</p>
+
+    <p>Make a note of the outputs for use later:</p>
+
+    <ul>
+      <li>connectionString</li>
+      <li>deviceConnectionString</li>
+      <li>devicePrimaryKey</li>
+      <li>eventHubEndPoint</li>
+      <li>eventHubPath</li>
+      <li>serviceKey</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The resources have now been created.</p>
+<h3 id="exercise-2-sign-up-for-power-bi">Exercise 2: Sign Up For Power BI</h3>
+
+<p>Power BI can be your personal data analysis and visualization tool, and can also serve as the analytics and decision engine behind group projects, divisions, or entire corporations. Later on in this lab, you will build a dashboard and visualize data using Power BI. This exercise explains how to sign up for Power BI as an individual.</p>
+
+<blockquote>
+  <p><strong>Note:</strong> If you already have a Power BI subscription and you are able to use it during this course, you can skip to Exercise 2.</p>
+</blockquote>
+
+<h4 id="task-1-understand-supported-email-addresses">Task 1: Understand Supported Email Addresses</h4>
+
+<p>Before you start the sign-up process, it’s important to learn which types of email addresses that you can use to sign-up for Power BI:</p>
+
+<ul>
+  <li>
+    <p>Power BI requires that you use a work or school email address to sign up. You can’t sign up using email addresses provided by consumer email services or telecommunication providers. This includes outlook.com, hotmail.com, gmail.com, and others.</p>
+  </li>
+  <li>
+    <p>After you sign up, you can <a href="https://docs.microsoft.com/azure/active-directory/active-directory-b2b-what-is-azure-ad-b2b">invite guest users</a> to see your Power BI content with any email address, including personal accounts.</p>
+  </li>
+  <li>
+    <p>You can sign-up for Power BI with .gov or .mil addresses, but this requires a different process. For more info, see <a href="https://docs.microsoft.com/en-us/power-bi/service-govus-signup">Enroll your US Government organization in the Power BI service</a>.</p>
+  </li>
+</ul>
+
+<h4 id="task-2-sign-up-for-a-power-bi-account">Task 2: Sign up for a Power BI Account</h4>
+
+<p>Follow these steps to sign up for a Power BI account. Once you complete this process you will have a Power BI (free) license which you can use to try Power BI on your own using My Workspace, consume content from a Power BI workspace assigned to a Power BI Premium capacity or initiate an individual Power BI Pro Trial.</p>
+
+<ol>
+  <li>
+    <p>In your browser, navigate to the <a href="https://signup.microsoft.com/signup?sku=a403ebcc-fae0-4ca2-8c8c-7a907fd6c235">sign-up page</a>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Get started</strong> page, enter a supported email address.</p>
+  </li>
+  <li>
+    <p>If you see a message requesting you prove you are not a robot, choose either <strong>Text me</strong> or <strong>Call me</strong> and supply the relevant information to receive a verification code, then continue to the next step in this procedure.</p>
+
+    <p><a href="media/LAB_AK_08-prove-robot.png/" target="_blank"><img src="media/LAB_AK_08-prove-robot.png/" alt="Are you a robot"></a></p>
+
+    <p>If, instead, you are informed that you already have an account, continue to sign-in and you are ready to use Power BI.</p>
+
+    <p><a href="media/LAB_AK_08-existing-account.png/" target="_blank"><img src="media/LAB_AK_08-existing-account.png/" alt="Are you a robot"></a></p>
+  </li>
+  <li>
+    <p>Check your phone texts or wait for the call, then enter the code that you received, then click <strong>Sign up</strong>.</p>
+
+    <p><a href="media/LAB_AK_08-sign-up.png/" target="_blank"><img src="media/LAB_AK_08-sign-up.png/" alt="Sign Up"></a></p>
+  </li>
+  <li>
+    <p>Check your email for a message like this one.</p>
+
+    <p><a href="media/LAB_AK_08-email-verification.png/" target="_blank"><img src="media/LAB_AK_08-email-verification.png/" alt="Sign Up"></a></p>
+  </li>
+  <li>
+    <p>On the next screen, enter your information and the verification code from the email. Select a region, review the policies that are linked from this screen, then select Start.</p>
+
+    <p><a href="media/LAB_AK_08-create-account.png/" target="_blank"><img src="media/LAB_AK_08-create-account.png/" alt="Sign Up"></a></p>
+  </li>
+  <li>
+    <p>You’re then taken to <a href="https://powerbi.microsoft.com/landing/signin/">Power BI sign in page</a>, and you can begin using Power BI.</p>
+  </li>
+</ol>
+
+<p>Now you have access to Power BI, you are ready to route real-time telemetry data to a Power BI dashboard.</p>
+
+<h3 id="exercise-3-generate-telemetry-from-simulated-device">Exercise 3: Generate Telemetry from Simulated Device</h3>
+
+<p>In order to visualize live streaming data from IoT hub in a Power BI dashboard, you will need to have a real or simulated IoT device that is sending telemetry messages. Fortunately, you created a simulated device in Lab 7 that satisfies this requirement.</p>
+
+<p>In this exercise, you will ensure that the Device Simulator app from the previous lab is running.</p>
+
+<blockquote>
+  <p><strong>Important</strong>: If you have not completed lab 7 of this course, do that now.</p>
+</blockquote>
+
+<h4 id="task-1-start-the-vibrationdevice-app-in-visual-studio-code">Task 1: Start the VibrationDevice app in Visual Studio Code</h4>
+
+<ol>
+  <li>
+    <p>Open Visual Studio Code.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Open Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Open Folder</strong> dialog, navigate to the lab 8 Starter folder.</p>
+
+    <p>In <em>Lab 3: Setup the Development Environment</em>, you cloned the GitHub repository containing lab resources by downloading a ZIP file and extracting the contents locally. The extracted folder structure includes the following folder path:</p>
+
+    <ul>
+      <li>Allfiles
+        <ul>
+          <li>Labs
+            <ul>
+              <li>08-Visualize a Data Stream in Power BI
+                <ul>
+                  <li>Starter</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Click <strong>VibrationDevice</strong>, and then click <strong>Select Folder</strong>.</p>
+
+    <p>You should see the Program.cs and VibrationDevice.csproj files listed in the EXPLORER pane.</p>
+  </li>
+  <li>
+    <p>In the <strong>EXPLORER</strong> pane, click <strong>Program.cs</strong>.</p>
+  </li>
+  <li>
+    <p>In the code editor pane, ensure that the connection string variable, <code>deviceConnectionString</code>, is assigned correctly.</p>
+
+    <p>You can find the connection string for the sensor-v-3000 device in IoT hub, or you can check your completed Lab 7 project.</p>
+
+    <p>The variable assignment in your code should be similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-csharp hljs"> deviceConnectionString = <span class="hljs-string"><span class="hljs-string">"HostName=iot-az220-training-cah200509.azure-devices.net;DeviceId=sensor-v-3000;SharedAccessKey=nSUbphUKsS1jEd7INrEtmVWZesMBDIxzjVe4jn01KJI="</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>View</strong> menu, click <strong>Terminal</strong>.</p>
+
+    <p>Verify that the command prompt shows the folder path to the <strong>VibrationDevice</strong> folder.</p>
+  </li>
+  <li>
+    <p>To run the app in the terminal, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs"> dotnet run
+</code></pre>
+
+    <p>This command will run the <strong>Program.cs</strong> file in the current folder.</p>
+  </li>
+  <li>
+    <p>You should quickly see console output, similar to the following:</p>
+
+    <p><a href="media/LAB_AK_08-vibration-telemetry.png/" target="_blank"><img src="media/LAB_AK_08-vibration-telemetry.png/" alt="Console Output"></a></p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Green text is used to show things are working as they should and red text when bad stuff is happening. If you don’t get a screen similar to this image, start by checking your device connection string.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave this app running.</p>
+
+    <p>The telemetry data is needed for data visualization.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-4-create-an-azure-event-hubs-service">Exercise 4: Create an Azure Event Hubs service</h3>
+
+<p>Now that you have telemetry data streaming into the IoT Hub, you’re going to add an Azure Event Hubs Namespace and Azure Event Hubs instance to our solution. Azure Event Hubs are ideal for processing streaming data and support live dashboarding scenarios - perfect for passing our vibration data to Power BI.</p>
+
+<h4 id="task-1-create-an-event-hubs-namespace">Task 1: Create an Event Hubs Namespace</h4>
+
+<p>In this task, you will use the Azure portal to create an Event Hubs resource.</p>
+
+<ol>
+  <li>
+    <p>Login to <a href="https://portal.azure.com">portal.azure.com</a> using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On the Azure portal menu, click <strong>All services</strong>.</p>
+  </li>
+  <li>
+    <p>In the Search textbox, type <strong>Event</strong></p>
+  </li>
+  <li>
+    <p>On the search results panel under the search textbox, click <strong>Event Hubs</strong>.</p>
+  </li>
+  <li>
+    <p>To begin the process of creating your new Event Hubs resource, click <strong>Create event hubs namespace</strong>.</p>
+
+    <p>The <strong>Create Namespace</strong> blade will be displayed.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create Namespace</strong> blade, configure the <strong>Subscription</strong> and <strong>Resource group</strong> fields with the values you are using for this course.</p>
+
+    <p>Resource group should be the same resource group that you used for your IoT hub and other resources - <strong>rg-az220</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Namespace name</strong> field, type <strong>vibrationNamespace</strong> and then enter your unique identifier {your-id}.</p>
+
+    <p>For example: <strong>vibrationNamespacecah191212</strong></p>
+
+    <p>This name must be globally unique.</p>
+  </li>
+  <li>
+    <p>Under <strong>Location</strong>, choose the same region that you have been using for the other labs in this course.</p>
+  </li>
+  <li>
+    <p>In the <strong>Pricing tier</strong> dropdown, click <strong>Standard</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Choosing the standard pricing tier enables <em>Kafka</em>. The Event Hubs for Kafka feature provides a protocol head on top of Azure Event Hubs that is binary compatible with Kafka versions 1.0 and later for both reading from and writing to Kafka topics. You can learn more about Event Hubs and Apache Kafka <a href="https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-for-kafka-ecosystem-overview">here</a>. We will not be using Kafka in this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>For the <strong>Throughput units</strong> field, ensure that the value is set to 1.</p>
+
+    <p>This lab does not generate sufficient data to warrant increasing the number of units.</p>
+  </li>
+  <li>
+    <p>Leave <strong>Enable Auto-Inflate</strong> unchecked.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Auto-Inflate automatically scales the number of Throughput Units assigned to your Event Hubs Namespace when your traffic exceeds the capacity of the Throughput Units assigned to it. You can specify a limit to which the Namespace will automatically scale. This feature is not required for this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Review + create</strong>.</p>
+
+    <p>You should see a message indicating that validation succeeded. If not, you will need to address the specified issues.</p>
+  </li>
+  <li>
+    <p>To create the resource, click <strong>Create</strong>, and then wait for the resource to be deployed.</p>
+
+    <p>This deployment can take a few minutes. You can open the Notifications pane to monitor progress.</p>
+
+    <p>Once you have an Event Hubs Namespace, you can create your Event Hubs instance.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-create-an-event-hubs-instance">Task 2: Create an Event Hubs Instance</h4>
+
+<ol>
+  <li>
+    <p>Navigate back to your Azure portal Dashboard page.</p>
+  </li>
+  <li>
+    <p>On your Resources tile, click <strong>vibrationNamespace{your-id}</strong>.</p>
+
+    <p>If the Event Hubs Namespace is not listed, refresh the tile.</p>
+
+    <p>The <strong>Overview</strong> pane of the <strong>Event Hubs Namespace</strong> blade will be displayed.</p>
+  </li>
+  <li>
+    <p>To create an Event Hubs instance, at the top of the pane, click <strong>+ Event Hub</strong>.</p>
+
+    <p>The <strong>Create Event Hub</strong> blade will be displayed.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create Event Hub</strong> blade, under <strong>Name</strong>, enter <strong>vibrationeventhubinstance</strong>.</p>
+  </li>
+  <li>
+    <p>Leave <strong>Partition Count</strong> set to <strong>1</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Partitions are a data organization mechanism that relates to the downstream parallelism required in consuming applications. The number of partitions in an event hub directly relates to the number of concurrent readers you expect to have. You can increase the number of partitions beyond 32 by contacting the Event Hubs team. The partition count is not changeable, so you should consider long-term scale when setting partition count. In this lab, we only require 1.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave <strong>Message Retention</strong> set to <strong>1</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  This is the retention period for events. You can set the retention period between 1 and 7 days. For this lab, we only require the minimum retention.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave <strong>Capture</strong> set to <strong>Off</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Azure Event Hubs Capture enables you to automatically deliver the streaming data in Event Hubs to an Azure Blob storage or Azure Data Lake Store account of your choice, with the added flexibility of specifying a time or size interval. We do not require this feature for the lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To create the Azure Hubs instance, click <strong>Create</strong>, and then wait for the resource to be deployed.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-5-create-real-time-message-route">Exercise 5: Create Real-Time Message Route</h3>
+
+<p>Now that you have an Event Hubs Namespace and an Event Hubs service, you need to pass the telemetry data from the IoT hub to your Event Hubs.</p>
+
+<h4 id="task-1-create-the-telemetry-route">Task 1: Create the Telemetry Route</h4>
+
+<p>In this task, you will add a message route to your IoT hub that will send telemetry messages to the Event Hubs instance that you just created.</p>
+
+<ol>
+  <li>
+    <p>Navigate to your Azure portal dashboard.</p>
+  </li>
+  <li>
+    <p>On the Resources tile, to open your IoT hub, click <strong>iot-az220-training-{your-id}</strong>.</p>
+
+    <p>The <strong>Overview</strong> pane for the IoT Hub will be displayed.</p>
+  </li>
+  <li>
+    <p>On the <strong>Overview</strong> pane, in the left-side menu, under <strong>Messaging</strong>, click <strong>Message routing</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Message routing</strong> pane, to add a new message route, click <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a route</strong> blade, under <strong>Name</strong>, enter <strong>vibrationTelemetryRoute</strong>.</p>
+  </li>
+  <li>
+    <p>To the right of the <strong>Endpoint</strong> dropdown, click <strong>+ Add endpoint</strong>, and then click <strong>Event hubs</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add an event hub endpoint</strong> blade, under <strong>Endpoint name</strong>, enter <strong>vibrationTelemetryEndpoint</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Event hub namespace</strong>, select the namespace that you created earlier.</p>
+
+    <p>It should be similar to the following: <strong>vibrationNamespacecah191212</strong></p>
+  </li>
+  <li>
+    <p>Under <strong>Event hub instance</strong>, click <strong>vibrationeventhubinstance</strong>.</p>
+  </li>
+  <li>
+    <p>To create the endpoint, click <strong>Create</strong>, and then wait for the success message.</p>
+
+    <p>You will be returned to the <strong>Add a route</strong> blade and the <strong>Endpoint</strong> value will have been updated.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a route</strong> blade, under <strong>Data source</strong>, ensure that <strong>Device Telemetry Messages</strong> is selected.</p>
+  </li>
+  <li>
+    <p>Under <strong>Enable route</strong>, ensure that <strong>Enable</strong> is selected.</p>
+  </li>
+  <li>
+    <p>Under <strong>Routing query</strong>, replace the existing query with the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-sql hljs"> sensorID = 'VSTel'
+</code></pre>
+
+    <p>You may recall that the earlier query sent ‘VSLog’ messages to the logging storage. This message route will be sending ‘VSTel’ (the telemetry) to the Event Hubs instance.</p>
+  </li>
+  <li>
+    <p>To create the message route, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Once the <strong>Message routing</strong> blade is displayed, verify you have two routes that match the following:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align: left">Name</th>
+          <th style="text-align: left">Data Source</th>
+          <th style="text-align: left">Routing Query</th>
+          <th style="text-align: left">Endpoint</th>
+          <th style="text-align: left">Enabled</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="text-align: left">vibrationLoggingRoute</td>
+          <td style="text-align: left">DeviceMessages</td>
+          <td style="text-align: left">sensorID = ‘VSLog’</td>
+          <td style="text-align: left">vibrationLogEndpoint</td>
+          <td style="text-align: left">true</td>
+        </tr>
+        <tr>
+          <td style="text-align: left">vibrationTelemetryRoute</td>
+          <td style="text-align: left">DeviceMessages</td>
+          <td style="text-align: left">sensorID = ‘VSTel’</td>
+          <td style="text-align: left">vibrationTelemetryEndpoint</td>
+          <td style="text-align: left">true</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<p>You are now ready to update the Azure Stream Analytics job to hand the real-time device telemetry.</p>
+
+<h3 id="exercise-6-add-telemetry-route">Exercise 6: Add Telemetry Route</h3>
+
+<p>With this new IoT Hub route in place, and the telemetry data streaming into the Event Hub, you now need to update our Stream Analytics job. This job will need to consume the data from the Event Hub, perform analysis using the <strong>AnomalyDetection_SpikeAndDip</strong> ML model and then output the results to Power BI.</p>
+
+<h4 id="task-1-add-a-new-input-to-the-job">Task 1: Add a New Input to the Job</h4>
+
+<ol>
+  <li>
+    <p>Return to your Azure portal Dashboard.</p>
+  </li>
+  <li>
+    <p>On your Resources tile, click <strong>vibrationJob</strong>.</p>
+
+    <p>This is the Stream Analytics job that you created in the previous lab.</p>
+
+    <p>The <strong>Stream Analytics Job</strong> blade will open displaying the <strong>Overview</strong> pane.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Ensure the job status is <strong>Stopped</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the left hand navigation menu, under <strong>Job topology</strong>, click <strong>Inputs</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Inputs</strong> pane, click <strong>+ Add stream input</strong>, and then click <strong>Event Hub</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Event Hub</strong> pane, under <strong>Input alias</strong>, enter <strong>vibrationEventInput</strong></p>
+  </li>
+  <li>
+    <p>Ensure that <strong>Select Event Hub from your subscriptions</strong> is selected.</p>
+  </li>
+  <li>
+    <p>Under <strong>Subscription</strong>, ensure that the subscription that you have been using for this course is selected.</p>
+  </li>
+  <li>
+    <p>Under <strong>Event Hub namespace</strong>, ensure that the <strong>vibrationNamespace[your-id}</strong> namespace that you entered in the previous section is selected.</p>
+  </li>
+  <li>
+    <p>Under <strong>Event Hub name</strong>, ensure that <strong>Use existing</strong> is selected and that the Event Hub instance you created in the previous section is selected.</p>
+
+    <p>The <strong>vibrationeventhubinstance</strong> should already be selected for you.</p>
+  </li>
+  <li>
+    <p>Under <strong>Event Hub Consumer group</strong>, click <strong>Use existing</strong>, and then ensure that <strong>$Default</strong> is selected.</p>
+  </li>
+  <li>
+    <p>Under Authentication mode, ensure that <strong>Connection string</strong> is selected in the dropdown.</p>
+  </li>
+  <li>
+    <p>Under <strong>Event Hub policy name</strong>, click <strong>Use existing</strong>, and then ensure that <strong>RootManageSharedAccessKey</strong> is selected in the dropdown.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>Event Hub policy key</strong> is populated and read-only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Event serialization format</strong>, ensure that <strong>JSON</strong> is selected.</p>
+  </li>
+  <li>
+    <p>Under <strong>Encoding</strong>, ensure that <strong>UTF-8</strong> is selected.</p>
+  </li>
+  <li>
+    <p>Under <strong>Event compression type</strong>, ensure that <strong>None</strong> is selected.</p>
+  </li>
+  <li>
+    <p>To save the new input, click <strong>Save</strong>, and then wait for the input to be created.</p>
+
+    <p>The <strong>Inputs</strong> list should be updated to show the new input - <strong>vibrationEventInput</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-add-a-new-output">Task 2: Add a New Output</h4>
+
+<ol>
+  <li>
+    <p>On the left-side menu under <strong>Job topology</strong>, click <strong>Outputs</strong>.</p>
+
+    <p>The <strong>Outputs</strong> pane is displayed.</p>
+  </li>
+  <li>
+    <p>On the <strong>Outputs</strong> pane, click <strong>+ Add</strong>, and then click <strong>Power BI</strong>.</p>
+
+    <p>The <strong>Power BI</strong> pane is displayed.</p>
+  </li>
+  <li>
+    <p>Authorize the connection using the Power BI account you created earlier (or an existing account).</p>
+  </li>
+  <li>
+    <p>On the <strong>Power BI - New output</strong> pane, under <strong>Output alias</strong>, enter <strong>vibrationBI</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Group workspace</strong>, select the workspace you wish to use.</p>
+
+    <p>If this is a brand new account, this dropdown will be greyed out.  If you have an existing account, choose an appropriate workspace, or ask your instructor for assistance.</p>
+  </li>
+  <li>
+    <p>Under <strong>Dataset name</strong>, enter <strong>vibrationDataset</strong></p>
+  </li>
+  <li>
+    <p>Under <strong>Table name</strong>, enter <strong>vibrationTable</strong></p>
+  </li>
+  <li>
+    <p>Under <strong>Authentication mode</strong>, click <strong>User token</strong>, and then read the note that appears about revoking access.</p>
+  </li>
+  <li>
+    <p>To create the output, click <strong>Save</strong>, and then wait for the output to be created.</p>
+
+    <p>The <strong>Outputs</strong> list will be updated with the new output.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-update-the-sql-query-for-the-job">Task 3: Update the SQL query for the Job</h4>
+
+<ol>
+  <li>
+    <p>On the left-side menu under <strong>Job topology</strong>, click <strong>Query</strong>.</p>
+  </li>
+  <li>
+    <p>Copy the following SQL query, and then paste it <em>above</em> the existing short query.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sql hljs"> WITH AnomalyDetectionStep AS
+ (
+     <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span>
+         EVENTENQUEUEDUTCTIME <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-keyword"><span class="hljs-keyword">time</span></span>,
+         <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(vibration <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">float</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> vibe,
+         AnomalyDetection_SpikeAndDip(<span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(vibration <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">float</span></span>), <span class="hljs-number"><span class="hljs-number">95</span></span>, <span class="hljs-number"><span class="hljs-number">120</span></span>, <span class="hljs-string"><span class="hljs-string">'spikesanddips'</span></span>)
+             <span class="hljs-keyword"><span class="hljs-keyword">OVER</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">LIMIT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">DURATION</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">second</span></span>, <span class="hljs-number"><span class="hljs-number">120</span></span>)) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SpikeAndDipScores
+     <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> vibrationEventInput
+ )
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span>
+     <span class="hljs-keyword"><span class="hljs-keyword">time</span></span>,
+     vibe,
+     <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(GetRecordPropertyValue(SpikeAndDipScores, <span class="hljs-string"><span class="hljs-string">'Score'</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">float</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span>
+     SpikeAndDipScore,
+     <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(GetRecordPropertyValue(SpikeAndDipScores, <span class="hljs-string"><span class="hljs-string">'IsAnomaly'</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">bigint</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span>
+     IsSpikeAndDipAnomaly
+ <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> vibrationBI
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> AnomalyDetectionStep
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>:  This first section of this query takes the vibration data, and examines the previous 120 seconds worth. The <code>AnomalyDetection_SpikeAndDip</code> function will return a <code>Score</code> parameter, and an <code>IsAnomaly</code> parameter. The score is how certain the ML model is that the given value is an anomaly, specified as a percentage. If the score exceeds 95%, the <code>IsAnomaly</code> parameter has a value of 1, otherwise <code>IsAnomaly</code> has a value of 0. Notice the 120 and 95 parameters in the first section of the query. The second section of the query sends the time, vibration, and anomaly parameters to <code>vibrationBI</code>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Verify that the query editor now lists 2 Inputs and Outputs:</p>
+
+    <ul>
+      <li><code>Inputs</code>
+        <ul>
+          <li><code>vibrationEventInput</code></li>
+          <li><code>vibrationInput</code></li>
+        </ul>
+      </li>
+      <li><code>Outputs</code>
+        <ul>
+          <li><code>vibrationBI</code></li>
+          <li><code>vibrationOutput</code></li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>If you see more than 2 of each then you likely have a typo in your query or in the name you used for the input or output - correct the issue before moving on.</p>
+  </li>
+  <li>
+    <p>To save the query, click <strong>Save query</strong>.</p>
+  </li>
+  <li>
+    <p>On the left-side menu, click <strong>Overview</strong>.</p>
+  </li>
+  <li>
+    <p>Near the top of the blade, click <strong>Start</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Start job</strong> pane, under <strong>Job output start time</strong>, ensure <strong>Now</strong> is selected, and then click <strong>Start</strong>.</p>
+  </li>
+</ol>
+
+<p>In order for a human operator to easily interpret the output from this query, you need to visualize the data in a friendly way. One way of doing this visualization is to create a Power BI dashboard.</p>
+
+<h3 id="exercise-7-create-a-power-bi-dashboard">Exercise 7: Create a Power BI Dashboard</h3>
+
+<p>Now for the final part of the scenario - the actual data visualization. You have updated your job to process the vibration telemetry via the ML model and output the results to Power BI. Within Power BI, you need to create a dashboard with a number of tiles to visualize the results and provide decision support for the operator.</p>
+
+<h4 id="task-1-create-a-new-dashboard">Task 1: Create a New Dashboard</h4>
+
+<ol>
+  <li>
+    <p>In your browser, navigate to <a href="https://app.powerbi.com/">https://app.powerbi.com/</a>.</p>
+  </li>
+  <li>
+    <p>Once Power BI has opened, on the left-side navigation menu, expand <strong>Workspaces</strong>, and then select the workspace that you specified above.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  At the time of writing, Power BI has a <em>New Look</em> in preview. The steps in this task have been written assuming the <em>New Look</em> is <strong>Off</strong>. To turn off the <em>New Look</em>, on the toolbar at the top of the screen, ensure that the toggle reads <strong>New look off</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Datasets</strong> tab, verify that <strong>vibrationDataset</strong> is displayed.</p>
+
+    <p>If not, you might have to wait a short time for this list to populate.</p>
+  </li>
+  <li>
+    <p>At the top right of the page, click <strong>+ Create</strong>, and then click <strong>Dashboard</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Create dashboard</strong> popup, under <strong>Dashboard name</strong>, type <strong>Vibration Dash</strong> and then click <strong>Create</strong>.</p>
+
+    <p>The new dashboard will be displayed as an essentially blank page.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-add-the-vibration-gauge-tile">Task 2: Add the Vibration Gauge Tile</h4>
+
+<ol>
+  <li>
+    <p>To add a vibration gauge, at the top of the blank dashboard, click <strong>+ Add tile</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Add tile</strong> pane, under <strong>REAL-TIME DATA</strong>, click <strong>Custom Streaming Data</strong>, and then click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a custom streaming data tile</strong> pane, under <strong>YOUR DATASETS</strong>, click <strong>vibrationDataset</strong>, and then click <strong>Next</strong>.</p>
+
+    <p>The pane will refresh to allow you to choose a visualization type and fields.</p>
+  </li>
+  <li>
+    <p>Under <strong>Vibration Type</strong>, open the dropdown, and then click <strong>Gauge</strong>.</p>
+
+    <p>Notice that changing the visualization type changes the fields below.</p>
+  </li>
+  <li>
+    <p>Under <strong>Value</strong>, click <strong>+ Add value</strong>, open the dropdown, and then click <strong>Vibe</strong>.</p>
+
+    <p>Notice that the gauge appears immediately on the dashboard with a value that begins to update!</p>
+  </li>
+  <li>
+    <p>To display the Tile details pane, click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Tile details</strong> pane, under <strong>Title</strong>, enter <strong>Vibration</strong>.</p>
+  </li>
+  <li>
+    <p>To leave the remaining fields at default values and close the pane, click <strong>Apply</strong>.</p>
+
+    <p>If you see a notification about creating a phone view, you can ignore it and it will disappear shortly (or dismiss it yourself).</p>
+  </li>
+  <li>
+    <p>To reduce the size of the tile, hover your mouse over the bottom-right corner of the tile, and then click-and-drag the resize mouse pointer.</p>
+
+    <p>Make the tile as small as you can. It will snap to various preset sizes.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-add-the-spikeanddipscore-clustered-bar-chart-tile">Task 3: Add the SpikeAndDipScore Clustered Bar Chart Tile</h4>
+
+<ol>
+  <li>
+    <p>To add the SpikeAndDipScore Clustered Bar Chart, at the top of the dashboard, click <strong>+ Add tile</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Add tile</strong> pane, under <strong>REAL-TIME DATA</strong>, click <strong>Custom Streaming Data</strong>, and then click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a custom streaming data tile</strong> pane, under <strong>YOUR DATASETS</strong>, click <strong>vibrationDataset</strong>, and then click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Visualization Type</strong>, open the dropdown, and then click <strong>Clustered bar chart</strong>.</p>
+
+    <p>Notice that changing the visualization type changes the fields below.</p>
+  </li>
+  <li>
+    <p>Under <strong>Value</strong>, click <strong>+ Add value</strong>, open the dropdown, and then click <strong>SpikeAndDipScore</strong>.</p>
+  </li>
+  <li>
+    <p>To display the Tile details pane, click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>To close Tile details pane, click <strong>Apply</strong>.</p>
+
+    <p>If you see a notification about creating a phone view, you can ignore it and it will disappear shortly (or dismiss it yourself).</p>
+  </li>
+  <li>
+    <p>Again, reduce the size of the tile, making it as small as you can.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-add-the-isspikeanddipanomaly-card-tile">Task 4: Add the IsSpikeAndDipAnomaly Card Tile</h4>
+
+<ol>
+  <li>
+    <p>At the top of the dashboard, to add a IsSpikeAndDipAnomaly Card visualization, click <strong>+ Add tile</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Add tile</strong> pane, under <strong>REAL-TIME DATA</strong>, click <strong>Custom Streaming Data</strong>, and then click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a custom streaming data tile</strong> pane, under <strong>YOUR DATASETS</strong>, click <strong>vibrationDatset</strong>, and then click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Visualization Type</strong>, open the dropdown, and then click <strong>Card</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Value</strong>, click <strong>+ Add value</strong>, open the dropdown, and then click <strong>IsSpikeAndDipAnomaly</strong>.</p>
+  </li>
+  <li>
+    <p>To display the Tile details pane, click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Tile details</strong> pane, under <strong>Title</strong>, enter <strong>Is anomaly?</strong></p>
+  </li>
+  <li>
+    <p>To close the Tile details pane, click <strong>Apply</strong>.</p>
+
+    <p>If you see a notification about creating a phone view, you can ignore it and it will disappear shortly (or dismiss it yourself).</p>
+  </li>
+  <li>
+    <p>Again, reduce the size of the tile, making it as small as you can.</p>
+  </li>
+</ol>
+
+<h4 id="task-5-rearrange-the-tiles">Task 5: Rearrange the Tiles</h4>
+
+<ol>
+  <li>
+    <p>Using drag-and-drop, arrange the tiles vertically on the left of the dashboard in the following order:</p>
+
+    <ul>
+      <li>SpikeAndDipScore</li>
+      <li>Is Anomaly?</li>
+      <li>Vibration</li>
+    </ul>
+  </li>
+</ol>
+
+<h4 id="task-6-add-anomalies-over-the-hour-line-chart-tile">Task 6: Add Anomalies Over The Hour Line Chart Tile</h4>
+
+<p>Now to create a fourth tile, the <code>Anomalies Over the Hour</code> line chart.  This one is a bit more complex.</p>
+
+<ol>
+  <li>
+    <p>At the top of the dashboard, click <strong>+ Add tile</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Add tile</strong> pane, under <strong>REAL-TIME DATA</strong>, click <strong>Custom Streaming Data</strong>, and then click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a custom streaming data tile</strong> pane, under <strong>YOUR DATASETS</strong>, click <strong>vibrationDataset</strong>, and then click <strong>Next</strong>.</p>
+
+    <p>The pane will refresh to allow you to choose a visualization type and fields.</p>
+  </li>
+  <li>
+    <p>Under <strong>Visualization Type</strong>, open the dropdown, and then click <strong>Line chart</strong>.</p>
+
+    <p>Notice that changing the visualization type changes the fields below.</p>
+  </li>
+  <li>
+    <p>Under <strong>Axis</strong>, click <strong>+ Add value</strong>, and then select <strong>time</strong> from the dropdown.</p>
+  </li>
+  <li>
+    <p>Under <strong>Values</strong>, click <strong>+ Add value</strong>, and then select <strong>IsSpikeAndDipAnomaly</strong> from the dropdown.</p>
+
+    <p>Notice that the chart appears immediately on the dashboard with a value that begins to update!</p>
+  </li>
+  <li>
+    <p>Under <strong>Time window to display</strong>, to the right of <strong>Last</strong>, open the dropdown, and then click <strong>60</strong></p>
+
+    <p>Leave the units set to <strong>Minutes</strong>.</p>
+  </li>
+  <li>
+    <p>To display the Tile details pane, click <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Tile details</strong> pane, under <strong>Title</strong>, enter <strong>Anomalies over the hour</strong>.</p>
+  </li>
+  <li>
+    <p>To close the Tile details pane, click <strong>Apply</strong>.</p>
+
+    <p>If you see a notification about creating a phone view, you can ignore it and it will disappear shortly (or dismiss it yourself).</p>
+  </li>
+  <li>
+    <p>This time, stretch the tile so its height matches the 3 tiles to the left and its width fits the remaining space of the dashboard.</p>
+
+    <p>There is a latency with so many routes and connections, but you should start seeing the vibration data in the visualizations</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  If no data appears, check you are running the device app and the analytics job is running.</p>
+    </blockquote>
+
+    <p>Let the job run for a while, several minutes at least before the ML model will kick in. Compare the console output of the device app, with the Power BI dashboard. Are you able to correlate the forced and increasing vibrations to a run of anomaly detections?</p>
+  </li>
+</ol>
+
+<p>If you’re seeing an active Power BI dashboard, you’ve just completed this lab. Great work.</p>
+
+<blockquote>
+  <p><strong>Note</strong>:  Before you go, don’t forget to close Visual Studio Code - this will exit the device app if it is still running.</p>
+</blockquote>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../../assets/js/script_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.js"></script>
+
+
+
+</body></html>

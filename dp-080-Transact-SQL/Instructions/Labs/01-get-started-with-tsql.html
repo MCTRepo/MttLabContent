@@ -1,0 +1,451 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            dp-080-Transact-SQL
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                dp-080-Transact-SQL
+            </a>
+            <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#challenge-1-retrieve-customer-data">Challenge 1: Retrieve customer data</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2-retrieve-customer-order-data">Challenge 2: Retrieve customer order data</a></li><li class="nav-item"><a class="nav-link" href="#challenge-3-retrieve-customer-contact-details">Challenge 3: Retrieve customer contact details</a></li><li class="nav-item"><a class="nav-link" href="#challenge-1">Challenge 1</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2">Challenge 2</a></li><li class="nav-item"><a class="nav-link" href="#challenge-3">Challenge 3:</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="get-started-with-transact-sql">Get Started with Transact-SQL</h1>
+
+<p>In this lab, you will use some basic SELECT queries to retrieve data from the <strong>AdventureWorks</strong> database.</p>
+
+<h2 id="explore-the-adventureworks-database">Explore the <em>AdventureWorks</em> database</h2>
+
+<p>We’ll use the <strong>AdventureWorks</strong> database in this lab, so let’s start by exploring it in Azure Data Studio.</p>
+
+<ol>
+  <li>Start Azure Data Studio, and in the <strong>Connections</strong> tab, select the <strong>AdventureWorks</strong> connection by clicking on the arrow just to the left of the name. This will connect to the SQL Server instance and show the objects in the <strong>AdventureWorks</strong> database.</li>
+  <li>Expand the <strong>Tables</strong> folder to see the tables that are defined in the database. Note that there are a few tables in the <strong>dbo</strong> schema, but most of the tables are defined in a schema named <strong>SalesLT</strong>.</li>
+  <li>Expand the <strong>SalesLT.Product</strong> table and then expand its <strong>Columns</strong> folder to see the columns in this table. Each column has a name, a data type, an indication of whether it can contain <em>null</em> values, and in some cases an indication that the columns is used as a primary key (PK) or foreign key (FK).</li>
+  <li>Right-click the <strong>SalesLT.Product</strong> table and use the <strong>Select Top 1000</strong> option to create and run a new query script that retrieves the first 1000 rows from the table.</li>
+  <li>Review the query results, which consist of 1000 rows - each row representing a product that is sold by the fictitious <em>Adventure Works Cycles</em> company.</li>
+  <li>Close the <strong>SQLQuery_1</strong> pane that contains the query and its results.</li>
+  <li>
+    <p>Explore the other tables in the database, which contain information about product details, customers, and sales orders. The tables are related through primary and foreign keys, as shown here (you may need to resize the pane to see them clearly):</p>
+
+    <p><a href="images/adventureworks-erd.png" target="_blank"><img src="images/adventureworks-erd.png" alt="An entity relationship diagram of the AdventureWorks database"></a></p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: If you’re familiar with the standard <strong>AdventureWorks</strong> sample database, you may notice that in this lab we are using a simplified version that makes it easier to focus on learning Transact-SQL syntax.</p>
+</blockquote>
+
+<h2 id="use-select-queries-to-retrieve-data">Use SELECT queries to retrieve data</h2>
+
+<p>Now that you’ve had a chance to explore the <strong>AdventureWorks</strong> database, it’s time to dig a little deeper into the product data it contains by querying the <strong>Product</strong> table.</p>
+
+<ol>
+  <li>In Azure Data Studio, create a new query (you can do this from the <strong>File</strong> menu or on the <em>welcome</em> page).</li>
+  <li>In the new <strong>SQLQuery_…</strong> pane, ensure that the <strong>AdventureWorks</strong> database is selected at the top of the query pane. If not, use the <strong>Connect</strong> button to connect the query to the <strong>AdventureWorks</strong> saved connection.</li>
+  <li>
+    <p>In the query editor, enter the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> * <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>Use the <strong>⏵Run</strong> button to run the query, and and after a few seconds, review the results, which includes all columns for all products.</li>
+  <li>
+    <p>In the query editor, modify the query as follows:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, StandardCost, ListPrice
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>Use the <strong>⏵Run</strong> button to re-run the query, and and after a few seconds, review the results, which this time include only the <strong>Name</strong>, <strong>StandardCost</strong>, and <strong>ListPrice</strong> columns for all products.</li>
+  <li>
+    <p>Modify the query as shown below to include an expression that results in a calculated column, and then re-run the query:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ListPrice - StandardCost
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>Note that the results this time include the <strong>Name</strong> column and an unnamed column containing the result of subtracting the <strong>StandardCost</strong> from the <strong>ListPrice</strong>.</li>
+  <li>
+    <p>Modify the query as shown below to assign names to the columns in the results, and then re-run the query.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductName, ListPrice - StandardCost <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> Markup
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>Note that the results now include columns named <strong>ProductName</strong> and <strong>Markup</strong>. The <strong>AS</strong> keyword has been used to assign an <em>alias</em> for each column in the results.</li>
+  <li>
+    <p>Replace the existing query with the following code, which also includes an expression that produces a calculated column in the results:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductNumber, Color, <span class="hljs-keyword"><span class="hljs-keyword">Size</span></span>, Color + <span class="hljs-string"><span class="hljs-string">', '</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">Size</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductDetails
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>Run the query, and note that the <strong>+</strong> operator in the calculated <strong>ProductDetails</strong> column is used to <em>concatenate</em> the <strong>Color</strong> and <strong>Size</strong> column values (with a literal comma between them). The behavior of this operator is determined by the data types of the columns - had they been numeric values, the <strong>+</strong> operator would have <em>added</em> them. Note also that some results are <em>NULL</em> - we’ll explore NULL values later in this lab.</li>
+</ol>
+
+<h2 id="work-with-data-types">Work with data types</h2>
+
+<p>As you just saw, columns in a table are defined as specific data types, which affects the operations you can perform on them.</p>
+
+<ol>
+  <li>
+    <p>Replace the existing query with the following code, and run it:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductID + <span class="hljs-string"><span class="hljs-string">': '</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductName
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product; 
+</code></pre>
+  </li>
+  <li>Note that this query returns an error. The <strong>+</strong> operator can be used to <em>concatenate</em> text-based values, or <em>add</em> numeric values; but in this case there’s one numeric value (<strong>ProductID</strong>) and one text-based value (<strong>Name</strong>), so it’s unclear how the operator should be applied.</li>
+  <li>
+    <p>Modify the query as follows, and re-run it:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(ProductID <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">5</span></span>)) + <span class="hljs-string"><span class="hljs-string">': '</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductName
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product; 
+</code></pre>
+  </li>
+  <li>
+    <p>Note that the effect of the <strong>CAST</strong> function is to change the numeric <strong>ProductID</strong> column into a <strong>varchar</strong> (variable-length character data) value that can be concatenated with other text-based values.</p>
+  </li>
+  <li>
+    <p>Modify the query to replace the <strong>CAST</strong> function with a <strong>CONVERT</strong> function as shown below, and then re-run it:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">CONVERT</span></span>(<span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">5</span></span>), ProductID) + <span class="hljs-string"><span class="hljs-string">': '</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductName
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product; 
+</code></pre>
+  </li>
+  <li>
+    <p>Note that the results of using <strong>CONVERT</strong> are the same as for <strong>CAST</strong>. The <strong>CAST</strong> function is an ANSI standard part of the SQL language that is available in most database systems, while <strong>CONVERT</strong> is a SQL Server specific function.</p>
+  </li>
+  <li>
+    <p>Another key difference between the two functions is that <strong>CONVERT</strong> includes an additional parameter that can be useful for formatting date and time values when converting them to text-based data. For example, replace the existing query with the following code and run it.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SellStartDate,
+    <span class="hljs-keyword"><span class="hljs-keyword">CONVERT</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>(<span class="hljs-number"><span class="hljs-number">30</span></span>), SellStartDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ConvertedDate,
+    <span class="hljs-keyword"><span class="hljs-keyword">CONVERT</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>(<span class="hljs-number"><span class="hljs-number">30</span></span>), SellStartDate, <span class="hljs-number"><span class="hljs-number">126</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ISO8601FormatDate
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product; 
+</code></pre>
+  </li>
+  <li>
+    <p>Replace the existing query with the following code, and run it.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">Size</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">Integer</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> NumericSize
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product; 
+</code></pre>
+  </li>
+  <li>
+    <p>Note that an error is returned because some <strong>Size</strong> values are not numeric (for example, some item sizes are indicated as <em>S</em>, <em>M</em>, or <em>L</em>).</p>
+  </li>
+  <li>
+    <p>Modify the query to use a <strong>TRY_CAST</strong> function, as shown here.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">TRY_CAST</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">Size</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">Integer</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> NumericSize
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product; 
+</code></pre>
+  </li>
+  <li>Run the query and note that the numeric <strong>Size</strong> values are converted successfully to integers, but that non-numeric sizes are returned as <em>NULL</em>.</li>
+</ol>
+
+<h2 id="handle-null-values">Handle NULL values</h2>
+
+<p>We’ve seen some examples of queries that return <em>NULL</em> values. <em>NULL</em> is generally used to denote a value that is <em>unknown</em>. Note that this is not the same as saying the value is <em>none</em> - that would imply that you <em>know</em> that the value is zero or an empty string!</p>
+
+<ol>
+  <li>
+    <p>Modify the existing query as shown here:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">ISNULL</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">TRY_CAST</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">Size</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">Integer</span></span>),<span class="hljs-number"><span class="hljs-number">0</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> NumericSize
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>
+    <p>Run the query and view the results. Note that the <strong>ISNULL</strong> function replaces <em>NULL</em> values with the specified value, so in this case, sizes that are not numeric (and therefore can’t be converted to integers) are returned as <strong>0</strong>.</p>
+
+    <p>In this example, the <strong>ISNULL</strong> function is applied to the output of the inner <strong>TRY_CAST</strong> function, but you can also use it to deal with <em>NULL</em> values in the source table.</p>
+  </li>
+  <li>
+    <p>Replace the query with the following code to handle <em>NULL</em> values for <strong>Color</strong> and <strong>Size</strong> values in the source table:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductNumber, <span class="hljs-keyword"><span class="hljs-keyword">ISNULL</span></span>(Color, <span class="hljs-string"><span class="hljs-string">''</span></span>) + <span class="hljs-string"><span class="hljs-string">', '</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">ISNULL</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">Size</span></span>, <span class="hljs-string"><span class="hljs-string">''</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductDetails
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+
+    <p>The <strong>ISNULL</strong> function replaces <em>NULL</em> values with a specified literal value. Sometimes, you may want to achieve the opposite result by replacing an explicit value with <em>NULL</em>. To do this, you can use the <strong>NULLLIF</strong> function.</p>
+  </li>
+  <li>
+    <p>Try the following query, which replaces the <strong>Color</strong> value “Multi” to <em>NULL</em>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">NULLIF</span></span>(Color, <span class="hljs-string"><span class="hljs-string">'Multi'</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SingleColor
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+
+    <p>In some scenarios, you might want to compare multiple columns and find the first one that isn’t <em>NULL</em>. For example, suppose you want to track the status of a product’s availability based on the dates recorded when it was first offered for sale or removed from sale. A product that is currently available will have a <strong>SellStartDate</strong>, but the <strong>SellEndDate</strong> value will be <em>NULL</em>. When a product is no longer sold, a date is entered in its <strong>SellEndDate</strong> column. To find the first non-<em>NULL</em> column, you can use the <strong>COALESCE</strong> function.</p>
+  </li>
+  <li>
+    <p>Use the following query to find the first non-<em>NULL</em> date for product selling status.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">COALESCE</span></span>(SellEndDate, SellStartDate) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> StatusLastUpdated
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+
+    <p>The previous query returns the last date on which the product selling status was updated, but doesn’t actually tell us the sales status itself. To determine that, we’ll need to check the dates to see if the <strong>SellEndDate</strong> is <em>NULL</em>. To do this, you can use a <strong>CASE</strong> expression in the <strong>SELECT</strong> clause to check for <em>NULL</em> <strong>SellEndDate</strong> values. The <strong>CASE</strong> expression has two variants: a <em>simple</em> <strong>CASE</strong> what evaluates a specific column or value, or a <em>searched</em> <strong>CASE</strong> that evaluates one or more expressions.</p>
+
+    <p>In this example, or <strong>CASE</strong> experssion must determine if the <strong>SellEndDate</strong> column is <em>NULL</em>. Typically, when you are trying to check the value of a column you can use the <strong>=</strong> operator; for example the predicate <strong>SellEndDate = ‘01/01/2005’</strong> returns <strong>True</strong> if the <strong>SellEndDate</strong> value is <em>01/01/2005</em>, and <strong>False</strong> otherwise. However, when dealing with <em>NULL</em> values, the default behavior may not be what you expect. Remember that <em>NULL</em> actually means <em>unknown</em>, so using the <strong>=</strong> operator to compare two unknown values always results in a value of <em>NULL</em> - semantically, it’s impossible to know if one unknown value is the same as another. To check to see if a value is <em>NULL</em>, you must use the <strong>IS NULL</strong> predicate; and conversely to check that a value is not <em>NULL</em> you can use the <strong>IS NOT NULL</strong> predicate.</p>
+  </li>
+  <li>
+    <p>Run the following query, which includes <em>searched</em> <strong>CASE</strong> that uses an <strong>IS NULL</strong> expression to check for <em>NULL</em> <strong>SellEndDate</strong> values.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>,
+     <span class="hljs-keyword"><span class="hljs-keyword">CASE</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> SellEndDate <span class="hljs-keyword"><span class="hljs-keyword">IS</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> <span class="hljs-string"><span class="hljs-string">'Currently for sale'</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">ELSE</span></span> <span class="hljs-string"><span class="hljs-string">'No longer available'</span></span>
+     <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SalesStatus
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+
+    <p>The previous query used a <em>searched</em> <strong>CASE</strong> expression, which begins with a <strong>CASE</strong> keyword, and includes one or more <strong>WHEN…THEN</strong> expressions with the values and predicates to be checked. An <strong>ELSE</strong> expression provides a value to use if none of the <strong>WHEN</strong> conditions are matched, and the <strong>END</strong> keyword denotes the end of the <strong>CASE</strong> expression, which is aliased to a column name for the result using an <strong>AS</strong> expression.</p>
+
+    <p>In some queries, it’s more appropriate to use a <em>simple</em> <strong>CASE</strong> expression that applies multiple <strong>WHERE…THEN</strong> predictes to the same value.</p>
+  </li>
+  <li>
+    <p>Run the following query to see an example of a <em>simple</em> <strong>CASE</strong> expression that produced different results depending on the <strong>Size</strong> column value.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>,
+     <span class="hljs-keyword"><span class="hljs-keyword">CASE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Size</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> <span class="hljs-string"><span class="hljs-string">'S'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> <span class="hljs-string"><span class="hljs-string">'Small'</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> <span class="hljs-string"><span class="hljs-string">'M'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> <span class="hljs-string"><span class="hljs-string">'Medium'</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> <span class="hljs-string"><span class="hljs-string">'L'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> <span class="hljs-string"><span class="hljs-string">'Large'</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> <span class="hljs-string"><span class="hljs-string">'XL'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> <span class="hljs-string"><span class="hljs-string">'Extra-Large'</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">ELSE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ISNULL</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">Size</span></span>, <span class="hljs-string"><span class="hljs-string">'n/a'</span></span>)
+     <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ProductSize
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product;
+</code></pre>
+  </li>
+  <li>
+    <p>Review the query results and note that the <strong>ProductSize</strong> column contains the text-based description of the size for <em>S</em>, <em>M</em>, <em>L</em>, and <em>XL</em> sizes; the measurement value for numeric sizes, and <em>n/a</em> for any other sizes values.</p>
+  </li>
+</ol>
+
+<h2 id="challenges">Challenges</h2>
+
+<p>Now that you’ve seen some examples of <strong>SELECT</strong> statements that retrieve data from a table, it’s time to try to compose some queries of your own.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>: Try to determine the appropriate queries for yourself. If you get stuck, suggested answers are provided at the end of this lab.</p>
+</blockquote>
+
+<h3 id="challenge-1-retrieve-customer-data">Challenge 1: Retrieve customer data</h3>
+
+<p>Adventure Works Cycles sells directly to retailers, who then sell products to consumers. Each retailer that is an Adventure Works customer has provided a named contact for all communication from Adventure Works. The sales manager at Adventure Works has asked you to generate some reports containing details of the company’s customers to support a direct sales campaign.</p>
+
+<ol>
+  <li>Retrieve customer details
+    <ul>
+      <li>Familiarize yourself with the <strong>SalesLT.Customer</strong> table by writing a Transact-SQL query that retrieves all columns for all customers.</li>
+    </ul>
+  </li>
+  <li>Retrieve customer name data
+    <ul>
+      <li>Create a list of all customer contact names that includes the title, first name, middle name (if any), last name, and suffix (if any) of all customers.</li>
+    </ul>
+  </li>
+  <li>Retrieve customer names and phone numbers
+    <ul>
+      <li>Each customer has an assigned salesperson. You must write a query to create a call sheet that lists:
+        <ul>
+          <li>The salesperson</li>
+          <li>A column named <strong>CustomerName</strong> that displays how the customer contact should be greeted (for example, <em>Mr Smith</em>)</li>
+          <li>The customer’s phone number.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="challenge-2-retrieve-customer-order-data">Challenge 2: Retrieve customer order data</h3>
+
+<p>As you continue to work with the Adventure Works customer data, you must create queries for reports that have been requested by the sales team.</p>
+
+<ol>
+  <li>Retrieve a list of customer companies
+    <ul>
+      <li>You have been asked to provide a list of all customer companies in the format <em>Customer ID</em> : <em>Company Name</em> - for example, <em>78: Preferred Bikes</em>.</li>
+    </ul>
+  </li>
+  <li>Retrieve a list of sales order revisions
+    <ul>
+      <li>The <strong>SalesLT.SalesOrderHeader</strong> table contains records of sales orders. You have been asked to retrieve data for a report that shows:
+        <ul>
+          <li>The sales order number and revision number in the format <order number> (<revision>) – for example SO71774 (2).</revision></order></li>
+          <li>The order date converted to ANSI standard <em>102</em> format  (<em>yyyy.mm.dd</em> – for example <em>2015.01.31</em>).</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="challenge-3-retrieve-customer-contact-details">Challenge 3: Retrieve customer contact details</h3>
+
+<p>Some records in the database include missing or unknown values that are returned as NULL. You must create some queries that handle these NULL values appropriately.</p>
+
+<ol>
+  <li>Retrieve customer contact names with middle names if known
+    <ul>
+      <li>You have been asked to write a query that returns a list of customer names. The list must consist of a single column in the format <em>first last</em> (for example <em>Keith Harris</em>) if the middle name is unknown, or <em>first middle last</em> (for example <em>Jane M. Gates</em>) if a middle name is known.</li>
+    </ul>
+  </li>
+  <li>Retrieve primary contact details
+    <ul>
+      <li>
+        <p>Customers may provide Adventure Works with an email address, a phone number, or both. If an email address is available, then it should be used as the primary contact method; if not, then the phone number should be used. You must write a query that returns a list of customer IDs in one column, and a second column named <strong>PrimaryContact</strong> that contains the email address if known, and otherwise the phone number.</p>
+
+        <p><strong>IMPORTANT</strong>: In the sample data provided, there are no customer records without an email address. Therefore, to verify that your query works as expected, run the following <strong>UPDATE</strong> statement to remove some existing email addresses before creating your query:</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs sql">  <span class="hljs-keyword"><span class="hljs-keyword">UPDATE</span></span> SalesLT.Customer
+  <span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> EmailAddress = <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>
+  <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> CustomerID % <span class="hljs-number"><span class="hljs-number">7</span></span> = <span class="hljs-number"><span class="hljs-number">1</span></span>;
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>Retrieve shipping status
+    <ul>
+      <li>
+        <p>You have been asked to create a query that returns a list of sales order IDs and order dates with a column named <strong>ShippingStatus</strong> that contains the text <em>Shipped</em> for orders with a known ship date, and <em>Awaiting Shipment</em> for orders with no ship date.</p>
+
+        <p><strong>IMPORTANT</strong>: In the sample data provided, there are no sales order header records without a ship date. Therefore, to verify that your query works as expected, run the following UPDATE statement to remove some existing ship dates before creating your query.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs sql">  <span class="hljs-keyword"><span class="hljs-keyword">UPDATE</span></span> SalesLT.SalesOrderHeader
+  <span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> ShipDate = <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>
+  <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> SalesOrderID &gt; <span class="hljs-number"><span class="hljs-number">71899</span></span>;
+</code></pre>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="challenge-solutions">Challenge Solutions</h2>
+
+<p>This section contains suggested solutions for the challenge queries.</p>
+
+<h3 id="challenge-1">Challenge 1</h3>
+
+<ol>
+  <li>
+    <p>Retrieve customer details:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> * <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer;
+</code></pre>
+  </li>
+  <li>
+    <p>Retrieve customer name data:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> Title, FirstName, MiddleName, LastName, Suffix
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer;
+</code></pre>
+  </li>
+  <li>
+    <p>Retrieve customer names and phone numbers:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> Salesperson, Title + <span class="hljs-string"><span class="hljs-string">' '</span></span> + LastName <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> CustomerName, Phone
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer;
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="challenge-2">Challenge 2</h3>
+
+<ol>
+  <li>
+    <p>Retrieve a list of customer companies:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(CustomerID <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>) + <span class="hljs-string"><span class="hljs-string">': '</span></span> + CompanyName <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> CustomerCompany
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer;
+</code></pre>
+  </li>
+  <li>
+    <p>Retrieve a list of sales order revisions:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SalesOrderNumber + <span class="hljs-string"><span class="hljs-string">' ('</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">STR</span></span>(RevisionNumber, <span class="hljs-number"><span class="hljs-number">1</span></span>) + <span class="hljs-string"><span class="hljs-string">')'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> OrderRevision,
+    <span class="hljs-keyword"><span class="hljs-keyword">CONVERT</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>(<span class="hljs-number"><span class="hljs-number">30</span></span>), OrderDate, <span class="hljs-number"><span class="hljs-number">102</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> OrderDate
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderHeader;
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="challenge-3">Challenge 3:</h3>
+
+<ol>
+  <li>
+    <p>Retrieve customer contact names with middle names if known:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> FirstName + <span class="hljs-string"><span class="hljs-string">' '</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">ISNULL</span></span>(MiddleName + <span class="hljs-string"><span class="hljs-string">' '</span></span>, <span class="hljs-string"><span class="hljs-string">''</span></span>) + LastName <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> CustomerName
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer;
+</code></pre>
+  </li>
+  <li>
+    <p>Retrieve primary contact details:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> CustomerID, <span class="hljs-keyword"><span class="hljs-keyword">COALESCE</span></span>(EmailAddress, Phone) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> PrimaryContact
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer;
+</code></pre>
+  </li>
+  <li>
+    <p>Retrieve shipping status:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SalesOrderID, OrderDate,
+     <span class="hljs-keyword"><span class="hljs-keyword">CASE</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">WHEN</span></span> ShipDate <span class="hljs-keyword"><span class="hljs-keyword">IS</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span> <span class="hljs-keyword"><span class="hljs-keyword">THEN</span></span> <span class="hljs-string"><span class="hljs-string">'Awaiting Shipment'</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">ELSE</span></span> <span class="hljs-string"><span class="hljs-string">'Shipped'</span></span>
+     <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> ShippingStatus
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderHeader;
+</code></pre>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="ml-2">
+                    MicrosoftLearning/dp-080-Transact-SQL
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.js"></script>
+
+
+
+</body></html>

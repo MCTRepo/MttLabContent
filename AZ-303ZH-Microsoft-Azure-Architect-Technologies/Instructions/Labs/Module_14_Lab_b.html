@@ -1,0 +1,481 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-303ZH-Microsoft-Azure-Architect-Technologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-303ZH-Microsoft-Azure-Architect-Technologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1配置并验证-azure-function-应用程序-blob-存储触发器">练习 1：配置并验证 Azure Function 应用程序 Blob 存储触发器</a></li><li class="nav-item"><a class="nav-link" href="#练习-2配置并验证基于-azure-事件网格订阅的队列消息传递">练习 2：配置并验证基于 Azure 事件网格订阅的队列消息传递</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室配置基于消息的集成架构">实验室：配置基于消息的集成架构</h1>
+
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>Adatum 公司有多个 Web 应用程序，可以定期处理上传到本地文件服务器的文件。文件大小各不相同，但最高可达 100 MB。Adatum 正在考虑将应用程序迁移到 Azure App Service 或基于 Azure Functions 的应用程序，并使用 Azure Storage 来托管上传的文件。你计划测试两种场景：</p>
+
+<ul>
+  <li>
+    <p>使用 Azure Functions 自动处理上传到 Azure Storage 容器的新 Blob。</p>
+
+    <ul>
+      <li>使用事件网格生成 Azure Storage 队列消息，该消息将引用上传到 Azure Storage 容器的新 Blob。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>这些场景旨在解决基于消息传递的体系结构在发送、接收和操作大型消息时遇到的常见挑战。建议不要直接将大型消息发送到消息队列，因为这类消息需要使用更多资源，导致消耗更多带宽，并对处理速度产生负面影响，因为消息传递平台通常经过微调以处理大量小型消息。此外，消息传递平台通常会限制可以处理的最大消息大小。</p>
+
+<p>一种可能的解决方案是将消息有效负载存储到外部服务（如 Azure Blob Store、Azure SQL 或 Azure Cosmos DB）中，获取对存储的有效负载的引用，然后仅将该引用发送到消息总线。这种架构模式称为“索物标签” (claim check)。如果需要，对处理该特定消息感兴趣的客户可以使用已获得的引用来检索有效负载。</p>
+
+<p>在 Azure 上，这种模式可以通过多种方式和不同的技术实现，但它通常依赖于事件来自动生成声明检查并将其推送到消息总线以供客户端使用，或直接触发有效负载处理。此类实现中包含的常见组件之一是事件网格，它是一个事件路由服务，负责在可配置的时间段（最多 24 小时）内传递事件。之后，事件被丢弃或成为死信。如果需要事件内容的归档或事件流的可重放性，则可以通过设置事件中心的事件网格订阅或 Azure Storage 中的队列来促进满足此要求，其中消息可以保留更长时间并且支持消息的归档。</p>
+
+<p>在本实验中，你将使用 Azure Storage Blob 服务来存储要处理的文件。客户端只需要将要共享的文件放入指定的 Azure Blob 容器中。在第一个练习中，文件将由 Azure Function 直接使用，充分利用其无服务器性质。你还将利用 Application Insights 提供检测，便于监视和分析文件处理。在第二个练习中，你将使用事件网格自动生成索物标签消息并将其发送到 Azure Storage 队列。这允许客户端应用程序轮询队列，获取消息，然后使用存储的参考数据直接从 Azure Blob 存储下载有效负载。</p>
+
+<p>值得注意的是，第一个练习中的 Azure Function 依赖于 Blob 存储触发器。在处理以下要求时，你应该选择事件网格触发器而不是 Blob 存储触发器：</p>
+
+<ul>
+  <li>
+    <p>仅限 blob 的存储帐户：blob 存储帐户支持 blob 输入和输出绑定，但不支持 blob 触发器。Blob 存储触发器需要通用存储帐户。</p>
+
+    <ul>
+      <li>
+        <p>高规模：高规模可以松散地定义为容器中包含超过 100,000 个 blob，或者存储帐户中每秒有超过 100 个 blob 更新。</p>
+      </li>
+      <li>
+        <p>减少延迟：如果你的函数应用程序处于消耗计划中，而且函数应用程序空闲，则处理新 blob 的过程中可能会有 10 分钟的延迟。要避免此延迟，你可以使用事件网格触发器或切换到启用了“始终开启”设置的应用服务计划。</p>
+      </li>
+      <li>
+        <p>处理 blob 删除事件：blob 存储触发器不支持 blob 删除事件。</p>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>
+    <p>配置并验证 Azure Function 应用程序 Blob 存储触发器</p>
+  </li>
+  <li>
+    <p>配置并验证基于 Azure 事件网格订阅的队列消息传递</p>
+  </li>
+</ul>
+
+<h2 id="实验室环境">实验室环境</h2>
+
+<p>预计用时：60 分钟</p>
+
+<h2 id="实验室文件">实验室文件</h2>
+
+<p>无</p>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="练习-1配置并验证-azure-function-应用程序-blob-存储触发器">练习 1：配置并验证 Azure Function 应用程序 Blob 存储触发器</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>配置 Azure Function 应用程序 Blob 存储触发器</p>
+  </li>
+  <li>
+    <p>验证 Azure Function 应用程序 Blob 存储触发器</p>
+  </li>
+</ol>
+
+<h4 id="任务-1配置-azure-function-应用程序-blob-存储触发器">任务 1：配置 Azure Function 应用程序 Blob 存储触发器</h4>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器，导航至<a href="https://portal.azure.com">“Azure 门户”</a>，然后通过提供要在本实验中使用的订阅中的所有者角色的用户帐户凭据来登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，通过直接选择搜索文本框右侧的工具栏图标打开 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>如果提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong>，请选择 <strong>“Bash”</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 如果这是你第一次打开 <strong>“Cloud Shell”</strong>，会看到 <strong>“未装载任何存储”</strong> 消息，请选择你在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以生成伪随机字符串，该字符串将用作你将在本练习中配置的资源名称的前缀：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> PREFIX=$(<span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> `openssl rand -base64 5 | cut -c1-7 | tr <span class="hljs-string"><span class="hljs-string">'[:upper:]'</span></span> <span class="hljs-string"><span class="hljs-string">'[:lower:]'</span></span> | tr -<span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> <span class="hljs-string"><span class="hljs-string">'[[:alnum:]]._-'</span></span>`)
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以指定要在本实验室中为其预配资源的 Azure 区域（将 <code>&lt;Azure region&gt;</code> 占位符替换为订阅中可用的且最接近实验室计算机位置的 Azure 区域名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> LOCATION=<span class="hljs-string"><span class="hljs-string">'&lt;Azure region&gt;'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建一个资源组，该资源组将托管你将在本实验中配置的所有资源：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> RESOURCE_GROUP_NAME=<span class="hljs-string"><span class="hljs-string">'az30314b-labRG'</span></span>
+
+az group create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> --location <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$LOCATION</span></span></span><span class="hljs-string">"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以创建 Azure 存储帐户，该帐户将托管由 Azure Function 处理包含 Blob 的容器：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> STORAGE_ACCOUNT_NAME=<span class="hljs-string"><span class="hljs-string">"az30314b</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${PREFIX}</span></span></span><span class="hljs-string">"</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> CONTAINER_NAME=<span class="hljs-string"><span class="hljs-string">"workitems"</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> STORAGE_ACCOUNT=$(az storage account create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span> --kind <span class="hljs-string"><span class="hljs-string">"StorageV2"</span></span> --location <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${LOCATION}</span></span></span><span class="hljs-string">"</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> --sku <span class="hljs-string"><span class="hljs-string">"Standard_LRS"</span></span>)
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： Azure Function 也将使用相同的存储帐户来满足自身的处理要求。在实际场景中，你可能需要考虑为此目的创建单独的存储帐户。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建存储 Azure Storage 帐户的连接字符串属性值的变量：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> STORAGE_CONNECTION_STRING=$(az storage account show-connection-string --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> -o tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令以创建容器，该容器将托管由 Azure Function 处理的 Blob：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sh hljs bash">az storage container create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${CONTAINER_NAME}</span></span></span><span class="hljs-string">"</span></span> --account-name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span> --connection-string <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_CONNECTION_STRING}</span></span></span><span class="hljs-string">"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建 Application Insights 资源，该资源将监视 Azure Function 处理 blob 并将其密钥存储在一个变量中：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> APPLICATION_INSIGHTS_NAME=<span class="hljs-string"><span class="hljs-string">"az30314bi</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${PREFIX}</span></span></span><span class="hljs-string">"</span></span>
+
+az resource create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${APPLICATION_INSIGHTS_NAME}</span></span></span><span class="hljs-string">"</span></span> --location <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${LOCATION}</span></span></span><span class="hljs-string">"</span></span> --properties <span class="hljs-string"><span class="hljs-string">'{"Application_Type": "other", "ApplicationId": "function", "Flow_Type": "Redfield"}'</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> --resource-type <span class="hljs-string"><span class="hljs-string">"Microsoft.Insights/components"</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> APPINSIGHTS_KEY=$(az resource show --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${APPLICATION_INSIGHTS_NAME}</span></span></span><span class="hljs-string">"</span></span> --query <span class="hljs-string"><span class="hljs-string">"properties.InstrumentationKey"</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> --resource-type <span class="hljs-string"><span class="hljs-string">"Microsoft.Insights/components"</span></span> -o tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建 Azure Function，以处理与 Azure Storageblob 的创建相对应的事件：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> FUNCTION_NAME=<span class="hljs-string"><span class="hljs-string">"az30314f</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${PREFIX}</span></span></span><span class="hljs-string">"</span></span>
+
+az functionapp create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${FUNCTION_NAME}</span></span></span><span class="hljs-string">"</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> --app-insights <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$APPLICATION_INSIGHTS_NAME</span></span></span><span class="hljs-string">"</span></span> --app-insights-key <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$APPINSIGHTS_KEY</span></span></span><span class="hljs-string">"</span></span> --storage-account <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span> --consumption-plan-location <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${LOCATION}</span></span></span><span class="hljs-string">"</span></span> --runtime <span class="hljs-string"><span class="hljs-string">"dotnet"</span></span> --<span class="hljs-built_in"><span class="hljs-built_in">functions</span></span>-version 2
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以配置新创建的函数的应用程序设置，将其链接到 Application Insights 和 Azure Storage 帐户：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-sh hljs bash">az functionapp config appsettings <span class="hljs-built_in"><span class="hljs-built_in">set</span></span> --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${FUNCTION_NAME}</span></span></span><span class="hljs-string">"</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> --settings <span class="hljs-string"><span class="hljs-string">"APPINSIGHTS_INSTRUMENTATIONKEY=</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$APPINSIGHTS_KEY</span></span></span><span class="hljs-string">"</span></span> FUNCTIONS_EXTENSION_VERSION=~2
+
+az functionapp config appsettings <span class="hljs-built_in"><span class="hljs-built_in">set</span></span> --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${FUNCTION_NAME}</span></span></span><span class="hljs-string">"</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> --settings <span class="hljs-string"><span class="hljs-string">"STORAGE_CONNECTION_STRING=</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$STORAGE_CONNECTION_STRING</span></span></span><span class="hljs-string">"</span></span> FUNCTIONS_EXTENSION_VERSION=~2
+</code></pre>
+  </li>
+  <li>
+    <p>切换到 Azure 门户并导航到你在此任务中先前创建的 Azure Function 应用程序的刀片。</p>
+  </li>
+  <li>
+    <p>在“Azure Function 应用”边栏选项卡上，选择 <strong>“函数”</strong>，然后选择 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加函数”</strong> 边栏选项卡中选择 <strong>“Azure Blob 存储触发器”</strong> 模板。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加函数”</strong> 边栏选项卡中指定以下内容，并选择 <strong>“添加”</strong> 以在 Azure 函数中新建一个函数：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>BlobTrigger</strong></td>
+        </tr>
+        <tr>
+          <td>路径</td>
+          <td><strong>workitems/{name}</strong></td>
+        </tr>
+        <tr>
+          <td>存储帐户连接</td>
+          <td><strong>STORAGE_CONNECTION_STRING</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 Azure 函数应用 <strong>“BlobTrigger”</strong> 函数边栏选项卡中选择 <strong>“代码 + 测试”</strong>，并查看 run.csx 文件中的内容。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-csharp hljs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">Stream myBlob, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params"> name, ILogger log</span></span></span><span class="hljs-function">)
+</span></span>{
+    log.LogInformation(<span class="hljs-string"><span class="hljs-string">$"C# Blob trigger function Processed blob\n Name:</span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{name}</span></span></span><span class="hljs-string"> \n Size: </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{myBlob.Length}</span></span></span><span class="hljs-string"> Bytes"</span></span>);
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 默认情况下，该函数配置为仅记录与创建新 blob 相对应的事件。为了执行 blob 处理任务，你可以修改此文件的内容。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2验证-azure-function-应用程序-blob-存储触发器">任务 2：验证 Azure Function 应用程序 Blob 存储触发器</h4>
+
+<ol>
+  <li>
+    <p>如有必要，请在 Cloud Shell 中重新启动 Bash 会话。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以重新填充你在上一个任务中使用的变量：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> RESOURCE_GROUP_NAME=<span class="hljs-string"><span class="hljs-string">'az30314b-labRG'</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> STORAGE_ACCOUNT_NAME=<span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$(az storage account list --resource-group "${RESOURCE_GROUP_NAME}" --query "[0].name" --output tsv)</span></span></span><span class="hljs-string">"</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> CONTAINER_NAME=<span class="hljs-string"><span class="hljs-string">"workitems"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令将测试 blob 上传到你在先前此任务中创建的 Azure Storage 帐户：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> STORAGE_ACCESS_KEY=<span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$(az storage account keys list --account-name "${STORAGE_ACCOUNT_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query "[0].value" --output tsv)</span></span></span><span class="hljs-string">"</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> WORKITEM=<span class="hljs-string"><span class="hljs-string">'workitem1.txt'</span></span>
+
+touch <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${WORKITEM}</span></span></span><span class="hljs-string">"</span></span>
+
+az storage blob upload --file <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${WORKITEM}</span></span></span><span class="hljs-string">"</span></span> --container-name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${CONTAINER_NAME}</span></span></span><span class="hljs-string">"</span></span> --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${WORKITEM}</span></span></span><span class="hljs-string">"</span></span> --auth-mode key --account-key <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCESS_KEY}</span></span></span><span class="hljs-string">"</span></span> --account-name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航回显示你在上一个任务中创建的 Azure Function 应用程序的刀片。</p>
+  </li>
+  <li>
+    <p>在 Function 应用中，单击 <strong>“函数”</strong>。</p>
+  </li>
+  <li>
+    <p>在函数列表中，单击函数名称。</p>
+  </li>
+  <li>
+    <p>在“Azure Function 应用”边栏选项卡上，选择 <strong>“监视”</strong> 条目。</p>
+  </li>
+  <li>
+    <p>注意表示 blob 上传的单个事件条目。选择该条目以查看 <strong>“调用跟踪”</strong> 详细信息。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 由于本练习中的 Azure Function 应用程序在消耗计划中运行，因此上传 blob 和触发函数的过程之间可能会有几分钟的延迟。通过使用 App Service（而非消耗）计划实现 Function 应用程序，可以最大限度地减少延迟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“调用跟踪”<strong>**下，单击“在 Application Insights 中运行查询”</strong>**。</p>
+  </li>
+  <li>
+    <p>在 Application Insights 门户中，查看自动生成的 Kusto 查询及其结果。</p>
+  </li>
+</ol>
+
+<h3 id="练习-2配置并验证基于-azure-事件网格订阅的队列消息传递">练习 2：配置并验证基于 Azure 事件网格订阅的队列消息传递</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>配置基于 Azure 事件网格订阅的队列消息传递</p>
+  </li>
+  <li>
+    <p>验证基于 Azure 事件网格订阅的队列消息传递</p>
+  </li>
+  <li>
+    <p>删除实验室中部署的 Azure 资源</p>
+  </li>
+</ol>
+
+<h4 id="任务-1配置基于-azure-事件网格订阅的队列消息传递">任务 1：配置基于 Azure 事件网格订阅的队列消息传递</h4>
+
+<ol>
+  <li>
+    <p>如有必要，请在 Cloud Shell 中重新启动 Bash 会话。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以在订阅中注册 eventgrid 资源提供程序：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-sh hljs bash">az provider register --namespace microsoft.eventgrid
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以生成伪随机字符串，该字符串将用作你将在本练习中配置的资源名称的前缀：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> PREFIX=$(<span class="hljs-built_in"><span class="hljs-built_in">echo</span></span> `openssl rand -base64 5 | cut -c1-7 | tr <span class="hljs-string"><span class="hljs-string">'[:upper:]'</span></span><span class="hljs-string"><span class="hljs-string">'[:lower:]'</span></span> | tr -<span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> <span class="hljs-string"><span class="hljs-string">'[[:alnum:]]._-'</span></span>`)
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以标识托管目标资源组及其现有资源的 Azure 区域：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> RESOURCE_GROUP_NAME_EXISTING=<span class="hljs-string"><span class="hljs-string">'az30314b-labRG'</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> LOCATION=$(az group list --query <span class="hljs-string"><span class="hljs-string">"[?name == '</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME_EXISTING}</span></span></span><span class="hljs-string">'].location"</span></span> --output tsv)
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> RESOURCE_GROUP_NAME=<span class="hljs-string"><span class="hljs-string">'az30314c-labRG'</span></span>
+
+az group create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以创建 Azure 存储帐户，该帐户将托管在此任务中由配置的事件网格订阅使用的容器：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> STORAGE_ACCOUNT_NAME=<span class="hljs-string"><span class="hljs-string">"az30314cst</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${PREFIX}</span></span></span><span class="hljs-string">"</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> CONTAINER_NAME=<span class="hljs-string"><span class="hljs-string">"workitems"</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> STORAGE_ACCOUNT=$(az storage account create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span> --kind <span class="hljs-string"><span class="hljs-string">"StorageV2"</span></span> --location <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${LOCATION}</span></span></span><span class="hljs-string">"</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> --sku <span class="hljs-string"><span class="hljs-string">"Standard_LRS"</span></span>)
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建存储 Azure Storage 帐户的连接字符串属性值的变量：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> STORAGE_CONNECTION_STRING=$(az storage account show-connection-string --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> -o tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以创建将由事件网格订阅使用的容器：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-sh hljs bash">az storage container create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${CONTAINER_NAME}</span></span></span><span class="hljs-string">"</span></span> --account-name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span> --connection-string <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_CONNECTION_STRING}</span></span></span><span class="hljs-string">"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建存储 Azure Storage 帐户的资源 Id 属性值的变量：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> STORAGE_ACCOUNT_ID=$(az storage account show --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span> --query <span class="hljs-string"><span class="hljs-string">"id"</span></span> --resource-group <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${RESOURCE_GROUP_NAME}</span></span></span><span class="hljs-string">"</span></span> -o tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建存储帐户队列，该队列将存储你将在此任务中配置的事件网格订阅生成的消息：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> QUEUE_NAME=<span class="hljs-string"><span class="hljs-string">"az30314cq</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${PREFIX}</span></span></span><span class="hljs-string">"</span></span>
+
+az storage queue create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${QUEUE_NAME}</span></span></span><span class="hljs-string">"</span></span> --account-name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span> --connection-string <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_CONNECTION_STRING}</span></span></span><span class="hljs-string">"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建事件网格订阅，以便在 Azure Storage 队列中生成消息，以响应上传到 Azure Storage 帐户中的指定容器的 blob：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> QUEUE_SUBSCRIPTION_NAME=<span class="hljs-string"><span class="hljs-string">"az30314cqsub</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${PREFIX}</span></span></span><span class="hljs-string">"</span></span>
+
+az eventgrid event-subscription create --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${QUEUE_SUBSCRIPTION_NAME}</span></span></span><span class="hljs-string">"</span></span> --included-event-types <span class="hljs-string"><span class="hljs-string">'Microsoft.Storage.BlobCreated'</span></span> --endpoint <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_ID}</span></span></span><span class="hljs-string">/queueservices/default/queues/</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${QUEUE_NAME}</span></span></span><span class="hljs-string">"</span></span> --endpoint-type <span class="hljs-string"><span class="hljs-string">"storagequeue"</span></span> --<span class="hljs-built_in"><span class="hljs-built_in">source</span></span>-resource-id <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_ID}</span></span></span><span class="hljs-string">"</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="任务-2验证基于-azure-事件网格订阅的队列消息传递">任务 2：验证基于 Azure 事件网格订阅的队列消息传递</h4>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令将测试 blob 上传到你在先前此任务中创建的 Azure Storage 帐户：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-sh hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">export</span></span> AZURE_STORAGE_ACCESS_KEY=<span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$(az storage account keys list --account-name "${STORAGE_ACCOUNT_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query "[0].value" --output tsv)</span></span></span><span class="hljs-string">"</span></span>
+
+<span class="hljs-built_in"><span class="hljs-built_in">export</span></span> WORKITEM=<span class="hljs-string"><span class="hljs-string">'workitem2.txt'</span></span>
+
+touch <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${WORKITEM}</span></span></span><span class="hljs-string">"</span></span>
+
+az storage blob upload --file <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${WORKITEM}</span></span></span><span class="hljs-string">"</span></span> --container-name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${CONTAINER_NAME}</span></span></span><span class="hljs-string">"</span></span> --name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${WORKITEM}</span></span></span><span class="hljs-string">"</span></span> --auth-mode key --account-key <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${AZURE_STORAGE_ACCESS_KEY}</span></span></span><span class="hljs-string">"</span></span> --account-name <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">${STORAGE_ACCOUNT_NAME}</span></span></span><span class="hljs-string">"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到显示你在本练习的上一个任务中创建的 Azure Storage 帐户的刀片。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Azure 存储帐户”</strong> 边栏选项卡中选择 <strong>“队列”</strong>，以显示其队列列表。</p>
+  </li>
+  <li>
+    <p>选择代表你在本练习的上一个任务中所创建队列的条目。</p>
+  </li>
+  <li>
+    <p>请注意，队列包含一条消息。选择其条目以显示 <strong>“消息属性”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在<strong>消息正文</strong>中，注意 <strong>url</strong> 属性的值，它代表你在上一个任务中上传的 Azure 存储 blob 的 URL。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3删除实验室中部署的-azure-资源">任务 3：删除实验室中部署的 Azure 资源</h4>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以列出你在本练习中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：验证输出结果是否仅包含在本实验室中创建的资源组。在本任务中将删除这个组。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以删除在本实验室中创建的资源组</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30314')]"</span></span>.name --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

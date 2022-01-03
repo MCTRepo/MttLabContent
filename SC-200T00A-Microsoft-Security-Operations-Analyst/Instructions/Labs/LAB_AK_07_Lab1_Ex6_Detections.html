@@ -1,0 +1,693 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            SC-200T00A-Microsoft-Security-Operations-Analyst
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="/SC-200T00A-Microsoft-Security-Operations-Analyst/assets/css/style.css?v=20cbc7b52187d61fca294ac2c00146c2c7c6d337">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                SC-200T00A-Microsoft-Security-Operations-Analyst
+            </a>
+            <a href="https://github.com/MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#task-1-attack-1-detection-with-sysmon">Task 1: Attack 1 Detection with Sysmon</a></li><li class="nav-item"><a class="nav-link" href="#task-2-attack-1-detection-with-defender-for-endpoint">Task 2: Attack 1 Detection with Defender for Endpoint</a></li><li class="nav-item"><a class="nav-link" href="#task-3-attack-2-detection-with-securityevent">Task 3: Attack 2 Detection with SecurityEvent</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="module-7---lab-1---exercise-6---create-detections">Module 7 - Lab 1 - Exercise 6 - Create Detections</h1>
+
+<h3 id="task-1-attack-1-detection-with-sysmon">Task 1: Attack 1 Detection with Sysmon</h3>
+
+<p>In this task, you will create a detection for <strong>Attack 1</strong> on the host with the Security Events connector and Sysmon installed.</p>
+
+<ol>
+  <li>
+    <p>Login to WIN1 virtual machine as Admin with the password: <strong>Pa55w.rd</strong>.</p>
+  </li>
+  <li>
+    <p>In the Edge browser, navigate to the Azure portal at https://portal.azure.com.</p>
+  </li>
+  <li>
+    <p>In the <strong>Sign in</strong> dialog box, copy and paste in the <strong>Tenant Email</strong> account for admin provided by your lab hosting provider and then select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Enter password</strong> dialog box, copy and paste in the <strong>Tenant Password</strong> for admin provided by your lab hosting provider and then select <strong>Sign in</strong>.</p>
+  </li>
+  <li>
+    <p>In the Search bar of the Azure portal, type <em>Sentinel</em>, then select <strong>Microsoft Sentinel</strong>.</p>
+  </li>
+  <li>
+    <p>Select your Microsoft Sentinel Workspace you created earlier.</p>
+  </li>
+  <li>
+    <p>Select <strong>Logs</strong> from the General section.</p>
+  </li>
+  <li>
+    <p>First, you need to see where the data is stored. Since you just performed the attacks.  Set the Log Time Range to <strong>Last 24 hours</strong>.</p>
+  </li>
+  <li>
+    <p>Run the following KQL Statement</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-KQL">search "temp\\startup.bat"
+</code></pre>
+
+<ol>
+  <li>The results show data for three different tables:
+    <ul>
+      <li>DeviceProcessEvents</li>
+      <li>DeviceRegistryEvents</li>
+      <li>Event</li>
+    </ul>
+
+    <p>The <em>Device</em> tables are from Defender for Endpoint connector and <em>Event</em> table populates data from the Sysmon/Operational Windows Event Logs connected through the Agents configuration.</p>
+
+    <p>Since we are receiving data from two different sources - Sysmon and Defender for Endpoint, we will need to build two KQL statements that could union later. In our initial investigation, you will look at each separately.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> On rare occasions the data loading process may take longer than normal. When that happens, the tables may not appear in the query for some hours. You may continue now if you only see the <em>Event</em> table.</p>
+    </blockquote>
+  </li>
+  <li>Our first data source is Sysmon from Windows hosts.  Run the following KQL Statement.</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-KQL">search in (Event) "temp\\startup.bat"
+</code></pre>
+
+<p>The results now only show for the Event table.</p>
+
+<ol>
+  <li>
+    <p>Expand the rows to see all the columns related to the record.  A few of the fields like EventData and ParameterXml have multiple data items stored as structured data.  This makes it difficult to query on specific fields.</p>
+  </li>
+  <li>
+    <p>Next, we have to build a KQL statement that parses the data from each row, allowing us to have meaningful fields. In the Microsoft Sentinel Community on GitHub, there are many examples of Parsers in the Parsers folder.  Open another tab in your browser and navigate to: <strong>https://github.com/Azure/Azure-Sentinel</strong></p>
+  </li>
+  <li>
+    <p>Select the <strong>Parsers</strong> folder, then <strong>Sysmon</strong> folder.</p>
+  </li>
+  <li>
+    <p>Select the Sysmon-v12.0.txt file to view.</p>
+
+    <p>At the top of the file, you see a Let statement querying the Event table and storing to a variable named EventData.</p>
+    <blockquote>
+      <p><strong>Hint:</strong> The following code snippet is for better understanding the query in step 16, not to be copied and executed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">let</span></span> EventData = Event
+| <span class="hljs-built_in"><span class="hljs-built_in">where</span></span> Source == <span class="hljs-string"><span class="hljs-string">"Microsoft-Windows-Sysmon"</span></span>
+| extend RenderedDescription = tostring(split(RenderedDescription, <span class="hljs-string"><span class="hljs-string">":"</span></span>)[0])
+| project TimeGenerated, Source, EventID, Computer, UserName, EventData, RenderedDescription
+| extend EvData = parse_xml(EventData)
+| extend EventDetail = EvData.DataItem.EventData.Data
+| project-away EventData, EvData  ;
+</code></pre>
+
+<p>Further down in the file, you see another let statement looking at EventID == 13 and using the EventData variable as input.</p>
+<blockquote>
+  <p><strong>Hint:</strong> The following code snippet is for better understanding the query in step 16, not to be copied and executed.</p>
+</blockquote>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs bash"><span class="hljs-built_in"><span class="hljs-built_in">let</span></span> SYSMON_REG_SETVALUE_13=()
+{
+    <span class="hljs-built_in"><span class="hljs-built_in">let</span></span> processEvents = EventData
+    | <span class="hljs-built_in"><span class="hljs-built_in">where</span></span> EventID == 13
+    | extend RuleName = EventDetail.[0].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], EventType = EventDetail.[1].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], UtcTime = EventDetail.[2].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], ProcessGuid = EventDetail.[3].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], 
+    ProcessId = EventDetail.[4].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], Image = EventDetail.[5].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], TargetObject = EventDetail.[6].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>], Details = EventDetail.[7].[<span class="hljs-string"><span class="hljs-string">"#text"</span></span>]
+    | project-away EventDetail  ;
+    processEvents;
+    
+};
+</code></pre>
+
+<ol>
+  <li>
+    <p>This looks like a good start. With the two statements above, you create your own KQL statement to display all Registry Key Set Value rows using Sysmon within the Event table. Run the following KQL query:</p>
+
+    <blockquote>
+      <p><strong>Important:</strong> Please paste any KQL queries first in <em>Notepad</em> and then copy from there to the <em>New Query 1</em> Log window to avoid any errors.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-KQL">Event
+| where Source == "Microsoft-Windows-Sysmon"
+| where EventID == 13
+| extend RenderedDescription = tostring(split(RenderedDescription, ":")[0])
+| project TimeGenerated, Source, EventID, Computer, UserName, EventData, RenderedDescription
+| extend EvData = parse_xml(EventData)
+| extend EventDetail = EvData.DataItem.EventData.Data
+| project-away EventData, EvData  
+| extend RuleName = EventDetail.[0].["#text"], EventType = EventDetail.[1].["#text"], UtcTime = EventDetail.[2].["#text"], ProcessGuid = EventDetail.[3].["#text"], 
+    ProcessId = EventDetail.[4].["#text"], Image = EventDetail.[5].["#text"], TargetObject = EventDetail.[6].["#text"], Details = EventDetail.[7].["#text"]
+    | project-away EventDetail 
+</code></pre>
+
+<p><a href="../Media/SC200_sysmon_query1.png" target="_blank"><img src="../Media/SC200_sysmon_query1.png" alt="Screenshot"></a></p>
+
+<ol>
+  <li>
+    <p>You could continue to build your detection rule from here, but this KQL statement looks like it could be reused in other detection rule’s KQL statements.  In the Log window, select <strong>Save</strong>, then <strong>Save as function</strong>. In the Save flyout, enter the following and save the function:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Function Name</td>
+          <td><strong>Event_Reg_SetValue</strong></td>
+        </tr>
+        <tr>
+          <td>Category</td>
+          <td><strong>Sysmon</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong> and open a new Log Query tab by selecting the <strong>+</strong> sign. Then run the following KQL Statement:</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-KQL">Event_Reg_SetValue
+</code></pre>
+
+<ol>
+  <li>Depending on the current data collection, you could receive many rows. This is expected. Our next task is to filter to our specific scenario. Run the following KQL Statement to return our specific record that we can now review to see what we can change to identify rows:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-KQL">Event_Reg_SetValue | search "startup.bat"
+</code></pre>
+
+<ol>
+  <li>From our Threat Intelligence, we know that the Threat Actor is using reg.exe to add the registry key.  The directory is c:\temp. The startup.bat can be a different name. Run the following script</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-KQL">Event_Reg_SetValue 
+| where Image contains "reg.exe"
+</code></pre>
+
+<ol>
+  <li>This is a good start.  Next, you need to return results only for c:\temp directory. Next, enter the following KQL statement:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-KQL">Event_Reg_SetValue 
+| where Image contains "reg.exe"
+| where Details startswith "C:\\TEMP"
+</code></pre>
+
+<ol>
+  <li>It is important to help the Security Operations Analyst by providing as much context about the alert as you can. This includes projecting entities for use in the investigation graph.  Run the following query:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-KQL">Event_Reg_SetValue 
+| where Image contains "reg.exe"
+| where Details startswith "C:\\TEMP"
+| extend timestamp = TimeGenerated, HostCustomEntity = Computer, AccountCustomEntity = UserName
+
+</code></pre>
+
+<ol>
+  <li>
+    <p>Now that you have a good detection rule, in the Log window with the query, select the <strong>+ New alert rule</strong> in the Command Bar, and choose <strong>Create Azure Sentinel alert</strong>.</p>
+  </li>
+  <li>
+    <p>This starts our Analytics rule wizard. For the General Tab enter:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>Sysmon Startup RegKey</strong></td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td><strong>Sysmon Startup Regkey in c:\temp</strong></td>
+        </tr>
+        <tr>
+          <td>Tactics</td>
+          <td><strong>Persistence</strong></td>
+        </tr>
+        <tr>
+          <td>Severity</td>
+          <td><strong>High</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Next : Set rule logic &gt;</strong>. On the <strong>Set rule logic</strong> tab, the <strong>Rule query</strong> should already be populated. Select <strong>-&gt; Test with current data</strong> to review the number of alerts you could receive per day with the current configuration.</p>
+  </li>
+  <li>
+    <p>For Query scheduling set the following:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Run Query every</td>
+          <td>5 minutes</td>
+        </tr>
+        <tr>
+          <td>Look data from the last</td>
+          <td>1 Day</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note:</strong> We are purposely generating many incidents for the same data. This enables the Lab to use these alerts. With this configuration change, the number of received alerts might change.  Select <strong>-&gt; Test with current data</strong> to review the number of alerts you could receive per day with the changed configuration.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave the rest of the options to the defaults.  Select <strong>Next : Incident settings&gt;</strong> button.</p>
+  </li>
+  <li>
+    <p>For the <em>Incident settings (Preview)</em> tab, make sure these configurations are set as following:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Incident settings</td>
+          <td>Enabled</td>
+        </tr>
+        <tr>
+          <td>Alert grouping</td>
+          <td>Disabled</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Next : Automated response &gt;</strong> button. For the “Automated response” tab select the <em>PostMessageTeams-OnAlert</em> under <em>Alert automation</em> and then select <strong>Next : Review</strong> button.</p>
+  </li>
+  <li>
+    <p>On the Review tab, select the <strong>Create</strong> button.</p>
+  </li>
+</ol>
+
+<h3 id="task-2-attack-1-detection-with-defender-for-endpoint">Task 2: Attack 1 Detection with Defender for Endpoint</h3>
+
+<p>In this task, you will create a detection for <strong>Attack 1</strong> on the host with the Microsoft Defender for Endpoint configured.</p>
+
+<ol>
+  <li>
+    <p>In the Microsoft Sentinel portal, Select <strong>Logs</strong> from the General section.</p>
+  </li>
+  <li>
+    <p>First, you need to see where the data is stored. Since you just performed the attacks set the log <strong>Time Range: Last 24 hours</strong>.</p>
+  </li>
+  <li>
+    <p>Run the following KQL Statement:</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-KQL">search "temp\\startup.bat"
+</code></pre>
+
+<ol>
+  <li>The results show data for three different tables:
+    <ul>
+      <li>DeviceProcessEvents</li>
+      <li>DeviceRegistryEvents</li>
+      <li>Event</li>
+    </ul>
+
+    <p>The <em>Device</em> tables are from Defender for Endpoint connector and <em>Event</em> table populates data from the Sysmon/Operational Windows Event Logs connected through the Agents configuration.</p>
+
+    <p>Since we are receiving data from two different sources - Sysmon and Defender for Endpoint.  We will need to build two KQL statements that could union later. But our initial investigation, you will look at each separately.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> On rare occasions the data loading process may take longer than normal. When that happens, the tables may not appear in the query for some hours. Continue to Task 3 if you don’t see the <em>Device</em> tables in the results and come back later to this point.</p>
+    </blockquote>
+  </li>
+  <li>This detection will focus on data from Defender for Endpoint.  Run the following KQL Statement:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-KQL">search in (Device*) "temp\\startup.bat"
+</code></pre>
+
+<ol>
+  <li>
+    <p>The table - DeviceRegistryEvents looks to have the data already normalized and easy for us to query.  Expand the rows to see all the columns related to the record.</p>
+  </li>
+  <li>
+    <p>From our Threat Intelligence, we know that the Threat Actor is using reg.exe to add the registry key.  The directory is c:\temp. The startup.bat can be a different name.  Enter this KQL statement:</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-KQL">DeviceRegistryEvents
+| where ActionType == "RegistryValueSet"
+| where InitiatingProcessFileName == "reg.exe"
+| where RegistryValueData startswith "c:\\temp"
+</code></pre>
+
+<ol>
+  <li>It is important to help the Security Operations Center Analyst by providing as much context about the alert as you can. This includes projecting Entities for use in the investigation graph. Run the following query:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-KQL">DeviceRegistryEvents
+| where ActionType == "RegistryValueSet"
+| where InitiatingProcessFileName == "reg.exe"
+| where RegistryValueData startswith "c:\\temp"
+| extend timestamp = TimeGenerated, HostCustomEntity = DeviceName, AccountCustomEntity = InitiatingProcessAccountName
+</code></pre>
+
+<p><a href="../Media/SC200_sysmon_query2.png" target="_blank"><img src="../Media/SC200_sysmon_query2.png" alt="Screenshot"></a></p>
+
+<ol>
+  <li>
+    <p>Now that you have a good detection rule, in the Log window with the query, select the <strong>+ New alert rule</strong> in the Command Bar.  Then select <strong>Create Azure Sentinel alert</strong>.</p>
+  </li>
+  <li>
+    <p>This starts our Analytics rule wizard. For the General Tab, enter:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>MDE Startup RegKey</strong></td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td><strong>MDE Startup Regkey in c:\temp</strong></td>
+        </tr>
+        <tr>
+          <td>Tactics</td>
+          <td><strong>Persistence</strong></td>
+        </tr>
+        <tr>
+          <td>Severity</td>
+          <td><strong>High</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Next : Set rule logic &gt;</strong> button.</p>
+  </li>
+  <li>
+    <p>On the Set rule logic tab, the <strong>Rule query</strong> should already be populated.</p>
+  </li>
+  <li>
+    <p>For Query scheduling set the following:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Run Query every</td>
+          <td>5 minutes</td>
+        </tr>
+        <tr>
+          <td>Look data from the last</td>
+          <td>1 Day</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note:</strong> We are purposely generating many incidents for the same data.  This enables the Lab to use these alerts.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave the rest of the options to the defaults.  Select <strong>Next : Incident settings &gt;</strong>:</p>
+  </li>
+  <li>
+    <p>For the <em>Incident settings (Preview)</em> set the following:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Incident settings</td>
+          <td>Enabled</td>
+        </tr>
+        <tr>
+          <td>Alert grouping</td>
+          <td>Disabled</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Next : Automated response &gt;</strong>. For the “Automated response” tab select the <em>PostMessageTeams-OnAlert</em> under <em>Alert automation</em> and then select <strong>Next : Review</strong> button.</p>
+  </li>
+  <li>
+    <p>On the Review and create tab, select <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="task-3-attack-2-detection-with-securityevent">Task 3: Attack 2 Detection with SecurityEvent</h3>
+
+<p>In this task, you will create a detection for <em>Attack 2</em> on the host with the Security Events connector and Sysmon installed.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Logs</strong> from the General section of the Microsoft Sentinel portal.</p>
+  </li>
+  <li>
+    <p>First, you need to see where the data is stored. Since you just performed the attacks.</p>
+
+    <p>Set the Log Time Range to Last 24 hours.</p>
+  </li>
+  <li>
+    <p>Run the following KQL Statement:</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-KQL">search "administrators"
+</code></pre>
+
+<ol>
+  <li>The results show the following tables:
+    <ul>
+      <li>Event</li>
+      <li>SecurityEvent</li>
+    </ul>
+  </li>
+  <li>Our first data source is SecurityEvent. Time to research what event ID Windows uses to identify adding a member to a privileged group. The EventID and Event that we are looking is “4732 - A member was added to a security-enabled local group”. Run the following script to confirm:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-KQL">SecurityEvent
+| where EventID == "4732"
+| where TargetAccount == "Builtin\\Administrators"
+</code></pre>
+
+<ol>
+  <li>Expand the rows to see all the columns related to the record.  The username we are looking for doesn’t show.  The issue is that instead of storing the username, the security identifier (SID) is stored.  The following KQL will try to match the SID to populate the TargetUserName that was added to the Administrators group.</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-KQL">SecurityEvent
+| where EventID == "4732"
+| where TargetAccount == "Builtin\\Administrators"
+| extend Acct = MemberSid, MachId = SourceComputerId 
+| join kind=leftouter (
+     SecurityEvent 
+     | summarize count() by TargetSid, SourceComputerId, TargetUserName
+     | project Acct1 = TargetSid, MachId1 = SourceComputerId, UserName1 = TargetUserName
+) on $left.MachId == $right.MachId1, $left.Acct == $right.Acct1 
+</code></pre>
+
+<p><a href="../Media/SC200_sysmon_attack3.png" target="_blank"><img src="../Media/SC200_sysmon_attack3.png" alt="Screenshot"></a></p>
+
+<blockquote>
+  <p><strong>Note:</strong> This KQL might not return the expected results because of the small dataset used in the lab.</p>
+</blockquote>
+
+<ol>
+  <li>It is important to help the Security Operations Analyst by providing as much context about the alert as you can. This includes projecting Entities for use in the investigation graph.  Run the following query:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-KQL">SecurityEvent
+| where EventID == "4732"
+| where TargetAccount == "Builtin\\Administrators"
+| extend Acct = MemberSid, MachId = SourceComputerId 
+| join kind=leftouter (
+     SecurityEvent 
+     | summarize count() by TargetSid, SourceComputerId, TargetUserName
+     | project Acct1 = TargetSid, MachId1 = SourceComputerId, UserName1 = TargetUserName
+) on $left.MachId == $right.MachId1, $left.Acct == $right.Acct1 
+| extend timestamp = TimeGenerated, HostCustomEntity = Computer, AccountCustomEntity = UserName1
+</code></pre>
+
+<ol>
+  <li>
+    <p>Now that you have a good detection rule, in the Log window with the query, select <strong>+ New alert rule</strong> in the Command Bar, then select <strong>Create Azure Sentinel alert</strong>.</p>
+  </li>
+  <li>
+    <p>This starts our Analytics rule wizard. For the General Tab, enter:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>SecurityEvents Local Administrators User Add</strong></td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td><strong>User added to Local Administrators group</strong></td>
+        </tr>
+        <tr>
+          <td>Tactics</td>
+          <td><strong>Privilege Escalation</strong></td>
+        </tr>
+        <tr>
+          <td>Severity</td>
+          <td><strong>High</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Next : Set rule logic &gt;</strong> button. On the Set rule logic tab, the Rule query and Map entities should already be populated.</p>
+  </li>
+  <li>
+    <p>For Query scheduling set the following:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Run Query every</td>
+          <td>5 minutes</td>
+        </tr>
+        <tr>
+          <td>Look data from the last</td>
+          <td>1 Day</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note:</strong> We are purposely generating many incidents for the same data.  This enables the Lab to use these alerts.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave the rest of the options to the defaults.  Select <strong>Next : Incident settings &gt;</strong>:</p>
+  </li>
+  <li>
+    <p>For the <em>Incident settings (Preview)</em> set the following:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Incident settings</td>
+          <td>Enabled</td>
+        </tr>
+        <tr>
+          <td>Alert grouping</td>
+          <td>Disabled</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Next: Automated response &gt;</strong>. For the “Automated response” tab select the <em>PostMessageTeams-OnAlert</em> under <em>Alert automation</em> and then select <strong>Next : Review</strong> button.</p>
+  </li>
+  <li>
+    <p>On the Review tab, select <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="proceed-to-exercise-7">Proceed to Exercise 7</h2>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst" target="_blank" class="ml-2">
+                    MicrosoftLearning/SC-200T00A-Microsoft-Security-Operations-Analyst
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D20cbc7b52187d61fca294ac2c00146c2c7c6d337.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-303ZH-Microsoft-Azure-Architect-Technologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-303ZH-Microsoft-Azure-Architect-Technologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-0准备实验室环境">练习 0：准备实验室环境</a></li><li class="nav-item"><a class="nav-link" href="#练习-1定义自定义-rbac-角色">练习 1：定义自定义 RBAC 角色</a></li><li class="nav-item"><a class="nav-link" href="#练习-2分配并测试自定义-rbac-角色">练习 2：分配并测试自定义 RBAC 角色</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室管理-azure-基于角色的访问控制">实验室：管理 Azure 基于角色的访问控制</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>随着 Azure Active Directory (Azure AD) 成为标识管理环境不可或缺的一部分，Adatum 企业体系结构团队还必须确定最佳的授权方法。在对 Azure 资源进行访问控制的上下文中，这种方法必须使用 Azure 基于角色的访问控制 (RBAC)。Azure RBAC 是基于 Azure 资源管理器生成的授权系统，可提供精细的 Azure 资源访问管理。</p>
+
+<p>Azure RBAC 的关键概念是角色分配。角色分配包括三个要素：安全主体、角色定义和作用域。安全主体是表示请求访问 Azure 资源的用户、组、服务主体或托管标识的对象。角色定义是角色分配授权的操作（例如读取、写入或删除）的集合。角色可以是一般性的，也可以是特定于资源的。Azure 包括四个内置的一般角色（所有者、参与者、读取者和用户访问管理员）和大量特定于资源的内置角色（例如虚拟机参与者，其中包括创建和管理 Azure 虚拟机的权限）。还可以定义自定义角色。作用域是访问权限适用的资源集。作用域可以设置在多个级别：管理组、订阅、资源组或资源。作用域采用父子关系结构。</p>
+
+<p>Adatum 企业体系结构团队希望使用自定义的基于角色的访问控制角色来测试 Azure 管理的委派。为了开始评估，团队打算创建一个自定义角色，用来提供对 Azure 虚拟机的受限访问。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>
+    <p>定义自定义 RBAC 角色</p>
+  </li>
+  <li>
+    <p>分配自定义 RBAC 角色</p>
+  </li>
+</ul>
+
+<h2 id="实验室环境">实验室环境</h2>
+
+<p>Windows Server 管理员凭据</p>
+
+<ul>
+  <li>
+    <p>用户名： <strong>Student</strong></p>
+  </li>
+  <li>
+    <p>密码： <strong>Pa55w.rd1234</strong></p>
+  </li>
+</ul>
+
+<p>预计用时：60 分钟</p>
+
+<h2 id="实验室文件">实验室文件</h2>
+
+<ul>
+  <li>
+    <p>\\AZ303\AllFiles\Labs\10\azuredeploy30310suba.json</p>
+  </li>
+  <li>
+    <p>\\AZ303\AllFiles\Labs\10\azuredeploy30310rga.json</p>
+  </li>
+  <li>
+    <p>\\AZ303\AllFiles\Labs\10\azuredeploy30310rga.parameters.json</p>
+  </li>
+  <li>
+    <p>\\AZ303\AllFiles\Labs\10\roledefinition30310.json</p>
+  </li>
+</ul>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="练习-0准备实验室环境">练习 0：准备实验室环境</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>使用 Azure 资源管理器模板部署 Azure VM</p>
+  </li>
+  <li>
+    <p>创建 Azure Active Directory 用户</p>
+  </li>
+</ol>
+
+<h4 id="任务-1使用-azure-资源管理器模板部署-azure-vm">任务 1：使用 Azure 资源管理器模板部署 Azure VM</h4>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器，导航至<a href="https://portal.azure.com">“Azure 门户”</a>，然后通过提供要在本实验中使用的订阅中的所有者角色的用户帐户凭据来登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，通过直接选择搜索文本框右侧的工具栏图标打开 <strong>“Cloud Shell”</strong> 窗格。</p>
+  </li>
+  <li>
+    <p>提示选择 <strong>Bash</strong> 或 <strong>PowerShell</strong> 时，选择 <strong>PowerShell</strong>。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 如果这是你第一次打开 <strong>“Cloud Shell”</strong>，会看到 <strong>“未装载任何存储”</strong> 消息，请选择你在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的工具栏中，选择 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中选择 <strong>“上传”</strong>，然后将文件 <strong>\\AZ303\AllFiles\Labs\10\azuredeploy30310suba.json</strong> 上传到 Cloud Shell 主目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，通过运行以下命令创建资源组（用订阅中可用于部署 Azure VM 且最接近实验室计算机位置的 Azure 区域的名称替换 <code>&lt;Azure region&gt;</code> 占位符）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location = '&lt;Azure region&gt;'
+New-AzSubscriptionDeployment `
+  -Location $location `
+  -Name az30310subaDeployment `
+  -TemplateFile $HOME/azuredeploy30310suba.json `
+  -rgLocation $location `
+  -rgName 'az30310a-labRG'
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 若要标识可在其中预配 Azure VM 的 Azure 区域，请参阅<a href="https://azure.microsoft.com/zh-cn/regions/offers/"><strong>https://azure.microsoft.com/zh-cn/regions/offers/</strong></a></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，上传 Azure 资源管理器模板 <strong>\\AZ303\AllFiles\Labs\10\azuredeploy30310rga.json</strong>。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中，上传 Azure 资源管理器参数文件 <strong>\\AZ303\AllFilesLabs\10\azuredeploy30310rga.parameters.json</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以部署运行 Windows Server 2019 的 Azure VM，该 VM 将在本实验室中使用（将 <code>&lt;vm_Size&gt;</code> 占位符替换为要用于此部署的 Azure VM 的大小，例如<code>Standard_D2s_v3</code>）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+  -Name az30310rgaDeployment `
+  -ResourceGroupName 'az30310a-labRG' `
+  -TemplateFile $HOME/azuredeploy30310rga.json `
+  -TemplateParameterFile $HOME/azuredeploy30310rga.parameters.json `
+  -vmSize &lt;vm_Size&gt; `
+  -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 不要等待部署完成，而是继续执行下一个任务。部署时间应少于 5 分钟。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2创建-azure-active-directory-用户">任务 2：创建 Azure Active Directory 用户</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户“Cloud Shell”窗格中的 PowerShell 会话中运行以下命令，对与你的 Azure 订阅关联的 Azure AD 租户进行身份验证：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Connect-AzureAD
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以标识 Azure AD DNS 域名：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">$domainName = ((Get-AzureAdTenantDetail).VerifiedDomains)[0].Name
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行下列命令以创建新的 Azure AD 用户：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">$passwordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
+$passwordProfile.Password = 'Pa55w.rd1234'
+$passwordProfile.ForceChangePasswordNextLogin = $false
+New-AzureADUser -AccountEnabled $true -DisplayName 'az30310aaduser1' -PasswordProfile $passwordProfile -MailNickName 'az30310aaduser1' -UserPrincipalName "az30310aaduser1@$domainName"
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行下列命令以标识新创建的 Azure AD 用户的用户主体名称：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">(Get-AzureADUser -Filter "MailNickName eq 'az30310aaduser1'").UserPrincipalName
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 记录新创建的 Azure AD 用户的用户主体名称。稍后将在本实验室用到它。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h3 id="练习-1定义自定义-rbac-角色">练习 1：定义自定义 RBAC 角色</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>确定通过 RBAC 委派的操作</p>
+  </li>
+  <li>
+    <p>在 Azure AD 租户中创建自定义 RBAC 角色</p>
+  </li>
+</ol>
+
+<h4 id="任务-1确定通过-rbac-委派的操作">任务 1：确定通过 RBAC 委派的操作</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中导航到 <strong>“az30310a-labRG”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30310a-LabRG”</strong> 边栏选项卡中选择 <strong>“访问控制 (IAM)”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30310a-labRG - 访问控制(IAM)”</strong> 边栏选项卡中，选择 <strong>“角色(经典)”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“角色”</strong> 边栏选项卡中选择 <strong>“所有者”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“所有者”</strong> 边栏选项卡中选择 <strong>“权限”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“权限(预览)”</strong> 边栏选项卡中选择 <strong>“Microsoft 计算”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“Microsoft 计算”</strong> 边栏选项卡中选择 <strong>“虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“虚拟机”</strong> 边栏选项卡中，查看可通过 RBAC 委派的管理操作列表。请注意，它们包括<strong>取消分配虚拟机</strong>和<strong>启动虚拟机</strong>操作。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2在-azure-ad-租户中创建自定义-rbac-角色">任务 2：在 Azure AD 租户中创建自定义 RBAC 角色</h4>
+
+<ol>
+  <li>
+    <p>在实验室计算机中打开文件 <strong>“\\AZ303\AllFiles\Labs\10\roledefinition30310.json”</strong> 并审查其内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-json hljs">{
+   <span class="hljs-attr"><span class="hljs-attr">"Name"</span></span>: <span class="hljs-string"><span class="hljs-string">"Virtual Machine Operator (Custom)"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"Id"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"IsCustom"</span></span>: <span class="hljs-literal"><span class="hljs-literal">true</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"Description"</span></span>: <span class="hljs-string"><span class="hljs-string">"Allows to start/restart Azure VMs"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"Actions"</span></span>: [
+       <span class="hljs-string"><span class="hljs-string">"Microsoft.Compute/*/read"</span></span>,
+       <span class="hljs-string"><span class="hljs-string">"Microsoft.Compute/virtualMachines/restart/action"</span></span>,
+       <span class="hljs-string"><span class="hljs-string">"Microsoft.Compute/virtualMachines/start/action"</span></span>
+   ],
+   <span class="hljs-attr"><span class="hljs-attr">"NotActions"</span></span>: [
+   ],
+   <span class="hljs-attr"><span class="hljs-attr">"AssignableScopes"</span></span>: [
+       <span class="hljs-string"><span class="hljs-string">"/subscriptions/SUBSCRIPTION_ID"</span></span>
+   ]
+}
+</code></pre>
+  </li>
+  <li>
+    <p>在实验室计算机显示 Azure 门户的浏览器窗口中，启动 <strong>“Cloud Shell”</strong> 内的 <strong>“PowerShell”</strong> 会话。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中，将 Azure 资源管理器模板 <strong>“\\AZ303\AllFiles\Labs\10\roledefinition30310.json”</strong> 上传至主目录。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行下列命令，使用 Azure 订阅的 ID 值替换<code>SUBSCRIPTION_ID</code> 占位符：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">$subscription_id = (Get-AzContext).Subscription.id
+(Get-Content -Path $HOME/roledefinition30310.json) -Replace 'SUBSCRIPTION_ID', "$subscription_id" | Set-Content -Path $HOME/roledefinition30310.json
+</code></pre>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行下列命令，以验证已使用 Azure 订阅的 ID 值替换<code>SUBSCRIPTION_ID</code>占位符：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">Get-Content -Path $HOME/roledefinition30310.json
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行下列命令以创建自定义角色定义：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">New-AzRoleDefinition -InputFile $HOME/roledefinition30310.json
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行下列命令以验证是否已成功创建角色：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-powershell">Get-AzRoleDefinition -Name 'Virtual Machine Operator (Custom)'
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h3 id="练习-2分配并测试自定义-rbac-角色">练习 2：分配并测试自定义 RBAC 角色</h3>
+
+<p>本练习的主要任务如下：</p>
+
+<ol>
+  <li>
+    <p>创建 RBAC 角色分配</p>
+  </li>
+  <li>
+    <p>测试 RBAC 角色分配</p>
+  </li>
+</ol>
+
+<h4 id="任务-1创建-rbac-角色分配">任务 1：创建 RBAC 角色分配</h4>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中导航到 <strong>“az30310a-labRG”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30310a-LabRG”</strong> 边栏选项卡中选择 <strong>“访问控制 (IAM)”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az30310a-labRG - 访问控制 (IAM)”</strong> 边栏选项卡上，选择 <strong>“+ 添加”</strong>，然后选择 <strong>“添加角色分配”</strong> 选项。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加角色分配”</strong> 边栏选项卡上，指定以下设置（将其他设置保留为现有值）并选择 <strong>“保存”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>角色</td>
+          <td><strong>虚拟机操作员（自定义）</strong></td>
+        </tr>
+        <tr>
+          <td>将访问权限分配到</td>
+          <td><strong>用户、组或服务主体</strong></td>
+        </tr>
+        <tr>
+          <td>选择</td>
+          <td><strong>az30310aaduser1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="任务-2测试-rbac-角色分配">任务 2：测试 RBAC 角色分配</h4>
+
+<ol>
+  <li>
+    <p>在实验室计算机中启动新的私有 Web 浏览器会话，导航到 <a href="https://portal.azure.com">“Azure 门户”</a>，然后使用 <strong>“az30310aaduser1”</strong> 用户帐户和 <strong>“Pa55w.rd1234”</strong> 密码登录。</p>
+
+    <blockquote>
+      <p><strong>注意</strong>： 确保使用之前在本实验中前记录的用户主体名为 <strong>“az30310aaduser1”</strong> 的用户帐户。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果想在登录过程中跳过该帐户的 Microsoft 安全默认值，请使用 <em>“暂时跳过(14 天后需要)”</em> 选项。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“资源组”</strong> 边栏选项卡。请注意，你无法看到任何资源组。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到<strong>所有资源</strong>边栏选项卡。请注意，只能看到 <strong>“az30310a-vm0”</strong> 及其托管磁盘。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，请导航到 <strong>az30310a-vm0</strong> 边栏选项卡。尝试停止虚拟机。查看通知区域中的错误消息，并注意到此操作失败了，因为当前用户无权执行此操作。</p>
+  </li>
+  <li>
+    <p>重新启动虚拟机并验证操作是否已成功完成。</p>
+  </li>
+  <li>
+    <p>关闭私有 Web 浏览器会话。</p>
+  </li>
+</ol>
+
+<h4 id="任务-3删除实验室中部署的-azure-资源">任务 3：删除实验室中部署的 Azure 资源</h4>
+
+<ol>
+  <li>
+    <p>在实验室计算机上显示 Azure 门户的现有浏览器窗口中，在“Cloud Shell”窗格中启动 PowerShell 会话。</p>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，以列出你在本练习中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30310*'
+</code></pre>
+
+    <blockquote>
+      <p><strong>注意</strong>： 验证输出结果是否仅包含你在本实验室中创建的资源组。在本任务中将删除这个组。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令，以删除在本实验室中创建的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30310*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中运行以下命令，以删除在本实验室的前面部分上传的实验室文件：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-powershell">Get-ChildItem -Path . -Filter 'azuredeploy30310*.json' | Remove-Item -Force
+Get-ChildItem -Path . -Filter 'roledefinition30310.json' | Remove-Item -Force
+</code></pre>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到与你的 Azure 订阅关联的 Azure Active Directory 租户的 <strong>“用户”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在用户帐户列表中，依次选择代表 <strong>“az30310aaduser1”</strong> 用户帐户的条目、工具栏中的省略号图标和 <strong>“删除用户”</strong>，然后在提示确认时选择 <strong>“是”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到显示 Azure 订阅属性的边栏选项卡，选择 <strong>“访问控制 (IAM)”</strong> 条目，然后选择 <strong>“角色”</strong>。</p>
+  </li>
+  <li>
+    <p>在角色列表中，选择 <strong>“虚拟机操作员(自定义)”</strong> 条目，然后选择 <strong>“删除”</strong>，在提示确认时选择 <strong>“是”</strong>。</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-303ZH-Microsoft-Azure-Architect-Technologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

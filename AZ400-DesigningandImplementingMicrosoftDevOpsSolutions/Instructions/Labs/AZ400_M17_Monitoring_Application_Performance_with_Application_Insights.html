@@ -1,0 +1,717 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link active" href="#exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-monitor-an-azure-app-service-web-app-by-using-azure-application-insights">Exercise 1: Monitor an Azure App Service web app by using Azure Application Insights</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-17-monitoring-application-performance-with-application-insights">Lab 17: Monitoring Application Performance with Application Insights</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-overview">Lab overview</h2>
+
+<p>Application Insights is an extensible Application Performance Management (APM) service for web developers on multiple platforms. You can use it to monitor your live web applications. It automatically detects performance anomalies, includes powerful analytics tools to help you diagnose issues, and helps you continuously improve performance and usability. It works for apps on a wide variety of platforms including .NET, Node.js and Java EE, hosted on-premises, hybrid, or any public cloud. It integrates with your DevOps process with connection points available in a variety of development tools. It also allows you to monitor and analyze telemetry from mobile apps through integration with Visual Studio App Center.</p>
+
+<p>In this lab, you’ll learn about how you can add Application Insights to an existing web application, as well as how to monitor the application via the Azure portal.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After you complete this lab, you will be able to:</p>
+
+<ul>
+  <li>Deploy Azure App Service web apps</li>
+  <li>Generate and monitor Azure web app application traffic by using Application Insights</li>
+  <li>Investigate Azure web app performance by using Application Insights</li>
+  <li>Track Azure web app usage by using Application Insights</li>
+  <li>Create Azure web app alerts by using Application Insights</li>
+</ul>
+
+<h2 id="lab-duration">Lab duration</h2>
+
+<ul>
+  <li>Estimated time: <strong>60 minutes</strong></li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-virtual-machine">Sign in to the lab virtual machine</h4>
+
+<p>Ensure that you’re signed in to your Windows 10 virtual machine by using the following credentials:</p>
+
+<ul>
+  <li>Username: <strong>Student</strong></li>
+  <li>Password: <strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="review-applications-required-for-this-lab">Review applications required for this lab</h4>
+
+<p>Identify the applications that you’ll use in this lab:</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="set-up-an-azure-devops-organization">Set up an Azure DevOps organization.</h4>
+
+<p>If you don’t already have an Azure DevOps organization that you can use for this lab, create one by following the instructions available at <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/create-organization?view=azure-devops">Create an organization or project collection</a>.</p>
+
+<h4 id="prepare-an-azure-subscription">Prepare an Azure subscription</h4>
+
+<ul>
+  <li>Identify an existing Azure subscription or create a new one.</li>
+  <li>Verify that you have a Microsoft account or an Azure AD account with the Owner role in the Azure subscription and the Global Administrator role in the Azure AD tenant associated with the Azure subscription. For details, refer to <a href="https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-list-portal">List Azure role assignments using the Azure portal</a> and <a href="https://docs.microsoft.com/en-us/azure/active-directory/roles/manage-roles-portal#view-my-roles">View and assign administrator roles in Azure Active Directory</a>.</li>
+</ul>
+
+<h3 id="exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</h3>
+
+<p>In this exercise, you will set up the prerequisites for the lab, which consist of the preconfigured Parts Unlimited team project based on an Azure DevOps Demo Generator template and Azure resources, including an Azure web app and an Azure SQL database.</p>
+
+<h4 id="task-1-configure-the-team-project">Task 1: Configure the team project</h4>
+
+<p>In this task, you will use Azure DevOps Demo Generator to generate a new project based on the <strong>Parts Unlimited</strong> template.</p>
+
+<ol>
+  <li>
+    <p>On your lab computer, start a web browser and navigate to <a href="https://azuredevopsdemogenerator.azurewebsites.net">Azure DevOps Demo Generator</a>. This utility site will automate the process of creating a new Azure DevOps project within your account that is prepopulated with content (work items, repos, etc.) required for the lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: For more information on the site, see https://docs.microsoft.com/en-us/azure/devops/demo-gen.</p>
+    </blockquote>
+  </li>
+  <li>Click <strong>Sign in</strong> and sign in using the Microsoft account associated with your Azure DevOps subscription.</li>
+  <li>If required, on the <strong>Azure DevOps Demo Generator</strong> page, click <strong>Accept</strong> to accept the permission requests for accessing your Azure DevOps subscription.</li>
+  <li>On the <strong>Create New Project</strong> page, in the <strong>New Project Name</strong> textbox, type <strong>Monitoring Application Performance</strong>, in the <strong>Select organization</strong> dropdown list, select your Azure DevOps organization, and then click <strong>Choose template</strong>.</li>
+  <li>In the list of templates, select the <strong>PartsUnlimited</strong> template and click <strong>Select Template</strong>.</li>
+  <li>
+    <p>Back on the <strong>Create New Project</strong> page, click <strong>Create Project</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the process to complete. This should take about 2 minutes. In case the process fails, navigate to your DevOps organization, delete the project, and try again.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Create New Project</strong> page, click <strong>Navigate to project</strong>.</li>
+</ol>
+
+<h4 id="task-2-create-azure-resources">Task 2: Create Azure resources</h4>
+
+<p>In this task, you will create an Azure web app and an Azure SQL database by using the cloud shell in Azure portal.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: This lab involves a deployment of the Parts Unlimited site to an Azure app service. To accommodate this requirement, you will need to spin up the necessary infrastructure.</p>
+</blockquote>
+
+<ol>
+  <li>From the lab computer, start a web browser, navigate to the <a href="https://portal.azure.com"><strong>Azure Portal</strong></a>, and sign in with the user account that has the Owner role in the Azure subscription you will be using in this lab and has the role of the Global Administrator in the Azure AD tenant associated with this subscription.</li>
+  <li>In the Azure portal, in the toolbar, click the <strong>Cloud Shell</strong> icon located directly to the right of the search text box.</li>
+  <li>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>Bash</strong>.
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the <strong>Bash</strong> prompt, in the <strong>Cloud Shell</strong> pane, run the following command to create a resource group (replace the <code>&lt;region&gt;</code> placeholder with the name of the Azure region closest to you such as ‘eastus’).</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs">RESOURCEGROUPNAME=<span class="hljs-string"><span class="hljs-string">'az400m17l01a-RG'</span></span>
+LOCATION=<span class="hljs-string"><span class="hljs-string">'&lt;region&gt;'</span></span>
+az group create --name <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>To create a Windows App service plan by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs">SERVICEPLANNAME=<span class="hljs-string"><span class="hljs-string">'az400l17-sp'</span></span>
+az appservice plan create --resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> \
+    --name <span class="hljs-variable"><span class="hljs-variable">$SERVICEPLANNAME</span></span> --sku B3 
+</code></pre>
+    <blockquote>
+      <p><strong>Note</strong>: If the <code>az appservice plan create</code> command fails with an error message starting with <code>ModuleNotFoundError: No module named 'vsts_cd_manager'</code>, then run the following commands and then re-run the failed command.</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs">az extension remove --name appservice-kube
+az extension add --yes --<span class="hljs-built_in"><span class="hljs-built_in">source</span></span> <span class="hljs-string"><span class="hljs-string">"https://aka.ms/appsvc/appservice_kube-latest-py2.py3-none-any.whl"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Create a web app with a unique name.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs">WEBAPPNAME=partsunlimited<span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span><span class="hljs-variable"><span class="hljs-variable">$RANDOM</span></span>
+az webapp create --resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> --plan <span class="hljs-variable"><span class="hljs-variable">$SERVICEPLANNAME</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> 
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the name of the web app. You will need it later in this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Now is the time to create an Application Insights instance.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs"> az monitor app-insights component create --app <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> \
+     --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> \
+     --kind web --application-type web \
+     --resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you got prompted with ‘The command requires the extension application-insights. Do you want to install it now?’, type Y and press enter.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Let us connect the Application Insights to our web application.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs"> az monitor app-insights component connect-webapp --app <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> \
+     --resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> --web-app <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Next, create an Azure SQL Server.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-bash hljs">USERNAME=<span class="hljs-string"><span class="hljs-string">"Student"</span></span>
+SQLSERVERPASSWORD=<span class="hljs-string"><span class="hljs-string">"Pa55w.rd1234"</span></span>
+SERVERNAME=<span class="hljs-string"><span class="hljs-string">"partsunlimitedserver</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$RANDOM</span></span></span><span class="hljs-string">"</span></span>
+    
+az sql server create --name <span class="hljs-variable"><span class="hljs-variable">$SERVERNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> \
+--location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --admin-user <span class="hljs-variable"><span class="hljs-variable">$USERNAME</span></span> --admin-password <span class="hljs-variable"><span class="hljs-variable">$SQLSERVERPASSWORD</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>The web app needs to be able to access the SQL server, so we need to allow access to Azure resources in the SQL Server firewall rules.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-bash hljs">STARTIP=<span class="hljs-string"><span class="hljs-string">"0.0.0.0"</span></span>
+ENDIP=<span class="hljs-string"><span class="hljs-string">"0.0.0.0"</span></span>
+az sql server firewall-rule create --server <span class="hljs-variable"><span class="hljs-variable">$SERVERNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> \
+--name AllowAzureResources --start-ip-address <span class="hljs-variable"><span class="hljs-variable">$STARTIP</span></span> --end-ip-address <span class="hljs-variable"><span class="hljs-variable">$ENDIP</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Now create a database within that server.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-bash hljs">az sql db create --server <span class="hljs-variable"><span class="hljs-variable">$SERVERNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> --name PartsUnlimited \
+--service-objective S0
+</code></pre>
+  </li>
+  <li>
+    <p>The web app you created needs the database connection string in its configuration, so run the following commands to prepare and add it to the app settings of the web app.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-bash hljs">CONNSTRING=$(az sql db show-connection-string --name PartsUnlimited --server <span class="hljs-variable"><span class="hljs-variable">$SERVERNAME</span></span> \
+--client ado.net --output tsv)
+CONNSTRING=<span class="hljs-variable"><span class="hljs-variable">${CONNSTRING//&lt;username&gt;/$USERNAME}</span></span>
+CONNSTRING=<span class="hljs-variable"><span class="hljs-variable">${CONNSTRING//&lt;password&gt;/$SQLSERVERPASSWORD}</span></span>
+az webapp config connection-string <span class="hljs-built_in"><span class="hljs-built_in">set</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$WEBAPPNAME</span></span> --resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCEGROUPNAME</span></span> \
+-t SQLAzure --settings <span class="hljs-string"><span class="hljs-string">"DefaultConnectionString=</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$CONNSTRING</span></span></span><span class="hljs-string">"</span></span> 
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="exercise-1-monitor-an-azure-app-service-web-app-by-using-azure-application-insights">Exercise 1: Monitor an Azure App Service web app by using Azure Application Insights</h3>
+
+<p>In this exercise, you will deploy a web app to Azure App Service by using Azure DevOps pipelines, generate traffic targeting the web app, and use Application Insights to review the web traffic, investigate application performance, track application usage, and configure alerting.</p>
+
+<h4 id="task-1-deploy-a-web-app-to-azure-app-service-by-using-azure-devops">Task 1: Deploy a web app to Azure App Service by using Azure DevOps</h4>
+
+<p>In this task, you will deploying a web app to Azure by using Azure DevOps pipelines.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: The sample project we are using in this lab includes a continuous integration build, which we will use without modifications. There is also a continuous delivery release pipeline that will require minor changes before it is ready for deployment to the Azure resources you implemented in the previous task.</p>
+</blockquote>
+
+<ol>
+  <li>Switch to the web browser window displaying the <strong>Monitoring Application Performance</strong> project in the Azure DevOps portal, in the vertical navigational pane, select the <strong>Pipelines</strong>, and, in the <strong>Pipelines</strong> section, select <strong>Releases</strong>.</li>
+  <li>In the list of release pipelines, on the <strong>PartsUnlimitedE2E</strong> pane, click <strong>Edit</strong>.</li>
+  <li>On the <strong>All pipelines &gt; PartsUnlimitedE2E</strong> pane, click the rectangle representing the <strong>Dev</strong> stage, on the <strong>Dev</strong> pane, click <strong>Delete</strong>, and, in the <strong>Delete stage</strong> dialog box, click <strong>Confirm</strong>.</li>
+  <li>Back on the <strong>All pipelines &gt; PartsUnlimitedE2E</strong> pane, click the rectangle representing the <strong>QA</strong> stage, on the <strong>QA</strong> pane, click <strong>Delete</strong>, and, in the <strong>Delete stage</strong> dialog box, click <strong>Confirm</strong>.</li>
+  <li>Back on the <strong>All pipelines &gt; PartsUnlimitedE2E</strong> pane, in the rectangle representing the <strong>Production</strong> stage, click the <strong>1 job, 1 task</strong> link.</li>
+  <li>On the pane displaying the list of tasks of the <strong>Production</strong>* stage, click the entry representing the <strong>Azure App Service Deploy</strong> task.</li>
+  <li>On the <strong>Azure App Service deploy</strong> pane, in the <strong>Azure subscription</strong> dropdown list, select the entry representing the Azure subscription you are using in this lab, and click <strong>Authorize</strong> to create the corresponding service connection. When prompted, sign in using the account with the Owner role in the Azure subscription and the Global Administrator role in the Azure AD tenant associated with the Azure subscription.</li>
+  <li>With the <strong>Tasks</strong> tab of the <strong>All pipelines &gt; PartsUnlimitedE2E</strong> pane active, click the <strong>Pipeline</strong> tab header to return to the diagram of the pipeline.</li>
+  <li>In the diagram, click the <strong>Pre-deployment condition</strong> oval symbol on the left side of the rectangle representing the <strong>Production</strong> stage.</li>
+  <li>
+    <p>On the <strong>Pre-deployment condition</strong> pane, in the <strong>Select trigger</strong> section, select <strong>After release</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will invoke the release pipeline after the project’s build pipeline succeeds.</p>
+    </blockquote>
+  </li>
+  <li>With the <strong>Pipeline</strong> tab of the <strong>All pipelines &gt; PartsUnlimitedE2E</strong> pane active, click the <strong>Variables</strong> tab header.</li>
+  <li>In the list of variables, set the value of the <strong>WebsiteName</strong> variable to match the name of the Azure App Service web app you created earlier in this lab.</li>
+  <li>
+    <p>In the upper right corner of the pane, click <strong>Save</strong>, and, when prompted, in the <strong>Save</strong> dialog box, click <strong>OK</strong> again.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Now that the release pipeline is in place, we can expect that any commits to the master branch will trigger the build and release pipelines.</p>
+    </blockquote>
+  </li>
+  <li>In the web browser window displaying the Azure DevOps portal, in the vertical navigational pane, click <strong>Repos</strong>.</li>
+  <li>
+    <p>On the <strong>Files</strong> pane, navigate to and select the <strong>PartsUnlimited-aspnet45/src/PartsUnlimitedWebsite/Web.config</strong> file.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This application already has configuration settings for the Application Insights key and for a SQL connection.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Web.config</strong> pane, review the lines referencing the Application Insights key and for a SQL connection:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">xml</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-xml hljs"> <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">add</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">key</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"Keys:ApplicationInsights:InstrumentationKey"</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">value</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"0839cc6f-b99b-44b1-9d74-4e408b7aee29"</span></span></span><span class="hljs-tag"> /&gt;</span></span>
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">xml</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-xml hljs"> <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">connectionStrings</span></span></span><span class="hljs-tag">&gt;</span></span>
+    <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">add</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">name</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"DefaultConnectionString"</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">connectionString</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"Server=(localdb)\mssqllocaldb;Database=PartsUnlimitedWebsite;Integrated Security=True;"</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">providerName</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"System.Data.SqlClient"</span></span></span><span class="hljs-tag"> /&gt;</span></span>
+ <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">connectionStrings</span></span></span><span class="hljs-tag">&gt;</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will modify values of these settings in the Azure portal following the deployment to represent the Azure Application Insights and the Azure SQL Database you deployed earlier in the lab.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Now trigger the build and release processes without modifying any relevant code, by simply adding an empty line to the end of the file</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Web.config</strong> pane, click <strong>Edit</strong>, add an empty line to the end of the file, click <strong>Commit</strong> and, on the <strong>Commit</strong> pane, click <strong>Commit</strong> again.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: A new build will begin and ultimately result in a deployment to Azure. Do not wait for its completion, but instead proceed to the next step.</p>
+    </blockquote>
+  </li>
+  <li>Switch to the web browser displaying the Azure portal and navigate to the App Service web app you provisioned earlier in the lab.</li>
+  <li>On the App Service web app blade, click in the vertical menu on the left side, in the <strong>Settings</strong> section, click <strong>Configuration</strong> tab.</li>
+  <li>In the list of <strong>Application settings</strong>, click the <strong>APPINSIGHTS_INSTRUMENTATIONKEY</strong> entry. (If you don’t see this entry, then select <strong>Application Insights</strong> under Settings and <strong>Enable</strong> Aplication Insights, and then select <strong>Apply</strong>.)</li>
+  <li>
+    <p>On the <strong>Add/Edit application setting</strong> blade, copy the text in the <strong>Value</strong> textbox and click <strong>Cancel</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is the default setting added during the App Service web app deployment, which already contains the Application Insights ID. We need to add a new setting expected by our app, with a different name but the matching value. This is a specific requirement for our sample.</p>
+    </blockquote>
+  </li>
+  <li>In the <strong>Application settings</strong> section, click <strong>+ New application setting</strong>.</li>
+  <li>
+    <p>On the <strong>Add/Edit application setting</strong> blade, in the <strong>Name</strong> textbox, type <strong>Keys:ApplicationInsights:InstrumentationKey</strong>, in the <strong>Value</strong> textbox, type the string of characters you copied into Clipboard and click <strong>OK</strong>. Select <strong>Save</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Changes to the application settings and connection strings trigger restart of the web app.</p>
+    </blockquote>
+  </li>
+  <li>Switch back to the web browser window displaying the Azure DevOps portal, in the vertical navigational pane, select the <strong>Pipelines</strong>, and, in the <strong>Pipelines</strong> section, click the entry representing your most recently run build pipeline.</li>
+  <li>If the build has not yet completed, track it through until it does, then, in the vertical navigational pane, in the <strong>Pipelines</strong> section, click <strong>Releases</strong>, on the <strong>PartsUnlimiteE2E</strong> pane, click <strong>Release-1</strong> and follow the release pipeline to its completion.</li>
+  <li>Switch to the web browser window displaying the Azure portal and, on the <strong>App Service web app</strong> blade, in the vertical menu bar on the left side, click <strong>Overview</strong>.</li>
+  <li>On the right side, in the <strong>Essentials</strong> section, click the <strong>URL</strong> link. This will automatically open another web browser tab displaying the <strong>Parts Unlimited</strong> 
+web site.</li>
+  <li>Verify that the <strong>Parts Unlimited</strong> web site loads as expected.</li>
+</ol>
+
+<h4 id="task-2-generate-and-review-application-traffic">Task 2: Generate and review application traffic</h4>
+
+<p>In this task, you will generate traffic targeting the App Service web app you deployed in the previous task and review the data collected by Application Insights resource associated with the web app.</p>
+
+<ol>
+  <li>In the web browser window displaying the <strong>Parts Unlimited</strong> web site, navigate through its pages to generate some traffic.</li>
+  <li>On the <strong>Parts Unlimited</strong> web site, click the <strong>Brakes</strong> menu item.</li>
+  <li>
+    <p>In the URL textbox at the top of the browser window, append <strong>1</strong> to the end of the URL string and press <strong>Enter</strong>, effectively setting the <strong>CategoryId</strong> parameter to <strong>11</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will trigger a server error since that category does not exist. Refresh the page a few times to generate more errors.</p>
+    </blockquote>
+  </li>
+  <li>Return to the web browser tab displaying the Azure portal.</li>
+  <li>
+    <p>In the web browser tab displaying the Azure portal, on the <strong>App Service</strong> web app blade, in the vertical menu bar on the left, in the <strong>Settings</strong> section, click the <strong>Application Insights</strong> entry to display the <strong>Application Insights</strong> configuration blade.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This blade includes settings that allow you to integrate Application Insights with different types of apps. While the default experience produces a wealth of data for tracking and monitoring apps, the API provides support for more specialized scenarios and custom event tracking.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Application Insights</strong> configuration blade, click the <strong>View Application Insights data</strong> link.</li>
+  <li>
+    <p>Review the resulting <strong>Application Insights</strong> blade displaying charts presenting different characteristics of the collected data, including the traffic you generated and failed requests you triggered earlier in this task.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you didn’t see anything right away, just wait for a few minutes and refresh the page until the logs start to show up in the overview section.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-investigate-application-performance">Task 3: Investigate application performance</h4>
+
+<p>In this task, you will use Application Insights to investigate performance of the App Service web app.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>Application Insights</strong> blade, in the vertical menu on the left side, in the <strong>Investigate</strong> section, click <strong>Application map</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Application Map helps you spot performance bottlenecks or failure hotspots across all components of your distributed application. Each node on the map represents an application component or its dependencies, as well as health KPI and alerts status. You can click through from any component to more detailed diagnostics, such as Application Insights events. If your app uses Azure services, you can also click through to Azure diagnostics related to those services, such as SQL Database Advisor recommendations.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Application Insights</strong> blade, in the vertical menu on the left side, in the <strong>Investigate</strong> section, click <strong>Smart Detection</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Smart Detection automatically warns you of potential performance problems in your web application. It performs proactive analysis of the telemetry that your app sends to Application Insights. If there is a sudden rise in failure rates, or abnormal patterns in client or server performance, you get an alert. This feature needs no configuration. It operates if your application sends enough telemetry. However, there won’t be any data in there yet since our app has just deployed.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Application Insights</strong> blade, in the vertical menu on the left side, in the <strong>Investigate</strong> section, click <strong>Live Metrics</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Live Metrics Stream enables you to probe the beating heart of your live, in-production web application. You can select and filter metrics and performance counters to watch in real time, without any impact to your service. You can also inspect stack traces from sample failed requests and exceptions.</p>
+    </blockquote>
+  </li>
+  <li>Return to the web browser displaying the <strong>Parts Unlimited</strong> web site, navigate through its pages to generate some traffic, including a few server errors.</li>
+  <li>Return to the web browser displaying the Azure portal to watch the live traffic as it arrives.</li>
+  <li>
+    <p>On the <strong>Application Insights</strong> blade, in the vertical menu on the left side, in the <strong>Investigate</strong> section, click <strong>Transaction search</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Transaction search provides a flexible interface to locate the exact telemetry you need to answer questions.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Transaction search</strong> blade, click <strong>See all data in the last 24 hours</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The results include all telemetry data, which can be filtered down by multiple properties.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Transaction search</strong> blade, in the middle of the blade, right above the list of results, click <strong>Grouped results</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: These results are grouped based common properties.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Transaction search</strong> blade, in the middle of the blade, right above the list of results, click <strong>Results</strong> to return to the original view, listing all results.</li>
+  <li>
+    <p>At the top of the <strong>Transaction search</strong> blade, click <strong>Event types = All selected</strong>, in the dropdown list, clear the <strong>Select all</strong> checkbox, and, in the list of event types, select the <strong>Exception</strong> checkbox.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: There should be some exceptions representing the errors you generated earlier.</p>
+    </blockquote>
+  </li>
+  <li>In the list of results, click one of them. This will display the <strong>End-to-end transaction details</strong> blade, providing a full timeline view of the exception within the context of its request.</li>
+  <li>
+    <p>At the bottom of the <strong>End-to-end transaction details</strong> blade, click <strong>View all telemetry</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>Telemetry</strong> view provides the same data but in a different format. On the right hand side of the <strong>End-to-end transaction details</strong> blade, you can also review the details of the exception itself, such as its properties and call stack.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the <strong>End-to-end transaction details</strong> blade and back on the <strong>Transaction search</strong> blade, in the vertical menu on the left side, in the <strong>Investigate</strong> section, click <strong>Availability</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: After you’ve deployed your web app or web site to any server, you can set up tests to monitor its availability and responsiveness. Application Insights sends web requests to your application at regular intervals from points around the world. It alerts you if your application doesn’t respond or responds slowly.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Availability</strong> blade, in the toolbar, click <strong>+ Add test</strong>.</li>
+  <li>
+    <p>On the <strong>Create test</strong> blade, in the <strong>Test name</strong> textbox, type <strong>Home page</strong>, set the <strong>URL</strong> to the root of your App Service web app, and click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The test will not run immediately, so there won’t be any data. If you check back later, you should see the availability data updated to reflect the tests against your live site. Don’t wait for this now.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Availability</strong> blade, in the vertical menu on the left side, in the <strong>Investigate</strong> section, click <strong>Failures</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The Failures view aggregates all exception reports into a single dashboard. From here, you can easily locate relevant data based on such filters as dependencies or exceptions.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Failures</strong> blade, in the upper right corner, in the <strong>Top 3 response codes</strong> list, click the link representing the number of <strong>500</strong> errors.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will present a list of exceptions matching this HTTP response code. Selecting the suggested exception will lead to the same exception view you reviewed earlier.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Failures</strong> blade, in the vertical menu on the left side, in the <strong>Investigate</strong> section, click <strong>Performance</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The Performance view provides a dashboard that simplifies the details of application performance based on the collected telemetry.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Performance</strong> blade, in the vertical menu on the left side, in the <strong>Monitoring</strong> section, click <strong>Metrics</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Metrics in Application Insights are measured values and counts of events that are sent in telemetry from your application. They help you detect performance issues and watch trends in how your application is being used. There’s a wide range of standard metrics, and you can also create your own custom metrics and events.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Metrics</strong> blade, in the filter section, click <strong>Select metric</strong> and, in the dropdown list, select <strong>Server requests</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can also segment your data using splitting.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the top of the newly displayed chart, click <strong>Apply splitting</strong> and, in the resulting filter, in the <strong>Select values</strong> dropdown list, select <strong>Operation name</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will split the server requests based on pages they reference, represented by different colors in the chart.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-track-application-usage">Task 4: Track application usage</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Application Insights provides a broad set of features to track application usage.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>On the <strong>Metrics</strong> blade, in the vertical menu on the left side, in the <strong>Usage</strong> section, click <strong>Users</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: While there aren’t many users of our application yet, some data will be available.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Users</strong> blade, below the main chart, click <strong>View More Insights</strong>. This will display additional data, extending the blade downwards.</li>
+  <li>
+    <p>Scroll down to review details about the geographies, operating systems, and browsers.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can also drill into user-specific data to gain a better understanding of the user-specific usage patterns.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Users</strong> blade, in the vertical menu on the left side, in the <strong>Usage</strong> section, click <strong>Events</strong>.</li>
+  <li>
+    <p>On the <strong>Events</strong> blade, below the main chart, click <strong>View More Insights</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The display will include a range of built-in events raised so far based on site usage. You can programmatically add custom events with custom data to meet your needs.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Events</strong> blade, in the vertical menu on the left side, in the <strong>Usage</strong> section, click <strong>Funnels</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Understanding the customer experience is of the utmost importance to your business. If the usage of your application involves multiple steps, you need to know if most customers are following the intended process. The progression through a series of steps in a web application is known as a funnel. You can use Azure Application Insights Funnels to gain insights into your users, and monitor step-by-step conversion rates.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Funnels</strong> blade, in the vertical menu on the left side, in the <strong>Usage</strong> section, click <strong>User Flows</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The User Flows tool starts from an initial page view, custom event, or exception that you specify. Given this initial event, User Flows shows the events that happened before and afterwards during the corresponding user sessions. Lines of varying thickness show how many times each path was followed by users. The <strong>Session Started</strong> nodes represent the beginning of a session. <strong>Session Ended</strong> nodes show how many users didn’t generate page views or custom events after the preceding node, corresponding likely to users leaving your site.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>User Flows</strong> blade, click <strong>Select an event</strong>, on the <strong>Edit</strong> pane, in the <strong>Initial Event</strong> dropdown list, in the <strong>Page Views</strong> section, select <strong>Home Page - Parts Unlimited</strong> entry, and then click <strong>Create Graph</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>User Flows</strong> blade, in the vertical menu on the left side, in the <strong>Usage</strong> section, click <strong>Retention</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The retention feature in Application Insights helps you analyze how many users return to your app, and how often they perform particular tasks or achieve goals. For example, if you run a game site, you could compare the numbers of users who return to the site after losing a game with the number who return after winning. This knowledge can help you improve both your user experience and your business strategy.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: The User Retention Analysis experience was transitioned to Azure Workbooks</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Retention</strong> blade, click <strong>Retention Analysis Workbook</strong>, review the <strong>Overall Retention</strong> chart, and close the blade.</li>
+  <li>
+    <p>On the <strong>Retention</strong> blade, in the vertical menu on the left side, in the <strong>Usage</strong> section, click <strong>Impact</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Impact analyzes how web site properties, such as load times, influence conversion rates for various parts of your app. To put it more precisely, it discovers how any dimension of a page view, custom event, or request affects page views or custom events.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: The Impact Analysis experience was transitioned to Azure Workbooks</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Impact</strong> blade, click <strong>Impact Analysis Workbook</strong>, on the <strong>Impact</strong> blade, in the <strong>Selected event</strong> dropdown list, in the <strong>Page Views</strong> section, select <strong>Home Page - Parts Unlimited</strong>, in the <strong>Impacting event</strong>, select <strong>Browse Product - Parts Unlimited</strong>, review the results, and close the blade.</li>
+  <li>
+    <p>On the <strong>Impact</strong> blade, in the vertical menu on the left side, in the <strong>Usage</strong> section, click <strong>Cohorts</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: A cohort is a set of users, sessions, events, or operations that have something in common. In Application Insights, cohorts are defined by an analytics query. In cases where you have to analyze a specific set of users or events repeatedly, cohorts can give you more flexibility to express exactly the set you’re interested in. Cohorts are used in ways similar to filters, but cohort definitions are built from custom analytics queries, so they’re much more adaptable and complex. Unlike filters, you can save cohorts so other members of your team can reuse them.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Cohorts</strong> blade, in the vertical menu on the left side, in the <strong>Usage</strong> section, click <strong>More</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This blade includes a variety of reports and templates for review.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>More | Gallery</strong> blade, in the <strong>Usage</strong> section, click <strong>Analysis of Page Views</strong> and review the content of the corresponding blade.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This particular report offers insight regarding the page views. There are many other reports available by default, and you can customize and save new ones.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-5-configure-web-app-alerts">Task 5: Configure web app alerts</h4>
+
+<ol>
+  <li>
+    <p>While on the <strong>More | Gallery</strong> blade, in the vertical menu on the left side, in the <strong>Monitoring</strong> section, click <strong>Alerts</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Alerts enable you to set triggers that perform actions when Application Insights measurements reach specified conditions.</p>
+    </blockquote>
+  </li>
+  <li>On the <strong>Alerts</strong> blade, in the toolbar, click <strong>+ New alert rule</strong>.</li>
+  <li>On the <strong>Create alert rule</strong> blade, note that, in the <strong>Scope</strong> section, the current Application Insights resource will be selected by default.</li>
+  <li>On the <strong>Create alert rule</strong> blade, in the <strong>Condition</strong> section, click <strong>Add condition</strong>.</li>
+  <li>On the <strong>Configure signal logic</strong> blade, search for and select the <strong>Failed requests</strong> metric.</li>
+  <li>
+    <p>On the <strong>Configure signal logic</strong> blade, scroll down to the <strong>Alert logic</strong> section, ensure that <strong>Threshold</strong> is set to <strong>Static</strong> and set the <strong>Threshold value</strong> to <strong>1</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will trigger the alert once a second failed request is reported. By default, the conditions will be evaluated every minute and based on the aggregation of measurements over the past 5 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Configure signal logic</strong> blade, click <strong>Done</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Now that the condition is created, we need to define an <strong>Action Group</strong> for it to execute.</p>
+    </blockquote>
+  </li>
+  <li>Back on the <strong>Create alert rule</strong> blade, in the <strong>Action</strong> section, click <strong>Select action group</strong> and then, on the <strong>Select an action group to attach to this alert rule, click **+ Create action group</strong>.</li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create action group</strong> blade, specify the following settings and click <strong>Next: Notifications &gt;</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group <strong>az400m17l01b-RG</strong></td>
+        </tr>
+        <tr>
+          <td>Action group name</td>
+          <td><strong>az400m17-action-group</strong></td>
+        </tr>
+        <tr>
+          <td>Display name</td>
+          <td><strong>az400m17-ag</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>On the <strong>Notifications</strong> tab of the <strong>Create action group</strong> blade, in the <strong>Notification type</strong> dropdown list, select <strong>Email/SMS message/Push/Voice</strong>. This will open the <strong>Email/SMS message/Push/Voice</strong> blade.</li>
+  <li>On the <strong>Email/SMS message/Push/Voice</strong> blade, select the <strong>Email</strong> checkbox, in the <strong>Email</strong> textbox, type your email address, and click <strong>OK</strong>.</li>
+  <li>Back on the <strong>Notifications</strong> tab of the <strong>Create action group</strong> blade, in the <strong>Name</strong> textbox, type <strong>email</strong> and click <strong>Next: Actions &gt;</strong>:</li>
+  <li>On the <strong>Actions</strong> tab of the <strong>Create action group</strong> blade, select the <strong>Action type</strong> dropdown list, review the available options without making any changes, and click <strong>Review + create</strong>.</li>
+  <li>On the <strong>Review + create</strong> tab of the <strong>Create action group</strong> blade, click <strong>Create</strong></li>
+  <li>Back on the <strong>Create alert rule</strong> blade, in the <strong>Alert rule details</strong> section, in the <strong>Alert rule name</strong> textbox, type <strong>az400m17 lab alert rule</strong>, review the remaining alert rule settings without modifying them, and click <strong>Create alert rule</strong>.</li>
+  <li>Switch to the web browser window displaying the <strong>Parts Unlimited</strong> web site, on the <strong>Parts Unlimited</strong> web site, click the <strong>Brakes</strong> menu item.</li>
+  <li>
+    <p>In the URL textbox at the top of the browser window, append <strong>1</strong> to the end of the URL string and press <strong>Enter</strong>, effectively setting the <strong>CategoryId</strong> parameter to <strong>11</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will trigger a server error since that category does not exist. Refresh the page a few times to generate more errors.</p>
+    </blockquote>
+  </li>
+  <li>After about five minutes, check your email account to verify that you have received an email indicating that the alert you defined was triggered.</li>
+</ol>
+
+<h3 id="exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</h3>
+
+<p>In this exercise, you will remove the Azure resources provisione in this lab to eliminate unexpected charges.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<h4 id="task-1-remove-the-azure-lab-resources">Task 1: Remove the Azure lab resources</h4>
+
+<p>In this task, you will use Azure Cloud Shell to remove the Azure resources provisioned in this lab to eliminate unnecessary charges.</p>
+
+<ol>
+  <li>In the Azure portal, open the <strong>Bash</strong> shell session within the <strong>Cloud Shell</strong> pane.</li>
+  <li>
+    <p>List all resource groups created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m17l01')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m17l01')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the –nowait parameter), so while you will be able to run another Azure CLI command immediately afterwards within the same Bash session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="review">Review</h2>
+
+<p>In this exercise, you deployed a web app to Azure App Service by using Azure DevOps pipelines, generated traffic targeting the web app, and used Application Insights to review the web traffic, investigate application performance, track application usage, and configure alerting.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.js"></script>
+
+
+
+</body></html>

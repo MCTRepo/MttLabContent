@@ -1,0 +1,416 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            dp-080-Transact-SQL
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                dp-080-Transact-SQL
+            </a>
+            <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#challenge-1-insert-products">Challenge 1: Insert products</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2-update-products">Challenge 2: Update products</a></li><li class="nav-item"><a class="nav-link" href="#challenge-3-delete-products">Challenge 3: Delete products</a></li><li class="nav-item"><a class="nav-link" href="#challenge-1">Challenge 1</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2">Challenge 2</a></li><li class="nav-item"><a class="nav-link" href="#challenge-3">Challenge 3</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="modify-data">Modify Data</h1>
+
+<p>In this lab, you’ll insert, update, and delete data in the <strong>adventureworks</strong> database. For your reference, the following diagram shows the tables in the database (you may need to resize the pane to see them clearly).</p>
+
+<p><a href="images/adventureworks-erd.png" target="_blank"><img src="images/adventureworks-erd.png" alt="An entity relationship diagram of the adventureworks database"></a></p>
+
+<blockquote>
+  <p><strong>Note</strong>: If you’re familiar with the standard <strong>AdventureWorks</strong> sample database, you may notice that in this lab we are using a simplified version that makes it easier to focus on learning Transact-SQL syntax.</p>
+</blockquote>
+
+<h2 id="insert-data">Insert data</h2>
+
+<p>You use the <strong>INSERT</strong> statement to insert data into a table.</p>
+
+<ol>
+  <li>Start Azure Data Studio, and create a new query (you can do this from the <strong>File</strong> menu or on the <em>welcome</em> page).</li>
+  <li>In the new <strong>SQLQuery_…</strong> pane, use the <strong>Connect</strong> button to connect the query to the <strong>AdventureWorks</strong> saved connection.</li>
+  <li>
+    <p>In the query editor, enter the following code to create a new table named <strong>SalesLT.CallLog</strong>, which we’ll use in this lab.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">TABLE</span></span> SalesLT.CallLog
+ (
+     CallID <span class="hljs-built_in"><span class="hljs-built_in">int</span></span> <span class="hljs-keyword"><span class="hljs-keyword">IDENTITY</span></span> PRIMARY <span class="hljs-keyword"><span class="hljs-keyword">KEY</span></span> <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     CallTime datetime <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span> <span class="hljs-keyword"><span class="hljs-keyword">DEFAULT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">GETDATE</span></span>(),
+     SalesPerson <span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>(<span class="hljs-number"><span class="hljs-number">256</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     CustomerID <span class="hljs-built_in"><span class="hljs-built_in">int</span></span> <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span> <span class="hljs-keyword"><span class="hljs-keyword">REFERENCES</span></span> SalesLT.Customer(CustomerID),
+     PhoneNumber <span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>(<span class="hljs-number"><span class="hljs-number">25</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     Notes <span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">max</span></span>) <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>
+ );
+</code></pre>
+  </li>
+  <li>Use the <strong>⏵Run</strong> button to run the code and create the table. Don’t worry too much about the details of the <strong>CREATE TABLE</strong> statement - it creates a table with some fields that we’ll use in subsequent tasks to insert, update, and delete data.</li>
+  <li>
+    <p>Create a new query, so you have two <strong>SQLQuery_…</strong> panes, and in the new pane, enter the following code to query the  <strong>SalesLT.CallLog</strong> you just created.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> * <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.CallLog;
+</code></pre>
+  </li>
+  <li>Run the <strong>SELECT</strong> query and view the results, which show the columns in the new table but no rows, because the table is empty.</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>CREATE TABLE</strong> statement, and replace it with the following <strong>INSERT</strong> statement to insert a new row into the <strong>SalesLT.CallLog</strong> table.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.CallLog
+ <span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+ (<span class="hljs-string"><span class="hljs-string">'2015-01-01T12:30:00'</span></span>, <span class="hljs-string"><span class="hljs-string">'adventure-works\pamela0'</span></span>, <span class="hljs-number"><span class="hljs-number">1</span></span>, <span class="hljs-string"><span class="hljs-string">'245-555-0173'</span></span>, <span class="hljs-string"><span class="hljs-string">'Returning call re: enquiry about delivery'</span></span>);
+</code></pre>
+  </li>
+  <li>Run the query and review the message, which should indicate that 1 row was affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that the results contain the row you inserted. The <strong>CallID</strong> column is an <em>identity</em> column that is automatically incremented (so the first row has the value <strong>1</strong>), and the remaining columns contain the values you specified in the <strong>INSERT</strong> statement</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>INSERT</strong> statement, and replace it  with the following code to insert another row. This time, the <strong>INSERT</strong> statement takes advantage of the fact that the table has a default value defined for the <strong>CallTime</strong> field, and allows <em>NULL</em> values in the <strong>Notes</strong> field.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.CallLog
+<span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+(<span class="hljs-keyword"><span class="hljs-keyword">DEFAULT</span></span>, <span class="hljs-string"><span class="hljs-string">'adventure-works\david8'</span></span>, <span class="hljs-number"><span class="hljs-number">2</span></span>, <span class="hljs-string"><span class="hljs-string">'170-555-0127'</span></span>, <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>);
+</code></pre>
+  </li>
+  <li>Run the query and review the message, which should indicate that 1 row was affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that the second row has been inserted, with the default value for the <strong>CallTime</strong> field (the current time when the row was inserted) and <em>NULL</em> for the <strong>Notes</strong> field.</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>INSERT</strong> statement, and replace it  with the following code to insert another row. This time, the <strong>INSERT</strong> statement explicitly lists the columns into which the new values will be inserted. The columns not specified in the statement support either default or <em>NULL</em> values, so they can be omitted.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.CallLog (SalesPerson, CustomerID, PhoneNumber)
+<span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+(<span class="hljs-string"><span class="hljs-string">'adventure-works\jillian0'</span></span>, <span class="hljs-number"><span class="hljs-number">3</span></span>, <span class="hljs-string"><span class="hljs-string">'279-555-0130'</span></span>);
+</code></pre>
+  </li>
+  <li>Run the query and review the message, which should indicate that 1 row was affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that the third row has been inserted, once again using the default value for the <strong>CallTime</strong> field and <em>NULL</em> for the <strong>Notes</strong> field.</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>INSERT</strong> statement, and replace it  with the following code, which inserts two rows of data into the <strong>SalesLT.CallLog</strong> table.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.CallLog
+<span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+(<span class="hljs-keyword"><span class="hljs-keyword">DATEADD</span></span>(mi,<span class="hljs-number"><span class="hljs-number">-2</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">GETDATE</span></span>()), <span class="hljs-string"><span class="hljs-string">'adventure-works\jillian0'</span></span>, <span class="hljs-number"><span class="hljs-number">4</span></span>, <span class="hljs-string"><span class="hljs-string">'710-555-0173'</span></span>, <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>),
+(<span class="hljs-keyword"><span class="hljs-keyword">DEFAULT</span></span>, <span class="hljs-string"><span class="hljs-string">'adventure-works\shu0'</span></span>, <span class="hljs-number"><span class="hljs-number">5</span></span>, <span class="hljs-string"><span class="hljs-string">'828-555-0186'</span></span>, <span class="hljs-string"><span class="hljs-string">'Called to arrange deliver of order 10987'</span></span>);
+</code></pre>
+  </li>
+  <li>Run the query and review the message, which should indicate that 2 rows were affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that two new rows have been added to the table.</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>INSERT</strong> statement, and replace it  with the following code, which inserts the results of a <strong>SELECT</strong> query into the <strong>SalesLT.CallLog</strong> table.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.CallLog (SalesPerson, CustomerID, PhoneNumber, Notes)
+<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SalesPerson, CustomerID, Phone, <span class="hljs-string"><span class="hljs-string">'Sales promotion call'</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer
+<span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> CompanyName = <span class="hljs-string"><span class="hljs-string">'Big-Time Bike Store'</span></span>;
+</code></pre>
+  </li>
+  <li>Run the query and review the message, which should indicate that 2 rows were affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that two new rows have been added to the table. These are the rows that were retrieved by the <strong>SELECT</strong> query.</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>INSERT</strong> statement, and replace it  with the following code, which inserts a row and then uses the <strong>SCOPE_IDENTITY</strong> function to retrieve the most recent <em>identity</em> value that has been assigned in the database (to any table), and also the <strong>IDENT_CURRENT</strong> function, which retrieves the latest <em>identity</em> value in the specified table.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.CallLog (SalesPerson, CustomerID, PhoneNumber)
+<span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+(<span class="hljs-string"><span class="hljs-string">'adventure-works\josé1'</span></span>, <span class="hljs-number"><span class="hljs-number">10</span></span>, <span class="hljs-string"><span class="hljs-string">'150-555-0127'</span></span>);
+
+<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SCOPE_IDENTITY() <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> LatestIdentityInDB,
+       <span class="hljs-keyword"><span class="hljs-keyword">IDENT_CURRENT</span></span>(<span class="hljs-string"><span class="hljs-string">'SalesLT.CallLog'</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> LatestCallID;
+</code></pre>
+  </li>
+  <li>Run the code and review the results, which should be two numeric values, both the same.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it to validate that the new row that has been inserted has a <strong>CallID</strong> value that matches the <em>identity</em> value returned when you inserted it.</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>INSERT</strong> statement, and replace it  with the following code, which enables explicit insertion of <em>identity</em> values and inserts a new row with a specified <strong>CallID</strong> value, before disabling explicit <em>identity</em> insertion again.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> IDENTITY_INSERT SalesLT.CallLog <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.CallLog (CallID, SalesPerson, CustomerID, PhoneNumber)
+<span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+(<span class="hljs-number"><span class="hljs-number">20</span></span>, <span class="hljs-string"><span class="hljs-string">'adventure-works\josé1'</span></span>, <span class="hljs-number"><span class="hljs-number">11</span></span>, <span class="hljs-string"><span class="hljs-string">'926-555-0159'</span></span>);
+
+<span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> IDENTITY_INSERT SalesLT.CallLog <span class="hljs-keyword"><span class="hljs-keyword">OFF</span></span>;
+</code></pre>
+  </li>
+  <li>Run the code and review the results, which should affect 1 row.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it to validate that a new row has been inserted with the especific <strong>CallID</strong> value you specified in the <strong>INSERT</strong> statement (9).</li>
+</ol>
+
+<h2 id="update-data">Update data</h2>
+
+<p>To modify existing rows in a table, use the <strong>UPDATE</strong> statement.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>SQLQuery_…</strong> pane containing the <strong>INSERT</strong> statement, replace the existing code with the following code.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">UPDATE</span></span> SalesLT.CallLog
+ <span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> Notes = <span class="hljs-string"><span class="hljs-string">'No notes'</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> Notes <span class="hljs-keyword"><span class="hljs-keyword">IS</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>;
+</code></pre>
+  </li>
+  <li>Run the <strong>UPDATE</strong> statement and review the message, which should indicate the number of rows affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that the rows that previously had <em>NULL</em> values for the <strong>Notes</strong> field now contain the text <em>No notes</em>.</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>UPDATE</strong> statement, and replace it with the following code, which updates multiple columns.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">UPDATE</span></span> SalesLT.CallLog
+ <span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> SalesPerson = <span class="hljs-string"><span class="hljs-string">''</span></span>, PhoneNumber = <span class="hljs-string"><span class="hljs-string">''</span></span>
+</code></pre>
+  </li>
+  <li>Run the <strong>UPDATE</strong> statement and note the number of rows affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that <em>all</em> rows have been updated to remove the <strong>SalesPerson</strong> and <strong>PhoneNumber</strong> fields - this emphasizes the danger of accidentally omitting a <strong>WHERE</strong> clause in an <strong>UPDATE</strong> statement.</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>UPDATE</strong> statement, and replace it with the following code, which updates the <strong>SalesLT.CallLog</strong> table based on the results of a <strong>SELECT</strong> query.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">UPDATE</span></span> SalesLT.CallLog
+ <span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> SalesPerson = c.SalesPerson, PhoneNumber = c.Phone
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Customer <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> c
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> c.CustomerID = SalesLT.CallLog.CustomerID;
+</code></pre>
+  </li>
+  <li>Run the <strong>UPDATE</strong> statement and note the number of rows affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that the table has been updated using the values returned by the <strong>SELECT</strong> statement.</li>
+</ol>
+
+<h2 id="delete-data">Delete data</h2>
+
+<p>To delete rows in the table, you generally use the <strong>DELETE</strong> statement; though you can also remove all rows from a table by using the <strong>TRUNCATE TABLE</strong> statement.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>SQLQuery_…</strong> pane containing the <strong>UPDATE</strong> statement, replace the existing code with the following code.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">DELETE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.CallLog
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> CallTime &lt; <span class="hljs-keyword"><span class="hljs-keyword">DATEADD</span></span>(dd, <span class="hljs-number"><span class="hljs-number">-7</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">GETDATE</span></span>());
+</code></pre>
+  </li>
+  <li>Run the <strong>DELETE</strong> statement and review the message, which should indicate the number of rows affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that rows with a <strong>CallDate</strong> older than 7 days have been deleted.</li>
+  <li>
+    <p>Switch back to the <strong>SQLQuery_…</strong> pane containing the <strong>DELETE</strong> statement, and replace it with the following code, which uses the <strong>TRUNCATE TABLE</strong> statement to remove all rows in the table.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">TRUNCATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">TABLE</span></span> SalesLT.CallLog;
+</code></pre>
+  </li>
+  <li>Run the <strong>TRUNCATE TABLE</strong> statement and note the number of rows affected.</li>
+  <li>Switch to the <strong>SQLQuery_…</strong> pane containing the <strong>SELECT</strong> query and run it. Note that <em>all</em> rows have been deleted from the table.</li>
+</ol>
+
+<h2 id="challenges">Challenges</h2>
+
+<p>Now it’s your turn to try modifying some data.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>: Try to determine the appropriate code for yourself. If you get stuck, suggested answers are provided at the end of this lab.</p>
+</blockquote>
+
+<h3 id="challenge-1-insert-products">Challenge 1: Insert products</h3>
+
+<p>Each Adventure Works product is stored in the <strong>SalesLT.Product</strong> table, and each product has a unique <strong>ProductID</strong> identifier, which is implemented as an <em>identity</em> column in the <strong>SalesLT.Product</strong> table. Products are organized into categories, which are defined in the <strong>SalesLT.ProductCategory</strong> table. The products and product category records are related by a common <strong>ProductCategoryID</strong> identifier, which is an <em>identity</em> column in the <strong>SalesLT.ProductCategory</strong> table.</p>
+
+<ol>
+  <li>Insert a product
+    <ul>
+      <li>Adventure Works has started selling the following new product. Insert it into the <strong>SalesLT.Product</strong> table, using default or <em>NULL</em> values for unspecified columns:
+        <ul>
+          <li><strong>Name</strong>: LED Lights</li>
+          <li><strong>ProductNumber</strong>: LT-L123</li>
+          <li><strong>StandardCost</strong>: 2.56</li>
+          <li><strong>ListPrice</strong>: 12.99</li>
+          <li><strong>ProductCategoryID</strong>: 37</li>
+          <li><strong>SellStartDate</strong>: <em>Today’s date</em></li>
+        </ul>
+      </li>
+      <li>After you have inserted the product, run a query to determine the <strong>ProductID</strong> that was generated.</li>
+      <li>Then run a query to view the row for the product in the <strong>SalesLT.Product</strong> table.</li>
+    </ul>
+  </li>
+  <li>Insert a new category with two products
+    <ul>
+      <li>Adventure Works is adding a product category for <em>Bells and Horns</em> to its catalog. The parent category for the new category is <strong>4</strong> (<em>Accessories</em>). This new category includes the following two new products:
+        <ul>
+          <li>First product:
+            <ul>
+              <li><strong>Name</strong>: Bicycle Bell</li>
+              <li><strong>ProductNumber</strong>: BB-RING</li>
+              <li><strong>StandardCost</strong>: 2.47</li>
+              <li><strong>ListPrice</strong>: 4.99</li>
+              <li><strong>ProductCategoryID</strong>: <em>The <strong>ProductCategoryID</strong> for the new Bells and Horns category</em></li>
+              <li><strong>SellStartDate</strong>: <em>Today’s date</em></li>
+            </ul>
+          </li>
+          <li>Second product:
+            <ul>
+              <li><strong>Name</strong>: Bicycle Horn</li>
+              <li><strong>ProductNumber</strong>: BB-PARP</li>
+              <li><strong>StandardCost</strong>: 1.29</li>
+              <li><strong>ListPrice</strong>: 3.75</li>
+              <li><strong>ProductCategoryID</strong>: <em>The <strong>ProductCategoryID</strong> for the new Bells and Horns category</em></li>
+              <li><strong>SellStartDate</strong>: <em>Today’s date</em></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>Write a query to insert the new product category, and then insert the two new products with the appropriate <strong>ProductCategoryID</strong> value.</li>
+      <li>After you have inserted the products, query the <strong>SalesLT.Product</strong> and <strong>SalesLT.ProductCategory</strong> tables to verify that the data has been inserted.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="challenge-2-update-products">Challenge 2: Update products</h3>
+
+<p>You have inserted data for a product, but the pricing details are not correct. You must now update the records you have previously inserted to reflect the correct pricing. Tip: Review the documentation for UPDATE in the Transact-SQL Language Reference.</p>
+
+<ol>
+  <li>Update product prices
+    <ul>
+      <li>The sales manager at Adventure Works has mandated a 10% price increase for all products in the <em>Bells and Horns</em> category. Update the rows in the <strong>SalesLT.Product</strong> table for these products to increase their price by 10%.</li>
+    </ul>
+  </li>
+  <li>Discontinue products
+    <ul>
+      <li>The new LED lights you inserted in the previous challenge are to replace all previous light products. Update the <strong>SalesLT.Product</strong> table to set the <strong>DiscontinuedDate</strong> to today’s date for all products in the Lights category (product category ID <strong>37</strong>) other than the LED Lights product you inserted previously.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="challenge-3-delete-products">Challenge 3: Delete products</h3>
+
+<p>The Bells and Horns category has not been successful, and it must be deleted from the database.</p>
+
+<ol>
+  <li>Delete a product category and its products
+    <ul>
+      <li>Delete the records for the <em>Bells and Horns</em> category and its products. You must ensure that you delete the records from the tables in the correct order to avoid a foreign-key constraint violation.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="challenge-solutions">Challenge Solutions</h2>
+
+<p>This section contains suggested solutions for the challenge queries.</p>
+
+<h3 id="challenge-1">Challenge 1</h3>
+
+<ol>
+  <li>
+    <p>Insert a product:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.Product (<span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ProductNumber, StandardCost, ListPrice, ProductCategoryID, SellStartDate)
+ <span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+ (<span class="hljs-string"><span class="hljs-string">'LED Lights'</span></span>, <span class="hljs-string"><span class="hljs-string">'LT-L123'</span></span>, <span class="hljs-number"><span class="hljs-number">2.56</span></span>, <span class="hljs-number"><span class="hljs-number">12.99</span></span>, <span class="hljs-number"><span class="hljs-number">37</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">GETDATE</span></span>());
+
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> SCOPE_IDENTITY();
+
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> * <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ProductID = SCOPE_IDENTITY();
+</code></pre>
+  </li>
+  <li>
+    <p>Insert a new category with two products:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.ProductCategory (ParentProductCategoryID, <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>)
+ <span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+ (<span class="hljs-number"><span class="hljs-number">4</span></span>, <span class="hljs-string"><span class="hljs-string">'Bells and Horns'</span></span>);
+
+ <span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> SalesLT.Product (<span class="hljs-keyword"><span class="hljs-keyword">Name</span></span>, ProductNumber, StandardCost, ListPrice, ProductCategoryID, SellStartDate)
+ <span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+ (<span class="hljs-string"><span class="hljs-string">'Bicycle Bell'</span></span>, <span class="hljs-string"><span class="hljs-string">'BB-RING'</span></span>, <span class="hljs-number"><span class="hljs-number">2.47</span></span>, <span class="hljs-number"><span class="hljs-number">4.99</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">IDENT_CURRENT</span></span>(<span class="hljs-string"><span class="hljs-string">'SalesLT.ProductCategory'</span></span>), <span class="hljs-keyword"><span class="hljs-keyword">GETDATE</span></span>()),
+ (<span class="hljs-string"><span class="hljs-string">'Bicycle Horn'</span></span>, <span class="hljs-string"><span class="hljs-string">'BH-PARP'</span></span>, <span class="hljs-number"><span class="hljs-number">1.29</span></span>, <span class="hljs-number"><span class="hljs-number">3.75</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">IDENT_CURRENT</span></span>(<span class="hljs-string"><span class="hljs-string">'SalesLT.ProductCategory'</span></span>), <span class="hljs-keyword"><span class="hljs-keyword">GETDATE</span></span>());
+
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> c.Name <span class="hljs-keyword"><span class="hljs-keyword">As</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Category</span></span>, p.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> Product
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> p
+ <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> c
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> p.ProductCategoryID = c.ProductCategoryID
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> p.ProductCategoryID = <span class="hljs-keyword"><span class="hljs-keyword">IDENT_CURRENT</span></span>(<span class="hljs-string"><span class="hljs-string">'SalesLT.ProductCategory'</span></span>);
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="challenge-2">Challenge 2</h3>
+
+<ol>
+  <li>
+    <p>Update product prices:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">UPDATE</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> ListPrice = ListPrice * <span class="hljs-number"><span class="hljs-number">1.1</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ProductCategoryID =
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductCategoryID
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.ProductCategory
+      <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span> = <span class="hljs-string"><span class="hljs-string">'Bells and Horns'</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>Discontinue products:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">UPDATE</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> DiscontinuedDate = <span class="hljs-keyword"><span class="hljs-keyword">GETDATE</span></span>()
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ProductCategoryID = <span class="hljs-number"><span class="hljs-number">37</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">AND</span></span> ProductNumber &lt;&gt; <span class="hljs-string"><span class="hljs-string">'LT-L123'</span></span>;
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="challenge-3">Challenge 3</h3>
+
+<ol>
+  <li>
+    <p>Delete a product category and its products:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">DELETE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.Product
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ProductCategoryID =
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductCategoryID
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.ProductCategory
+      <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span> = <span class="hljs-string"><span class="hljs-string">'Bells and Horns'</span></span>);
+
+ <span class="hljs-keyword"><span class="hljs-keyword">DELETE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.ProductCategory
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> ProductCategoryID =
+     (<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductCategoryID
+      <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.ProductCategory
+      <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Name</span></span> = <span class="hljs-string"><span class="hljs-string">'Bells and Horns'</span></span>);
+</code></pre>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="ml-2">
+                    MicrosoftLearning/dp-080-Transact-SQL
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.js"></script>
+
+
+
+</body></html>

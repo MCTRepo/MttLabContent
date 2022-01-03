@@ -1,0 +1,343 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#创建密钥保管库并添加机密">创建密钥保管库并添加机密</a></li><li class="nav-item"><a class="nav-link" href="#创建服务主体">创建服务主体</a></li><li class="nav-item"><a class="nav-link" href="#在应用程序中使用服务主体">在应用程序中使用服务主体</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="管理认知服务安全">管理认知服务安全</h1>
+
+<p>安全性是任何应用程序的关键考虑因素，作为一名开发人员，你应该确保只有需要认知服务等资源的人才能访问这些资源。</p>
+
+<p>对认知服务的访问通常通过身份验证密钥来控制，身份验证密钥在最初创建认知服务资源时生成。</p>
+
+<h2 id="克隆本课程的存储库">克隆本课程的存储库</h2>
+
+<p>如果已将 <strong>AI-102-AIEngineer</strong> 代码存储库克隆到了要完成本实验室的环境，请在 Visual Studio Code 中将其打开；否则，请按照以下步骤立即将其克隆。</p>
+
+<ol>
+  <li>启动 Visual Studio Code。</li>
+  <li>打开面板 (Shift+Ctrl+P) 并运行 <strong>Git: Clone</strong> 命令，将 <code>https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution</code> 存储库克隆到本地文件夹（具体克隆到哪个文件夹无关紧要）。</li>
+  <li>克隆存储库后，在 Visual Studio Code 中打开文件夹。</li>
+  <li>
+    <p>等待其他文件安装完毕，以支持存储库中的 C# 代码项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果系统提示你添加生成和调试所需的资产，请选择 <strong>“以后再说”</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="预配认知服务资源">预配认知服务资源</h2>
+
+<p>如果你的订阅中还没有<strong>认知服务</strong>资源，需要预配一个。</p>
+
+<ol>
+  <li>打开 Azure 门户 (<code>https://portal.azure.com</code>)，使用与你的 Azure 订阅关联的 Microsoft 帐户登录。</li>
+  <li>选择 <strong>“＋创建资源”</strong> 按钮，搜索 <strong>“认知服务”</strong>，并使用以下设置创建一个认知服务资源：
+    <ul>
+      <li><strong>订阅</strong>：<em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>：<em>选择或创建一个资源组（如果你使用的是受限订阅，则可能无权创建新资源组，在此情况下，可使用一个已提供的资源组）</em></li>
+      <li><strong>区域</strong>：<em>选择任何可用区域</em></li>
+      <li><strong>名称</strong>：<em>输入唯一名称</em></li>
+      <li><strong>定价层</strong>：标准 S0</li>
+    </ul>
+  </li>
+  <li>选中所需复选框并创建资源。</li>
+  <li>等待部署完成，然后查看部署详细信息。</li>
+</ol>
+
+<h2 id="管理身份验证密钥">管理身份验证密钥</h2>
+
+<p>创建认知服务资源时，生成了两个身份验证密钥。可以在 Azure 门户中或使用 Azure 命令行接口 (CLI) 来管理这两个密钥。</p>
+
+<ol>
+  <li>在 Azure 门户中，前往认知服务资源并查看其 <strong>“密钥和终结点”</strong> 页面。此页面中包含连接资源并在开发的应用程序中使用该资源所需的信息。特别是：
+    <ul>
+      <li>客户端应用程序可向其发送请求的 HTTP <em>终结点</em>。</li>
+      <li>可用于身份验证的两个密钥（客户端应用程序可以使用其中任何一个<em>密钥</em>。一种常见的做法是将其中一个密钥用于开发，而将另一个用于生产。你可以在开发人员完成其工作之后轻松地重新生成开发密钥，以防止继续访问。）</li>
+      <li>托管资源的<em>位置</em>。对于针对某些（但不是全部）API 的请求，这是必需的。</li>
+    </ul>
+  </li>
+  <li>
+    <p>在 Visual Studio Code 中，右键单击 <strong>02-cognitive-security</strong> 文件夹，打开集成终端。然后输入以下命令，以使用 Azure CLI 登录到 Azure 订阅。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">az</span></span> login
+</code></pre>
+
+    <p>Web 浏览器标签页随即打开，并提示你登录到 Azure。按照提示操作，然后关闭浏览器标签页并返回到 Visual Studio Code。</p>
+
+    <blockquote>
+      <p><strong>提示</strong>：如果你有多个订阅，需要确保使用包含认知服务资源的订阅。  使用此命令来确定你当前的订阅，其唯一 <strong>ID</strong> 是返回的 JSON 中的 id 值。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>警告</strong>：如果 <code>az login</code> 的证书验证失败，请尝试等待几分钟，然后重试。</p>
+
+      <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">az</span></span> account show
+</code></pre>
+
+      <p>如需更改订阅，请运行以下命令（将 <em>&lt;Your_Subscription_Id&gt;</em> 更改为正确的订阅 ID）。</p>
+
+      <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs sql">az account <span class="hljs-keyword"><span class="hljs-keyword">set</span></span> <span class="hljs-comment"><span class="hljs-comment">--subscription &lt;Your_Subscription_Id&gt;</span></span>
+</code></pre>
+
+      <p>此外，你也可以在后面的每个 Azure CLI 命令中以 <em>–subscription</em> 参数的形式显式指定订阅 ID。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>现在，可以使用以下命令来获取认知服务密钥的列表，将 <em>&lt;resourceName&gt;</em> 替换为认知服务资源的名称，并将 <em>&lt;resourceGroup&gt;</em> 替换为在其中创建资源的资源组的名称。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs xml"> az cognitiveservices account keys list --name <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">resourceName</span></span></span><span class="hljs-tag">&gt;</span></span> --resource-group <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">resourceGroup</span></span></span><span class="hljs-tag">&gt;</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<p>此命令返回认知服务资源的密钥列表，其中包含两个密钥，分别名为 <strong>key1</strong> 和 <strong>key2</strong>。</p>
+
+<ol>
+  <li>
+    <p>若要测试认知服务，可以使用 <strong>curl</strong>  -  用于处理 HTTP 请求的命令行工具。在 <strong>02-cognitive-security</strong> 文件夹中，打开 <strong>rest-test.cmd</strong> 并编辑其中包含的 <strong>curl</strong> 命令（如下所示），并将 <em>&lt;yourEndpoint&gt;</em> 和 <em>&lt;yourKey&gt;</em> 分别替换为终结点 URI 和 <strong>Key1</strong> 密钥，以在认知服务资源中使用文本分析 API。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">curl</span></span> -X POST <span class="hljs-string"><span class="hljs-string">"&lt;yourEndpoint&gt;/text/analytics/v3.0/languages?"</span></span> -H <span class="hljs-string"><span class="hljs-string">"Content-Type: application/json"</span></span> -H <span class="hljs-string"><span class="hljs-string">"Ocp-Apim-Subscription-Key: &lt;yourKey&gt;"</span></span> --data-ascii <span class="hljs-string"><span class="hljs-string">"{'documents':[{'id':1,'text':'hello'}]}"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>保存所做的更改，然后在 <strong>02-cognitive-security</strong> 文件夹的集成终端中，运行以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs"> rest-test
+</code></pre>
+  </li>
+</ol>
+
+<p>该命令返回一个 JSON 文档，其中包含有关在输入数据中检测到的语言（该语言应为英语）的信息。</p>
+
+<ol>
+  <li>
+    <p>如果密钥已泄露，或者拥有密钥的开发人员不再需要访问权限，你可以在门户中或使用 Azure CLI 重新生成密钥。运行以下命令以重新生成 <strong>key1</strong> 密钥（替换资源的 <em>&lt;resourceName&gt;</em> 和 <em>&lt;resourceGroup&gt;）</em>。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs xml"> az cognitiveservices account keys regenerate --name <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">resourceName</span></span></span><span class="hljs-tag">&gt;</span></span> --resource-group <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">resourceGroup</span></span></span><span class="hljs-tag">&gt;</span></span> --key-name key1
+</code></pre>
+  </li>
+</ol>
+
+<p>将返回认知服务资源的密钥列表 - 请注意，自上次检索密钥后，<strong>key1</strong> 已更改。</p>
+
+<ol>
+  <li>使用旧密钥重新运行 <strong>rest-test</strong> 命令（可以使用 <strong>^</strong> 键循环显示以前的命令），并验证它现在是否失败。</li>
+  <li>在 <strong>rest-test.cmd</strong> 中编辑 <em>curl</em> 命令，并将密钥替换为新的 <strong>key1</strong> 值，然后保存更改。然后重新运行 <strong>rest-test</strong> 命令并验证它是否成功。</li>
+</ol>
+
+<blockquote>
+  <p><strong>提示</strong>：在本练习中，你使用了 Azure CLI 参数的全名，例如 <strong>–resource-group</strong>。  你也可以使用更短的其他名称（例如 <strong>-g</strong> ），以使命令更简洁（但更难理解）。  <a href="https://docs.microsoft.com/cli/azure/cognitiveservices?view=azure-cli-latest">认知服务 CLI 命令引用</a>列出了每个认知服务 CLI 命令的参数选项。</p>
+</blockquote>
+
+<h2 id="使用-azure-密钥保管库保护密钥访问">使用 Azure 密钥保管库保护密钥访问</h2>
+
+<p>可以通过使用身份验证密钥来开发使用认知服务的应用程序。但是，这意味着应用程序代码必须能够获取密钥。一种选择是将密钥存储在部署了应用程序的环境变量或配置文件中，但是这种方法使密钥容易受到未经授权的访问。在 Azure 上开发应用程序时，更好的方法是将密钥通过安全方式存储在 Azure 密钥保管库中，并通过<em>托管标识</em> （也就是应用程序本身使用的用户帐户）提供对密钥的访问。</p>
+
+<h3 id="创建密钥保管库并添加机密">创建密钥保管库并添加机密</h3>
+
+<p>首先，需要创建密钥保管库并为认知服务密钥添加机密。</p>
+
+<ol>
+  <li>记下认知服务资源的 <strong>key1</strong> 值（或将其复制到剪贴板）。</li>
+  <li>在 Azure 门户的 <strong>“主页”</strong> 上，选择 <strong>“＋ 创建资源”</strong> 按钮，搜索密钥保管库，然后使用以下设置创建 <strong>“密钥保管库”</strong> 资源：
+    <ul>
+      <li><strong>订阅</strong>：<em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>：<em>认知服务资源所使用的同一资源组</em></li>
+      <li><strong>密钥保管库名称</strong>：<em>输入唯一名称</em></li>
+      <li><strong>区域</strong>：<em>认知服务资源所在的同一区域</em></li>
+      <li><strong>定价层</strong>：标准</li>
+    </ul>
+  </li>
+  <li>等待部署完成，然后转到密钥保管库资源。</li>
+  <li>在左侧导航窗格中，选择 <strong>“机密”</strong> （在“设置”部分中）。</li>
+  <li>选择 <strong>“+ 生成/导入”</strong> 并使用以下设置添加新机密：
+    <ul>
+      <li><strong>上传选项</strong>：手动</li>
+      <li><strong>名称</strong>： Cognitive-Services-Key <em>（必须准确匹配该名称，因为稍后你将运行基于该名称检索机密的代码）</em></li>
+      <li><strong>值</strong>：<em>你的 <strong>key1</strong> 认知服务密钥</em></li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="创建服务主体">创建服务主体</h3>
+
+<p>要访问密钥保管库中的机密，应用程序必须使用拥有对机密的访问权限的服务主体。你将使用 Azure 命令行界面 (CLI) 创建服务主体、查找其对象 ID 并授予对 Azure Vault 中的机密的访问权限。</p>
+
+<ol>
+  <li>
+    <p>返回到 Visual Studio Code，然后在 <strong>02-cognitive-security</strong> 文件夹的集成终端中，运行以下 Azure CLI 命令，并将 <em>&lt;spName&gt;</em> 替换为应用程序标识的恰当名称（例如 <em>ai-app</em>）。另外将 <em>&lt;subscriptionId&gt;</em> 和 <em>&lt;resourceGroup&gt;</em> 分别替换为订阅 ID 和资源组（包含认知服务和密钥保管库资源）的正确值：</p>
+
+    <blockquote>
+      <p><strong>提示</strong>：如果不确定订阅 Id，请使用 <strong>az account show</strong> 命令检索订阅信息 - 订阅 ID 是输出中的 <strong>ID</strong> 属性。</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs sql"> az ad sp <span class="hljs-keyword"><span class="hljs-keyword">create</span></span>-<span class="hljs-keyword"><span class="hljs-keyword">for</span></span>-rbac -n <span class="hljs-string"><span class="hljs-string">"api://&lt;spName&gt;"</span></span> <span class="hljs-comment"><span class="hljs-comment">--role owner --scopes subscriptions/&lt;subscriptionId&gt;/resourceGroups/&lt;resourceGroup&gt;</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<p>该命令的输出包括有关新服务主体的信息。输出应如下所示：</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs coffeescript">```<span class="javascript"><span class="javascript">
+{
+    </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"appId"</span></span></span><span class="javascript">: </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"abcd12345efghi67890jklmn"</span></span></span><span class="javascript">,
+    </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"displayName"</span></span></span><span class="javascript">: </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"ai-app"</span></span></span><span class="javascript">,
+    </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"name"</span></span></span><span class="javascript">: </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"http://ai-app"</span></span></span><span class="javascript">,
+    </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"password"</span></span></span><span class="javascript">: </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"1a2b3c4d5e6f7g8h9i0j"</span></span></span><span class="javascript">,
+    </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"tenant"</span></span></span><span class="javascript">: </span><span class="hljs-string"><span class="javascript"><span class="hljs-string">"1234abcd5678fghi90jklm"</span></span></span><span class="javascript">
+}
+</span></span>```
+</code></pre>
+
+<p>记下 <strong>appId</strong>、<strong>密码</strong>和<strong>租户</strong>值 - 稍后你将用到这些值（如果关闭此终端，则无法检索密码，因此，务必立刻记下这些值 - 可以将输出粘贴到 Visual Studio Code 中的新文本文件中，以确保以后可以找到所需的值。）</p>
+
+<ol>
+  <li>
+    <p>要获取服务主体的<strong>对象 ID</strong>，请运行以下 Azure CLI 命令，将 <em>&lt;appId&gt;</em> 替换为服务主体的应用 ID 的值。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs objectivec"> az ad sp show --<span class="hljs-keyword"><span class="hljs-keyword">id</span></span> &lt;appId&gt; --query objectId --<span class="hljs-keyword"><span class="hljs-keyword">out</span></span> tsv
+</code></pre>
+  </li>
+  <li>
+    <p>若要为新的服务主体分配访问密钥保管库中的机密的权限，请运行以下 Azure CLI 命令，将 <em>&lt;keyVaultName&gt;</em> 替换为 Azure 密钥保管库资源的名称，并将 <em>&lt;objectId&gt;</em> 替换为服务主体的对象 ID 值。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs cs"> az keyvault <span class="hljs-keyword"><span class="hljs-keyword">set</span></span>-policy -n &lt;keyVaultName&gt; --<span class="hljs-keyword"><span class="hljs-keyword">object</span></span>-id &lt;objectId&gt; --secret-permissions <span class="hljs-keyword"><span class="hljs-keyword">get</span></span> list
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="在应用程序中使用服务主体">在应用程序中使用服务主体</h3>
+
+<p>现在，你可以在应用程序中使用服务主体标识，使其能够访问密钥保管库中的机密认知服务密钥，并使用该密钥连接到认知服务资源。</p>
+
+<blockquote>
+  <p><strong>备注</strong>：在本练习中，我们将服务主体凭据存储在应用程序配置中，并使用这些凭据在应用程序代码中对 <strong>ClientSecretCredential</strong> 标识进行身份验证。这样做适用于开发和测试，但在实际的生产应用程序中，管理员将为应用程序分配托管标识，以便它使用服务主体标识来访问资源，而无需缓存或存储密码。</p>
+</blockquote>
+
+<ol>
+  <li>在 Visual Studio Code 中，根据你的语言首选项，展开 <strong>02-cognitive-security</strong> 文件夹以及 <strong>C-Sharp</strong> 或 <strong>Python</strong> 文件夹。</li>
+  <li>
+    <p>右键单击 <strong>keyvault-client</strong> 文件夹，并打开集成终端。然后，通过针对你的语言首选项运行适当的命令，在认知服务资源中安装使用 Azure 密钥保管库和文本分析 API 所需的包：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.AI</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.TextAnalytics</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 5<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+ <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Identity</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 1<span class="hljs-selector-class"><span class="hljs-selector-class">.3</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+ <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Security</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.KeyVault</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Secrets</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 4<span class="hljs-selector-class"><span class="hljs-selector-class">.2</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0-beta</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.3</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs sql"> pip <span class="hljs-keyword"><span class="hljs-keyword">install</span></span> azure-ai-textanalytics==<span class="hljs-number"><span class="hljs-number">5.0</span></span><span class="hljs-number"><span class="hljs-number">.0</span></span>
+ pip <span class="hljs-keyword"><span class="hljs-keyword">install</span></span> azure-<span class="hljs-keyword"><span class="hljs-keyword">identity</span></span>==<span class="hljs-number"><span class="hljs-number">1.5</span></span><span class="hljs-number"><span class="hljs-number">.0</span></span>
+ pip <span class="hljs-keyword"><span class="hljs-keyword">install</span></span> azure-keyvault-secrets==<span class="hljs-number"><span class="hljs-number">4.2</span></span><span class="hljs-number"><span class="hljs-number">.0</span></span>
+</code></pre>
+  </li>
+  <li>查看 <strong>keyvault-client</strong> 文件夹的内容，并注意其中包含一个配置设置文件：
+    <ul>
+      <li><strong>C#</strong>：appsettings.json</li>
+      <li><strong>Python</strong>：.env</li>
+    </ul>
+
+    <p>打开配置文件并更新其中包含的配置值以反映以下设置：</p>
+
+    <ul>
+      <li>认知服务资源的<strong>终结点</strong></li>
+      <li><strong>Azure 密钥保管库</strong>资源的名称</li>
+      <li>服务主体的<strong>租户</strong></li>
+      <li>服务主体的 <strong>appId</strong></li>
+      <li>服务主体的<strong>密码</strong></li>
+    </ul>
+
+    <p>保存更改。</p>
+  </li>
+  <li>
+    <p>请注意，<strong>keyvault-client</strong> 文件夹中包含客户端应用程序的代码文件：</p>
+
+    <ul>
+      <li><strong>C#</strong>：Program.cs</li>
+      <li><strong>Python</strong>：keyvault-client.py</li>
+    </ul>
+
+    <p>打开代码文件并查看其中包含的代码，并注意以下详细信息：</p>
+    <ul>
+      <li>已导入安装的 SDK 的命名空间</li>
+      <li><strong>Main</strong> 函数中的代码会检索应用程序配置设置，然后使用服务主体凭据从密钥保管库获取认知服务密钥。</li>
+      <li><strong>GetLanguage</strong> 函数使用 SDK 来创建服务的客户端，然后使用该客户端检测文本的输入语言。</li>
+    </ul>
+  </li>
+  <li>
+    <p>返回到 <strong>keyvault-client</strong> 文件夹的集成终端中，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">keyvault-client</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>系统提示时，输入一些文本并查看服务检测到的语言。例如，尝试输入“Hello”、“Bonjour”和“Hola”。</li>
+  <li>测试应用程序后，输入“quit”以停止程序。</li>
+</ol>
+
+<h2 id="更多信息">更多信息</h2>
+
+<p>有关保护认知服务的更多信息，请参阅<a href="https://docs.microsoft.com/azure/cognitive-services/cognitive-services-security">认知服务文档</a>。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

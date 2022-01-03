@@ -1,0 +1,417 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#如果麦克风正常工作">如果麦克风正常工作</a></li><li class="nav-item"><a class="nav-link" href="#或者使用来自文件的音频输入">或者，使用来自文件的音频输入</a></li><li class="nav-item"><a class="nav-link" href="#运行程序">运行程序</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="翻译语音">翻译语音</h1>
+
+<p><strong>语音</strong>服务包括一个可用于翻译口语的<strong>语音翻译</strong> API。例如，假设你想要开发一种翻译工具应用程序，当人们在不会讲当地语言的地方旅行时便可以使用该应用程序。他们能够以自己的语言说出诸如“车站在哪里？”或“我需要寻找药店”之类的惯用语，并让该应用程序将其翻译为当地语言。</p>
+
+<p><strong>备注</strong>： 此练习需要使用配有扬声器/耳机的计算机。为了获得最佳体验，还需要麦克风。某些托管的虚拟环境可能能够通过本地麦克风捕获音频，但如果这不起作用（或者根本没有麦克风），则可以使用提供的音频文件进行语音输入。请仔细按照说明进行操作，因为需要根据使用的是麦克风还是音频文件来选择不同的选项。</p>
+
+<h2 id="克隆本课程的存储库">克隆本课程的存储库</h2>
+
+<p>如果已将 <strong>AI-102-AIEngineer</strong> 代码存储库克隆到了要完成本实验室的环境，请在 Visual Studio Code 中将其打开；否则，请按照以下步骤立即将其克隆。</p>
+
+<ol>
+  <li>启动 Visual Studio Code。</li>
+  <li>打开面板 (SHIFT+CTRL+P) 并运行 <strong>Git: Clone</strong> 命令，将 <code>https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution</code> 存储库克隆到本地文件夹（具体克隆到哪个文件夹无关紧要）。</li>
+  <li>克隆存储库后，在 Visual Studio Code 中打开文件夹。</li>
+  <li>
+    <p>等待其他文件安装完毕，以支持存储库中的 C# 代码项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果系统提示你添加生成和调试所需的资产，请选择 <strong>“以后再说”</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="预配认知服务资源">预配认知服务资源</h2>
+
+<p>如果你的订阅中还没有<strong>认知服务</strong>资源，则需要预配一个该资源。</p>
+
+<ol>
+  <li>打开 Azure 门户 (<code>https://portal.azure.com</code>)，使用与你的 Azure 订阅关联的 Microsoft 帐户登录。</li>
+  <li>选择 <strong>“＋创建资源”</strong> 按钮，搜索 <em>“认知服务”</em>，并使用以下设置创建一个<strong>认知服务</strong>资源：
+    <ul>
+      <li><strong>订阅</strong>： <em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>： <em>选择或创建一个资源组（如果你使用的是受限订阅，则可能无权创建新资源组，在此情况下，可使用一个已提供的资源组）</em></li>
+      <li><strong>区域</strong>： <em>选择任何可用区域</em></li>
+      <li><strong>名称</strong>： <em>输入唯一名称</em></li>
+      <li><strong>定价层</strong>： 标准 S0</li>
+    </ul>
+  </li>
+  <li>选中所需复选框并创建资源。</li>
+  <li>等待部署完成，然后查看部署详细信息。</li>
+  <li>部署资源后，转到该资源并查看其 <strong>“密钥和终结点”</strong> 页面。在下一过程中，你将需要其中一个密钥以及从此页面预配服务的位置。</li>
+</ol>
+
+<h2 id="准备使用语音翻译服务">准备使用语音翻译服务</h2>
+
+<p>在此练习中，你将完成一个已部分实现的客户端应用程序，该应用程序使用语音 SDK 来识别、翻译和合成语音。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 可选择将该 SDK 用于 <strong>C#</strong> 或 <strong>Python</strong>。在下面的步骤中，请执行适用于你的语言首选项的操作。</p>
+</blockquote>
+
+<ol>
+  <li>在 Visual Studio Code 的 <strong>“资源管理器”</strong> 窗格中，浏览到 <strong>08-speech-translation</strong> 文件夹，并根据你的语言首选项展开 <strong>C-Sharp</strong> 文件夹或 <strong>Python</strong> 文件夹。</li>
+  <li>
+    <p>右键单击 <strong>translator</strong> 文件夹，并打开集成终端。然后通过运行适用于你的语言首选项的命令，安装语音 SDK 包：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Speech</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 1<span class="hljs-selector-class"><span class="hljs-selector-class">.14</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-speech==<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">14</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+  </li>
+  <li>查看 <strong>translator</strong> 文件夹的内容，并注意其中包含一个配置设置文件：
+    <ul>
+      <li><strong>C#</strong>： appsettings.json</li>
+      <li><strong>Python</strong>： .env</li>
+    </ul>
+
+    <p>打开配置文件并更新其包含的配置值，以包括认知服务资源的身份验证<strong>密钥</strong>以及部署该资源的<strong>位置</strong>。保存更改。</p>
+  </li>
+  <li>
+    <p>请注意，<strong>translator</strong> 文件夹中包含客户端应用程序的代码文件：</p>
+
+    <ul>
+      <li><strong>C#</strong>： Program.cs</li>
+      <li><strong>Python</strong>： translator.py</li>
+    </ul>
+
+    <p>打开代码文件，并在顶部的现有命名空间引用下找到注释 <strong>“导入命名空间”</strong>。然后在此注释下添加以下语言特定的代码，以导入使用语音 SDK 所需的命名空间：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.CognitiveServices.Speech;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.CognitiveServices.Speech.Audio;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.CognitiveServices.Speech.Translation;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> azure.cognitiveservices.speech <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> speech_sdk
+</code></pre>
+  </li>
+  <li>
+    <p>请注意，<strong>Main</strong> 函数中已经提供了从配置文件加载认知服务密钥和区域的代码。必须使用这些变量为认知服务资源创建将用于翻译语音输入的 <strong>SpeechTranslationConfig</strong>。在注释 <strong>“配置翻译”</strong> 下添加以下代码：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Configure translation</span></span>
+ translationConfig = SpeechTranslationConfig.FromSubscription(cogSvcKey, cogSvcRegion);
+ translationConfig.SpeechRecognitionLanguage = <span class="hljs-string"><span class="hljs-string">"en-US"</span></span>;
+ translationConfig.AddTargetLanguage(<span class="hljs-string"><span class="hljs-string">"fr"</span></span>);
+ translationConfig.AddTargetLanguage(<span class="hljs-string"><span class="hljs-string">"es"</span></span>);
+ translationConfig.AddTargetLanguage(<span class="hljs-string"><span class="hljs-string">"hi"</span></span>);
+ Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Ready to translate from "</span></span> + translationConfig.SpeechRecognitionLanguage);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Configure translation</span></span>
+ translation_config = speech_sdk.translation.SpeechTranslationConfig(cog_key, cog_region)
+ translation_config.speech_recognition_language = <span class="hljs-string"><span class="hljs-string">'en-US'</span></span>
+ translation_config.add_target_language(<span class="hljs-string"><span class="hljs-string">'fr'</span></span>)
+ translation_config.add_target_language(<span class="hljs-string"><span class="hljs-string">'es'</span></span>)
+ translation_config.add_target_language(<span class="hljs-string"><span class="hljs-string">'hi'</span></span>)
+ print(<span class="hljs-string"><span class="hljs-string">'Ready to translate from'</span></span>,translation_config.speech_recognition_language)
+</code></pre>
+  </li>
+  <li>
+    <p>将使用 <strong>SpeechTranslationConfig</strong> 将语音转换为文本，但还将使用 <strong>SpeechConfig</strong> 将译文合成为语音。在注释 <strong>“配置语音”</strong> 下添加以下代码：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Configure speech</span></span>
+ speechConfig = SpeechConfig.FromSubscription(cogSvcKey, cogSvcRegion);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Configure speech</span></span>
+ speech_config = speech_sdk.SpeechConfig(cog_key, cog_region)
+</code></pre>
+  </li>
+  <li>
+    <p>保存你的更改并返回到 <strong>translator</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">translator</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>如果你使用 C#，则可以忽略关于在异步方法中使用 <strong>await</strong> 运算符的任何警告 - 我们之后将修复此问题。代码应显示一条消息，指示已准备好从 en-US 进行翻译。按 Enter 结束程序。</li>
+</ol>
+
+<h2 id="实现语音翻译">实现语音翻译</h2>
+
+<p>现在，你已经为认知服务资源中的语音服务添加了 <strong>SpeechTranslationConfig</strong>，接下来，可以使用<strong>语音翻译</strong> API 来识别和翻译语音。</p>
+
+<h3 id="如果麦克风正常工作">如果麦克风正常工作</h3>
+
+<ol>
+  <li>在程序的 <strong>Main</strong> 函数中，请注意代码使用 <strong>Translate</strong> 函数来翻译语音输入。</li>
+  <li>
+    <p>在 <strong>Translate</strong> 函数的注释 <strong>“翻译语音”</strong> 下，添加以下代码以创建 <strong>TranslationRecognizer</strong> 客户端，该客户端可用于识别和翻译使用默认系统麦克风输入的语音。</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Translate speech</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> AudioConfig audioConfig = AudioConfig.FromDefaultMicrophoneInput();
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> TranslationRecognizer translator = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> TranslationRecognizer(translationConfig, audioConfig);
+ Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Speak now..."</span></span>);
+ TranslationRecognitionResult result = await translator.RecognizeOnceAsync();
+ Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"Translating '{result.Text}'"</span></span>);
+ translation = result.Translations[targetLanguage];
+ Console.OutputEncoding = Encoding.UTF8;
+ Console.WriteLine(translation);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Translate speech</span></span>
+ audio_config = speech_sdk.AudioConfig(use_default_microphone=<span class="hljs-keyword"><span class="hljs-keyword">True</span></span>)
+ translator = speech_sdk.translation.TranslationRecognizer(translation_config, audio_config)
+ print(<span class="hljs-string"><span class="hljs-string">"Speak now..."</span></span>)
+ result = translator.recognize_once_async().get()
+ print(<span class="hljs-string"><span class="hljs-string">'Translating "{}"'</span></span>.format(result.text))
+ translation = result.translations[targetLanguage]
+ print(translation)
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 应用程序中的代码在一次调用中将输入翻译为三种语言。仅显示特定语言的翻译，但你可以通过在结果的翻译集合中指定目标语言代码来检索任何<strong>翻译</strong>。</p>
+    </blockquote>
+  </li>
+  <li>现在，进入下面的 <strong>“运行程序”</strong> 部分。</li>
+</ol>
+
+<h3 id="或者使用来自文件的音频输入">或者，使用来自文件的音频输入</h3>
+
+<ol>
+  <li>
+    <p>在终端窗口中，输入以下命令以安装可用于播放音频文件的库：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Windows</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Extensions</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 4<span class="hljs-selector-class"><span class="hljs-selector-class">.6</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span> 
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install playsound==<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">2</span></span>.<span class="hljs-number"><span class="hljs-number">2</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>在程序的代码文件中的现有命名空间导入下，添加以下代码以导入刚刚安装的库：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-C# hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Media;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-Python hljs"> <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> playsound <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> playsound
+</code></pre>
+  </li>
+  <li>
+    <p>在程序的 <strong>Main</strong> 函数中，请注意代码使用 <strong>Translate</strong> 函数来翻译语音输入。然后，在 <strong>Translate</strong> 函数的注释 <strong>“翻译语音”</strong> 下，添加以下代码以创建 <strong>TranslationRecognizer</strong> 客户端，该客户端可用于识别和翻译文件中的语音。</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Translate speech</span></span>
+ <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> audioFile = <span class="hljs-string"><span class="hljs-string">"station.wav"</span></span>;
+ SoundPlayer wavPlayer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SoundPlayer(audioFile);
+ wavPlayer.Play();
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> AudioConfig audioConfig = AudioConfig.FromWavFileInput(audioFile);
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> TranslationRecognizer translator = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> TranslationRecognizer(translationConfig, audioConfig);
+ Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Getting speech from file..."</span></span>);
+ TranslationRecognitionResult result = await translator.RecognizeOnceAsync();
+ Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"Translating '{result.Text}'"</span></span>);
+ translation = result.Translations[targetLanguage];
+ Console.OutputEncoding = Encoding.UTF8;
+ Console.WriteLine(translation);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Translate speech</span></span>
+ audioFile = <span class="hljs-string"><span class="hljs-string">'station.wav'</span></span>
+ playsound(audioFile)
+ audio_config = speech_sdk.AudioConfig(filename=audioFile)
+ translator = speech_sdk.translation.TranslationRecognizer(translation_config, audio_config)
+ print(<span class="hljs-string"><span class="hljs-string">"Getting speech from file..."</span></span>)
+ result = translator.recognize_once_async().get()
+ print(<span class="hljs-string"><span class="hljs-string">'Translating "{}"'</span></span>.format(result.text))
+ translation = result.translations[targetLanguage]
+ print(translation)
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 应用程序中的代码在一次调用中将输入翻译为三种语言。仅显示特定语言的翻译，但你可以通过在结果的翻译集合中指定目标语言代码来检索任何<strong>翻译</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="运行程序">运行程序</h3>
+
+<ol>
+  <li>
+    <p>保存你的更改并返回到 <strong>translator</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">translator</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>出现提示时，输入有效的语言代码（<em>fr</em>、 <em>es</em> 或 <em>hi</em>），然后，如果使用的是麦克风，请对着麦克风清晰地说出“车站在哪里？”或出国旅行时可能使用的一些其他惯用语。程序应转录你的语音输入并将其翻译为你指定的语言（法语、西班牙语或印地语）。重复此过程，尝试使用应用程序支持的各种语言。完成后，按 Enter 结束程序。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： TranslationRecognizer 会为你提供大约 5 秒钟的说话时间。如果它未检测到任何语音输入，则会生成“无匹配”结果。</p>
+
+      <p>由于字符编码问题，控制台窗口中可能无法始终正确显示印地语译文。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="将翻译合成为语音">将翻译合成为语音</h2>
+
+<p>到目前为止，应用程序已将语音输入转换为文本；如果你在旅行时需要向其他人寻求帮助，这可能已经足够。不过，最好是能够通过适当的语音将译文大声朗读出来。</p>
+
+<ol>
+  <li>
+    <p>在 <strong>Translate</strong> 函数的注释 <strong>“合成翻译”</strong> 下，添加以下代码以使用 <strong>SpeechSynthesizer</strong> 客户端通过默认扬声器将翻译合成为语音：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Synthesize translation</span></span>
+ var voices = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Dictionary&lt;<span class="hljs-built_in"><span class="hljs-built_in">string</span></span>, <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>&gt;
+                 {
+                     [<span class="hljs-string"><span class="hljs-string">"fr"</span></span>] = <span class="hljs-string"><span class="hljs-string">"fr-FR-HenriNeural"</span></span>,
+                     [<span class="hljs-string"><span class="hljs-string">"es"</span></span>] = <span class="hljs-string"><span class="hljs-string">"es-ES-ElviraNeural"</span></span>,
+                     [<span class="hljs-string"><span class="hljs-string">"hi"</span></span>] = <span class="hljs-string"><span class="hljs-string">"hi-IN-MadhurNeural"</span></span>
+                 };
+ speechConfig.SpeechSynthesisVoiceName = voices[targetLanguage];
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> SpeechSynthesizer speechSynthesizer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SpeechSynthesizer(speechConfig);
+ SpeechSynthesisResult speak = await speechSynthesizer.SpeakTextAsync(translation);
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (speak.Reason != ResultReason.SynthesizingAudioCompleted)
+ {
+     Console.WriteLine(speak.Reason);
+ }
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Synthesize translation</span></span>
+ voices = {
+         <span class="hljs-string"><span class="hljs-string">"fr"</span></span>: <span class="hljs-string"><span class="hljs-string">"fr-FR-HenriNeural"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"es"</span></span>: <span class="hljs-string"><span class="hljs-string">"es-ES-ElviraNeural"</span></span>,
+         <span class="hljs-string"><span class="hljs-string">"hi"</span></span>: <span class="hljs-string"><span class="hljs-string">"hi-IN-MadhurNeural"</span></span>
+ }
+ speech_config.speech_synthesis_voice_name = voices.get(targetLanguage)
+ speech_synthesizer = speech_sdk.SpeechSynthesizer(speech_config)
+ speak = speech_synthesizer.speak_text_async(translation).get()
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> speak.reason != speech_sdk.ResultReason.SynthesizingAudioCompleted:
+     print(speak.reason)
+</code></pre>
+  </li>
+  <li>
+    <p>保存你的更改并返回到 <strong>translator</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">translator</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>出现提示时，输入有效的语言代码（<em>fr</em>、 <em>es</em> 或 <em>hi</em>），然后对着麦克风清晰地说出出国旅行时可能使用的惯用语。 程序应转录你的语音输入并通过语音翻译作出响应。重复此过程，尝试使用应用程序支持的各种语言。完成后，按 Enter 结束程序。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在此示例中，你使用 <strong>SpeechTranslationConfig</strong> 将语音转换为了文本，然后使用 <strong>SpeechConfig</strong> 将翻译合成为了语音。<em>事实上，你可以使用 <strong>SpeechTranslationConfig</strong> 直接合成翻译，但这仅适用于翻译为一种语言的情况，并且会生成通常是保存为文件而不是直接发送给扬声器的音频流。</em></p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="更多信息">更多信息</h2>
+
+<p>有关如何使用<strong>语音翻译</strong> API 的详细信息，请参阅<a href="https://docs.microsoft.com/azure/cognitive-services/speech-service/index-speech-translation">语音翻译文档</a>。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

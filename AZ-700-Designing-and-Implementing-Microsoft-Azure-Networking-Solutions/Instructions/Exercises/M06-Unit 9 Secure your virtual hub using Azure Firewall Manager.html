@@ -1,0 +1,653 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m06-unit-9-secure-your-virtual-hub-using-azure-firewall-manager">M06-Unit 9 Secure your virtual hub using Azure Firewall Manager</h1>
+
+<p>In this exercise, you will create the spoke virtual network and create a secured virtual hub, then you will connect the hub and spoke virtual networks and route traffic to your hub. Next you will deploy the workload servers, then create a firewall policy and secure your hub, and finally you will test the firewall.</p>
+
+<h2 id="create-a-hub-and-spoke-architecture">Create a hub and spoke architecture</h2>
+
+<p>In this part of the exercise, you will create the spoke virtual networks and subnets where you will place the workload servers. Then you will create the secured virtual hub and connect the hub and spoke virtual networks.</p>
+
+<p>In this exercise, you will:</p>
+
+<ul>
+  <li>Task 1: Create two spoke virtual networks and subnets</li>
+  <li>Task 2: Create the secured virtual hub</li>
+  <li>Task 3: Connect the hub and spoke virtual networks</li>
+  <li>Task 4: Deploy the servers</li>
+  <li>Task 5: Create a firewall policy and secure your hub</li>
+  <li>Task 6: Associate the firewall policy</li>
+  <li>Task 7: Route traffic to your hub</li>
+  <li>Task 8: Test the application rule</li>
+  <li>Task 9: Test the network rule</li>
+  <li>Task 10: Clean up resources</li>
+</ul>
+
+<h2 id="task-1-create-two-spoke-virtual-networks-and-subnets">Task 1: Create two spoke virtual networks and subnets</h2>
+
+<p>In this task, you will create the two spoke virtual networks each containing a subnet that will host your workload servers.</p>
+
+<ol>
+  <li>On the Azure portal home page, in the search box, type <strong>virtual network</strong> and select <strong>Virtual Network</strong> when it appears.</li>
+  <li>Click <strong>Create</strong>.</li>
+  <li>In <strong>Resource group</strong>, select <strong>Create new</strong>, and enter <strong>fw-manager-rg</strong> as the name and click <strong>OK</strong>.</li>
+  <li>In <strong>Name</strong>, enter <strong>Spoke-01</strong>.</li>
+  <li>In <strong>Region</strong>, select your region.</li>
+  <li>Click <strong>Next: IP Addresses</strong>.</li>
+  <li>In <strong>IPv4 address space</strong>, enter <strong>10.0.0.0/16</strong>.</li>
+  <li><strong>Delete</strong> any other address spaces listed here, such as <strong>10.1.0.0/16</strong>.</li>
+  <li>Under <strong>Subnet name</strong>, click the word <strong>default</strong>.</li>
+  <li>In the <strong>Edit subnet</strong> dialog box, change the name to <strong>Workload-01-SN</strong>.</li>
+  <li>Change the <strong>Subnet address range</strong> to <strong>10.0.1.0/24</strong>.</li>
+  <li>Click <strong>Save</strong>.</li>
+  <li>Click <strong>Review + create</strong>.</li>
+  <li>Click <strong>Create</strong>.</li>
+</ol>
+
+<p>Repeat steps 1 to 14 above to create another similar virtual network and subnet but using the following information:</p>
+
+<ul>
+  <li>Resource Group: <strong>fw-manager-rg</strong> (select existing)</li>
+  <li>Name: <strong>Spoke-02</strong></li>
+  <li>Address space: <strong>10.1.0.0/16</strong> - (delete any other listed address spaces)</li>
+  <li>Subnet name: <strong>Workload-02-SN</strong></li>
+  <li>Subnet address range: <strong>10.1.1.0/24</strong></li>
+</ul>
+
+<h2 id="task-2-create-the-secured-virtual-hub">Task 2: Create the secured virtual hub</h2>
+
+<p>In this task you will create your secured virtual hub using Firewall Manager.</p>
+
+<ol>
+  <li>
+    <p>From the Azure portal home page, click <strong>All services</strong>.</p>
+  </li>
+  <li>
+    <p>In the search box, type <strong>firewall manager</strong> and select <strong>Firewall Manager</strong> when it appears.</p>
+  </li>
+  <li>
+    <p>On the <strong>Firewall Manager</strong> page, from the Overview page, click <strong>View secured virtual hubs</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Virtual hubs</strong> page, click <strong>Create new secured virtual hub</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Resource group</strong>, select <strong>fw-manager-rg</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Region</strong>, select your region.</p>
+  </li>
+  <li>
+    <p>For the <strong>Secured virtual hub name</strong>, enter <strong>Hub-01</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Hub address space</strong>, enter <strong>10.2.0.0/16</strong>.</p>
+  </li>
+  <li>
+    <p>Choose <strong>New vWAN</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Virtual WAN Name</strong>, enter <strong>Vwan-01</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next: Azure Firewall</strong>.
+<a href="../media/create-new-secured-virtual-hub-1.png" target="_blank"><img src="../media/create-new-secured-virtual-hub-1.png" alt="Create new secured virtual hub - Basics tab"></a></p>
+  </li>
+  <li>
+    <p>Click <strong>Next: Security Partner Provider</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next: Review + create.</strong></p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>[!NOTE]</strong></p>
+
+      <p>This can take up to 30 minutes to deploy.</p>
+    </blockquote>
+
+    <p>​</p>
+
+    <p><a href="../media/create-new-secured-virtual-hub-2.png" target="_blank"><img src="../media/create-new-secured-virtual-hub-2.png" alt="Create new secured virtual hub - Review + create tab"></a></p>
+  </li>
+  <li>
+    <p>When the deployment completes, from the Azure portal home page, click <strong>All services</strong>.</p>
+  </li>
+  <li>
+    <p>In the search box, type <strong>firewall manager</strong> and select <strong>Firewall Manager</strong> when it appears.</p>
+  </li>
+  <li>
+    <p>On the <strong>Firewall Manager</strong> page, click <strong>Virtual hubs</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Hub-01</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Public IP configuration</strong>.</p>
+  </li>
+  <li>
+    <p>Note down the public IP address (e.g., <strong>51.143.226.18</strong>), which you will use later.</p>
+  </li>
+</ol>
+
+<h2 id="task-3-connect-the-hub-and-spoke-virtual-networks">Task 3: Connect the hub and spoke virtual networks</h2>
+
+<p>In this task you will connect the hub and spoke virtual networks. This is commonly known as peering.</p>
+
+<ol>
+  <li>From the Azure portal home page, click <strong>Resource groups</strong>.</li>
+  <li>Select the <strong>fw-manager-rg</strong> resource group, then select the <strong>Vwan-01</strong> virtual WAN.</li>
+  <li>Under <strong>Connectivity</strong>, click <strong>Virtual network connections</strong>.</li>
+  <li>Click <strong>Add connection</strong>.</li>
+  <li>For <strong>Connection name</strong>, enter <strong>hub-spoke-01</strong>.</li>
+  <li>For <strong>Hubs</strong>, select <strong>Hub-01</strong>.</li>
+  <li>For <strong>Resource group</strong>, select <strong>fw-manager-rg</strong>.</li>
+  <li>For <strong>Virtual network</strong>, select <strong>Spoke-01</strong>.</li>
+  <li>Click <strong>Create</strong>.
+<a href="../media/connect-hub-spoke-vnet-1.png" target="_blank"><img src="../media/connect-hub-spoke-vnet-1.png" alt="Add hub and spoke connection to virtual WAN - Spoke 1"></a></li>
+  <li>Repeat steps 4 to 9 above to create another similar connection but using the connection name of <strong>hub-spoke-02</strong> to connect the <strong>Spoke-02</strong> virtual network.</li>
+</ol>
+
+<p><a href="../media/connect-hub-spoke-vnet-2.png" target="_blank"><img src="../media/connect-hub-spoke-vnet-2.png" alt="Add hub and spoke connection to virtual WAN - Spoke 2"></a></p>
+
+<h2 id="task-4-deploy-the-servers">Task 4: Deploy the servers</h2>
+
+<p>In this task you will deploy the two workload servers.</p>
+
+<ol>
+  <li>
+    <p>On the Azure home page, using the global search type <strong>Virtual Machines</strong> and select virtual machines under services.</p>
+  </li>
+  <li>
+    <p>In Virtual Machines, select <strong>+ Create; + Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a virtual machine</strong> page, on the <strong>Basics</strong> tab, create a new VM using the information in the table below.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Setting</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Select your subscription</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>fw-manager-rg</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine name</td>
+          <td><strong>Srv-workload-01</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>Your region</td>
+        </tr>
+        <tr>
+          <td>Availability options</td>
+          <td>No infrastructure redundancy required</td>
+        </tr>
+        <tr>
+          <td>Image</td>
+          <td>Windows Server 2022 Datacenter- Gen2</td>
+        </tr>
+        <tr>
+          <td>Azure Spot instance</td>
+          <td>Not selected</td>
+        </tr>
+        <tr>
+          <td>Username</td>
+          <td><strong>MyAdmin</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>TestPa$$w0rd!</strong></td>
+        </tr>
+        <tr>
+          <td>Confirm password</td>
+          <td><strong>TestPa$$w0rd!</strong></td>
+        </tr>
+        <tr>
+          <td>Public inbound ports</td>
+          <td><strong>None</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next : Disks</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next : Networking</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Virtual network</strong>, ensure that <strong>Spoke-01</strong> is selected.</p>
+  </li>
+  <li>
+    <p>In <strong>Subnet</strong>, ensure that <strong>Workload-01-SN</strong> is selected.</p>
+  </li>
+  <li>
+    <p>In <strong>Public IP</strong>, select <strong>None</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next : Management</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Monitoring</strong>, in <strong>Boot diagnostics</strong>, click <strong>Disable</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>When this deployment has completed, click <strong>Create another VM</strong>.</p>
+  </li>
+  <li>
+    <p>Repeat steps <strong>3 to 12</strong> above to create another virtual machine but using the following information:</p>
+
+    <ul>
+      <li>Virtual machine name: <strong>Srv-workload-02</strong></li>
+      <li>Virtual network: <strong>Spoke-02</strong></li>
+      <li>Subnet: <strong>Workload-02-SN</strong></li>
+      <li>Public IP: <strong>None</strong></li>
+    </ul>
+  </li>
+  <li>
+    <p>When deployment of the second VM has completed, click <strong>Go to resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Overview</strong> page of <strong>Srv-workload-02</strong>, in the right-hand pane, under the <strong>Networking</strong> section, note down the <strong>Private IP address</strong> (e.g., <strong>10.1.1.4</strong>).</p>
+  </li>
+  <li>
+    <p>Click <strong>Home</strong>.</p>
+  </li>
+  <li>
+    <p>On the Azure portal home page, click <strong>All resources</strong>.</p>
+  </li>
+  <li>
+    <p>Click the <strong>Srv-workload-01</strong> virtual machine.</p>
+  </li>
+  <li>
+    <p>On the <strong>Overview</strong> page of <strong>Srv-workload-01</strong>, in the right-hand pane, under the <strong>Networking</strong> section, note down the <strong>Private IP address</strong> (e.g., <strong>10.0.1.4</strong>).</p>
+  </li>
+</ol>
+
+<h2 id="task-5-create-a-firewall-policy-and-secure-your-hub">Task 5: Create a firewall policy and secure your hub</h2>
+
+<p>In this task you will first create your firewall policy, then secure your hub. The firewall policy will define collections of rules to direct traffic on one or more Secured virtual hubs.</p>
+
+<ol>
+  <li>From the Azure portal home page, click <strong>Firewall Manager</strong>.
+    <ul>
+      <li>If the Firewall Manager icon does not appear on the homepage, then click <strong>All services</strong>. Then in the search box, type <strong>firewall manager</strong> and select <strong>Firewall Manager</strong> when it appears.</li>
+    </ul>
+  </li>
+  <li>
+    <p>From <strong>Firewall Manager</strong>, from the Overview page, click <strong>View Azure Firewall Policies</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Create Azure Firewall Policy</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Resource group</strong>, select <strong>fw-manager-rg</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Policy details</strong>, for the <strong>Name</strong>, enter <strong>Policy-01</strong>.</p>
+  </li>
+  <li>
+    <p>In <strong>Region</strong> select your region.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next : DNS Settings</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next : TLS Inspection (preview)</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Next : Rules</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Rules</strong> tab, click <strong>Add a rule collection</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add a rule collection</strong> page, in <strong>Name</strong>, enter <strong>App-RC-01</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Rule collection type</strong>, select <strong>Application</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Priority</strong>, enter <strong>100</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>Rule collection action</strong> is <strong>Allow</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Rules</strong>, in <strong>Name</strong> type <strong>Allow-msft</strong>.</p>
+  </li>
+  <li>
+    <p>For the <strong>Source type</strong>, select <strong>IP Address</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Source</strong>, enter *****.</p>
+  </li>
+  <li>
+    <p>For <strong>Protocol</strong>, enter <strong>http,https</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>Destination type</strong> is <strong>FQDN</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Destination</strong>, enter <strong>*.microsoft.com</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong>.</p>
+
+    <p><a href="../media/add-rule-collection-firewall-policy-1.png" target="_blank"><img src="../media/add-rule-collection-firewall-policy-1.png" alt="Add application rule collection to firewall policy"></a></p>
+  </li>
+  <li>
+    <p>To add a DNAT rule so you can connect a remote desktop to the Srv-workload-01 VM, click <strong>Add a rule collection</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Name</strong>, enter <strong>dnat-rdp</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Rule collection type</strong>, select <strong>DNAT</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Priority</strong>, enter <strong>100</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Rules</strong>, in <strong>Name</strong> enter <strong>Allow-rdp</strong>.</p>
+  </li>
+  <li>
+    <p>For the <strong>Source type</strong>, select <strong>IP Address</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Source</strong>, enter *****.</p>
+  </li>
+  <li>
+    <p>For <strong>Protocol</strong>, select <strong>TCP</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Destination Ports</strong>, enter <strong>3389</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Destination Type</strong>, select <strong>IP Address</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Destination</strong>, enter the firewall virtual hub public IP address that you noted down earlier (e.g., <strong>51.143.226.18</strong>).</p>
+  </li>
+  <li>
+    <p>For <strong>Translated address</strong>, enter the private IP address for <strong>Srv-workload-01</strong> that you noted down earlier (e.g., <strong>10.0.1.4</strong>).</p>
+  </li>
+  <li>
+    <p>For <strong>Translated port</strong>, enter <strong>3389</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>To add a Network rule so you can connect a remote desktop from Srv-workload-01 to Srv-workload-02 VM, click <strong>Add a rule collection</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Name</strong>, enter <strong>vnet-rdp</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Rule collection type</strong>, select <strong>Network</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Priority</strong>, enter <strong>100</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Rule collection action</strong>, select <strong>Allow</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Rules</strong>, in <strong>Name</strong> enter <strong>Allow-vnet</strong>.</p>
+  </li>
+  <li>
+    <p>For the <strong>Source type</strong>, select <strong>IP Address</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Source</strong>, enter *****.</p>
+  </li>
+  <li>
+    <p>For <strong>Protocol</strong>, select <strong>TCP</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Destination Ports</strong>, enter <strong>3389</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Destination Type</strong>, select <strong>IP Address</strong>.</p>
+  </li>
+  <li>
+    <p>For <strong>Destination</strong>, enter the private IP address for <strong>Srv-workload-02</strong> that you noted down earlier (e.g., <strong>10.1.1.4</strong>).</p>
+  </li>
+  <li>
+    <p>Click <strong>Add</strong>.</p>
+
+    <p><a href="../media/list-rule-collections-firewall-policy.png" target="_blank"><img src="../media/list-rule-collections-firewall-policy.png" alt="List rule collections in the firewall policy"></a></p>
+  </li>
+  <li>
+    <p>You should now have 3 rule collections listed.</p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>Click <strong>Create</strong>.</li>
+</ol>
+
+<h2 id="task-6-associate-the-firewall-policy">Task 6: Associate the firewall policy</h2>
+
+<p>In this task you will associate the firewall policy with the virtual hub.</p>
+
+<ol>
+  <li>From the Azure portal home page, click <strong>Firewall Manager</strong>.
+    <ul>
+      <li>If the Firewall Manager icon does not appear on the homepage, then click <strong>All services</strong>. Then in the search box, type <strong>firewall manager</strong> and select <strong>Firewall Manager</strong> when it appears.</li>
+    </ul>
+  </li>
+  <li>In <strong>Firewall Manager</strong>, under <strong>Security</strong>, click <strong>Azure Firewall Policies</strong>.</li>
+  <li>Select the checkbox for <strong>Policy-01</strong>.</li>
+  <li>Select <strong>Manage associations&gt;Associate hubs</strong>.</li>
+  <li>Select the checkbox for <strong>Hub-01</strong>.</li>
+  <li>Click <strong>Add</strong>.</li>
+  <li>When the policy has been attached, click <strong>Refresh</strong>. The association should be displayed.</li>
+</ol>
+
+<p><a href="../media/associate-firewall-policy-with-hub-end.png" target="_blank"><img src="../media/associate-firewall-policy-with-hub-end.png" alt="Show associated firewall policy on hub"></a></p>
+
+<h2 id="task-7-route-traffic-to-your-hub">Task 7: Route traffic to your hub</h2>
+
+<p>In this task you will ensure that network traffic gets routed through your firewall.</p>
+
+<ol>
+  <li>In <strong>Firewall Manager</strong>, click <strong>Virtual hubs</strong>.</li>
+  <li>Click <strong>Hub-01</strong>.</li>
+  <li>Under <strong>Settings</strong>, click <strong>Security configuration</strong>.</li>
+  <li>In <strong>Internet traffic</strong>, select <strong>Azure Firewall</strong>.</li>
+  <li>In <strong>Private traffic</strong>, select <strong>Send via Azure Firewall</strong>.</li>
+  <li>Click <strong>Save</strong>.</li>
+  <li>This will take a few minutes to complete.</li>
+  <li>Once configuration has completed, ensure that under <strong>INTERNET TRAFFIC</strong> and <strong>PRIVATE TRAFFIC</strong>, it says <strong>Secured by Azure Firewall</strong> for both hub-spoke connections.</li>
+</ol>
+
+<h2 id="task-8-test-the-application-rule">Task 8: Test the application rule</h2>
+
+<p>In this part of the exercise, you will connect a remote desktop to the firewall public IP address, which is NATed to Srv-Workload-01. You will then use a web browser to test the application rule and connect a remote desktop to Srv-Workload-02 to test the network rule.</p>
+
+<p>In this task you will test the application rule to confirm that it works as expected.</p>
+
+<ol>
+  <li>
+    <p>Open <strong>Remote Desktop Connection</strong> on your PC.</p>
+  </li>
+  <li>
+    <p>In the <strong>Computer</strong> box, enter the <strong>firewall’s public IP address</strong> (e.g., <strong>51.143.226.18</strong>).</p>
+  </li>
+  <li>
+    <p>Click <strong>Show Options</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Username</strong> box, enter <strong>MyAdmin</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Connect</strong>.</p>
+
+    <p><a href="../media/rdp-srv-workload-01.png" target="_blank"><img src="../media/rdp-srv-workload-01.png" alt="RDP connection to srv-workload-01"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Enter your credentials</strong> dialog box, log into the <strong>Srv-workload-01</strong> server virtual machine, by using the password, <strong>TestPa$$w0rd!</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Yes</strong> on the certificate message.</p>
+  </li>
+  <li>
+    <p>Open Internet Explorer and click <strong>OK</strong> in the <strong>Set up Internet Explorer 11</strong> dialog box.</p>
+  </li>
+  <li>
+    <p>Browse to <strong>https://</strong> <strong>www.microsoft.com</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Security Alert</strong> dialog box, click <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Close</strong> on the Internet Explorer security alerts that may pop-up.</p>
+  </li>
+  <li>
+    <p>You should see the Microsoft home page.</p>
+
+    <p><a href="../media/microsoft-home-page.png" target="_blank"><img src="../media/microsoft-home-page.png" alt="RDP session browsing microsoft.com"></a></p>
+  </li>
+  <li>
+    <p>Browse to <strong>https://</strong> <strong>www.google.com</strong>.</p>
+  </li>
+  <li>
+    <p>You should be blocked by the firewall.</p>
+
+    <p><a href="../media/google-home-page-fail.png" target="_blank"><img src="../media/google-home-page-fail.png" alt="RDP session browser blocked on google.com"></a></p>
+  </li>
+  <li>
+    <p>So, you have verified that you can connect to the one allowed FQDN but are blocked from all others.</p>
+  </li>
+</ol>
+
+<h2 id="task-9-test-the-network-rule">Task 9: Test the network rule</h2>
+
+<p>In this task you will test the network rule to confirm that it works as expected.</p>
+
+<ol>
+  <li>
+    <p>While still logged in to the <strong>Srv-workload-01</strong> RDP session, from this remote computer, open <strong>Remote Desktop Connection</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Computer</strong> box, enter the <strong>private IP address</strong> of <strong>Srv-workload-02</strong> (e.g., <strong>10.1.1.4</strong>).</p>
+  </li>
+  <li>
+    <p>In the <strong>Enter your credentials</strong> dialog box, log in to the <strong>Srv-workload-02</strong> server by using the username <strong>MyAdmin</strong>, and a password of <strong>TestPa$$w0rd!</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Yes</strong> on the certificate message.</p>
+
+    <p><a href="../media/rdp-srv-workload-02-from-srv-workload-01.png" target="_blank"><img src="../media/rdp-srv-workload-02-from-srv-workload-01.png" alt="RDP session from srv-workload-01 to another RDP session on srv-workload-02"></a></p>
+  </li>
+  <li>
+    <p>So, now you have verified that the firewall network rule is working, as you have connected a remote desktop from one server to another server located in another virtual network.</p>
+  </li>
+  <li>
+    <p>Close both RDP sessions to disconnect them.</p>
+  </li>
+</ol>
+
+<h2 id="task-10-clean-up-resources">Task 10: Clean up resources</h2>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Remove-AzResourceGroup -Name 'fw-manager-rg' -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the -AsJob parameter), so while you will be able to run another PowerShell command immediately afterwards within the same PowerShell session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

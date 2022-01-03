@@ -1,0 +1,494 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ500-AzureSecurityTechnologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ500-AzureSecurityTechnologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-implement-microsoft-sentinel">Exercise 1: Implement Microsoft Sentinel</a></li><li class="nav-item"><a class="nav-link" href="#estimated-timing-30-minutes">Estimated timing: 30 minutes</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-15-microsoft-sentinel">Lab 15: Microsoft Sentinel</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p><strong>Note:</strong> <strong>Azure Sentinel</strong> is renamed to <strong>Microsoft Sentinel</strong></p>
+
+<p>You have been asked to create a proof of concept of Microsoft Sentinel-based threat detection and response. Specifically, you want to:</p>
+
+<ul>
+  <li>Start collecting data from Azure Activity and Microsoft Defender for Cloud.</li>
+  <li>Add built in and custom alerts</li>
+  <li>Review how Playbooks can be used to automate a response to an incident.</li>
+</ul>
+
+<blockquote>
+  <p>For all the resources in this lab, we are using the <strong>East US</strong> region. Verify with your instructor this is the region to use for class.</p>
+</blockquote>
+
+<h2 id="lab-objectives">Lab objectives</h2>
+
+<p>In this lab, you will complete the following exercise:</p>
+
+<ul>
+  <li>Exercise 1: Implement Microsoft Sentinel</li>
+</ul>
+
+<h2 id="lab-files">Lab files:</h2>
+
+<ul>
+  <li><strong>\Allfiles\Labs\15\changeincidentseverity.json</strong></li>
+</ul>
+
+<h3 id="exercise-1-implement-microsoft-sentinel">Exercise 1: Implement Microsoft Sentinel</h3>
+
+<h3 id="estimated-timing-30-minutes">Estimated timing: 30 minutes</h3>
+
+<p>In this exercise, you will complete the following tasks:</p>
+
+<ul>
+  <li>Task 1: On-board Microsoft Sentinel</li>
+  <li>Task 2: Connect Azure Activity to Sentinel</li>
+  <li>Task 3: Create a rule that uses the Azure Activity data connector.</li>
+  <li>Task 4: Create a playbook</li>
+  <li>Task 5: Create a custom alert and configure the playbook as an automated response.</li>
+  <li>Task 6: Invoke an incident and review the associated actions.</li>
+</ul>
+
+<h4 id="task-1-on-board-azure-sentinel">Task 1: On-board Azure Sentinel</h4>
+
+<p>In this task, you will on-board Microsoft Sentinel and connect the Log Analytics workspace.</p>
+
+<ol>
+  <li>
+    <p>Sign-in to the Azure portal <strong><code>https://portal.azure.com/</code></strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Sign in to the Azure portal using an account that has the Owner or Contributor role in the Azure subscription you are using for this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Microsoft Sentinel</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Sentinel</strong> blade, click <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add Microsoft Sentinel to a workspace</strong> blade, select the Log Analytics workspace you created in the Azure Monitor lab and click <strong>Add</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Microsoft Sentinel has very specific requirements for workspaces. For example, workspaces created by Microsoft Defender for Cloud can not be used. Read more at <a href="https://docs.microsoft.com/en-us/azure/sentinel/quickstart-onboard">Quickstart: On-board Azure Sentinel</a></p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-microsoft-sentinel-to-use-the-azure-activity-data-connector">Task 2: Configure Microsoft Sentinel to use the Azure Activity data connector.</h4>
+
+<p>In this task, you will configure Sentinel to use the Azure Activity data connector.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, on the <strong>Microsoft Sentinel | Overview</strong> blade, in the <strong>Configuration</strong> section, click <strong>Data connectors</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Sentinel | Data connectors</strong> blade, review the list of available connectors, type <strong>Azure</strong> into the search bar and select the entry representing the <strong>Azure Activity</strong> connector (hide the menu bar on the left using &lt;&lt; if needed), review its description and status, and then click <strong>Open connector page</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Azure Activity</strong> blade the <strong>Instructions</strong> tab should be selected, note the <strong>Prerequisites</strong> and scroll down to the <strong>Configuration</strong>. Take note of the information describing the connector update. Your Azure Pass subscription never used the legacy connection method so you can skip step 1 (the <strong>Disconnect All</strong> button will be grayed out) and proceed to step 2.</p>
+  </li>
+  <li>
+    <p>In step 2 <strong>Connect your subscriptions through diagnostic settings new pipeline</strong>, review the “Launch the Azure Policy Assignment wizard and follow the steps” instructions then click <strong>Launch the Azure Policy Assignment wizard&gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Configure Azure Activity logs to stream to specified Log Analytics workspace</strong> (Assign Policy page) <strong>Basics</strong> tab, click the <strong>Scope elipsis (…)</strong> button. In the <strong>Scope</strong> page choose your Azure Pass subscription from the drop-down subscription list and click the <strong>Select</strong> button at the bottom of the page.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: <em>Do not</em> choose a Resource Group</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Click the <strong>Next</strong> button at the bottom of the <strong>Basics</strong> tab to proceed to the <strong>Parameters</strong> tab. On the <strong>Parameters</strong> tab click the <strong>Primary Log Analytics workspace elipsis (…)</strong> button. In the <strong>Primary Log Analytics workspace</strong> page, make sure your Azure pass subscription is selected and use the <strong>workspaces</strong> drop-down to select the Log Analytics workspace you are using for Sentinel. When done click the <strong>Select</strong> button at the bottom of the page.</p>
+  </li>
+  <li>
+    <p>Click the <strong>Next</strong> button at the bottom of the <strong>Parameters</strong> tab to proceed to the <strong>Remediation</strong> tab. On the <strong>Remediation</strong> tab select the <strong>Create a remediation task</strong> checkbox. This will enable the “Configure Azure Activity logs to stream to specified Log Analytics workspace” in the <strong>Policy to remediate</strong> drop-down. In the <strong>System assigned identity location</strong> drop-down, select the region (East US for example) you selected earlier for your Log Analytics workspace.</p>
+  </li>
+  <li>
+    <p>Click the <strong>Next</strong> button at the bottom of the <strong>Remediation</strong> tab to proceed to the <strong>Non-compliance message</strong> tab.  Enter a Non-compliance message if you wish (this is optional) and click the <strong>Review + Create</strong> button at the bottom of the  <strong>Non-compliance message</strong> tab.</p>
+  </li>
+  <li>
+    <p>Click the <strong>Create</strong> button. You should observe three succeeded status messages: <strong>Creating policy assignment succeeded, Role Assignments creation succeeded, and Remediation task creation succeeded</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can check the Notifications, bell icon to verify the three successful tasks.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Verify that the <strong>Azure Activity</strong> pane displays the <strong>Data received</strong> graph (you might have to refresh the browser page).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: It may take over 15 minutes before the Status shows “Connected” and the graph displays Data received.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-create-a-rule-that-uses-the-azure-activity-data-connector">Task 3: Create a rule that uses the Azure Activity data connector.</h4>
+
+<p>In this task, you will review and create a rule that uses the Azure Activity data connector.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>Microsoft Sentinel | Configuration</strong> blade, click <strong>Analytics</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Sentinel | Analytics</strong> blade, click the <strong>Rule templates</strong> tab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Review the types of rules you can create. Each rule is associated with a specific Data Source.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the listing of rule templates, type <strong>Suspicious</strong> into the search bar form and click the <strong>Suspicious number of resource creation or deployment</strong> entry associated with the <strong>Azure Activity</strong> data source. And then, in the pane displaying the rule template properties, click <strong>Create rule</strong> (scroll to the right of the page if needed).</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This rule has the medium severity.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>General</strong> tab of the <strong>Analytic rule wizard - Create new rule from template</strong> blade, accept the default settings and click <strong>Next: Set rule logic &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set rule logic</strong> tab of the <strong>Analytic rule wizard - Create new rule from template</strong> blade, accept the default settings and click <strong>Next: Incident settings (Preview) &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Incident settings</strong> tab of the <strong>Analytic rule wizard - Create new rule from template</strong> blade, accept the default settings and click <strong>Next: Automated response &gt;</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is where you can add a playbook, implemented as a Logic App, to a rule to automate the remediation of an issue.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Automated response</strong> tab of the <strong>Analytic rule wizard - Create new rule from template</strong> blade, accept the default settings and click <strong>Next: Review &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review and create</strong> tab of the <strong>Analytic rule wizard - Create new rule from template</strong> blade, click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You now have an active rule.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-create-a-playbook">Task 4: Create a playbook</h4>
+
+<p>In this task, you will create a playbook. A security playbook is a collection of tasks that can be invoked by Microsoft Sentinel in response to an alert.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Deploy a custom template</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Custom deployment</strong> blade, click the <strong>Build your own template in the editor</strong> option.</p>
+  </li>
+  <li>
+    <p>On the <strong>Edit template</strong> blade, click <strong>Load file</strong>, locate the <strong>\Allfiles\Labs\15\changeincidentseverity.json</strong> file and click <strong>Open</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can find sample playbooks at <a href="https://github.com/Azure/Azure-Sentinel/tree/master/Playbooks">https://github.com/Azure/Azure-Sentinel/tree/master/Playbooks</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Edit template</strong> blade, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Custom deployment</strong> blade, ensure that the following settings are configured (leave any others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>AZ500LAB131415</strong></td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td><strong>(US) East US</strong></td>
+        </tr>
+        <tr>
+          <td>Playbook Name</td>
+          <td><strong>Change-Incident-Severity</strong></td>
+        </tr>
+        <tr>
+          <td>User Name</td>
+          <td>your email address</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong> and then click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Resource groups</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, in the list of resource group, click the <strong>AZ500LAB131415</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>AZ500LAB131415</strong> resource group blade, in the list of resources, click the entry representing the newly created <strong>Change-Incident-Severity</strong> logic app.</p>
+  </li>
+  <li>
+    <p>On the <strong>Change-Incident-Severity</strong> blade, click <strong>Edit</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: On the <strong>Logic Apps Designer</strong> blade, each of the four connections displays a warning. This means that each needs to reviewed and configured.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Logic Apps Designer</strong> blade, click the first <strong>Connections</strong> step.</p>
+  </li>
+  <li>
+    <p>Click <strong>Add new</strong>, ensure that the entry in the <strong>Tenant</strong> drop down list contains your Azure AD tenant name and click <strong>Sign-in</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted, sign in with the user account that has the Owner or Contributor role in the Azure subscription you are using for this lab.</p>
+  </li>
+  <li>
+    <p>Click the second <strong>Connection</strong> step and, in the list of connections, select the second entry, representing the connection you created in the previous step.</p>
+  </li>
+  <li>
+    <p>Repeat the previous steps in for the remaining two <strong>Connection</strong> steps.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Ensure there are no warnings displayed on any of the steps.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Logic Apps Designer</strong> blade, click <strong>Save</strong> to save your changes.</p>
+  </li>
+</ol>
+
+<h4 id="task-5-create-a-custom-alert-and-configure-a-playbook-as-an-automated-response">Task 5 Create a custom alert and configure a playbook as an automated response</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>Microsoft Sentinel | Overview</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the the <strong>Microsoft Sentinel | Overview</strong> blade, in the <strong>Configuration</strong> section, click <strong>Analytics</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Sentinel | Analytics</strong> blade, click <strong>+ Create</strong> and, in the drop-down menu, click <strong>Scheduled query rule</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>General</strong> tab of the <strong>Analytic rule wizard - Create new rule</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>Playbook Demo</strong></td>
+        </tr>
+        <tr>
+          <td>Tactics</td>
+          <td><strong>Initial Access</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Click <strong>Next: Set rule logic &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set rule logic</strong> tab of the <strong>Analytic rule wizard - Create new rule</strong> blade, in the <strong>Rule query</strong> text box, paste the following rule query.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs bash"> AzureActivity
+  | <span class="hljs-built_in"><span class="hljs-built_in">where</span></span> ResourceProviderValue =~ <span class="hljs-string"><span class="hljs-string">"Microsoft.Security"</span></span> 
+  | <span class="hljs-built_in"><span class="hljs-built_in">where</span></span> OperationNameValue =~ <span class="hljs-string"><span class="hljs-string">"Microsoft.Security/locations/jitNetworkAccessPolicies/delete"</span></span> 
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This rule identifies removal of Just in time VM access policies.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong> if you receive a parse error, intellisense may have added values to your query. Ensure the query matches otherwise paste the query into notepad and then from notepad to the rule query.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Set rule logic</strong> tab of the <strong>Analytic rule wizard - Create new rule</strong> blade, in the <strong>Query scheduling</strong> section, set the <strong>Run query every</strong> to <strong>5 Minutes</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set rule logic</strong> tab of the <strong>Analytic rule wizard - Create new rule</strong> blade, accept the default values of the remaining settings and click <strong>Next: Incident settings &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Incident settings</strong> tab of the <strong>Analytic rule wizard - Create new rule</strong> blade, accept the default settings and click <strong>Next: Automated response &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Automated response</strong> tab of the <strong>Analytic rule wizard - Create new rule</strong> blade, in the <strong>Alert automation</strong> dropdown list, select the checkbox next to the <strong>Change-Incident-Severity</strong> entry and click <strong>Next: Review &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review and create</strong> tab of the <strong>Analytic rule wizard - Create new rule</strong> blade, click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You now have a new active rule called <strong>Playbook Demo</strong>. If an event identified by the rue logic occurs, it will result in a medium severity alert, which will generate a corresponding incident.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-6-invoke-an-incident-and-review-the-associated-actions">Task 6: Invoke an incident and review the associated actions.</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>Microsoft Defender for Cloud | Overview</strong> blade.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Check your secure score. By now it should have updated.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Defender for Cloud | Workload protections</strong> blade, click <strong>Just-in-time VM access</strong> section under the <strong>Advanced protection</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Defender for Cloud | Just in time VM access</strong> blade, on the right hand side of the row referencing the <strong>myVM</strong> virtual machine, click the <strong>ellipses</strong> button,  click <strong>Remove</strong> and then click <strong>Yes</strong>.</p>
+  </li>
+</ol>
+
+<p><strong>Note:</strong> If the VM is not listed in the <strong>Just-in-time VMs</strong>, navigate to <strong>Virutal Machine</strong> blade and click the <strong>Configuration</strong>, Click the <strong>Enable the Just-in-time VMs</strong> option under the <strong>Just-in-time Vm’s access</strong>. Repeat the above step to navigate back to the <strong>Microsoft Defender for Cloud</strong> and refresh the page, the VM will appear.</p>
+
+<ol>
+  <li>
+    <p>In the Azure portal, in the <strong>Search resources, services, and docs</strong> text box at the top of the Azure portal page, type <strong>Activity log</strong> and press the <strong>Enter</strong> key.</p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>Activity log</strong> blade, note an <strong>Delete JIT Network Access Policies</strong> entry.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This may take a minute to appear.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>Microsoft Sentinel | Overview</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Sentinel | Overview</strong> blade, review the dashboard and verify that it displays an alert corresponding to the deletion of the Just in time VM access policy.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: It can take up to 5 minutes for alerts to appear on the <strong>Microsoft Sentinel | Overview</strong> blade. If you are not seeing an alert at that point, run the query rule referenced in the previous task to verify that the Just In Time access policy deletion activity has been propagated to the Log Analytics workspace associated with your Microsoft Sentinel instance. If that is not the case, re-create the Just in time VM access policy and delete it again.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Sentinel | Overview</strong> blade, in the <strong>Threat Management</strong> section, click <strong>Incidents</strong>.</p>
+  </li>
+  <li>
+    <p>Verify that the blade displays an incident with either medium or high severity level.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: It can take up to 5 minutes for the incident to appear on the <strong>Microsoft Sentinel | Incidents</strong> blade.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Review the <strong>Microsoft Sentinel | Playbooks</strong> blade. You will find there the count of succesfull and failed runs.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You have the option of assigning a different severity level and status to an incident.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<blockquote>
+  <p>Results: You have created an Microsoft Sentinel workspace, connected it to Azure Activity logs, created a playbook and custom alerts that are triggered in response to the removal of Just in time VM access policies, and verified that the configuration is valid.</p>
+</blockquote>
+
+<p><strong>Clean up resources</strong></p>
+
+<blockquote>
+  <p>Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not incur unexpected costs.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the Cloud Shell by clicking the first icon in the top right of the Azure Portal. If prompted, click <strong>PowerShell</strong> and <strong>Create storage</strong>.</p>
+  </li>
+  <li>
+    <p>Ensure <strong>PowerShell</strong> is selected in the drop-down menu in the upper-left corner of the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>In the PowerShell session within the Cloud Shell pane, run the following to remove the resource group you created in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell"> Remove-AzResourceGroup -Name "AZ500LAB131415" -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ500-AzureSecurityTechnologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ500-AzureSecurityTechnologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

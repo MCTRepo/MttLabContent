@@ -1,0 +1,1472 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104ZH-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104ZH-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#练习-1">练习 1</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-06---实现流量管理">实验室 06 - 实现流量管理</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你的任务是测试管理以中心辐射型网络拓扑中的 Azure 虚拟机为目标的网络流量，因为 Contoso 考虑在其 Azure 环境中实现该网络拓扑（而不是创建你在上一个实验室中测试的网状拓扑）。此测试需要包括：依靠用户定义的路由迫使流量流经中心，从而实现辐条之间的连接；使用第 4 层和第 7 层负载均衡器，在虚拟机之间分配流量。为此，你打算使用 Azure 负载均衡器（第 4 层）和 Azure 应用程序网关（第 7 层）。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 默认情况下，此实验室在选择部署的区域内 Standard_Dsv3 系列中总共需要 8 个可用的 vCPU，因为其涉及到 Standard_D2s_v3 SKU 四个 Azure VM 的部署。若你的学生使用的是试用帐户（仅限 4 个 vCPU），则你可使用仅需一个 vCPU 的 VM 大小（比如 Standard_B1s）。</p>
+</blockquote>
+
+<h2 id="目标">目标</h2>
+
+<p>在本实验室中，你将：</p>
+
+<ul>
+  <li>任务 1：预配实验室环境</li>
+  <li>任务 2：配置中心辐射型网络拓扑</li>
+  <li>任务 3：测试虚拟网络对等互连的可传递性</li>
+  <li>任务 4：配置中心辐射型拓扑中的路由</li>
+  <li>任务 5：实现 Azure 负载均衡器</li>
+  <li>任务 6：实现 Azure 应用程序网关</li>
+</ul>
+
+<h2 id="预计用时60-分钟">预计用时：60 分钟</h2>
+
+<h2 id="体系结构图">体系结构图</h2>
+
+<p><a href="../media/lab06.png" target="_blank"><img src="../media/lab06.png" alt="图像"></a></p>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="练习-1">练习 1</h3>
+
+<h4 id="任务-1预配实验室环境">任务 1：预配实验室环境</h4>
+
+<p>在此任务中，你将会把四台虚拟机部署到同一 Azure 区域中。前两个将驻留在中心虚拟网络中，后两个将各自驻留在单独的辐射虚拟网络中。</p>
+
+<ol>
+  <li>
+    <p>登录到 <a href="https://portal.azure.com">Azure 门户</a>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，单击 Azure 门户右上方的图标，打开 <strong>Azure Cloud Shell</strong>。</p>
+  </li>
+  <li>
+    <p>提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong> 时，选择 <strong>“PowerShell”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果这是第一次启动 <strong>Cloud Shell</strong>，并看到 <strong>“未装载任何存储”</strong> 消息，请选择在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格的工具栏中，单击 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中，单击 <strong>“上传”</strong> 并将文件 <strong>\Allfiles\Labs\06\az104-06-vms-loop-template.json</strong> 和 <strong>\Allfiles\Labs\06\az104-06-vms-loop-parameters.json</strong> 上传到 Cloud Shell 主目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建第一个资源组，该资源组将托管实验室环境（将占位符 ‘[Azure_region]’ 替换为你打算在其中部署 Azure 虚拟机的 Azure 区域的名称）（可以使用“(Get-AzLocation).Location”cmdlet 获取区域列表）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell"> $location = '[Azure_region]'
+</code></pre>
+    <p>现在，提供资源组名称：</p>
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell"> $rgName = 'az104-06-rg1'
+</code></pre>
+    <p>最后，在所需位置创建资源组：</p>
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell"> New-AzResourceGroup -Name $rgName -Location $location
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令创建三个虚拟网络，并使用上传的模板和参数文件将四个 Azure VM 部署到其中：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-06-vms-loop-template.json `
+   -TemplateParameterFile $HOME/az104-06-vms-loop-parameters.json
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请等待部署完成之后再继续下一步。该过程需要约 5 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“Cloud Shell”窗格中运行以下命令，在上一步中部署的 Azure VM 上安装网络观察程序扩展：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">$rgName = 'az104-06-rg1'
+$location = (Get-AzResourceGroup -ResourceGroupName $rgName).location
+$vmNames = (Get-AzVM -ResourceGroupName $rgName).Name
+
+foreach ($vmName in $vmNames) {
+  Set-AzVMExtension `
+  -ResourceGroupName $rgName `
+  -Location $location `
+  -VMName $vmName `
+  -Name 'networkWatcherAgent' `
+  -Publisher 'Microsoft.Azure.NetworkWatcher' `
+  -Type 'NetworkWatcherAgentWindows' `
+  -TypeHandlerVersion '1.4'
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请等待部署完成之后再继续下一步。该过程需要约 5 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2配置中心辐射型网络拓扑">任务 2：配置中心辐射型网络拓扑</h4>
+
+<p>在此任务中，你将在上一个任务中部署的虚拟网络之间配置本地互连，以创建中心辐射型网络拓扑。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟网络”</strong>。</p>
+  </li>
+  <li>
+    <p>查看你在上一个任务中创建的虚拟网络。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 用于部署三个虚拟网络的模板可确保三个虚拟网络的 IP 地址范围不重叠。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在虚拟网络列表中，选择 <strong>“az104-06-vnet2”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-vnet2”</strong> 边栏选项卡中，选择 <strong>“属性”</strong>。</p>
+  </li>
+  <li>
+    <p>记下 <strong>“az104-06-vnet2 | 属性”</strong> 边栏选项卡中 <strong>“资源 ID”</strong> 属性的值。</p>
+  </li>
+  <li>
+    <p>导航回虚拟网络列表，然后选择 <strong>“az104-06-vnet3”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-vnet3”</strong> 边栏选项卡中，选择 <strong>“属性”</strong>。</p>
+  </li>
+  <li>
+    <p>记下 <strong>“az104-06-vnet3 | 属性”</strong> 边栏选项卡中 <strong>“资源 ID”</strong> 属性的值。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在本任务的稍后部分，你将需要这两个虚拟网络的 ResourceID 属性值。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此解决方法可解决以下问题：在创建虚拟网络对等互连时，Azure 门户偶尔不显示新预配的虚拟网络。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在虚拟网络列表中，单击 <strong>“az104-06-vnet01”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-vnet01”</strong> 虚拟网络边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“对等互连”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个对等互连，设置如下（其他设置保留默认值），然后单击“添加”：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>此虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-06-vnet01_to_az104-06-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>从远程虚拟网络转发的流量</td>
+          <td><strong>阻止来自此虚拟网络外部的流量</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无（默认值）</strong></td>
+        </tr>
+        <tr>
+          <td>远程虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-06-vnet2_to_az104-06-vnet01</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络部署模型</td>
+          <td><strong>资源管理器</strong></td>
+        </tr>
+        <tr>
+          <td>我知道我的资源 ID</td>
+          <td>已启用</td>
+        </tr>
+        <tr>
+          <td>资源 ID</td>
+          <td>在本任务前面部分记下的 <strong>az104-06-vnet2</strong> 的 resourceID 参数值</td>
+        </tr>
+        <tr>
+          <td>流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>从远程虚拟网络转发的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无（默认值）</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待部署完成。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此步骤将建立两个本地对等互连 - 一个从 az104-06-vnet01 到 az104-06-vnet2，另一个从 az104-06-vnet2 到 az104-06-vnet01。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 需要启用 <strong>“允许转发流量”</strong> 以辅助辐射虚拟网络之间的路由，稍后你将在本实验室中实现该网络。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-vnet01”</strong> 虚拟网络边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“对等互连”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个对等互连，设置如下（其他设置保留默认值），然后单击“添加”：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>此虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-06-vnet01_to_az104-06-vnet3</strong></td>
+        </tr>
+        <tr>
+          <td>流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>从远程虚拟网络转发的流量</td>
+          <td><strong>阻止来自此虚拟网络外部的流量</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无（默认值）</strong></td>
+        </tr>
+        <tr>
+          <td>远程虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-06-vnet3_to_az104-06-vnet01</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络部署模型</td>
+          <td><strong>资源管理器</strong></td>
+        </tr>
+        <tr>
+          <td>我知道我的资源 ID</td>
+          <td>已启用</td>
+        </tr>
+        <tr>
+          <td>资源 ID</td>
+          <td>在本任务前面部分记录的 <strong>az104-06-vnet3</strong> 的 resourceID 参数值</td>
+        </tr>
+        <tr>
+          <td>流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>从远程虚拟网络转发的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无（默认值）</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此步骤将建立两个本地对等互连 - 一个从 az104-06-vnet01 到 az104-06-vnet3，另一个从 az104-06-vnet3 到 az104-06-vnet01。这样就完成了中心辐射型拓扑（带有两个辐射虚拟网络）的设置。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 需要启用 <strong>“允许转发流量”</strong> 以辅助辐射虚拟网络之间的路由，稍后你将在本实验室中实现该网络。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-3测试虚拟网络对等互连的可传递性">任务 3：测试虚拟网络对等互连的可传递性</h4>
+
+<p>在此任务中，你将使用网络观察程序测试虚拟网络互连的可传递性。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“网络观察程序”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”</strong> 边栏选项卡中，展开 Azure 区域列表，并验证在本实验室第一项任务中部署了资源的 Azure 已启用该服务。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”</strong> 边栏选项卡中，导航到 <strong>“连接故障排除”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”-“连接故障排除”</strong> 边栏选项卡中，使用以下设置启动检查（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>源类型</td>
+          <td><strong>虚拟机</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az104-06-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>手动指定</strong></td>
+        </tr>
+        <tr>
+          <td>URI、FQDN 或 IPv4</td>
+          <td><strong>10.62.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>目标端口</td>
+          <td><strong>3389</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>10.62.0.4</strong> 代表 <strong>az104-06-vm2</strong> 的专用 IP 地址</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“检查”</strong>，然后等待至返回连接性检查结果。验证状态是否为 <strong>“可访问”</strong>。查看网络路径并注意连接是否为直连，VM 之间无中间跃点。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这是预料之中的，因为中心虚拟网络直接与第一个辐射虚拟网络互连。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”-“连接故障排除”</strong> 边栏选项卡中，使用以下设置启动检查（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>源类型</td>
+          <td><strong>虚拟机</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az104-06-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>手动指定</strong></td>
+        </tr>
+        <tr>
+          <td>URI、FQDN 或 IPv4</td>
+          <td><strong>10.63.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>目标端口</td>
+          <td><strong>3389</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>10.63.0.4</strong> 代表 <strong>az104-06-vm3</strong> 的专用 IP 地址</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“检查”</strong>，然后等待至返回连接性检查结果。验证状态是否为 <strong>“可访问”</strong>。查看网络路径并注意连接是否为直连，VM 之间无中间跃点。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这是预料之中的，因为中心虚拟网络直接与第二个辐射虚拟网络互连。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”-“连接故障排除”</strong> 边栏选项卡中，使用以下设置启动检查（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>源类型</td>
+          <td><strong>虚拟机</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az104-06-vm2</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>手动指定</strong></td>
+        </tr>
+        <tr>
+          <td>URI、FQDN 或 IPv4</td>
+          <td><strong>10.63.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>目标端口</td>
+          <td><strong>3389</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“检查”</strong>，然后等待至返回连接性检查结果。请注意，状态为 <strong>“无法访问”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这是预料之中的，因为两个辐射虚拟网络并未彼此对等互连（虚拟网络对等互连不可传递）。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4配置中心辐射型拓扑中的路由">任务 4：配置中心辐射型拓扑中的路由</h4>
+
+<p>在此任务中，你将通过在虚拟机 <strong>az104-06-vm0</strong> 的网络接口上启用 IP 转发，来配置和测试两个辐射虚拟网络之间的路由，在虚拟机的操作系统内启用路由，并在辐射虚拟网络上配置用户定义的路由。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“虚拟机”</strong> 边栏选项卡的虚拟机列表中，单击 <strong>“az104-06-vm0”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-vm0”</strong> 虚拟机边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“网络”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“网络接口”</strong> 标签旁的 <strong>az104-06-nic0</strong> 链接，然后在 <strong>“az104-06-nic0”</strong> 网络接口边栏选项卡上的 <strong>“设置”</strong> 部分，单击 <strong>“IP 配置”</strong>。</p>
+  </li>
+  <li>
+    <p>将 <strong>“IP 转发”</strong> 设置为 <strong>“已启用”</strong> 并保存更改。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 必须进行此设置，才能让 <strong>az104-06-vm0</strong> 充当路由器，在两个辐射虚拟网络之间路由流量。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 现在你需要配置虚拟机 <strong>az104-06-vm0</strong> 的操作系统来支持路由。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，导航到 <strong>“az104-06-vm0”</strong> Azure 虚拟机边栏选项卡，并单击 <strong>“概述”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-vm0”</strong> 边栏选项卡的 <strong>“操作”</strong> 部分单击 <strong>“运行命令”</strong>，然后单击命令列表中的 <strong>“RunPowerShellScript”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“运行命令脚本”</strong> 边栏选项卡中键入以下内容，然后单击 <strong>“运行”</strong> 来安装远程访问 Windows Server 角色。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Install-WindowsFeature RemoteAccess -IncludeManagementTools
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待确认命令已成功完成。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“运行命令脚本”</strong> 边栏选项卡中输入以下内容，然后单击 <strong>“运行”</strong> 来安装路由角色服务。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Install-WindowsFeature -Name Routing -IncludeManagementTools -IncludeAllSubFeature
+
+Install-WindowsFeature -Name "RSAT-RemoteAccess-Powershell"
+
+Install-RemoteAccess -VpnType RoutingOnly
+
+Get-NetAdapter | Set-NetIPInterface -Forwarding Enabled
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待确认命令已成功完成。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 现在，需要在辐射虚拟网络上创建和配置用户定义的路由。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>路由表</strong>”，并且在“<strong>路由表</strong>”边栏选项卡中单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>创建一个路由表，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>位置</td>
+          <td>你创建的虚拟网络所在的 Azure 区域的名称</td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-06-rt23</strong></td>
+        </tr>
+        <tr>
+          <td>传播网关路由</td>
+          <td><strong>否</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“查看并创建”</strong>。允许进行验证，然后单击 <strong>“创建”</strong> 以提交部署。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待创建新的路由表。该操作需约 3 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>返回到 <strong>“路由表”</strong> 边栏选项卡，单击 <strong>“刷新”</strong>，然后单击 <strong>“az104-06-rt23”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-rt23”</strong> 路由表边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“路由”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个新路由，设置如下（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>路由名称</td>
+          <td><strong>az104-06-route-vnet2-to-vnet3</strong></td>
+        </tr>
+        <tr>
+          <td>地址前缀</td>
+          <td><strong>10.63.0.0/20</strong></td>
+        </tr>
+        <tr>
+          <td>下一跃点类型</td>
+          <td><strong>虚拟设备</strong></td>
+        </tr>
+        <tr>
+          <td>下一跃点地址</td>
+          <td><strong>10.60.0.4</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“确定”</strong></p>
+  </li>
+  <li>
+    <p>返回到 <strong>“az104-06-rt23”</strong> 路由表边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“子网”</strong>，然后单击 <strong>“+ 关联”</strong>。</p>
+  </li>
+  <li>
+    <p>将路由表 <strong>az104-06-rt23</strong> 关联到以下子网：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az104-06-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>subnet0</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“确定”</strong></p>
+  </li>
+  <li>
+    <p>导航回“<strong>路由表</strong>”边栏选项卡，并单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>创建一个路由表，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>你创建的虚拟网络所在的 Azure 区域的名称</td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-06-rt32</strong></td>
+        </tr>
+        <tr>
+          <td>传播网关路由</td>
+          <td><strong>否</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击“查看并创建”。允许进行验证，然后单击“创建”以提交部署。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待创建新的路由表。该操作需约 3 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>返回到 <strong>“路由表”</strong> 边栏选项卡，单击 <strong>“刷新”</strong>，然后单击 <strong>“az104-06-rt32”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-rt32”</strong> 路由表边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“路由”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个新的路由，设置如下:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>路由名称</td>
+          <td><strong>az104-06-route-vnet3-to-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>地址前缀</td>
+          <td><strong>10.62.0.0/20</strong></td>
+        </tr>
+        <tr>
+          <td>下一跃点类型</td>
+          <td><strong>虚拟设备</strong></td>
+        </tr>
+        <tr>
+          <td>下一跃点地址</td>
+          <td><strong>10.60.0.4</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“确定”</strong></p>
+  </li>
+  <li>
+    <p>返回到 <strong>az104-06-rt32</strong> 路由表边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“子网”</strong>，然后单击 <strong>“+ 关联”</strong>。</p>
+  </li>
+  <li>
+    <p>将路由表 <strong>az104-06-rt32</strong> 关联到以下子网：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az104-06-vnet3</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>subnet0</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“确定”</strong></p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，返回 <strong>“网络观察程序 - 连接故障排除”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在 <strong>“网络观察程序”-“连接故障排除”</strong> 边栏选项卡中，使用以下设置启动检查（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>源类型</td>
+          <td><strong>虚拟机</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az104-06-vm2</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>手动指定</strong></td>
+        </tr>
+        <tr>
+          <td>URI、FQDN 或 IPv4</td>
+          <td><strong>10.63.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>目标端口</td>
+          <td><strong>3389</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“检查”</strong>，然后等待至返回连接性检查结果。验证状态是否为 <strong>“可访问”</strong>。查看网络路径，并注意流量通过 <strong>10.60.0.4</strong> 路由，而该 IP 地址已分配给 <strong>az104-06-nic0</strong> 网络适配器。如果状态为 <strong>“无法访问”</strong>，则应重启 az104-06-vm0。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这是预料之中的，因为辐射虚拟网络之间的流量现在是通过位于中心虚拟网络中的虚拟机路由的，由该虚拟机充当路由器。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 你可以使用 <strong>“网络观察程序”</strong> 查看网络拓扑。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-5实现-azure-负载均衡器">任务 5：实现 Azure 负载均衡器</h4>
+
+<p>在此任务中，你将在中心虚拟网络中的两台 Azure 虚拟机前实现 Azure 负载均衡器</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>负载均衡器</strong>”，在“<strong>负载均衡器</strong>”边栏选项卡上，单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>创建负载均衡器，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td>新资源组名称 <strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-06-lb4</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>在本实验室中部署所有其他资源的 Azure 区域的名称</td>
+        </tr>
+        <tr>
+          <td>类型</td>
+          <td><strong>公共</strong></td>
+        </tr>
+        <tr>
+          <td>SKU</td>
+          <td><strong>标准</strong></td>
+        </tr>
+        <tr>
+          <td>公共 IP 地址</td>
+          <td><strong>新建</strong></td>
+        </tr>
+        <tr>
+          <td>公共 IP 地址名称</td>
+          <td><strong>az104-06-pip4</strong></td>
+        </tr>
+        <tr>
+          <td>可用性区域</td>
+          <td><strong>无区域</strong></td>
+        </tr>
+        <tr>
+          <td>添加公共 IPv6 地址</td>
+          <td><strong>否</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击“查看并创建”。允许进行验证，然后单击“创建”以提交部署。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待预配 Azure 负载均衡器。该操作需约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在“部署”边栏选项卡上，单击 <strong>“前往资源”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-lb4”</strong> 负载均衡器边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“后端池”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>添加后端池并进行如下设置（保留其他默认设置）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-06-lb4-be1</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az104-06-vnet01</strong></td>
+        </tr>
+        <tr>
+          <td>IP 版本</td>
+          <td><strong>IPv4</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az104-06-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机 IP 地址</td>
+          <td><strong>ipconfig1 (10.60.0.4)</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机</td>
+          <td><strong>az104-06-vm1</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟机 IP 地址</td>
+          <td><strong>ipconfig1 (10.60.1.4)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“添加”</strong></p>
+  </li>
+  <li>
+    <p>等待后端池创建完毕，单击 <strong>“设置”</strong> 部分中的 <strong>“运行状况探测”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>使用以下设置添加运行状况探测：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-06-lb4-hp1</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>端口</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>间隔</td>
+          <td><strong>5</strong></td>
+        </tr>
+        <tr>
+          <td>运行不正常阈值</td>
+          <td><strong>2</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“添加”</strong></p>
+  </li>
+  <li>
+    <p>等待运行状况探测创建完毕，单击 <strong>“设置”</strong> 部分中的 <strong>“负载均衡规则”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>添加负载均衡规则，设置如下（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-06-lb4-lbrule1</strong></td>
+        </tr>
+        <tr>
+          <td>IP 版本</td>
+          <td><strong>中的机器人 IPv4</strong></td>
+        </tr>
+        <tr>
+          <td>前端 IP 地址</td>
+          <td><strong>从下拉列表中选择 LoadBalancerFrontEnd</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>端口</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>后端端口</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>后端池</td>
+          <td><strong>az104-06-lb4-be1</strong></td>
+        </tr>
+        <tr>
+          <td>运行状况探测</td>
+          <td><strong>az104-06-lb4-hp1</strong></td>
+        </tr>
+        <tr>
+          <td>会话持续性</td>
+          <td><strong>无</strong></td>
+        </tr>
+        <tr>
+          <td>空闲超时（分钟）</td>
+          <td><strong>4</strong></td>
+        </tr>
+        <tr>
+          <td>TCP 重置</td>
+          <td><strong>已禁用</strong></td>
+        </tr>
+        <tr>
+          <td>浮动 IP（直接服务器返回）</td>
+          <td><strong>已禁用</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“添加”</strong></p>
+  </li>
+  <li>
+    <p>等待负载均衡规则创建完毕，在“<strong>设置</strong>”部分单击“<strong>前端 IP 配置</strong>”，然后记下“<strong>公共 IP 地址</strong>”的值。</p>
+  </li>
+  <li>
+    <p>启动另一个浏览器窗口，并导航到你在上一步中标识的 IP 地址。</p>
+  </li>
+  <li>
+    <p>验证浏览器窗口是否显示消息 <strong>“Hello World from az104-06-vm0”</strong> 或者 <strong>“Hello World from az104-06-vm1”</strong>。</p>
+  </li>
+  <li>
+    <p>打开另一个浏览器窗口，但这一次使用 InPrivate 模式，并验证目标 vm 是否更改（如消息所示）。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可能需要刷新浏览器窗口，或使用 InPrivate 模式再次打开它。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-6实现-azure-应用程序网关">任务 6：实现 Azure 应用程序网关</h4>
+
+<p>在此任务中，将在辐射虚拟网络中的两台 Azure 虚拟机前实现 Azure 应用程序网关。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟网络”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“虚拟网络”</strong> 边栏选项卡上的虚拟网络列表中，单击 <strong>“az104-06-vnet01”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-vnet01”</strong> 虚拟网络边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“子网”</strong>，然后单击 <strong>“+ 子网”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个子网，设置如下（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>subnet-appgw</strong></td>
+        </tr>
+        <tr>
+          <td>子网地址范围</td>
+          <td><strong>10.60.3.224/27</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“保存”</strong></p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此子网将由 Azure 应用程序网关实例使用，你稍后将在此任务中部署这些实例。应用程序网关需要一个 /27 或更大的专用子网。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择“<strong>应用程序网关</strong>”，并在“<strong>应用程序网关</strong>”边栏选项卡中单击“<strong>+ 创建</strong>”。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建应用程序网关”</strong> 边栏选项卡的 <strong>“基本信息”</strong> 选项卡上，指定以下设置（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td>新资源组名称 <strong>az104-06-rg1</strong></td>
+        </tr>
+        <tr>
+          <td>应用程序网关名称</td>
+          <td><strong>az104-06-appgw5</strong></td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>在本实验室中部署所有其他资源的 Azure 区域的名称</td>
+        </tr>
+        <tr>
+          <td>层</td>
+          <td><strong>标准 V2</strong></td>
+        </tr>
+        <tr>
+          <td>启用自动缩放</td>
+          <td><strong>否</strong></td>
+        </tr>
+        <tr>
+          <td>HTTP2</td>
+          <td><strong>禁用</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az104-06-vnet01</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>subnet-appgw</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 前端 &gt;”</strong>，然后在 <strong>“创建应用程序网关”</strong> 边栏选项卡的 <strong>“前端”</strong> 选项卡上单击 <strong>“新建”</strong>，并指定以下设置（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>前端 IP 地址类型</td>
+          <td><strong>公共</strong></td>
+        </tr>
+        <tr>
+          <td>公共 IP 地址</td>
+          <td>新公共 IP 地址的名称 <strong>az104-06-pip5</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 后端 &gt;”</strong>，在 <strong>“创建应用程序网关”</strong> 边栏选项卡的 <strong>“后端”</strong> 选项卡上单击 <strong>“+ 添加后端池”</strong>，并在 <strong>“添加后端池”</strong> 边栏选项卡上指定以下设置（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>名称</td>
+          <td><strong>az104-06-appgw5-be1</strong></td>
+        </tr>
+        <tr>
+          <td>添加不包含目标的后端池</td>
+          <td><strong>否</strong></td>
+        </tr>
+        <tr>
+          <td>目标类型</td>
+          <td><strong>IP 地址或 FQDN</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>10.62.0.4</strong></td>
+        </tr>
+        <tr>
+          <td>目标类型</td>
+          <td><strong>IP 地址或 FQDN</strong></td>
+        </tr>
+        <tr>
+          <td>目标</td>
+          <td><strong>10.63.0.4</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 目标代表辐射虚拟网络 <strong>az104-06-vm2</strong> 和 <strong>az104-06-vm3</strong> 中虚拟机的专用 IP 地址。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>单击 <strong>“添加”</strong>，单击 <strong>“下一步: 配置 &gt;”</strong>，并在 <strong>“创建应用程序网关”</strong> 边栏选项卡的 <strong>“配置”</strong> 选项卡上单击 <strong>“+ 添加路由规则”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“添加路由规则”</strong> 边栏选项卡的 <strong>“侦听器”</strong> 选项卡上，指定以下设置：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>规则名称</td>
+          <td><strong>az104-06-appgw5-rl1</strong></td>
+        </tr>
+        <tr>
+          <td>侦听器名称</td>
+          <td><strong>az104-06-appgw5-rl1l1</strong></td>
+        </tr>
+        <tr>
+          <td>前端 IP</td>
+          <td><strong>公共</strong></td>
+        </tr>
+        <tr>
+          <td>协议</td>
+          <td><strong>HTTP</strong></td>
+        </tr>
+        <tr>
+          <td>端口</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>侦听器类型</td>
+          <td><strong>基本</strong></td>
+        </tr>
+        <tr>
+          <td>错误页面 URL</td>
+          <td><strong>否</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>切换到 <strong>“添加路由规则”</strong> 边栏选项卡的 <strong>“后端目标”</strong> 选项卡，并指定以下设置（保留其他设置的默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>目标类型</td>
+          <td><strong>后端池</strong></td>
+        </tr>
+        <tr>
+          <td>后端目标</td>
+          <td><strong>az104-06-appgw5-be1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>单击“<strong>HTTP 设置</strong>”文本框下的“<strong>新增</strong>”，然后在“<strong>添加 HTTP 设置</strong>”边栏选项卡上指定以下设置（其他设置保留默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>HTTP 设置名称</td>
+          <td><strong>az104-06-appgw5-http1</strong></td>
+        </tr>
+        <tr>
+          <td>后端协议</td>
+          <td><strong>HTTP</strong></td>
+        </tr>
+        <tr>
+          <td>后端端口</td>
+          <td><strong>80</strong></td>
+        </tr>
+        <tr>
+          <td>基于 Cookie 的相关性</td>
+          <td><strong>禁用</strong></td>
+        </tr>
+        <tr>
+          <td>连接排空</td>
+          <td><strong>禁用</strong></td>
+        </tr>
+        <tr>
+          <td>申请超时（秒）</td>
+          <td><strong>20</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“添加 HTTP 设置”</strong> 边栏选项卡上单击 <strong>“添加”</strong>，然后返回到 <strong>“添加路由规则”</strong> 边栏选项卡，单击 <strong>“添加”</strong>。</p>
+  </li>
+  <li>
+    <p>单击 <strong>“下一步: 标记 &gt;”</strong>，再单击 <strong>“下一步: 查看 + 创建”</strong>，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待应用程序网关实例创建完毕。该操作需要约 8 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“应用程序网关”</strong>，并在 <strong>“应用程序网关”</strong> 边栏选项卡上单击 <strong>“az104-06-appgw5”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-06-appgw5”</strong> 应用程序网关边栏选项卡上，记下 <strong>“前端公共 IP 地址”</strong> 的值。</p>
+  </li>
+  <li>
+    <p>启动另一个浏览器窗口，并导航到你在上一步中标识的 IP 地址。</p>
+  </li>
+  <li>
+    <p>验证浏览器窗口是否显示消息 <strong>“Hello World from az104-06-vm2”</strong> 或者 <strong>“Hello World from az104-06-vm3”</strong>。</p>
+  </li>
+  <li>
+    <p>打开另一个浏览器窗口，但这次使用 InPrivate 模式打开，并验证目标 VM 是否更改（基于网页上显示的消息）。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可能需要刷新浏览器窗口，或使用 InPrivate 模式再次打开它。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 把多个虚拟网络上的虚拟机作为目标不是常见配置，而是为了说明应用程序网关能够把多个虚拟网络（以及其他 Azure 区域甚至 Azure 外部的终结点）上的虚拟机作为目标。这与 Azure 负载均衡器不同，Azure 负载均衡器的功能是在同一虚拟网络中的各个虚拟机之间实现负载均衡。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="清理资源">清理资源</h4>
+
+<blockquote>
+  <p><strong>备注</strong>： 请记得删除任何新创建而不会再使用的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，在 <strong>“Cloud Shell”</strong> 窗格中打开 <strong>“PowerShell”</strong> 会话。</p>
+  </li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-06*'
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-06*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 该命令异步执行（由 -AsJob 参数确定），因此尽管此后可以立即在同一 PowerShell 会话中运行另一个 PowerShell 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本实验室中，你已：</p>
+
+<ul>
+  <li>预配实验室环境</li>
+  <li>配置中心辐射型网络拓扑</li>
+  <li>测试虚拟网络对等互连的可传递性</li>
+  <li>任务 4：配置中心辐射型拓扑中的路由</li>
+  <li>任务 5：实现 Azure 负载均衡器</li>
+  <li>任务 6：实现 Azure 应用程序网关</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

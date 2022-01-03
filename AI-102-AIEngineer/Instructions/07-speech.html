@@ -1,0 +1,513 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#if-you-have-a-working-microphone">If you have a working microphone</a></li><li class="nav-item"><a class="nav-link" href="#alternatively-use-audio-input-from-a-file">Alternatively, use audio input from a file</a></li><li class="nav-item"><a class="nav-link" href="#add-code-to-process-the-transcribed-command">Add code to process the transcribed command</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="recognize-and-synthesize-speech">Recognize and Synthesize Speech</h1>
+
+<p>The <strong>Speech</strong> service is an Azure cognitive service that provides speech-related functionality, including:</p>
+
+<ul>
+  <li>A <em>speech-to-text</em> API that enables you to implement speech recognition (converting audible spoken words into text).</li>
+  <li>A <em>text-to-speech</em> API that enables you to implement speech synthesis (converting text into audible speech).</li>
+</ul>
+
+<p>In this exercise, you’ll use both of these APIs to implement a speaking clock application.</p>
+
+<p><strong>Note</strong>: This exercise requires that you are using a computer with speakers/headphones. For the best experience, a microphone is also required. Some hosted virtual environments may be able to capture audio from your local microphone, but if this doesn’t work (or you don’t have a microphone at all), you can use a provided audio file for speech input. Follow the instructions carefully, as you’ll need to choose different options depending on whether you are using a microphone or the audio file.</p>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have not already cloned <strong>AI-102-AIEngineer</strong> code repository to the environment where you’re working on this lab, follow these steps to do so. Otherwise, open the cloned folder in Visual Studio Code.</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="provision-a-cognitive-services-resource">Provision a Cognitive Services resource</h2>
+
+<p>If you don’t already have one in your subscription, you’ll need to provision a <strong>Cognitive Services</strong> resource.</p>
+
+<ol>
+  <li>Open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>Select the <strong>＋Create a resource</strong> button, search for <em>cognitive services</em>, and create a <strong>Cognitive Services</strong> resource with the following settings:
+    <ul>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Region</strong>: <em>Choose any available region</em></li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Pricing tier</strong>: Standard S0</li>
+    </ul>
+  </li>
+  <li>Select the required checkboxes and create the resource.</li>
+  <li>Wait for deployment to complete, and then view the deployment details.</li>
+  <li>When the resource has been deployed, go to it and view its <strong>Keys and Endpoint</strong> page. You will need one of the keys and the location in which the service is provisioned from this page in the next procedure.</li>
+</ol>
+
+<h2 id="prepare-to-use-the-speech-service">Prepare to use the Speech service</h2>
+
+<p>In this exercise, you’ll complete a partially implemented client application that uses the Speech SDK to recognize and synthesize speech.</p>
+
+<p><strong>Note</strong>: You can choose to use the SDK for either <strong>C#</strong> or <strong>Python</strong>. In the steps below, perform the actions appropriate for your preferred language.</p>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>Explorer</strong> pane, browse to the <strong>07-speech</strong> folder and expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>
+    <p>Right-click the <strong>speaking-clock</strong> folder and open an integrated terminal. Then install the Speech SDK package by running the appropriate command for your language preference:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Speech</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 1<span class="hljs-selector-class"><span class="hljs-selector-class">.14</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-speech==<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">14</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+  </li>
+  <li>View the contents of the <strong>speaking-clock</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+
+    <p>Open the configuration file and update the configuration values it contains to include an authentication <strong>key</strong> for your cognitive services resource, and the <strong>location</strong> where it is deployed. Save your changes.</p>
+  </li>
+  <li>
+    <p>Note that the <strong>speaking-clock</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: speaking-clock.py</li>
+    </ul>
+
+    <p>Open the code file and at the top, under the existing namespace references, find the comment <strong>Import namespaces</strong>. Then, under this comment, add the following language-specific code to import the namespaces you will need to use the Speech SDK:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.CognitiveServices.Speech;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.CognitiveServices.Speech.Audio;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Import namespaces</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> azure.cognitiveservices.speech <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> speech_sdk
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> function, note that code to load the cognitive services key and region from the configuration file has already been provided. You must use these variables to create a <strong>SpeechConfig</strong> for your cognitive services resource. Add the following code under the comment <strong>Configure speech service</strong>:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Configure speech service</span></span>
+ speechConfig = SpeechConfig.FromSubscription(cogSvcKey, cogSvcRegion);
+ Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Ready to use speech service in "</span></span> + speechConfig.Region);
+    
+ <span class="hljs-comment"><span class="hljs-comment">// Configure voice</span></span>
+ speechConfig.SpeechSynthesisVoiceName = <span class="hljs-string"><span class="hljs-string">"en-US-AriaNeural"</span></span>;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Configure speech service</span></span>
+ speech_config = speech_sdk.SpeechConfig(cog_key, cog_region)
+ print(<span class="hljs-string"><span class="hljs-string">'Ready to use speech service in:'</span></span>, speech_config.region)
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>speaking-clock</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">speaking-clock</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>If you are using C#, you can ignore any warnings about using the <strong>await</strong> operator in asynchronous methods - we’ll fix that later. The code should display the region of the speech service resource the application will use.</li>
+</ol>
+
+<h2 id="recognize-speech">Recognize speech</h2>
+
+<p>Now that you have a <strong>SpeechConfig</strong> for the speech service in your cognitive services resource, you can use the <strong>Speech-to-text</strong> API to recognize speech and transcribe it to text.</p>
+
+<h3 id="if-you-have-a-working-microphone">If you have a working microphone</h3>
+
+<ol>
+  <li>In the <strong>Main</strong> function for your program, note that the code uses the <strong>TranscribeCommand</strong> function to accept spoken input.</li>
+  <li>
+    <p>In the <strong>TranscribeCommand</strong> function, under the comment <strong>Configure speech recognition</strong>, add the appropriate code below to create a <strong>SpeechRecognizer</strong> client that can be used to recognize and transcribe speech using the default system microphone:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Configure speech recognition</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> AudioConfig audioConfig = AudioConfig.FromDefaultMicrophoneInput();
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> SpeechRecognizer speechRecognizer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SpeechRecognizer(speechConfig, audioConfig);
+ Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Speak now..."</span></span>);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Configure speech recognition</span></span>
+ audio_config = speech_sdk.AudioConfig(use_default_microphone=<span class="hljs-keyword"><span class="hljs-keyword">True</span></span>)
+ speech_recognizer = speech_sdk.SpeechRecognizer(speech_config, audio_config)
+ print(<span class="hljs-string"><span class="hljs-string">'Speak now...'</span></span>)
+</code></pre>
+  </li>
+  <li>Now skip ahead to the <strong>Add code to process the transcribed command</strong> section below.</li>
+</ol>
+
+<h3 id="alternatively-use-audio-input-from-a-file">Alternatively, use audio input from a file</h3>
+
+<ol>
+  <li>
+    <p>In the terminal window, enter the following command to install a library that you can use to play the audio file:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">System</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Windows</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Extensions</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 4<span class="hljs-selector-class"><span class="hljs-selector-class">.6</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span> 
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install playsound==<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">2</span></span>.<span class="hljs-number"><span class="hljs-number">2</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>In the code file for your program, under the existing namespace imports, add the following code to import the library you just installed:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-C# hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Media;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-Python hljs"> <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> playsound <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> playsound
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Main</strong> function, note that the code uses the <strong>TranscribeCommand</strong> function to accept spoken input. Then in the <strong>TranscribeCommand</strong> function, under the comment <strong>Configure speech recognition</strong>, add the appropriate code below to create a <strong>SpeechRecognizer</strong> client that can be used to recognize and transcribe speech from an audio file:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Configure speech recognition</span></span>
+ <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> audioFile = <span class="hljs-string"><span class="hljs-string">"time.wav"</span></span>;
+ SoundPlayer wavPlayer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SoundPlayer(audioFile);
+ wavPlayer.Play();
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> AudioConfig audioConfig = AudioConfig.FromWavFileInput(audioFile);
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> SpeechRecognizer speechRecognizer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SpeechRecognizer(speechConfig, audioConfig);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Configure speech recognition</span></span>
+ audioFile = <span class="hljs-string"><span class="hljs-string">'time.wav'</span></span>
+ playsound(audioFile)
+ audio_config = speech_sdk.AudioConfig(filename=audioFile)
+ speech_recognizer = speech_sdk.SpeechRecognizer(speech_config, audio_config)
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="add-code-to-process-the-transcribed-command">Add code to process the transcribed command</h3>
+
+<ol>
+  <li>
+    <p>In the <strong>TranscribeCommand</strong> function, under the comment <strong>Process speech input</strong>, add the following code to listen for spoken input, being careful not to replace the code at the end of the function that returns the command:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Process speech input</span></span>
+ SpeechRecognitionResult speech = await speechRecognizer.RecognizeOnceAsync();
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (speech.Reason == ResultReason.RecognizedSpeech)
+ {
+     command = speech.Text;
+     Console.WriteLine(command);
+ }
+ <span class="hljs-keyword"><span class="hljs-keyword">else</span></span>
+ {
+     Console.WriteLine(speech.Reason);
+     <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (speech.Reason == ResultReason.Canceled)
+     {
+         var cancellation = CancellationDetails.FromResult(speech);
+         Console.WriteLine(cancellation.Reason);
+         Console.WriteLine(cancellation.ErrorDetails);
+     }
+ }
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Process speech input</span></span>
+ speech = speech_recognizer.recognize_once_async().get()
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> speech.reason == speech_sdk.ResultReason.RecognizedSpeech:
+     command = speech.text
+     print(command)
+ <span class="hljs-keyword"><span class="hljs-keyword">else</span></span>:
+     print(speech.reason)
+     <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> speech.reason == speech_sdk.ResultReason.Canceled:
+         cancellation = speech.cancellation_details
+         print(cancellation.reason)
+         print(cancellation.error_details)
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>speaking-clock</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">speaking-clock</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>If using a microphone, speak clearly and say “what time is it?”. The program should transcribe your spoken input and display the time (based on the local time of the computer where the code is running, which may not be the correct time where you are).</p>
+
+    <p>The SpeechRecognizer gives you around 5 seconds to speak. If it detects no spoken input, it produces a “No match” result.</p>
+
+    <p>If the SpeechRecognizer encounters an error, it produces a result of “Cancelled”. The code in the application will then display the error message. The most likely cause is an incorrect key or region in the configuration file.</p>
+  </li>
+</ol>
+
+<h2 id="synthesize-speech">Synthesize speech</h2>
+
+<p>Your speaking clock application accepts spoken input, but it doesn’t actually speak! Let’s fix that by adding code to synthesize speech.</p>
+
+<ol>
+  <li>In the <strong>Main</strong> function for your program, note that the code uses the <strong>TellTime</strong> function to tell the user the current time.</li>
+  <li>
+    <p>In the <strong>TellTime</strong> function, under the comment <strong>Configure speech synthesis</strong>, add the following code to create a <strong>SpeechSynthesizer</strong> client that can be used to generate spoken output:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Configure speech synthesis</span></span>
+ speechConfig.SpeechSynthesisVoiceName = <span class="hljs-string"><span class="hljs-string">"en-GB-RyanNeural"</span></span>;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> SpeechSynthesizer speechSynthesizer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SpeechSynthesizer(speechConfig);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Configure speech synthesis</span></span>
+ speech_config.speech_synthesis_voice_name = <span class="hljs-string"><span class="hljs-string">"en-GB-RyanNeural"</span></span>
+ speech_synthesizer = speech_sdk.SpeechSynthesizer(speech_config)
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: <em>The default audio configuration uses the default system audio device for output, so you don’t need to explicitly provide an <strong>AudioConfig</strong>. If you need to     redirect     audio output to a file, you can use an <strong>AudioConfig</strong> with a filepath to do so.</em></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>TellTime</strong> function, under the comment <strong>Synthesize spoken output</strong>, add the following code to generate spoken output, being careful not to replace the code at the end of the function that prints the response:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Synthesize spoken output</span></span>
+ SpeechSynthesisResult speak = await speechSynthesizer.SpeakTextAsync(responseText);
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (speak.Reason != ResultReason.SynthesizingAudioCompleted)
+ {
+     Console.WriteLine(speak.Reason);
+ }
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Synthesize spoken output</span></span>
+ speak = speech_synthesizer.speak_text_async(response_text).get()
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> speak.reason != speech_sdk.ResultReason.SynthesizingAudioCompleted:
+     print(speak.reason)
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>speaking-clock</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">speaking-clock</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, speak clearly into the microphone and say “what time is it?”. The program should speak, telling you the time.</li>
+</ol>
+
+<h2 id="use-a-different-voice">Use a different voice</h2>
+
+<p>Your speaking clock application uses a default voice, which you can change. The Speech service supports a range of <em>standard</em> voices as well as more human-like <em>neural</em> voices. You can also create <em>custom</em> voices.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: For a list of neural and standard voices, see <a href="https://docs.microsoft.com/azure/cognitive-services/speech-service/language-support#text-to-speech">Language and voice support</a> in the Speech service documentation.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the <strong>TellTime</strong> function, under the comment <strong>Configure speech synthesis</strong>, modify the code as follows to specify an alternative voice before creating the <strong>SpeechSynthesizer</strong> client:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Configure speech synthesis</span></span>
+ speechConfig.SpeechSynthesisVoiceName = <span class="hljs-string"><span class="hljs-string">"en-GB-LibbyNeural"</span></span>; <span class="hljs-comment"><span class="hljs-comment">// add this</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> SpeechSynthesizer speechSynthesizer = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SpeechSynthesizer(speechConfig);
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Configure speech synthesis</span></span>
+ speech_config.speech_synthesis_voice_name = <span class="hljs-string"><span class="hljs-string">'en-GB-LibbyNeural'</span></span> <span class="hljs-comment"><span class="hljs-comment"># add this</span></span>
+ speech_synthesizer = speech_sdk.SpeechSynthesizer(speech_config)
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>speaking-clock</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">speaking-clock</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>When prompted, speak clearly into the microphone and say “what time is it?”. The program should speak in the specified voice, telling you the time.</p>
+  </li>
+</ol>
+
+<h2 id="use-speech-synthesis-markup-language">Use Speech Synthesis Markup Language</h2>
+
+<p>Speech Synthesis Markup Language (SSML) enables you to customize the way your speech is synthesized using an XML-based format.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>TellTime</strong> function, replace all of the current code under the comment <strong>Synthesize spoken output</strong> with the following code (leave the code under the comment <strong>Print the response</strong>):</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// Synthesize spoken output</span></span>
+ <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> responseSsml = $@<span class="hljs-string"><span class="hljs-string">"
+     &lt;speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'&gt;
+         &lt;voice name='en-GB-LibbyNeural'&gt;
+             {responseText}
+             &lt;break strength='weak'/&gt;
+             Time to end this lab!
+         &lt;/voice&gt;
+     &lt;/speak&gt;"</span></span>;
+ SpeechSynthesisResult speak = await speechSynthesizer.SpeakSsmlAsync(responseSsml);
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (speak.Reason != ResultReason.SynthesizingAudioCompleted)
+ {
+     Console.WriteLine(speak.Reason);
+ }
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># Synthesize spoken output</span></span>
+ responseSsml = <span class="hljs-string"><span class="hljs-string">" \
+     &lt;speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'&gt; \
+         &lt;voice name='en-GB-LibbyNeural'&gt; \
+             {} \
+             &lt;break strength='weak'/&gt; \
+             Time to end this lab! \
+         &lt;/voice&gt; \
+     &lt;/speak&gt;"</span></span>.format(response_text)
+ speak = speech_synthesizer.speak_ssml_async(responseSsml).get()
+ <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> speak.reason != speech_sdk.ResultReason.SynthesizingAudioCompleted:
+     print(speak.reason)
+</code></pre>
+  </li>
+  <li>
+    <p>Save your changes and return to the integrated terminal for the <strong>speaking-clock</strong> folder, and enter the following command to run the program:</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">speaking-clock</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>When prompted, speak clearly into the microphone and say “what time is it?”. The program should speak in the voice that is specified in the SSML (overriding the voice specified in the SpeechConfig), telling you the time, and then after a pause telling you it’s time to end this lab - which it is!</p>
+  </li>
+</ol>
+
+<h2 id="more-information">More information</h2>
+
+<p>For more information about using the <strong>Speech-to-text</strong> and <strong>Text-to-speech</strong> APIs, see the <a href="https://docs.microsoft.com/azure/cognitive-services/speech-service/index-speech-to-text">Speech-to-text documentation</a> and <a href="https://docs.microsoft.com/azure/cognitive-services/speech-service/index-text-to-speech">Text-to-speech documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

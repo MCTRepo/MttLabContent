@@ -1,0 +1,488 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#添加机器学习实体">添加机器学习实体</a></li><li class="nav-item"><a class="nav-link" href="#添加列表实体">添加列表实体</a></li><li class="nav-item"><a class="nav-link" href="#添加正则表达式实体">添加正则表达式实体</a></li><li class="nav-item"><a class="nav-link" href="#重新训练应用">重新训练应用</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="创建语言理解应用">创建语言理解应用</h1>
+
+<p>语言理解服务使你能够定义封装了语言模型的应用，应用程序可使用该模型来解释用户的自然语言输入、预测用户的<em>意图</em>（他们想要实现的目标），以及识别应应用该意图的任何<em>实体</em>。</p>
+
+<p>例如，时钟应用程序的语言理解应用可能会处理如下输入：</p>
+
+<p><em>What is the time in London?（伦敦现在几点了？）</em></p>
+
+<p>这种输入是一种<em>言语</em>（用户可能说出或键入的内容）示例，对于此示例，预期<em>意图</em>是获取特定位置（一个<em>实体</em>）的时间；在本例中，此位置为“伦敦”。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 语言理解应用的任务是预测用户的意图，并识别应用该意图的任何实体。它<u>不</u>需要实际去执行满足意图所需的操作。例如，时钟应用程序可以使用语言应用来识别用户想要了解伦敦的时间；但必须由客户端应用程序本身来实现此逻辑以确定正确时间并将其呈现给用户。</p>
+</blockquote>
+
+<h2 id="克隆本课程的存储库">克隆本课程的存储库</h2>
+
+<p>如果尚未将 <strong>AI-102-AIEngineer</strong> 代码存储库克隆到你要在此实验室中使用的环境，请按照以下步骤克隆它。否则，请在 Visual Studio Code 中打开克隆的文件夹。</p>
+
+<ol>
+  <li>启动 Visual Studio Code。</li>
+  <li>打开面板 (Shift+Ctrl+P) 并运行 <strong>Git: Clone</strong> 命令，将 <code>https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution</code> 存储库克隆到本地文件夹（具体克隆到哪个文件夹无关紧要）。</li>
+  <li>克隆存储库后，在 Visual Studio Code 中打开文件夹。</li>
+  <li>
+    <p>等待其他文件安装完毕，以支持存储库中的 C# 代码项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果系统提示你添加生成和调试所需的资产，请选择 <strong>“以后再说”</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="创建语言理解资源">创建语言理解资源</h2>
+
+<p>要使用语言理解服务，需要两种资源：</p>
+
+<ul>
+  <li><em>创作</em>资源：用于定义、训练和测试语言理解应用。这必须是 Azure 订阅中的 <strong>“语言理解 - 创作”</strong> 资源。</li>
+  <li>
+    <p><em>预测</em>资源：用于发布语言理解应用并处理来自使用该应用的客户端应用程序的请求。这可以是 Azure 订阅中的 <strong>“语言理解”</strong> 资源，也可以是 <strong>“认知服务”</strong> 资源。</p>
+
+    <blockquote>
+      <p><strong>重要事项</strong>： 创作资源必须在三个<em>区域</em> （欧洲、澳大利亚或美国）之一中创建。在欧洲或澳大利亚创作资源中创建的语言理解应用只能分别部署到欧洲或澳大利亚的预测资源；在美国创作资源中创建的模型可以部署到除欧洲和澳大利亚之外的任何 Azure 位置中的预测资源。有关匹配创作和预测位置的详细信息，请参阅<a href="https://docs.microsoft.com/azure/cognitive-services/luis/luis-reference-regions">创作和发布区域文档</a>。</p>
+    </blockquote>
+  </li>
+</ul>
+
+<p>如果还没有语言理解创作资源和预测资源，请执行以下操作：</p>
+
+<ol>
+  <li>打开 Azure 门户 (<code>https://portal.azure.com</code>)，使用与你的 Azure 订阅关联的 Microsoft 帐户登录。</li>
+  <li>
+    <p>选择 <strong>“＋创建资源”</strong> 按钮，搜索 <em>“语言理解”</em>，并使用以下设置创建一个<strong>语言理解</strong> 资源。</p>
+
+    <p><em>确保选择 <strong>“语言理解”</strong>，而<u>不是</u>语言理解（Azure 认知服务）</em></p>
+
+    <ul>
+      <li><strong>创建选项</strong>： 两个</li>
+      <li><strong>订阅</strong>： <em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>： <em>选择或创建一个资源组（如果你使用的是受限订阅，则可能无权创建新资源组，在此情况下，可使用一个已提供的资源组）</em></li>
+      <li><strong>名称</strong>： <em>输入唯一名称</em></li>
+      <li><strong>创作位置</strong>： <em>选择首选位置</em></li>
+      <li><strong>创作定价层</strong>： F0</li>
+      <li><strong>预测位置</strong>： <em>与创作位置相同</em></li>
+      <li><strong>预测定价层</strong>： F0</li>
+    </ul>
+  </li>
+  <li>等待资源创建完成，并注意是否已预配两个语言理解资源；一个用于创作，另一个用于预测。可以导航到你在其中创建了这些资源的资源组，然后查看这两个资源。如果选择 <strong>“前往资源”</strong>，将打开<strong>创作</strong>资源。</li>
+</ol>
+
+<h2 id="创建语言理解应用-1">创建语言理解应用</h2>
+
+<p>现在，你已经创建了创作资源，接下来，可以使用它来创建语言理解应用。</p>
+
+<ol>
+  <li>在新的浏览器标签页中，打开语言理解门户 (<code>https://www.luis.ai</code>)。</li>
+  <li>
+    <p>使用与 Azure 订阅关联的 Microsoft 帐户登录。如果这是你首次登录语言理解门户，可能需要授予该应用一些权限，用于访问你的帐户详细信息。然后选择你的 Azure 订阅和刚刚创建的创作资源，完成<em>欢迎</em>步骤。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果你的帐户与不同目录中的多个订阅相关联，则可能需要切换到包含预配了语言理解资源的订阅的目录。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“对话式应用”</strong> 页面上，确保已选中订阅和语言理解创作资源。然后使用以下设置创建一个新的对话式应用：
+    <ul>
+      <li><strong>名称</strong>： 时钟</li>
+      <li><strong>区域性</strong>： 英语（<em>如果此选项不可用，请将其留空</em>）</li>
+      <li><strong>描述</strong>： 自然语言时钟</li>
+      <li><strong>预测资源</strong>： <em>语言理解预测资源</em></li>
+    </ul>
+
+    <p>如果<strong>时钟</strong>应用未自动打开，将其打开。</p>
+
+    <p>如果显示一个包含有关如何创建有效语言理解应用的提示的面板，请关闭该面板。</p>
+  </li>
+</ol>
+
+<h2 id="创建意图">创建意图</h2>
+
+<p>我们在新应用中要做的第一件事就是定义一些意图。</p>
+
+<ol>
+  <li>在 <strong>“意图”</strong> 页面上，选择 <strong>“65291; 创建”</strong> 以创建名为 <strong>GetTime</strong> 的新意图。</li>
+  <li>
+    <p>在 <strong>GetTime</strong> 意图中，添加以下言语作为示例用户输入：</p>
+
+    <p><em>几点了？</em></p>
+
+    <p><em>现在几点了？</em></p>
+  </li>
+  <li>
+    <p>添加完这些言语后，返回 <strong>“意图”</strong> 页面，并使用以下言语添加另一个名为 <strong>GetDay</strong> 的新意图：</p>
+
+    <p><em>今天是几号？</em></p>
+
+    <p><em>今天星期几？</em></p>
+  </li>
+  <li>
+    <p>添加完这些言语后，返回 <strong>“意图”</strong> 页面，并使用以下言语添加另一个名为 <strong>GetDate</strong> 的新意图：</p>
+
+    <p><em>今天星期几？</em></p>
+
+    <p><em>今天周几？</em></p>
+  </li>
+  <li>添加完这些言语后，返回 <strong>“意图”</strong> 页面并选择 <strong>“无”</strong> 意图。这是与你在语言模型中定义的任何意图无关的输入的回退。</li>
+  <li>
+    <p>将以下言语添加到 <strong>“无”</strong> 意图：</p>
+
+    <p><em>你好</em></p>
+
+    <p><em>再见</em></p>
+  </li>
+</ol>
+
+<h2 id="训练和测试应用">训练和测试应用</h2>
+
+<p>现在，你已经添加了一些意图之后，接下来，让我们训练应用，查看它是否能够通过用户输入正确预测这些意图。</p>
+
+<ol>
+  <li>在门户的右上角，选择 <strong>“训练”</strong> 以训练应用。</li>
+  <li>
+    <p>训练应用后，选择 <strong>“测试”</strong> 以显示“测试”面板，然后输入以下测试言语：</p>
+
+    <p><em>现在是什么时间？</em></p>
+
+    <p>检查返回的结果，请注意，该结果包含预测意图（应为 <strong>GetTime</strong>）以及一个置信度分数，该分数表示模型计算出预测意图的概率。</p>
+  </li>
+  <li>
+    <p>尝试使用以下测试言语：</p>
+
+    <p><em>告诉我时间。</em></p>
+
+    <p>再次查看预测意图和置信度分数。</p>
+  </li>
+  <li>
+    <p>尝试使用以下测试言语：</p>
+
+    <p><em>今天几号？</em></p>
+
+    <p>模型有望预测 <strong>GetDay</strong> 意图。</p>
+  </li>
+  <li>
+    <p>最后，尝试使用以下测试言语：</p>
+
+    <p><em>hi</em></p>
+
+    <p>应返回 <strong>“无”</strong> 意图。</p>
+  </li>
+  <li>关闭“测试”面板。</li>
+</ol>
+
+<h2 id="添加实体">添加实体</h2>
+
+<p>到目前为止，你已定义了一些与意图有关的简单言语。大多数实际应用程序都包含更复杂的言语，必须从这些言语中提取特定的数据实体才能获取有关意图的更多上下文。</p>
+
+<h3 id="添加机器学习实体">添加机器学习实体</h3>
+
+<p>最常见的一种实体是<em>机器学习</em>实体，在此实体中，应用根据示例学习识别实体值。</p>
+
+<ol>
+  <li>在 <strong>“实体”</strong> 页面上，选择 <strong>“65291; 创建”</strong> 以创建一个新实体。</li>
+  <li>在 <strong>“创建实体”</strong> 对话框中，创建一个名为 <strong>“位置”</strong> 的 <strong>机器学习</strong>实体。</li>
+  <li>创建 <strong>“位置”</strong> 实体后，返回 <strong>“意图”</strong> 页面并选择 <strong>GetTime</strong> 意图。</li>
+  <li>
+    <p>输入以下新示例言语：</p>
+
+    <p><em>伦敦现在是几点？</em></p>
+  </li>
+  <li>添加该言语后，选择 <strong><em>“伦敦”</em></strong> 一词，然后在出现的下拉列表中，选择 <strong>“位置”</strong> 以指示“伦敦”即为一个位置示例。</li>
+  <li>
+    <p>添加另一示例言语：</p>
+
+    <p><em>纽约现在几点了？</em></p>
+  </li>
+  <li>添加该言语后，选择 <strong>“纽约”</strong> 一词，并将其映射到 <strong>“位置”</strong> 实体。</li>
+</ol>
+
+<h3 id="添加列表实体">添加<em>列表</em>实体</h3>
+
+<p>在某些情况下，实体的有效值可被限制为一系列特定术语和同义词；这可帮助应用识别言语中的实体实例。</p>
+
+<ol>
+  <li>在 <strong>“实体”</strong> 页面上，选择 <strong>“65291; 创建”</strong> 以创建一个新实体。</li>
+  <li>在 <strong>“创建实体”</strong> 对话框中，创建一个名为 <strong>“工作日”</strong> 的<strong>列表</strong>实体。</li>
+  <li>
+    <p>添加以下<strong>规范化值</strong>和<strong>同义词</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>规范化值</th>
+          <th>同义词</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>星期六</td>
+          <td>周六</td>
+        </tr>
+        <tr>
+          <td>星期一</td>
+          <td>周一</td>
+        </tr>
+        <tr>
+          <td>星期二</td>
+          <td>周二</td>
+        </tr>
+        <tr>
+          <td>星期三</td>
+          <td>周三</td>
+        </tr>
+        <tr>
+          <td>星期四</td>
+          <td>周四</td>
+        </tr>
+        <tr>
+          <td>星期五</td>
+          <td>周五</td>
+        </tr>
+        <tr>
+          <td>星期六</td>
+          <td>周六</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>创建 <strong>“工作日”</strong> 实体后，返回 <strong>“意图”</strong> 页面并选择 <strong>GetDate</strong> 意图。</li>
+  <li>
+    <p>输入以下新示例言语：</p>
+
+    <p><em>星期六是几号？</em></p>
+  </li>
+  <li>添加该言语后，验证 <strong>“星期六”</strong> 是否已自动映射到 <strong>“工作日”</strong> 实体。如果没有，选择 <strong>“星期六”</strong> 一词，然后在出现的下拉列表中选择 <strong>“工作日”</strong>。</li>
+  <li>
+    <p>添加另一示例言语：</p>
+
+    <p><em>星期五是几号？</em></p>
+  </li>
+  <li>添加该言语后，确保 <strong>“星期五”</strong> 已映射到 <strong>“工作日”</strong> 实体。</li>
+</ol>
+
+<h3 id="添加正则表达式实体">添加正则表达式实体</h3>
+
+<p>有时，实体具有特定的格式，例如序列号、表单代码或日期。你可以定义一个正则表达式，该表达式描述一种预期格式，以帮助应用识别匹配的实体值。</p>
+
+<ol>
+  <li>在 <strong>“实体”</strong> 页面上，选择 <strong>“＋ 创建”</strong> 以创建一个新实体。</li>
+  <li>
+    <p>在 <strong>“创建实体”</strong> 对话框中，使用以下正则表达式创建一个名为 <strong>“日期”</strong> 的正则表达式实体：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs coffeescript"> [<span class="hljs-number"><span class="hljs-number">0</span></span><span class="hljs-number"><span class="hljs-number">-9</span></span>]{<span class="hljs-number"><span class="hljs-number">2</span></span>}<span class="hljs-regexp"><span class="hljs-regexp">/[0-9]{2}/</span></span>[<span class="hljs-number"><span class="hljs-number">0</span></span><span class="hljs-number"><span class="hljs-number">-9</span></span>]{<span class="hljs-number"><span class="hljs-number">4</span></span>}
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 这是一个简单的正则表达式，它检查两个数字后跟“/”、另外两个数字后跟另外一个“/”，以及四个数字，例如 <em>01/11/2020</em>。它允许使用无效日期，例如 <em>56/00/9999</em>；但务必要记住，实体正则表达式用于<em>识别</em>要作为日期的数据输入，而不是验证日期值。</p>
+    </blockquote>
+  </li>
+  <li>创建 <strong>“日期”</strong> 实体后，返回 <strong>“意图”</strong> 页面并选择 <strong>GetDay</strong> 意图。</li>
+  <li>
+    <p>输入以下新示例言语：</p>
+
+    <p><em>01/01/1901 是星期几？</em></p>
+  </li>
+  <li>添加该言语后，验证 <strong>01/01/1901</strong> 是否已自动映射到 <strong>“日期”</strong> 实体。如果没有，选择 <strong>01/01/1901</strong>，然后在出现的下拉列表中选择 <strong>“日期”</strong>。</li>
+  <li>
+    <p>添加另一示例言语：</p>
+
+    <p><em>12/12/2099 是星期几？</em></p>
+  </li>
+  <li>添加该言语后，确保 <strong>12/12/2099</strong> 已映射到 <strong>“日期”</strong> 实体。</li>
+</ol>
+
+<h3 id="重新训练应用">重新训练应用</h3>
+
+<p>现在，你已经修改了语言模型，接下来，需要重新训练并重新测试应用。</p>
+
+<ol>
+  <li>在门户的右上角，选择 <strong>“训练”</strong> 以重新训练应用。</li>
+  <li>
+    <p>训练应用后，选择 <strong>“测试”</strong> 以显示“测试”面板，然后输入以下测试言语：</p>
+
+    <p><em>爱丁堡现在是几点？</em></p>
+  </li>
+  <li>检查返回的结果，该结果应有望预测 <strong>GetTime</strong> 意图。然后选择 <strong>“检查”</strong>，在显示的其他检查面板中，检查 <strong>“机器学习实体”</strong> 部分。该模型应该预测到“爱丁堡”是 <strong>“位置”</strong> 实体的一个实例。</li>
+  <li>
+    <p>尝试测试以下言语：</p>
+
+    <p><em>星期五是几号？</em></p>
+
+    <p><em>周四是几号？</em></p>
+
+    <p><em>01/01/2020 是星期几？</em></p>
+  </li>
+  <li>完成测试后，关闭检查面板，但使测试面板保持打开状态。</li>
+</ol>
+
+<h2 id="执行批量测试">执行批量测试</h2>
+
+<p>可以使用测试窗格以交互方式测试单独的言语，但对于更复杂的语言模型，<em>执行批量</em>测试通常更加高效。</p>
+
+<ol>
+  <li>在 Visual Studio Code 中，打开 <strong>09-luis-app</strong> 文件夹中的 <strong>batch-test.json</strong> 文件。该文件包含一个 JSON 文档，其中包含你所创建的时钟语言模型的多个测试用例。</li>
+  <li>在语言理解门户中的“测试”面板中，选择 <strong>“批量测试”</strong> 面板。然后选择 <strong>“65291; 导入”</strong> 并导入 <strong>batch-test.json</strong> 文件，分配名称 <strong>clock-test</strong>。</li>
+  <li>在“批量测试”面板中，运行 <strong>clock-test</strong> 测试。</li>
+  <li>测试完成后，选择 <strong>“查看结果”</strong>。</li>
+  <li>
+    <p>在结果页面上，查看表示预测结果的混淆矩阵。它显示右侧列表中所选意图或实体的真正、假正、真负和假负预测。</p>
+
+    <p><a href="images/luis-confusion-matrix.jpg" target="_blank"><img src="images/luis-confusion-matrix.jpg" alt="语言理解批量测试的混淆矩阵"></a></p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 每条言语都针对每个意图进行了<em>正负</em>评分 - 例如，对于 <strong>GetTime</strong> 意图，“几点了？”应评分为正，而对于 <strong>GetDate</strong> 意图则评分为负。混淆矩阵上的分数显示对于所选意图，哪些言语被正确（<em>真</em>）和错误预测（<em>假</em>） <em>为正</em>和<em>负</em>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>选择 <strong>GetDate</strong> 意图后，选择混淆矩阵上的任意分数以查看预测的详细信息 - 包括预测的言语和置信度分数。然后选择 <strong>GetDay</strong>、<strong>GetTime</strong> 和 <strong>“无”</strong> 意图，并查看其预测结果。应用应在正确预测意图方面取得不错效果。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 用户界面可能无法清除之前选择的分数。</p>
+    </blockquote>
+  </li>
+  <li>选择 <strong>“位置”</strong> 实体并在混淆矩阵中查看预测结果。尤其是，需要注意<em>假负</em>预测 - 在这些情况下，应用未能检测到言语中的指定位置，这表明你可能需要向意图添加更多示例言语并重新训练模型。</li>
+  <li>关闭“批量测试”面板。</li>
+</ol>
+
+<h2 id="发布应用">发布应用</h2>
+
+<p>在实际项目中，你需要反复优化意图和实体、重新训练并重新测试，直到对预测性能感到满意为止。然后，可以发布应用以供客户端应用程序使用。</p>
+
+<ol>
+  <li>在语言理解门户的右上角选择 <strong>“发布”</strong>。</li>
+  <li>选择 <strong>“生产槽位”</strong>，然后发布应用。</li>
+  <li>发布完成后，选择语言理解门户顶部的 <strong>“管理”</strong>。</li>
+  <li>记下 <strong>“设置”</strong> 页面中的 <strong>“应用 ID”</strong>。客户端应用程序在使用应用时需要用到该 ID。</li>
+  <li>在 <strong>“Azure 资源”</strong> 页面上，注意预测资源的 <strong>“主密钥”</strong>、<strong>“辅助密钥”</strong> 以及 <strong>“终结点 URL”</strong>，你可通过该资源使用应用。要连接到预测资源并完成身份验证，客户端应用程序需要使用终结点以及其中一个密钥。</li>
+  <li>在 Visual Studio Code 中的 <strong>09-luis-app</strong> 文件夹中，选择 <strong>GetIntent.cmd</strong> 批处理文件并查看其包含的代码。此命令行脚本使用 cURL 为指定的应用程序和预测终结点调用语言理解 REST API。</li>
+  <li>将脚本中的占位符值替换为语言理解应用的 <strong>“应用 ID”</strong>、<strong>“终结点 URL”</strong> 以及 <strong>“主密钥”</strong> 或 <strong>“辅助密钥”</strong>；然后保存更新的文件。</li>
+  <li>
+    <p>右键单击 <strong>09-luis-app</strong> 文件夹，并打开集成终端。然后输入以下命令（确保包含引号！）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"几点了？"</span></span>
+</code></pre>
+  </li>
+  <li>查看应用返回的 JSON 响应，该响应应指示针对输入预测的得分最高的意图（应为 <strong>GetTime</strong>）。</li>
+  <li>
+    <p>请尝试以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"今天是几号？"</span></span>
+</code></pre>
+  </li>
+  <li>检查响应并验证它是否预测了 <strong>GetDate</strong> 意图。</li>
+  <li>
+    <p>请尝试以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"悉尼现在几点了？"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>检查响应并验证它是否包含 <strong>“位置”</strong> 实体。</p>
+  </li>
+  <li>
+    <p>尝试以下命令并检查响应：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"格拉斯哥现在几点了？"</span></span>
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"内罗毕现在几点了？"</span></span>
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">GetIntent</span></span> <span class="hljs-string"><span class="hljs-string">"英国几点了？"</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>尝试更多的变化 - 目标是生成至少一些正确预测 <strong>GetTime</strong> 意图，但无法检测到 <strong>“位置”</strong> 实体的响应。</p>
+
+    <p>将终端保持为打开状态。稍后将用到它。</p>
+  </li>
+</ol>
+
+<h2 id="应用主动学习">应用<em>主动学习</em></h2>
+
+<p>可以根据提交到终结点的历史言语改进语言理解应用。此做法被称为<em>主动学习</em>。</p>
+
+<p>在前面的过程中，你使用 cURL 向应用的终结点提交了一些请求。这些请求包括用于记录查询的选项，该选项使应用能够跟踪查询，以便在主动学习中使用这些查询。</p>
+
+<ol>
+  <li>在语言理解门户中，选择 <strong>“生成”</strong> 并查看 <strong>“查看终结点言语”</strong> 页面。此页面列出了服务已标记以供查看的已记录的言语。</li>
+  <li>对于已正确预测其意图和新位置实体（未包含在原始训练言语中）的任何言语，选择 <strong>✓</strong> 以确认实体，然后使用 <strong>⤒</strong> 图标将该言语添加到意图作为训练示例。</li>
+  <li>查找已正确识别其中的 <strong>GetTime</strong> 意图，但<u>未</u>识别 <strong>“位置”</strong> 实体的言语示例；选择位置名称并将其映射到 <strong>“位置”</strong> 实体。然后使用 <strong>⤒</strong> 图标将该言语添加到意图作为训练示例。</li>
+  <li>转到 <strong>“意图”</strong> 页面并打开 <strong>GetTime</strong> 意图以确认是否已添加建议的言语。</li>
+  <li>在语言理解门户顶部，选择 <strong>“训练”</strong> 以重新训练应用。</li>
+  <li>选择语言理解门户右上角的 <strong>“发布”</strong>，并将应用重新发布至 <strong>“生产槽位”</strong>。</li>
+  <li>返回 <strong>09-luis-app</strong> 文件夹的终端，并使用 <strong>GetIntent</strong> 命令提交在主动学习期间添加和更正的言语。</li>
+  <li>验证结果现在是否包含 <strong>“位置”</strong> 实体。然后尝试另一使用相同表述但指定了不同位置（例如<em>柏林</em>）的言语。</li>
+</ol>
+
+<h2 id="导出应用">导出应用</h2>
+
+<p>可以使用语言理解门户来开发和测试语言应用，但在 DevOps 的软件开发过程中，应维护可包含在持续集成和持续交付 (CI/CD) 管道中的应用的源代码控制定义。虽然<em>可以</em>使用代码脚本中的语言理解 SDK 或 REST API 来创建和训练应用，但一种更简单的方法是使用门户来创建应用，并将其导出为可在另一语言理解实例中导入和重新训练的 <em>.lu</em> 文件。这种方法使你能够使用门户的工作效率优势，同时保持应用的可移植性和可再现性。</p>
+
+<ol>
+  <li>在语言理解门户中选择 <strong>“管理”</strong>。</li>
+  <li>在 <strong>“版本”</strong> 页面上，选择应用的当前版本（应只有一个）。</li>
+  <li>在 <strong>“导出”</strong> 下拉列表中，选择 <strong>“导出为 LU”</strong>。然后，当浏览器发出提示时，将文件保存到 <strong>09-luis-app</strong> 文件夹中。</li>
+  <li>在 Visual Studio Code 中，打开刚刚导出和下载的 <strong>.lu</strong> 文件（如果系统提示你在市场中搜索可读取该文件的扩展，请忽略该提示）。请注意，LU 格式可人工读取，从而成为了在团队开发环境中记录语言理解应用定义的一种有效方法。</li>
+</ol>
+
+<h2 id="更多信息">更多信息</h2>
+
+<p>有关使用<strong>语言理解</strong>服务的详细信息，请参阅<a href="https://docs.microsoft.com/azure/cognitive-services/luis/">语言理解文档</a>。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

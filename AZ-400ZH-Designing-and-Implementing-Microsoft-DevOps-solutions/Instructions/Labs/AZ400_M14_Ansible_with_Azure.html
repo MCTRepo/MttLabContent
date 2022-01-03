@@ -1,0 +1,646 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#准备工作">准备工作</a></li><li class="nav-item"><a class="nav-link" href="#练习-1使用-ansible-部署配置和管理-azure-vm">练习 1：使用 Ansible 部署、配置和管理 Azure VM</a></li><li class="nav-item"><a class="nav-link" href="#练习-2删除-azure-实验室资源">练习 2：删除 Azure 实验室资源</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-14a-ansible-与-azure">实验室 14a： Ansible 与 Azure</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室概述">实验室概述</h2>
+
+<p>在本实验室中，我们将使用 Ansible 部署、配置和管理 Azure 资源。</p>
+
+<p>Ansible 是声明性配置管理软件。它依赖于托管计算机的预期配置描述，这种描述通常采用 playbook 形式。Ansible 自动应用该配置并维护它持续运行，从而解决任何潜在差异。Playbook 使用 YAML 进行格式设置。</p>
+
+<p>与大多数其他配置管理工具（例如 Puppet 或 Chef）不同，Ansible 是无代理的，这意味着它无需在托管计算机上安装任何软件。Ansible 使用 SSH 来管理 Linux 服务器，使用 Powershell Remoting 来管理 Windows 服务器和客户端。</p>
+
+<p>为了与资源而非操作系统（例如可通过 Azure 资源管理器访问的 Azure 资源）进行交互，Ansible 支持称为模块的扩展。因此可使用 Python 高效编写 Ansible，并将模块作为 Python 库实现。Ansible 依赖于 <a href="https://github.com/ansible-collections/azure">GitHub 托管模块</a>来管理 Azure 资源。</p>
+
+<p>Ansible 要求在指定的主机清单中指定托管资源。对于某些系统（包括 Azure），Ansible 支持动态清单，以便在运行时动态生成主机清单。</p>
+
+<p>本实验室将包括以下概要步骤：</p>
+
+<ul>
+  <li>在 Azure VM 上安装和配置 Ansible</li>
+  <li>下载 Ansible 配置和示例 playbook 文件</li>
+  <li>在 Azure AD 中创建和配置托管标识</li>
+  <li>配置 Azure AD 凭据和 SSH 以用于 Ansible</li>
+  <li>使用 Ansible playbook 部署 Azure VM</li>
+  <li>使用 Ansible playbook 配置 Azure VM</li>
+</ul>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>在 Azure VM 上安装和配置 Ansible</li>
+  <li>下载 Ansible 配置和示例 playbook 文件</li>
+  <li>创建和配置 Azure Active Directory 托管标识</li>
+  <li>配置 Azure AD 凭据和 SSH 以用于 Ansible</li>
+  <li>使用 Ansible playbook 部署 Azure VM</li>
+  <li>使用 Ansible playbook 配置 Azure VM</li>
+</ul>
+
+<h2 id="实验室持续时间">实验室持续时间</h2>
+
+<ul>
+  <li>预计用时：<strong>90 分钟</strong></li>
+</ul>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="准备工作">准备工作</h3>
+
+<h4 id="登录到实验室虚拟机">登录到实验室虚拟机</h4>
+
+<p>确保已使用以下凭据登录到 Windows 10 计算机：</p>
+
+<ul>
+  <li>用户名：<strong>Student</strong></li>
+  <li>密码：<strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="查看本实验室所需的应用程序">查看本实验室所需的应用程序</h4>
+
+<p>确定你将在本实验室中使用的应用程序：</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="准备-azure-订阅">准备 Azure 订阅</h4>
+
+<ul>
+  <li>标识现有的 Azure 订阅或创建一个新的 Azure 订阅。</li>
+  <li>验证你拥有 Microsoft 帐户或 Azure AD 帐户，该帐户在 Azure 订阅中具有所有者角色并且在与 Azure 订阅关联的 Azure AD 租户中具有全局管理员角色。有关详细信息，请参阅<a href="https://docs.microsoft.com/zh-cn/azure/role-based-access-control/role-assignments-list-portal">使用 Azure 门户列出 Azure 角色分配</a>和<a href="https://docs.microsoft.com/zh-cn/azure/active-directory/roles/manage-roles-portal#view-my-roles">在 Azure Active Directory 中查看和分配管理员角色</a>。</li>
+</ul>
+
+<h3 id="练习-1使用-ansible-部署配置和管理-azure-vm">练习 1：使用 Ansible 部署、配置和管理 Azure VM</h3>
+
+<p>在本练习中，你将使用 Ansible 部署、配置和管理 Azure VM。</p>
+
+<h4 id="任务-1预配充当-ansible-控制节点的-azure-vm">任务 1：预配充当 Ansible 控制节点的 Azure VM</h4>
+
+<p>在此任务中，你将使用 Azure CLI 部署一个 Azure Vm，并将它配置为负责管理 Ansible 环境的 Ansible 控制节点。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 你将使用配置为 Ansible 控制节点的 Azure VM 来执行 Ansible 管理任务，包括你在本实验室之前的任务中执行的操作。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户的工具栏中，单击搜索文本框右侧的 <strong>“Cloud Shell”</strong> 图标。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 或者，可以直接通过导航到 <a href="https://shell.azure.com">https://shell.azure.com</a> 来访问 Cloud Shell。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>如果提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong>，请选择 <strong>“Bash”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果这是第一次启动 <strong>Cloud Shell</strong>，并显示消息 <strong>“未装载任何存储”</strong>，请选择你将在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中，运行以下命令来指定 Azure 区域的名称，该区域将托管你在本实验室中部署的资源（将 <code>&lt;Azure_region&gt;</code> 占位符替换为你要在其中部署资源的 Azure 区域的名称）。请确保名称中不包含任何空格，例如 <code>westeurope</code>）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs">LOCATION=&lt;Azure_region&gt;
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中的 Bash 会话中运行以下命令，创建将托管你在本实验室中部署的 Azure VM 的资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs">RG1NAME=az400m14l03rg
+az group create --name <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+RG2NAME=az400m14l03arg
+az group create --name <span class="hljs-variable"><span class="hljs-variable">$RG2NAME</span></span> --location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，将运行 Ubuntu 的 Azure VM 部署到你在上一步中创建的资源组中：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs">VM1NAME=az400m1403vm1
+az vm create \
+--resource-group <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> \
+--name <span class="hljs-variable"><span class="hljs-variable">$VM1NAME</span></span> \
+--image UbuntuLTS \
+--authentication-type password \
+--admin-username azureuser \
+--admin-password Pa55w.rd1234
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：请等待部署完成，再继续下一步。该过程大约需要 2 分钟。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 预配完成后，在基于 JSON 的输出中，标识该输出中包含的 <strong>“publicIpAddress”</strong> 属性的值。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行以下命令，使用 SSH 连接到新部署的 Azure VM：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs">PIP=$(az vm show --show-details --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$VM1NAME</span></span> --query publicIps --output tsv)
+ssh azureuser@<span class="hljs-variable"><span class="hljs-variable">$PIP</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>出现确认继续操作的提示时，键入 <strong>“是”</strong> 并按 <strong>Enter</strong> 键，然后在提示提供密码时，键入 <strong>Pa55w.rd1234</strong>。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2在-azure-vm-上安装和配置-ansible">任务 2：在 Azure VM 上安装和配置 Ansible</h4>
+
+<p>在此任务中，你将在上一个任务中部署的 Azure VM 上安装和配置 Ansible。</p>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格的 Bash 会话中，在新部署的 Azure VM 的 SSH 会话中，运行以下命令，以更新高级打包工具 (apt) 包列表，在其中包含最新版本和包详细信息：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs">sudo apt-get update
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，安装 Ansible 和所需的 Azure 模块（<strong>确保逐行单独运行命令</strong>；每当系统提示确认时，都请键入 <strong>“y”</strong> 并按 <strong>Enter</strong> 键）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs">sudo apt install python3-pip
+sudo -H pip3 install --upgrade pip
+sudo -H pip3 install ansible[azure]
+sudo apt-add-repository --yes --update ppa:ansible/ansible
+sudo apt install ansible
+sudo ansible-galaxy collection install azure.azcollection
+curl -O https://raw.githubusercontent.com/ansible-collections/azure/dev/requirements-azure.txt
+sudo pip3 install -r requirements-azure.txt
+rm requirements-azure.txt
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 忽略任何警告。如果遇到任何错误，请重新运行命令。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行以下命令来安装 dnspython 包，使 Ansible playbook 可在部署之前验证 DNS 名称：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-bash hljs">sudo -H pip3 install dnspython
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格的 Bash 会话中，转到新部署的 Azure VM 的 SSH 会话，运行以下命令来安装 JSON 分析工具 <strong>jq</strong> （出现提示时，请输入 <strong>“y”</strong> 并按 <strong>Enter</strong> 键）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-bash hljs">sudo apt install jq
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令来安装 Azure CLI：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-bash hljs">curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="任务-3下载-ansible-配置和示例-playbook-文件">任务 3：下载 Ansible 配置和示例 playbook 文件</h4>
+
+<p>在此任务中，你将从 GitHub 中下载 Ansible 配置存储库和示例实验室文件。</p>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格的 Bash 会话中，在新部署的 Azure VM 的 SSH 会话中，运行以下命令以确保已安装 <strong>git</strong>：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-bash hljs">sudo apt install git
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，从 GitHub 中克隆 PartsUnlimitedMRP 存储库：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-bash hljs">git <span class="hljs-built_in"><span class="hljs-built_in">clone</span></span> https://github.com/Microsoft/PartsUnlimitedMRP.git
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 此存储库包含用于创建各种资源的 playbook，我们将在实验室中使用其中一些 playbook。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-4创建和配置-azure-active-directory-托管标识">任务 4：创建和配置 Azure Active Directory 托管标识</h4>
+
+<p>在此任务中，你将生成一个 Azure AD 托管标识来帮助执行 Ansible 的非交互式身份验证（这是访问 Azure 资源的必需操作）。你还要将托管标识分配到你在上一任务中创建的资源组上的“参与者”角色。</p>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格的 Bash 会话中，在新部署的 Azure VM 的 SSH 会话中，运行以下命令以登录与你的 Azure 订阅关联的 Azure AD 租户：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-bash hljs">az login
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果命令失败，请重新运行 Azure CLI 的安装。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>记下上一命令的输出中显示的代码，并切换到实验室计算机。从实验室计算机，在显示 Azure 门户的浏览器窗口中打开新的标签页，导航到 <a href="https://microsoft.com/devicelogin">Microsoft 设备登录页面</a>，出现提示时输入代码，然后选择 <strong>“下一步”</strong>。</p>
+  </li>
+  <li>
+    <p>在出现提示时，使用在本实验室中所用的凭据登录，然后关闭浏览器标签页。</p>
+  </li>
+  <li>
+    <p>切换回到 Cloud Shell 窗格中的 Bash 会话。在配置为 Ansible 控制节点的 Azure VM 的 SSH 会议中，运行以下命令来生成系统分配的托管标识：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-bash hljs">RG1NAME=az400m14l03rg
+VM1NAME=az400m1403vm1
+az vm identity assign --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$VM1NAME</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令来确定订阅的值：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-bash hljs">SUBSCRIPTIONID=$(az account show --query id --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，检索内置的“Azure 基于角色的访问控制参与者”角色的 <strong>ID</strong> 属性的值：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-bash hljs">CONTRIBUTORID=$(az role definition list --name <span class="hljs-string"><span class="hljs-string">"Contributor"</span></span> --query <span class="hljs-string"><span class="hljs-string">"[].id"</span></span> --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，分配你先前在本实验室中创建的资源组上的“参与者”角色。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-bash hljs">MIID=$(az resource list --name <span class="hljs-variable"><span class="hljs-variable">$VM1NAME</span></span> --query [*].identity.principalId --out tsv)
+
+RG2NAME=az400m14l03arg
+az role assignment create --assignee <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$MIID</span></span></span><span class="hljs-string">"</span></span> \
+--role <span class="hljs-string"><span class="hljs-string">"</span><span class="hljs-variable"><span class="hljs-string"><span class="hljs-variable">$CONTRIBUTORID</span></span></span><span class="hljs-string">"</span></span> \
+--scope /subscriptions/<span class="hljs-variable"><span class="hljs-variable">$SUBSCRIPTIONID</span></span>/resourceGroups/<span class="hljs-variable"><span class="hljs-variable">$RG2NAME</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="任务-5配置-ssh-来与-ansible-一起使用">任务 5：配置 SSH 来与 Ansible 一起使用</h4>
+
+<p>在此任务中，你将配置 SSH 来与 Ansible 一起使用。</p>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格的 Bash 会话中，转到新部署的 Azure VM 的 SSH 会话，运行以下命令来生成密钥对（出现提示时，按 <strong>Enter</strong> 键三次来接受文件位置的默认值且不设置密码）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-bash hljs">ssh-keygen -t rsa
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，授予对托管私钥的 <strong>.ssh</strong> 文件夹的读取、写入和执行权限：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-bash hljs">chmod 755 ~/.ssh
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，创建并设置对 <strong>authorized_keys</strong> 文件的读取和写入权限。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-bash hljs">touch ~/.ssh/authorized_keys
+chmod 644 ~/.ssh/authorized_keys
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 通过提供此文件中包含的密钥，你无需提供密码即可访问此文件。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行以下命令，将密码添加到 <strong>authorized_keys</strong> 文件中：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-bash hljs">ssh-copy-id azureuser@127.0.0.1
+</code></pre>
+  </li>
+  <li>在出现提示时，键入 <strong>“是”</strong>，然后为 <strong>azureuser</strong> 用户帐户（之前在本实验室中部署第三个Azure VM 时指定的帐户）输入密码 <strong>Pa55w.rd1234</strong>。</li>
+  <li>
+    <p>运行以下命令，验证系统是否未提示输入密码：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-bash hljs">ssh 127.0.0.1
+</code></pre>
+  </li>
+  <li>键入 <strong>“退出”</strong> 并按 <strong>Enter</strong> 键，终止你刚才建立的环回连接。</li>
+</ol>
+
+<blockquote>
+  <p><strong>备注</strong>： 建立无密码 SSH 身份验证是设置 Ansible 环境的一个关键步骤。</p>
+</blockquote>
+
+<h4 id="任务-6使用-ansible-playbook-创建-web-服务器-azure-vm">任务 6：使用 Ansible playbook 创建 Web 服务器 Azure VM</h4>
+
+<p>在此任务中，你将使用 Ansible playbook 创建托管 Web 服务器的 Azure VM。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 在控制 Azure VM 中启动并运行 Ansible 后，我们现在可以部署第一个 playbook，以便创建和配置托管 Azure VM。在部署示例 playbook 之前，你需要将包含在其内容中的公共 SSH 密钥替换为在上一个任务中生成的密钥。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格的 Bash 会话中，转到配置为 Ansible 控制节点的 Azure VM 的 SSH 会话，运行以下命令来标识你在上一任务中生成且存储在本地的公钥：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-bash hljs">cat ~/.ssh/id_rsa.pub
+</code></pre>
+  </li>
+  <li>记录输出，包括输出字符串结尾的用户名。</li>
+  <li>
+    <p>运行以下命令，在代码文本编辑器中打开“<strong>new_vm_web.yml</strong>”文件：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-bash hljs">code ~/PartsUnlimitedMRP/Labfiles/AZ-400T05-ImplemntgAppInfra/Labfiles/ansible/new_vm_web.yml
+</code></pre>
+  </li>
+  <li>
+    <p>在代码编辑器中，如果需要，将 <code>dnsname: '.westeurope.cloudapp.azure.com'</code> 条目中的区域名称更改为要在其中进行部署的 Azure 区域的名称。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请确保此区域与你在 <strong>az400m14l03rg</strong> 资源组中创建的 Azure 区域相匹配。</p>
+    </blockquote>
+  </li>
+  <li>在代码编辑器中，将 <code>vm_size</code> 条目的值从 <code>Standard_A0</code> 更改为 <code>Standard_DS1_v2</code>。</li>
+  <li>
+    <p>在代码编辑器中，找到文件末尾的 SSH 字符串，在 <code>key_data</code> 条目中，删除现有键值，并将其替换为在本任务前面部分记录的键值。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 确保文件中包含的 <code>admin_username</code> 条目的值与用于登录托管 Ansible 控制系统的 Azure VM 的用户名 (<strong>azureuser</strong>)一致。<code>Ssh_public_keys</code> 部分的 <code>path</code> 条目必须使用相同的用户名。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在代码编辑器界面中，单击右上方的“<strong>…</strong>”，然后选择“<strong>保存</strong>”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 接下来，你将在本实验室开头时创建的资源组中部署一个 Azure VM：使用以下值进行部署：</p>
+    </blockquote>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>资源组</td>
+          <td><strong>az400m14l03arg</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az400m1403aVNET</strong></td>
+        </tr>
+        <tr>
+          <td>子网</td>
+          <td><strong>az400m1403aSubnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可在 playbook 中定义这些变量，也可在通过包含 <code>--extra-vars</code> 选项来调用 <code>ansible-playbook</code> 命令时，在运行时输入这些变量。对于 VM 名称，仅使用小写字母和数字（不使用连字符、下划线符号或大写字符）且长度不超过 15 个字符，同时确保它是全局唯一的，因为该名称用于为与相应的 Azure VM 关联的公共 IP 地址生成存储帐户和 DNS 名称。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行以下命令，创建你将在其中使用 Ansible playbook 部署 Azure VM 的虚拟网络及其子网。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-bash hljs">RG1NAME=az400m14l03arg
+LOCATION=$(az group show --resource-group <span class="hljs-variable"><span class="hljs-variable">$RG1NAME</span></span> --query location --output tsv)
+RG2NAME=az400m14l03arg
+VNETNAME=az400m1403aVNET
+SUBNETNAME=az400m1403aSubnet
+az network vnet create \
+--name <span class="hljs-variable"><span class="hljs-variable">$VNETNAME</span></span> \
+--resource-group <span class="hljs-variable"><span class="hljs-variable">$RG2NAME</span></span> \
+--location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> \
+--address-prefixes 192.168.0.0/16 \
+--subnet-name <span class="hljs-variable"><span class="hljs-variable">$SUBNETNAME</span></span> \
+--subnet-prefix 192.168.1.0/24
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，部署用于预配 Azure VM 的示例 Ansible playbook（确保将 <code>&lt;VM_name&gt;</code> 替换为你选择的唯一 VM 名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-bash hljs">sudo ansible-playbook ~/PartsUnlimitedMRP/Labfiles/AZ-400T05-ImplemntgAppInfra/Labfiles/ansible/new_vm_web.yml --extra-vars <span class="hljs-string"><span class="hljs-string">"vmname=&lt;VM_name&gt; resgrp=az400m14l03arg vnet=az400m1403aVNET subnet=az400m1403aSubnet"</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 忽略与 ip_configuration 设置相关的弃用警告。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果输入现有或无效的 VM 名称，则可能会遇到以下错误：</p>
+    </blockquote>
+
+    <ul>
+      <li><code>fatal: [localhost]: FAILED! =&gt; {"changed": false, "failed": true, "msg": "The storage account named storageaccountname is already taken.- Reason.already_exists"}</code>. 要解决此问题，请为 Azure VM 使用其他名称，因为你使用的名称不是全局唯一的。</li>
+      <li><code>fatal: [localhost]: FAILED! =&gt; {"changed": false, "failed": true, "msg": "Error creating or updating your-vm-name - Azure Error: InvalidDomainNameLabel\nMessage: The domain name label for your VM is invalid.It must conform to the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$.”}</code>。要解决此问题，请按照要求的命名约定，为 Azure VM 使用其他名称。</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>备注</strong>： 等待部署完成。该操作需要约 3 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行以下命令，创建一个名为“<strong>myazure_rm.yml</strong>”的新文件，并在代码文本编辑器中打开它：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-bash hljs">code ./myazure_rm.yml
+</code></pre>
+  </li>
+  <li>
+    <p>在代码编辑器界面中，粘贴以下内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-bash hljs">plugin: azure_rm
+include_vm_resource_groups:
+- az400m14l03arg
+auth_source: msi
+
+keyed_groups:
+- prefix: tag
+  key: tags
+</code></pre>
+  </li>
+  <li>在代码编辑器界面中，单击右上方的“<strong>…</strong>”，然后选择“<strong>保存</strong>”。</li>
+  <li>
+    <p>回到 Cloud Shell 窗格的 Bash 会话，在与配置为 Ansible 控制节点的 Azure VM 的 SSH 会话中，运行以下命令来执行 ping 测试，验证动态清单文件是否包含新部署的 Azure VM：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="language-bash hljs">sudo ansible --user azureuser --private-key=/home/azureuser/.ssh/id_rsa all -m ping -i ./myazure_rm.yml
+</code></pre>
+  </li>
+  <li>
+    <p>当系统提示你是否要继续连接时，请键入 <strong>“是”</strong> 并按 <strong>Enter</strong> 键。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 输出应如下所示：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-bash hljs">az400m1403vm2_5444 | SUCCESS =&gt; {
+    <span class="hljs-string"><span class="hljs-string">"ansible_facts"</span></span>: {
+        <span class="hljs-string"><span class="hljs-string">"discovered_interpreter_python"</span></span>: <span class="hljs-string"><span class="hljs-string">"/usr/bin/python"</span></span>
+    },
+    <span class="hljs-string"><span class="hljs-string">"changed"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+    <span class="hljs-string"><span class="hljs-string">"ping"</span></span>: <span class="hljs-string"><span class="hljs-string">"pong"</span></span>
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 第一次运行该命令时，你需要确认目标 VM 的真实性，方法是键入 <strong>“是”</strong>，然后按 <strong>Enter</strong> 键。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-7使用-ansible-playbook-配置-azure-vm">任务 7：使用 Ansible playbook 配置 Azure VM</h4>
+
+<p>在此任务中，你将运行另一个 Ansible playbook，这次是配置新部署的 Azure VM。你将使用一个 playbook，它会安装软件包 http 并从 GitHub 存储库下载 HTML 页面。完成此操作后，你将有一个功能完善的 Web 服务器。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 我们将使用示例 playbook <strong>“~/PartsUnlimitedMRP/Labfiles/AZ-400T05-ImplemntgAppInfra/Labfiles/ansible/httpd.yml”</strong>。我们将使用变量 <strong>vmname</strong> 来修改 playbook 的主机参数，该参数用于定义 playbook 将面向的具体主机（包含在动态清单脚本返回的主机中）。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Cloud Shell 窗格的 Bash 会话中，转到配置为 Ansible 控制节点的 Azure VM 的 SSH 会话，运行以下命令来确定新部署的 Azure VM 的公共 IP 地址（<strong>务必将<code>&lt;VM_name&gt;</code>占位符替换为你分配给新预配的 Azure VM 的名称</strong>）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-bash hljs">RGNAME=<span class="hljs-string"><span class="hljs-string">'az400m14l03arg'</span></span>
+VMNAME=<span class="hljs-string"><span class="hljs-string">'&lt;VM_name&gt;'</span></span>
+PIP=$(az vm show --show-details --resource-group <span class="hljs-variable"><span class="hljs-variable">$RGNAME</span></span> --name <span class="hljs-variable"><span class="hljs-variable">$VMNAME</span></span> --query publicIps --output tsv)
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，验证新部署的 Azure VM 当前是否未在运行任何 Web 服务（其中，<code>&lt;IP_address&gt;</code>占位符表示分配给你在上一任务中预配的 Azure VM 的网络适配器的公共 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-bash hljs">curl http://<span class="hljs-variable"><span class="hljs-variable">$PIP</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：验证响应的格式是否为 <code>curl: (7) Failed to connect to 52.186.157.26 port 80: Connection refused</code>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>运行以下命令，使用 Ansible playbook 安装 HTTP 服务（其中，<code>&lt;VM_name&gt;</code>占位符表示你在上一任务中预配的 VM 的名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-bash hljs">sudo ansible-playbook --user azureuser --private-key=/home/azureuser/.ssh/id_rsa -i ./myazure_rm.yml ~/PartsUnlimitedMRP/Labfiles/AZ-400T05-ImplemntgAppInfra/Labfiles/ansible/httpd.yml --extra-vars <span class="hljs-string"><span class="hljs-string">"vmname=&lt;VM_name&gt;*"</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请务必在 Azure VM 名称后面追加尾随星号 (<strong>*</strong>)。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 请等待安装完成。所需时间应该不超过一分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>安装完成后，请运行以下命令，验证新部署的 Azure VM 当前是否正在运行 Web 服务（其中，<code>&lt;IP_address&gt;</code> 占位符表示分配给你在上一任务中预配的 Azure VM 的网络适配器的公共 IP 地址）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="language-bash hljs">curl http://<span class="hljs-variable"><span class="hljs-variable">$PIP</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： 输出应具有以下内容：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="language-html hljs xml"> <span class="hljs-meta"><span class="hljs-meta">&lt;!DOCTYPE html&gt;</span></span>
+ <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">html</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">lang</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"en"</span></span></span><span class="hljs-tag">&gt;</span></span>
+     <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">head</span></span></span><span class="hljs-tag">&gt;</span></span>
+         <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">meta</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">charset</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"utf-8"</span></span></span><span class="hljs-tag">&gt;</span></span>
+         <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">title</span></span></span><span class="hljs-tag">&gt;</span></span>Hello World<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">title</span></span></span><span class="hljs-tag">&gt;</span></span>
+     <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">head</span></span></span><span class="hljs-tag">&gt;</span></span>
+     <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">body</span></span></span><span class="hljs-tag">&gt;</span></span>
+         <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>Hello World<span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">h1</span></span></span><span class="hljs-tag">&gt;</span></span>
+         <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">p</span></span></span><span class="hljs-tag">&gt;</span></span>
+             <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">br</span></span></span><span class="hljs-tag">&gt;</span></span>This is a test page
+             <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">br</span></span></span><span class="hljs-tag">&gt;</span></span>This is a test page
+             <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">br</span></span></span><span class="hljs-tag">&gt;</span></span>This is a test page
+         <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">p</span></span></span><span class="hljs-tag">&gt;</span></span>
+     <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">body</span></span></span><span class="hljs-tag">&gt;</span></span>
+ <span class="hljs-tag"><span class="hljs-tag">&lt;/</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">html</span></span></span><span class="hljs-tag">&gt;</span></span>
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="练习-2删除-azure-实验室资源">练习 2：删除 Azure 实验室资源</h3>
+
+<p>在本练习中，你将删除在本实验室中预配的 Azure 资源，避免产生意外费用。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 请记得删除不再使用的所有新创建的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<h4 id="任务-1删除-azure-实验室资源">任务 1：删除 Azure 实验室资源</h4>
+
+<p>在此任务中，你将使用 Azure Cloud Shell 删除在本实验室中预配的 Azure 资源，避免产生不必要的费用。</p>
+
+<ol>
+  <li>在 Azure 门户中，在 <strong>Cloud Shell</strong> 窗格中打开 <strong>Bash</strong> Shell 会话。</li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m14l03')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m14l03')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：该命令以异步方式执行（由 –nowait 参数决定），因此，虽然你随后可在同一 Bash 会话中立即运行另一个 Azure CLI 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="回顾">回顾</h2>
+
+<p>在本实验室中，你已了解如何使用 Ansible 部署、配置和管理 Azure 资源。</p>
+
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

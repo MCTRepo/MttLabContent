@@ -1,0 +1,1551 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-303-Microsoft-Azure-Architect-Technologies
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D479f9cfd893a2bea83ac41ba638fc5e7bd9113e0.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-303-Microsoft-Azure-Architect-Technologies
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#exercise-1-implement-and-analyze-highly-available-azure-vm-deployments-using-availability-sets-and-azure-load-balancer-basic">Exercise 1: Implement and analyze highly available Azure VM deployments using availability sets and Azure Load Balancer Basic</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-implement-and-analyze-highly-available-azure-vm-deployments-using-availability-zones-and-azure-load-balancer-standard">Exercise 2: Implement and analyze highly available Azure VM deployments using availability zones and Azure Load Balancer Standard</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-implement-and-analyze-highly-available-azure-vm-scale-set-deployments-using-availability-zones-and-azure-application-gateway">Exercise 3: Implement and analyze highly available Azure VM Scale Set deployments using availability zones and Azure Application Gateway.</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-implementing-autoscaling-of-azure-vm-scale-sets-using-availability-zones-and-azure-application-gateway">Exercise 4: Implementing autoscaling of Azure VM Scale Sets using availability zones and Azure Application Gateway.</a></li><li class="nav-item"><a class="nav-link" href="#exercise-5-implementing-vertical-scaling-of-azure-vm-scale-sets">Exercise 5: Implementing vertical scaling of Azure VM Scale Sets</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-implementing-highly-available-azure-iaas-compute-architecture">Lab: Implementing Highly Available Azure IaaS Compute Architecture</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>Adatum Corporation has several on-premises workloads running on a mix of physical servers and virtual machines. Most of the workloads require some level of resiliency, including a range of high availability SLAs. Most of the workloads leverage either Windows Server Failover Clustering or Linux Corosync clusters and Pacemaker resource manager, with synchronous replication between cluster nodes. Adatum is trying to determine how the equivalent functionality can be implemented in Azure. In particular, the Adatum Enterprise Architecture team is exploring the Azure platform capabilities that accommodate high availability requirements within the same data center and between data centers in the same region.</p>
+
+<p>In addition, the Adatum Enterprise Architecture team realizes that resiliency alone might not be sufficient to provide the level of availability expected by its business operations. Some of the workloads have highly dynamic usage patterns, which are currently addressed based on continuous monitoring and custom scripting solutions, automatically provisioning and deprovisioning additional cluster nodes. Usage patterns of others are more predictable, but also need to be occasionally adjusted to account for increase demand for disk space, memory, or processing resources.</p>
+
+<p>To accomplish these objectives, the Architecture team wants to test a range of highly available IaaS compute deployments, including:</p>
+
+<ul>
+  <li>
+    <p>Availability sets-based deployment of Azure VMs behind an Azure Load Balancer Basic</p>
+  </li>
+  <li>
+    <p>Zone-redundant deployment of Azure VMs behind an Azure Load Balancer Standard</p>
+  </li>
+  <li>
+    <p>Zone-redundant deployment of Azure VM scale sets behind an Azure Application Gateway</p>
+  </li>
+  <li>
+    <p>Automatic horizontal scaling of Azure VM scale sets (autoscaling)</p>
+  </li>
+  <li>
+    <p>Manual vertical scaling (compute and storage) of Azure VM scale sets</p>
+  </li>
+</ul>
+
+<p>An availability set represents a logical grouping of Azure VMs which controls their physical placement within the same Azure datacenter. Azure makes sure that the VMs within the same availability set run across multiple physical servers, compute racks, storage units, and network switches. If a hardware or software failure happens, only a subset of your VMs are impacted and your overall solution stays operational. Availability Sets are essential for building reliable cloud solutions. With availability sets, Azure offers 99.95% VM uptime SLA.</p>
+
+<p>Availability zones represent unique physical locations within a single Azure region. Each zone is made up of one or more datacenters equipped with independent power, cooling, and networking. The physical separation of availability zones within a region protects applications and data from datacenter failures. Zone-redundant services replicate your applications and data across availability zones to protect from single-points-of-failure. With availability zones, Azure offers 99.99% VM uptime SLA.</p>
+
+<p>Azure virtual machine scale sets let you create and manage a group of identical, load balanced VMs. The number of VM instances can automatically increase or decrease in response to demand or a defined schedule. Scale sets provide high availability to your applications, and allow you to centrally manage, configure, and update many VMs. With virtual machine scale sets, you can build large-scale services for areas such as compute, big data, and container workloads.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ul>
+  <li>
+    <p>Describe characteristics of highly available Azure VMs residing in the same availability set behind a Azure Load Balancer Basic</p>
+  </li>
+  <li>
+    <p>Describe characteristics of highly available Azure VMs residing in different availability zones behind an Azure Load Balancer Standard</p>
+  </li>
+  <li>
+    <p>Describe characteristics of automatic horizontal scaling of Azure VM Scale Sets</p>
+  </li>
+  <li>
+    <p>Describe characteristics of manual vertical scaling of Azure VM Scale Sets</p>
+  </li>
+</ul>
+
+<h2 id="lab-environment">Lab Environment</h2>
+
+<p>Windows Server admin credentials</p>
+
+<ul>
+  <li>
+    <p>User Name: <strong>Admin</strong></p>
+  </li>
+  <li>
+    <p>Password: <strong>Pa55w.rd</strong></p>
+  </li>
+</ul>
+
+<p>Estimated Time: 120 minutes</p>
+
+<h2 id="lab-files">Lab Files</h2>
+
+<ul>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305suba.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rga.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rga.parameters.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rgb.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rgb.parameters.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rgc.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\azuredeploy30305rgc.parameters.json</p>
+  </li>
+  <li>
+    <p>\AZ303\AllFiles\Labs\05\az30305e-configure_VMSS_with_data_disk.ps1</p>
+  </li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="exercise-1-implement-and-analyze-highly-available-azure-vm-deployments-using-availability-sets-and-azure-load-balancer-basic">Exercise 1: Implement and analyze highly available Azure VM deployments using availability sets and Azure Load Balancer Basic</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Deploy highly available Azure VMs into an availability set behind an Azure Load Balancer Basic by using Azure Resource Manager templates</p>
+  </li>
+  <li>
+    <p>Analyze highly available Azure VMs deployed into an availability set behind an Azure Load Balancer Basic</p>
+  </li>
+  <li>
+    <p>Remove Azure resources deployed in the exercise</p>
+  </li>
+</ol>
+
+<h4 id="task-1-deploy-highly-available-azure-vms-into-an-availability-set-behind-an-azure-load-balancer-basic-by-using-azure-resource-manager-templates">Task 1: Deploy highly available Azure VMs into an availability set behind an Azure Load Balancer Basic by using Azure Resource Manager templates</h4>
+
+<ol>
+  <li>
+    <p>From your lab computer, start a web browser, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in by providing credentials of a user account with the Owner role in the subscription you will be using in this lab.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open the <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>Bash</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to register the Microsoft.Insights resource provider in preparation for the upcoming exercises in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-Bash hljs">az provider register --namespace <span class="hljs-string"><span class="hljs-string">'Microsoft.Insights'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, select the <strong>Upload/Download files</strong> icon, in the drop-down menu select <strong>Upload</strong>, and upload the file <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305suba.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to designate the Azure region you will be using in this lab (replace the <code>&lt;Azure region&gt;</code> placeholder with the name of the Azure region that is available for deployment of Azure VMs in your subscription and which is closest to the location of your lab computer):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-Bash hljs">LOCATION=<span class="hljs-string"><span class="hljs-string">'&lt;Azure region&gt;'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: To identify Azure regions where you can provision Azure VMs, refer to <a href="https://azure.microsoft.com/en-us/regions/offers/"><strong>https://azure.microsoft.com/en-us/regions/offers/</strong></a></p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: To identify the names of the Azure regions to use when setting the value of the <strong>LOCATION</strong> variable, run <code>az account list-locations --query "[].{name:name}" -o table</code>. Make sure to use the notation which does not include a space, e.g. <strong>eastus</strong> rather than <strong>US East</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create an instance of Network Watcher in preparation for the upcoming exercises in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-Bash hljs">az network watcher configure --resource-group NetworkWatcherRG --locations <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> --enabled -o table
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you receive an error indicating there is no “NetworkWatcherRG” resource group, create a resource group from the portal named NetworkWatcherRG and rerun the command.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a resource group in the designated Azure region.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-Bash hljs">az deployment sub create \
+--location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> \
+--template-file azuredeploy30305suba.json \
+--parameters rgName=az30305a-labRG rgLocation=<span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager template <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rga.json</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following command to identify the IPv4 address associated with the Azure VM hosting the Bash session:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-Bash hljs">curl -s checkip.dyndns.org | sed -e <span class="hljs-string"><span class="hljs-string">'s/.*Current IP Address: //'</span></span> -e <span class="hljs-string"><span class="hljs-string">'s/&lt;.*$//'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Record the public IP address returned by the command. You will need it in this lab.</p>
+  </li>
+  <li>
+    <p>In the Cloud Shell pane and, in the Bash session within the Cloud Shell pane, open the <strong>azuredeploy30305rga.json</strong> file in your preferred text editor.</p>
+  </li>
+  <li>
+    <p>In the editor window displaying the content of the <strong>azuredeploy30305rga.json</strong> file, in the following section, replace the asterisk in the line <code>"sourceAddressPrefix": "*",</code> with the public IP address you recorded, save the change, and close the file:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-json hljs">       {
+         <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"custom-allow-rdp"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"priority"</span></span>: <span class="hljs-number"><span class="hljs-number">1000</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourceAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"protocol"</span></span>: <span class="hljs-string"><span class="hljs-string">"Tcp"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationPortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"3389"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"access"</span></span>: <span class="hljs-string"><span class="hljs-string">"Allow"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"direction"</span></span>: <span class="hljs-string"><span class="hljs-string">"Inbound"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourcePortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>
+         }
+       },
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager parameter file <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rga.parameters.json</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to deploy an Azure Load Balancer Basic with its backend pool consisting of a pair of Azure VMs hosting Windows Server 2019 Datacenter Core into the same availability set (replace the <code>&lt;vm_Size&gt;</code> placeholder with the size of the Azure VM you intend to use for this deployment, such as <code>Standard_D2s_v3</code>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-Bash hljs">az deployment group create \
+--resource-group az30305a-labRG \
+--template-file azuredeploy30305rga.json \
+--parameters @azuredeploy30305rga.parameters.json vmSize=&lt;vm_Size&gt;
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before proceeding to the next task. This should take about 10 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-analyze-highly-available-azure-vms-deployed-into-an-availability-set-behind-an-azure-load-balancer-basic">Task 2: Analyze highly available Azure VMs deployed into an availability set behind an Azure Load Balancer Basic</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Network Watcher</strong> and, on the <strong>Network Watcher</strong> blade, select <strong>Topology</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher | Topology</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource Group</td>
+          <td><strong>az30305a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual Network</td>
+          <td><strong>az30305a-vnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Review the resulting topology diagram, noting the connections between the public IP address, load balancer, and the network adapters of Azure VMs in its backend pool.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher</strong> blade, select <strong>Effective security rules</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher | Effective security rules</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30305a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az30305a-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>Network interface</td>
+          <td><strong>az30305a-nic0</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Review the associated network security group and the effective security rules, including two custom rules that allow inbound connectivity via RDP and HTTP.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Alternatively, you can view <strong>Effective security rules</strong> from:</p>
+      <ul>
+        <li>the <strong>az30305a-nic0</strong> network interface blade.</li>
+        <li>the <strong>az30305a-web-nsg</strong> network security group blade</li>
+      </ul>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher</strong> blade, select <strong>Connection troubleshoot</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The intention is to verify the proximity (in the networking terms) of the two Azure VMs in the same availability set.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher | Connection troubleshoot</strong> blade, specify the following settings and select <strong>Check</strong> :</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30305a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Source type</td>
+          <td><strong>Virtual machine</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az30305a-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td><strong>Select a virtual machine</strong></td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30305a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az30305a-vm1</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Destination port</td>
+          <td><strong>80</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will need to wait a few minutes for the results in order for the <strong>Azure Network Watcher Agent</strong> VM extension to be installed on the Azure VMs.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Review the results and note the latency of the network connection between the Azure VMs.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The latency should be about 1 millisecond, since both VMs are in the same availability set (within the same Azure datacenter).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30305a-labRG</strong> resource group blade, in the list of resources, select the <strong>az30305a-avset</strong> availability set entry, and on the <strong>az30305a-avset</strong> blade, note the fault domain and update domain values assigned the two Azure VMs.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>az30305a-labRG</strong> resource group blade, in the list of resources, select the <strong>az30305a-lb</strong> load balancer entry, and on the <strong>az30305a-lb</strong> blade, note the public IP address entry.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, start a <strong>Bash</strong> session in the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to update the IP address included in the <strong>custom-allow-rdp</strong> rule of the network security group <strong>az30305a-web-nsg</strong>. This is necessary to account for the new IP address associated with the new Cloud Shell session:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-Bash hljs">RESOURCE_GROUP_NAME=az30305a-labRG
+NSG_NAME=az30305a-web-nsg
+RULE_NAME=custom-allow-rdp
+
+MY_IP=$(curl -s checkip.dyndns.org | sed -e <span class="hljs-string"><span class="hljs-string">'s/.*Current IP Address: //'</span></span> -e <span class="hljs-string"><span class="hljs-string">'s/&lt;.*$//'</span></span>)
+
+az network nsg rule update \
+--resource-group <span class="hljs-variable"><span class="hljs-variable">$RESOURCE_GROUP_NAME</span></span> \
+--nsg-name <span class="hljs-variable"><span class="hljs-variable">$NSG_NAME</span></span> \
+--name <span class="hljs-variable"><span class="hljs-variable">$RULE_NAME</span></span> \
+--<span class="hljs-built_in"><span class="hljs-built_in">source</span></span>-address-prefixes <span class="hljs-variable"><span class="hljs-variable">$MY_IP</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to test load balancing of HTTP traffic to the Azure VMs in the backend pool of the Azure load balancer (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the load balancer you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;lb_IP_address&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the returned messages indicate that the requests are being delivered in the round robin manner to the backend Azure VMs</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30305a-lb</strong> blade, select the <strong>Load balancing rules</strong> entry and, on the <strong>az30305a-lb | Load balancing rules</strong> blade, select the <strong>az303005a-lbruletcp80</strong> entry representing the load balancing rule handling HTTP traffic.</p>
+  </li>
+  <li>
+    <p>On the <strong>az303005a-lbruletcp80</strong> blade, in the <strong>Session persistence</strong> drop-down list, select <strong>Client IP</strong> and then select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Wait for the update to complete and, from the Cloud Shell pane, re-run the following to test load balancing of HTTP traffic to the Azure VMs in the backend pool of the Azure load balancer with session persistence (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the load balancer you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;lb_IP_address&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the returned messages indicate that the requests are being delivered to the same backend Azure VMs</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>az30305a-lb</strong> blade, select the <strong>Inbound NAT rules</strong> entry and note the two rules that allow for connecting to the first and the second of the backend pool VMs via Remote Desktop over TCP ports 33890 and 33891, respectively.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to test Remote Desktop connectivity via NAT to the first Azure VM in the backend pool of the Azure load balancer (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the load balancer you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-Bash hljs">curl -v telnet://&lt;lb_IP_address&gt;:33890
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the returned message indicates that you are successfully connected.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Press the <strong>Ctrl+C</strong> key combination to return to the Bash shell prompt and run the following to test Remote Desktop connectivity via NAT to the second Azure VM in the backend pool of the Azure load balancer (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the load balancer you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-Bash hljs">curl -v telnet://&lt;lb_IP_address&gt;:33891
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the returned message indicates that you are successfully connected.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Press the <strong>Ctrl+C</strong> key combination to return to the Bash shell prompt.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-remove-azure-resources-deployed-in-the-exercise">Task 3: Remove Azure resources deployed in the exercise</h4>
+
+<ol>
+  <li>
+    <p>From the Cloud Shell pane, run the following to list the resource group you created in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305a-')]"</span></span>.name --output tsv
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the output contains only the resource group you created in this lab. This group will be deleted in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to delete the resource group you created in this lab</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305a-')]"</span></span>.name --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-2-implement-and-analyze-highly-available-azure-vm-deployments-using-availability-zones-and-azure-load-balancer-standard">Exercise 2: Implement and analyze highly available Azure VM deployments using availability zones and Azure Load Balancer Standard</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Deploy highly available Azure VMs into availability zones behind an Azure Load Balancer Standard by using Azure Resource Manager templates</p>
+  </li>
+  <li>
+    <p>Analyze highly available Azure VMs deployed across availability zones behind an Azure Load Balancer Standard</p>
+  </li>
+  <li>
+    <p>Remove Azure resources deployed in the exercise</p>
+  </li>
+</ol>
+
+<h4 id="task-1-deploy-highly-available-azure-vms-into-availability-zones-behind-an-azure-load-balancer-standard-by-using-azure-resource-manager-templates">Task 1: Deploy highly available Azure VMs into availability zones behind an Azure Load Balancer Standard by using Azure Resource Manager templates</h4>
+
+<ol>
+  <li>
+    <p>If needed, in the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>Bash</strong>.</p>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, select the <strong>Upload/Download files</strong> icon, in the drop-down menu select <strong>Upload</strong>, and upload the file <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305subb.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a resource groups (replace the <code>&lt;Azure region&gt;</code> placeholder with the name of the Azure region that is available in your subscription and which is closest to the location of your lab computer):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-Bash hljs">LOCATION=<span class="hljs-string"><span class="hljs-string">'&lt;Azure region&gt;'</span></span>
+</code></pre>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-Bash hljs">az deployment sub create \
+--location <span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span> \
+--template-file azuredeploy30305subb.json \
+--parameters rgName=az30305b-labRG rgLocation=<span class="hljs-variable"><span class="hljs-variable">$LOCATION</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager template <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rgb.json</strong>.</p>
+  </li>
+  <li>
+    <p>In the Cloud Shell pane and, in the Bash session within the Cloud Shell pane, open the <strong>azuredeploy30305rgb.json</strong> file in your preferred text editor.</p>
+  </li>
+  <li>
+    <p>In the editor window displaying the content of the <strong>azuredeploy30305rgb.json</strong> file, in the following section, replace the asterisk in the line <code>"sourceAddressPrefix": "*",</code> with the public IP address you recorded earlier in this lab, save the change, and close the file:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-json hljs">       {
+         <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"custom-allow-rdp"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"priority"</span></span>: <span class="hljs-number"><span class="hljs-number">1000</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourceAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"protocol"</span></span>: <span class="hljs-string"><span class="hljs-string">"Tcp"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationPortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"3389"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"access"</span></span>: <span class="hljs-string"><span class="hljs-string">"Allow"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"direction"</span></span>: <span class="hljs-string"><span class="hljs-string">"Inbound"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourcePortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>
+         }
+       },
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager parameter file <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rgb.parameters.json</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to deploy an Azure Load Balancer Standard with its backend pool consisting of a pair of Azure VMs hosting Windows Server 2019 Datacenter Core across two availability zones (replace the <code>&lt;vm_Size&gt;</code> placeholder with the size of the Azure VM you intend to use for this deployment, such as <code>Standard_D2s_v3</code>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-Bash hljs">az deployment group create \
+--resource-group az30305b-labRG \
+--template-file azuredeploy30305rgb.json \
+--parameters @azuredeploy30305rgb.parameters.json vmSize=&lt;vm_Size&gt;
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before proceeding to the next task. This should take about 10 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-analyze-highly-available-azure-vms-deployed-across-availability-zones-behind-an-azure-load-balancer-standard">Task 2: Analyze highly available Azure VMs deployed across availability zones behind an Azure Load Balancer Standard</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Network Watcher</strong> and, on the <strong>Network Watcher</strong> blade, select <strong>Topology</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher | Topology</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource Group</td>
+          <td><strong>az30305b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual Network</td>
+          <td><strong>az30305b-vnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Review the resulting topology diagram, noting the connections between the public IP address, load balancer, and the network adapters of Azure VMs in its backend pool.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This diagram is practically identical to the one you viewed in the previous exercise, since, despite being in different zones (and effectively Azure data centers), the Azure VMs reside on the same subnet.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher</strong> blade, select <strong>Effective security rules</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher | Effective security rules</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30305b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az30305b-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>Network interface</td>
+          <td><strong>az30305b-nic0</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Review the associated network security group and the effective security rules, including two custom rules that allow inbound connectivity via RDP and HTTP.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This listing is also practically identical to the one you viewed in the previous exercise, with network-level protection implemented by using a network security group associated with the subnet to which both Azure VMs are connected. Keep in mind, however, that the network security group is, in this case, required for the HTTP and RDP traffic to reach the backend pool Azure VMs, due to the usage of the Azure Load Balancer Standard SKU (NSGs are optional when using the Basic SKU).</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: Alternatively, you can view <strong>Effective security rules</strong> from:</p>
+      <ul>
+        <li>the <strong>az30305b-nic0</strong> network interface blade.</li>
+        <li>the <strong>az30305b-web-nsg</strong> network security group blade</li>
+      </ul>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher</strong> blade, select <strong>Connection troubleshoot</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The intention is to verify the proximity (in the networking terms) of the two Azure VMs in different zones (within different Azure datacenters).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher | Connection troubleshoot</strong> blade, specify the following settings and select <strong>Check</strong> :</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30305b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Source type</td>
+          <td><strong>Virtual machine</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az30305b-vm0</strong></td>
+        </tr>
+        <tr>
+          <td>Destination</td>
+          <td><strong>Select a virtual machine</strong></td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30305b-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual machine</td>
+          <td><strong>az30305b-vm1</strong></td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td><strong>TCP</strong></td>
+        </tr>
+        <tr>
+          <td>Destination port</td>
+          <td><strong>80</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will need to wait a few minutes for the results in order for the <strong>Azure Network Watcher Agent</strong> VM extension to be installed on the Azure VMs.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Review the results and note the latency of the network connection between the Azure VMs.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The latency might be slightly higher than the one you observed in the previous exercise, since the two VMs are in different zones (within different Azure datacenters).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30305b-labRG</strong> resource group blade, in the list of resources, select the <strong>az30305b-vm0</strong> virtual machine entry, and on the <strong>az30305b-vm0</strong> blade, note the <strong>Location</strong> and <strong>Availability zone</strong> entries.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30305b-labRG</strong> resource group blade, in the list of resources, select the <strong>az30305b-vm1</strong> virtual machine entry, and on the <strong>az30305b-vm1</strong> blade, note the <strong>Location</strong> and <strong>Availability zone</strong> entries.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The entries you reviewed confirm that each Azure VM resides in a different availability zone.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30305b-labRG</strong> resource group blade and, in the list of resources, select the <strong>az30305b-lb</strong> load balancer entry, and on the <strong>az30305b-lb</strong> blade, note the public IP address entry.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, start a new <strong>Bash</strong> session in the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to test load balancing of HTTP traffic to the Azure VMs in the backend pool of the Azure load balancer (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the load balancer you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;lb_IP_address&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the returned messages indicate that the requests are being delivered in the round robin manner to the backend Azure VMs</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30305b-lb</strong> blade, select the <strong>Load balancing rules</strong> entry and, on the <strong>az30305b-lb | Load balancing rules</strong> blade, select the <strong>az303005b-lbruletcp80</strong> entry representing the load balancing rule handling HTTP traffic.</p>
+  </li>
+  <li>
+    <p>On the <strong>az303005b-lbruletcp80</strong> blade, in the <strong>Session persistence</strong> drop-down list, select <strong>Client IP</strong> and then select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Wait for the update to complete and, from the Cloud Shell pane, re-run the following to test load balancing of HTTP traffic to the Azure VMs in the backend pool of the Azure load balancer with session persistence (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the load balancer you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;lb_IP_address&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the returned messages indicate that the requests are being delivered to the same backend Azure VMs</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>az30305b-lb</strong> blade, select the <strong>Inbound NAT rules</strong> entry and note the two rules that allow for connecting to the first and the second of the backend pool VMs via Remote Desktop over TCP ports 33890 and 33891, respectively.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to test Remote Desktop connectivity via NAT to the first Azure VM in the backend pool of the Azure load balancer (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the load balancer you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-Bash hljs">curl -v telnet://&lt;lb_IP_address&gt;:33890
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the returned message indicates that you are successfully connected.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Press the <strong>Ctrl+C</strong> key combination to return to the Bash shell prompt and run the following to test Remote Desktop connectivity via NAT to the second Azure VM in the backend pool of the Azure load balancer (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the load balancer you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-Bash hljs">curl -v telnet://&lt;lb_IP_address&gt;:33891
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the returned message indicates that you are successfully connected.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Press the <strong>Ctrl+C</strong> key combination to return to the Bash shell prompt and close the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30305b-lb</strong> blade, select the <strong>Load balancing rules</strong> entry and, on the <strong>az30305b-lb | Load balancing rules</strong> blade, select the <strong>az303005b-lbruletcp80</strong> entry representing the load balancing rule handling HTTP traffic.</p>
+  </li>
+  <li>
+    <p>On the <strong>az303005b-lbruletcp80</strong> blade, in the <strong>Outbound source network address translation (SNAT)</strong> section, select <strong>(Recommended) Use outbound rules to provide backend pool members access to the internet</strong>, and then select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>az30305b-lb</strong> blade, select the <strong>Outbound rules</strong> entry, and on the <strong>az30305b-lb | Outbound rules</strong> blade, select <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add outbound rule</strong> blade, specify the following settings and select <strong>Add</strong> (leave all other settings with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>az303005b-obrule</strong></td>
+        </tr>
+        <tr>
+          <td>Frontend IP address</td>
+          <td>the name of the existing frontend IP address of the <strong>az30305b-lb</strong> load balancer</td>
+        </tr>
+        <tr>
+          <td>Backend pool</td>
+          <td><strong>az30305b-bepool</strong></td>
+        </tr>
+        <tr>
+          <td>Port allocation</td>
+          <td><strong>Manually choose number of outbound ports</strong></td>
+        </tr>
+        <tr>
+          <td>Choose by</td>
+          <td><strong>Maximum number of backend instances</strong></td>
+        </tr>
+        <tr>
+          <td>Maximum number of backend instances</td>
+          <td><strong>3</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Azure Load Balancer Standard allows you to designate a dedicated frontend IP address for outbound traffic (in cases where multiple frontend IP addresses are assigned).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30305b-labRG</strong> resource group blade, in the list of resources, select the <strong>az30305b-vm0</strong> virtual machine entry, and on the <strong>az30305b-vm0</strong> blade, in the <strong>Operations</strong> blade, select <strong>Run command</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30305b-vm0 | Run command</strong> blade, select <strong>RunPowerShellScript</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Run Command Script</strong> blade, in the <strong>PowerShell Script</strong> text box, type the following and select <strong>Run</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-powershell">(Invoke-RestMethod -Uri "http://ipinfo.io").IP
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: This command returns the public IP address from which the web request originates.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Review the output and verify that it matches the public IP address assigned to the frontend of the Azure Load Balancer Standard, which you assigned to the outbound load balancing rule.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-remove-azure-resources-deployed-in-the-exercise-1">Task 3: Remove Azure resources deployed in the exercise</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, start a new <strong>Bash</strong> session in the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to list the resource group you created in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305b-')]"</span></span>.name --output tsv
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the output contains only the resource group you created in this lab. This group will be deleted in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to delete the resource group you created in this lab</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305b-')]"</span></span>.name --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-3-implement-and-analyze-highly-available-azure-vm-scale-set-deployments-using-availability-zones-and-azure-application-gateway">Exercise 3: Implement and analyze highly available Azure VM Scale Set deployments using availability zones and Azure Application Gateway.</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Deploy a highly available Azure VM Scale Set into availability zones behind an Azure Application Gateway by using Azure Resource Manager templates</p>
+  </li>
+  <li>
+    <p>Analyze a highly available Azure VM Scale Set deployed across availability zones behind an Azure Application Gateway</p>
+  </li>
+  <li>
+    <p>Remove Azure resources deployed in the exercise</p>
+  </li>
+</ol>
+
+<h4 id="task-1-deploy-a-highly-available-azure-vm-scale-set-into-availability-zones-behind-an-azure-application-gateway-by-using-azure-resource-manager-templates">Task 1: Deploy a highly available Azure VM Scale Set into availability zones behind an Azure Application Gateway by using Azure Resource Manager templates</h4>
+
+<ol>
+  <li>
+    <p>If needed, in the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>Bash</strong>.</p>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, select the <strong>Upload/Download files</strong> icon, in the drop-down menu select <strong>Upload</strong>, and upload the file <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305subc.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a resource groups (replace the <code>&lt;Azure region&gt;</code> placeholder with the name of the Azure region that is available in your subscription and which is closest to the location of your lab computer):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-Bash hljs">az deployment sub create --location <span class="hljs-string"><span class="hljs-string">'&lt;Azure region&gt;'</span></span> --template-file azuredeploy30305subc.json --parameters rgName=az30305c-labRG rgLocation=<span class="hljs-string"><span class="hljs-string">'&lt;Azure region&gt;'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager template <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rgc.json</strong>.</p>
+  </li>
+  <li>
+    <p>In the Cloud Shell pane and, in the Bash session within the Cloud Shell pane, open the <strong>azuredeploy30305rgc.json</strong> file in your preferred text editor.</p>
+  </li>
+  <li>
+    <p>In the editor window displaying the content of the <strong>azuredeploy30305rgc.json</strong> file, in the following section, replace the asterisk in the line <code>"sourceAddressPrefix": "*",</code> with the public IP address you recorded earlier in this lab, save the change, and close the file:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-json hljs">       {
+         <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"custom-allow-rdp"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"priority"</span></span>: <span class="hljs-number"><span class="hljs-number">1000</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourceAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"protocol"</span></span>: <span class="hljs-string"><span class="hljs-string">"Tcp"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationPortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"3389"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"access"</span></span>: <span class="hljs-string"><span class="hljs-string">"Allow"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"direction"</span></span>: <span class="hljs-string"><span class="hljs-string">"Inbound"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"sourcePortRange"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"destinationAddressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"*"</span></span>
+         }
+       },
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager parameter file <strong>\\AZ303\AllFiles\Labs\05\azuredeploy30305rgc.parameters.json</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to deploy an Azure Application Gateway with its backend pool consisting of a pair of Azure VMs hosting Windows Server 2019 Datacenter Core across different availability zones (replace the <code>&lt;vm_Size&gt;</code> placeholder with the size of the Azure VM you intend to use for this deployment, such as <code>Standard_D2s_v3</code>):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">az</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">deployment</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">group</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">create</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--resource-group</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">az30305c-labRG</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--template-file</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">azuredeploy30305rgc</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.json</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--parameters</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">azuredeploy30305rgc</span></span>.<span class="hljs-keyword"><span class="hljs-keyword">parameters</span></span>.<span class="hljs-keyword"><span class="hljs-keyword">json</span></span> vmSize= &lt;vm_Size&gt;
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before proceeding to the next task. This should take about 10 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-analyze-a-highly-available-azure-vm-scale-set-deployed-across-availability-zones-behind-an-azure-application-gateway">Task 2: Analyze a highly available Azure VM Scale Set deployed across availability zones behind an Azure Application Gateway</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Network Watcher</strong> and, on the <strong>Network Watcher</strong> blade, select <strong>Topology</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Network Watcher | Topology</strong> blade, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource Group</td>
+          <td><strong>az30305c-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual Network</td>
+          <td><strong>az30305c-vnet</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Review the resulting topology diagram, noting the connections between the public IP address, load balancer, and the network adapters of Azure VM instances in the Azure Virtual Machine Scale Set in its backend pool.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In addition, deployment of an Azure Application Gateway requires a dedicated subnet, included in the diagram (although the gateway is not displayed).</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: In this configuration, it is not possible to use Network Watcher to view the effective network security rules (that is one of distinctions between Azure VMs and instances of an Azure VM Scale Set). Similarly, you cannot rely on using <strong>Connection troubleshoot</strong> to test network connectivity from Azure VM Scale Set instances, although it is possible to use it to test connectivity from the Azure Application Gateway.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30305c-labRG</strong> resource group blade, in the list of resources, and select the <strong>az30305c-vmss</strong> virtual machine scale set entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, note the <strong>Location</strong> and <strong>Fault domains</strong> entries.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Unlike Azure VMs, individual instances of Azure VM scale sets deploy into separate fault domains, including instances deployed into the same zone. In addition, they support 5 fault domains (unlike Azure VMs, which can use up to 3 fault domains).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, select <strong>Instances</strong>, on the <strong>az30305c-vmss | Instances</strong> blade, select the first instance, and identify its availability zone by reviewing the value of the <strong>Location</strong> property.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>az30305c-vmss | Instances</strong> blade, select the second instance, and identify its availability zone by reviewing the value of the <strong>Location</strong> property.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that each instance resides in a different availability zone.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30305c-labRG</strong> resource group blade and, in the list of resources, select the <strong>az30305c-appgw</strong> load balancer entry, and on the <strong>az30305c-appgw</strong> blade, note the public IP address entry.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, start a new <strong>Bash</strong> session in the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to test load balancing of HTTP traffic to the Azure VM Scale Set instances in the backend pool of the Azure Application Gateway (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the gateway you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> i <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> {1..4}; <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl &lt;appgw_IPaddress&gt;; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the returned messages indicate that the requests are being delivered in the round robin manner to the backend Azure VMs</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-appgw</strong> blade, select the <strong>HTTP settings</strong> entry and, on the <strong>az30305c-appgw | HTTP settings</strong> blade, select the <strong>appGwBackentHttpSettings</strong> entry representing the load balancing rule handling HTTP traffic.</p>
+  </li>
+  <li>
+    <p>On the <strong>appGwBackentHttpSettings</strong> blade, review the existing settings without making any changes and note that you can enable <strong>Cookie-based affinity</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This feature requires that the client supports the use of cookies.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You cannot use Azure Application Gateway to implement NAT for RDP connectivity to instances of an Azure VM Scale Set. Azure Application Gateway supports only HTTP/HTTPS traffic.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-4-implementing-autoscaling-of-azure-vm-scale-sets-using-availability-zones-and-azure-application-gateway">Exercise 4: Implementing autoscaling of Azure VM Scale Sets using availability zones and Azure Application Gateway.</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Configuring autoscaling of an Azure VM Scale Set</p>
+  </li>
+  <li>
+    <p>Testing autoscaling of an Azure VM Scale Set</p>
+  </li>
+</ol>
+
+<h4 id="task-1-configure-autoscaling-of-an-azure-vm-scale-set">Task 1: Configure autoscaling of an Azure VM Scale Set</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30305c-labRG</strong> resource group blade, in the list of resources, select the <strong>az30305c-vmss</strong> virtual machine scale set entry, and on the <strong>az30305c-vmss</strong> blade, select <strong>Scaling</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss | Scaling</strong> blade, select the <strong>Custom autoscale</strong> option.</p>
+  </li>
+  <li>
+    <p>In the <strong>Custom autoscale</strong> section, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Scaling mode</td>
+          <td><strong>Scale based on a metric</strong></td>
+        </tr>
+        <tr>
+          <td>Instance limits Minimum</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>Instance limits Maximum</td>
+          <td><strong>3</strong></td>
+        </tr>
+        <tr>
+          <td>Instance limits Default</td>
+          <td><strong>1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>+ Add a rule</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Scale rule</strong> blade, specify the following settings and select <strong>Add</strong> (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Time aggregation</td>
+          <td><strong>Maximum</strong></td>
+        </tr>
+        <tr>
+          <td>Metric namespace</td>
+          <td><strong>Virtual Machine Host</strong></td>
+        </tr>
+        <tr>
+          <td>Metric name</td>
+          <td><strong>Percentage CPU</strong></td>
+        </tr>
+        <tr>
+          <td>VMName Operator</td>
+          <td><strong>=</strong></td>
+        </tr>
+        <tr>
+          <td>Dimension values</td>
+          <td><strong>az30305c-vmss_0</strong></td>
+        </tr>
+        <tr>
+          <td>Enable metric divide by instance count</td>
+          <td><strong>Enabled</strong></td>
+        </tr>
+        <tr>
+          <td>Operator</td>
+          <td><strong>Greater than</strong></td>
+        </tr>
+        <tr>
+          <td>Metric threshold to trigger scale action</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>Duration (in minutes)</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>Time grain statistics</td>
+          <td><strong>Maximum</strong></td>
+        </tr>
+        <tr>
+          <td>Operation</td>
+          <td><strong>Increase count by</strong></td>
+        </tr>
+        <tr>
+          <td>Instance count</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>Cool down (minutes)</td>
+          <td><strong>5</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: These values are selected strictly for lab purposes to trigger scaling as soon as possible. For guidance regarding Azure VM Scale Set scaling, refer to <a href="https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview">Microsoft Docs</a> .</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Back on the <strong>az30305c-vmss | Scaling</strong> blade, select <strong>+ Add a rule</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Scale rule</strong> blade, specify the following settings and select <strong>Add</strong> (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Time aggregation</td>
+          <td><strong>Average</strong></td>
+        </tr>
+        <tr>
+          <td>Metric namespace</td>
+          <td><strong>Virtual Machine Host</strong></td>
+        </tr>
+        <tr>
+          <td>Metric name</td>
+          <td><strong>Percentage CPU</strong></td>
+        </tr>
+        <tr>
+          <td>VMName Operator</td>
+          <td><strong>=</strong></td>
+        </tr>
+        <tr>
+          <td>Dimension values</td>
+          <td><strong>2 selected</strong></td>
+        </tr>
+        <tr>
+          <td>Enable metric divide by instance count</td>
+          <td><strong>Enabled</strong></td>
+        </tr>
+        <tr>
+          <td>Operator</td>
+          <td><strong>Less than</strong></td>
+        </tr>
+        <tr>
+          <td>Metric threshold to trigger scale action</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>Duration (in minutes)</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>Time grain statistics</td>
+          <td><strong>Minimum</strong></td>
+        </tr>
+        <tr>
+          <td>Operation</td>
+          <td><strong>Decrease count by</strong></td>
+        </tr>
+        <tr>
+          <td>Instance count</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr>
+          <td>Cool down (minutes)</td>
+          <td><strong>5</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Back on the **az30305c-vmss</td>
+          <td>Scaling** blade, select <strong>Save</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="task-2-test-autoscaling-of-an-azure-vm-scale-set">Task 2: Test autoscaling of an Azure VM Scale Set</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, start a new <strong>Bash</strong> session in the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to trigger autoscaling of the Azure VM Scale Set instances in the backend pool of the Azure Application Gateway (replace the <code>&lt;lb_IP_address&gt;</code> placeholder with the IP address of the front end of the gateway you identified earlier):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-Bash hljs"><span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (( ; ; )); <span class="hljs-keyword"><span class="hljs-keyword">do</span></span> curl -s &lt;lb_IP_address&gt;?[1-10]; <span class="hljs-keyword"><span class="hljs-keyword">done</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>In the Azure portal, on the <strong>az30305c-vmss</strong> Overview blade, on the Monitoring tab, review the <strong>CPU (average)</strong> chart and verify that the CPU utilization of the Application Gateway increased sufficiently to trigger scaling out.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to wait a few minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, select the <strong>Instances</strong> entry and verify that the number of instances has increased.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to refresh the <strong>az30305c-vmss | Instances</strong> blade.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might see the number of instances increasing by 2 (rather than 1). This is expected as long as the final number of running instances is 3.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, on the <strong>az30305c-vmss</strong> blade, review the <strong>CPU (average)</strong> chart and verify that the CPU utilization of the Application Gateway decreased sufficiently to trigger scaling in.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to wait a few minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, select the <strong>Instances</strong> entry and verify that the number of instances has decreased to 2.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to refresh the <strong>az30305c-vmss | Instances</strong> blade.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, select <strong>Scaling</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss | Scaling</strong> blade, select the <strong>Manual scale</strong> option and select <strong>Save</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This will prevent any undesired autoscaling during the next exercise.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-5-implementing-vertical-scaling-of-azure-vm-scale-sets">Exercise 5: Implementing vertical scaling of Azure VM Scale Sets</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Scaling compute resources of Azure virtual machine scale set instances.</p>
+  </li>
+  <li>
+    <p>Scaling storage resources of Azure virtual machine scale sets instances.</p>
+  </li>
+</ol>
+
+<h4 id="task-1-scale-compute-resources-of-azure-virtual-machine-scale-set-instances">Task 1: Scale compute resources of Azure virtual machine scale set instances.</h4>
+
+<ol>
+  <li>
+    <p>In the Azure Portal, on the <strong>az30305c-vmss</strong> blade, select <strong>Size</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of available sizes, select any available size other than currently configured and select <strong>Resize</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, select the <strong>Instances</strong> entry and, on the <strong>az30305c-vmss | Instances</strong> blade, observe the process of replacing existing instances with new ones of the desired size.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to refresh the <strong>az30305c-vmss | Instances</strong> blade.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Wait until the instances are updated and running.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-scale-storage-resources-of-azure-virtual-machine-scale-sets-instances">Task 2: Scale storage resources of Azure virtual machine scale sets instances.</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, select <strong>Disks</strong>, select <strong>+ Create and attach a new disk</strong>, attach a new managed disk with the following settings (leave others with their default values), and select <strong>Save</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>LUN</td>
+          <td><strong>0</strong></td>
+        </tr>
+        <tr>
+          <td>Size</td>
+          <td><strong>32</strong></td>
+        </tr>
+        <tr>
+          <td>Storage account type</td>
+          <td><strong>Standard HDD</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, select the <strong>Instances</strong> entry and, on the <strong>az30305c-vmss | Instances</strong> blade, observe the process of updating the existing instances.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The disk attached in the previous step is a raw disk. Before it can be used, it is necessary to create a partition, format it, and mount it. To accomplish this, you will deploy a PowerShell script to Azure VM scale set instances via the Custom Script extension. First, however, you will need to remove it.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, select <strong>Extensions</strong>, on the <strong>az30305c-vmss | Extensions</strong> blade, select the <strong>customScriptExtension</strong> entry, and then, on the <strong>Extensions</strong> blade, select <strong>Uninstall</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for uninstallation to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30305c-labRG</strong> resource group blade, in the list of resources, select the storage account resource.</p>
+  </li>
+  <li>
+    <p>On the storage account blade, select <strong>Containers</strong> and then select <strong>+ Container</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>New container</strong> blade, specify the following settings (leave others with their default values) and select <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>scripts</strong></td>
+        </tr>
+        <tr>
+          <td>Public access level</td>
+          <td><strong>Private (no anonymous access</strong>)</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Back on the storage account blade displaying the list of containers, select <strong>scripts</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>scripts</strong> blade, select <strong>Upload</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Upload blob</strong> blade, select the folder icon, in the <strong>Open</strong> dialog box, navigate to the <strong>\\AZ303\AllFiles\Labs\05</strong> folder, select <strong>az30305e-configure_VMSS_with_data_disk.ps1</strong>, select <strong>Open</strong>, and back on the <strong>Upload blob</strong> blade, select <strong>Upload</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate back to the <strong>az30305c-vmss</strong> virtual machine scale set blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30305c-vmss</strong> blade, select <strong>Extensions</strong>, on the <strong>az30305c-vmss | Extensions</strong> blade, select <strong>+ Add</strong> and then, select the <strong>customScriptExtension</strong> entry on the <strong>Extensions</strong> blade.</p>
+  </li>
+  <li>
+    <p>On the <strong>New resource</strong> blade, select <strong>Custom Script Extension</strong> and then select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>From the <strong>Install extension</strong> blade, select <strong>Browse</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Storage accounts</strong> blade, select the name of the storage account into which you uploaded the <strong>az30305e-configure_VMSS_with_data_disk.ps1</strong> script, on the <strong>Containers</strong> blade, select <strong>scripts</strong>, on the <strong>scripts</strong> blade, select <strong>az30305e-configure_VMSS_with_data_disk.ps1</strong>, and then select <strong>Select</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>Install extension</strong> blade, select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the <strong>az30305c-vmss</strong> blade, select the <strong>Instances</strong> entry and, on the **az30305c-vmss</td>
+          <td>Instances** blade, observe the process of updating existing instances.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to refresh the <strong>az30305c-vmss | Instances</strong> blade.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-remove-azure-resources-deployed-in-the-exercise-2">Task 3: Remove Azure resources deployed in the exercise</h4>
+
+<ol>
+  <li>
+    <p>From the Cloud Shell pane, run the following to list the resource group you created in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305c-')]"</span></span>.name --output tsv
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the output contains only the resource group you created in this lab. This group will be deleted in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to delete the resource group you created in this lab</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-Bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az30305c-')]"</span></span>.name --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-303-Microsoft-Azure-Architect-Technologies
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D479f9cfd893a2bea83ac41ba638fc5e7bd9113e0.js"></script>
+
+
+
+</body></html>

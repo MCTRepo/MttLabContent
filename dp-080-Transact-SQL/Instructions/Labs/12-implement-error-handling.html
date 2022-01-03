@@ -1,0 +1,699 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            dp-080-Transact-SQL
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                dp-080-Transact-SQL
+            </a>
+            <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#challenge-1-catch-errors-and-display-only-valid-records">Challenge 1: Catch errors and display only valid records</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2-create-a-simple-error-display-procedure">Challenge 2: Create a simple error display procedure</a></li><li class="nav-item"><a class="nav-link" href="#challenge-1">Challenge 1</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2">Challenge 2</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="implement-error-handling-with-t-sql">Implement error handling with T-SQL</h1>
+
+<p>In this lab, you’ll use T-SQL statements to test various error handling techniques in the <strong>adventureworks</strong> database. For your reference, the following diagram shows the tables in the database (you may need to resize the pane to see them clearly).</p>
+
+<p><a href="images/adventureworks-erd.png" target="_blank"><img src="images/adventureworks-erd.png" alt="An entity relationship diagram of the adventureworks database"></a></p>
+
+<blockquote>
+  <p><strong>Note</strong>: If you’re familiar with the standard <strong>AdventureWorks</strong> sample database, you may notice that in this lab we are using a simplified version that makes it easier to focus on learning Transact-SQL syntax.</p>
+</blockquote>
+
+<h2 id="write-a-basic-trycatch-construct">Write a basic TRY/CATCH construct</h2>
+
+<ol>
+  <li>Start Azure Data Studio</li>
+  <li>From the Servers pane, double-click the <strong>AdventureWorks connection</strong>. A green dot will appear when the connection is successful.</li>
+  <li>Right click the AdventureWorks connection and select <strong>New Query</strong>. A new query window is displayed with a connection to the AdventureWorks database.</li>
+  <li>The previous step will open a query screen that is connected to the TSQL database.</li>
+  <li>In the query pane, type the following T-SQL code:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(N<span class="hljs-string"><span class="hljs-string">'Some text'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">int</span></span>);
+</code></pre>
+
+<ol>
+  <li>Select <strong>⏵Run</strong> to run the code.</li>
+  <li>
+    <p>Notice the conversion error:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Conversion failed when converting the nvarchar value ‘Some text’ to data type int.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Write a TRY/CATCH construct. Your T-SQL code should look like this:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+    <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(N<span class="hljs-string"><span class="hljs-string">'Some text'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">int</span></span>);
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+    PRINT <span class="hljs-string"><span class="hljs-string">'Error'</span></span>;
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+</code></pre>
+
+<ol>
+  <li>Run the modified code, and review the response. The results should include no rows, and the <strong>Messages</strong> tab should include the text <strong>Error</strong>.</li>
+</ol>
+
+<h2 id="display-an-error-number-and-an-error-message">Display an error number and an error message</h2>
+
+<ol>
+  <li>Right click the AdventureWorks connection and select New Query</li>
+  <li>Enter the following T-SQL code:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'0'</span></span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+    PRINT <span class="hljs-number"><span class="hljs-number">5.</span></span> / <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(@<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">4</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+</code></pre>
+
+<ol>
+  <li>Select <strong>⏵Run</strong>. Notice that you didn’t get an error because you used the TRY/CATCH construct.</li>
+  <li>Modify the T-SQL code by adding two PRINT statements. The T-SQL code should look like this:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'0'</span></span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+    PRINT <span class="hljs-number"><span class="hljs-number">5.</span></span> / <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(@<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">4</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+    PRINT <span class="hljs-string"><span class="hljs-string">'Error Number: '</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(ERROR_NUMBER() <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">10</span></span>));
+    PRINT 'Error Message: ' + ERROR_MESSAGE();
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+</code></pre>
+
+<ol>
+  <li>
+    <p>Run the modified code, and notice that an error is produced, but it’s one that you defined.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Started executing query at line 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Error Number: 8134</td>
+        </tr>
+        <tr>
+          <td>Error Message: Divide by zero error encountered.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Now change the value of the <a href="https://github.com/num" class="user-mention">@num</a> variable to look like this:</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'A'</span></span>;
+</code></pre>
+
+<ol>
+  <li>
+    <p>Run the modified code. Notice that you get a different error number and message.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Started executing query at line 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Error Message: Error converting data type varchar to numeric.</td>
+        </tr>
+        <tr>
+          <td>Error Number: 8114</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Change the value of the <a href="https://github.com/num" class="user-mention">@num</a> variable to look like this:</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">' 1000000000'</span></span>;
+</code></pre>
+
+<ol>
+  <li>
+    <p>Run the modified code. Notice that you get a different error number and message.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Started executing query at line 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Error Number: 8115</td>
+        </tr>
+        <tr>
+          <td>Error Message: Arithmetic overflow error converting varchar to data type numeric.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h2 id="add-conditional-logic-to-a-catch-block">Add conditional logic to a CATCH block</h2>
+
+<ol>
+  <li>Modify the T-SQL code you used previously so it looks like this:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'A'</span></span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+    PRINT <span class="hljs-number"><span class="hljs-number">5.</span></span> / <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(@<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">4</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+    <span class="hljs-keyword"><span class="hljs-keyword">IF</span></span> ERROR_NUMBER() <span class="hljs-keyword"><span class="hljs-keyword">IN</span></span> (<span class="hljs-number"><span class="hljs-number">245</span></span>, <span class="hljs-number"><span class="hljs-number">8114</span></span>)
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span>
+        PRINT <span class="hljs-string"><span class="hljs-string">'Handling conversion error...'</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">ELSE</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> 
+        PRINT <span class="hljs-string"><span class="hljs-string">'Handling non-conversion error...'</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span>;
+
+    PRINT 'Error Number: ' + CAST(ERROR_NUMBER() AS varchar(10));
+    PRINT 'Error Message: ' + ERROR_MESSAGE();
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+</code></pre>
+
+<ol>
+  <li>
+    <p>Run the modified code.  You’ll see that message returned now contains more information:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Started executing query at line 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Handling conversion error…</td>
+        </tr>
+        <tr>
+          <td>Error Number: 8114</td>
+        </tr>
+        <tr>
+          <td>Error Message: Error converting data type varchar to numeric.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Change the value of the <a href="https://github.com/num" class="user-mention">@num</a> variable to look like this:</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'0'</span></span>;
+</code></pre>
+
+<ol>
+  <li>
+    <p>Run the modified code. This produces a different type of error message:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Started executing query at line 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Handling non-conversion error…</td>
+        </tr>
+        <tr>
+          <td>Error Number: 8134</td>
+        </tr>
+        <tr>
+          <td>Error Message: Divide by zero error encountered.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h2 id="create-a-stored-procedure-to-display-an-error-message">Create a stored procedure to display an error message</h2>
+
+<ol>
+  <li>Right click the AdventureWorks connection and select New Query</li>
+  <li>Enter the following T-SQL code:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs php">CREATE PROCEDURE dbo.GetErrorInfo <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Error Number: '</span></span> + CAST(ERROR_NUMBER() <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> varchar(<span class="hljs-number"><span class="hljs-number">10</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Error Message: '</span></span> + ERROR_MESSAGE();
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Error Severity: '</span></span> + CAST(ERROR_SEVERITY() <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> varchar(<span class="hljs-number"><span class="hljs-number">10</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Error State: '</span></span> + CAST(ERROR_STATE() <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> varchar(<span class="hljs-number"><span class="hljs-number">10</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Error Line: '</span></span> + CAST(ERROR_LINE() <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> varchar(<span class="hljs-number"><span class="hljs-number">10</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Error Proc: '</span></span> + COALESCE(ERROR_PROCEDURE(), <span class="hljs-string"><span class="hljs-string">'Not within procedure'</span></span>);
+</code></pre>
+
+<ol>
+  <li>Select <strong>⏵Run</strong>. to run the code, which creates a stored procedure named <strong>dbo.GetErrorInfo</strong>.</li>
+  <li>Return to the query that previously resulted in a “Divide by zero” error, and modify it as follows:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'0'</span></span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+    PRINT <span class="hljs-number"><span class="hljs-number">5.</span></span> / <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(@<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">4</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+    <span class="hljs-keyword"><span class="hljs-keyword">EXECUTE</span></span> dbo.GetErrorInfo;
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+</code></pre>
+
+<ol>
+  <li>
+    <p>Run the code.  This will trigger the stored procedure and display:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Started executing query at line 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Error Number: 8134</td>
+        </tr>
+        <tr>
+          <td>Error Message: Divide by zero error encountered.</td>
+        </tr>
+        <tr>
+          <td>Error Severity: 16</td>
+        </tr>
+        <tr>
+          <td>Error State: 1</td>
+        </tr>
+        <tr>
+          <td>Error Line: 4</td>
+        </tr>
+        <tr>
+          <td>Error Proc: Not within procedure</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h2 id="rethrow-the-existing-error-back-to-a-client">Rethrow the Existing Error Back to a Client</h2>
+
+<ol>
+  <li>Modify the CATCH block of your code to include a THROW command, so that your code looks like this:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'0'</span></span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+    PRINT <span class="hljs-number"><span class="hljs-number">5.</span></span> / <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(@<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">4</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+    <span class="hljs-keyword"><span class="hljs-keyword">EXECUTE</span></span> dbo.GetErrorInfo; 
+    THROW;
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+</code></pre>
+
+<ol>
+  <li>
+    <p>Run the modified code.  Here you’ll see that it executes the stored procedure, and then throws the error message again (so a client application can catch and process it).</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Started executing query at line 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Error Number: 8134</td>
+        </tr>
+        <tr>
+          <td>Error Message: Divide by zero error encountered.</td>
+        </tr>
+        <tr>
+          <td>Error Severity: 16</td>
+        </tr>
+        <tr>
+          <td>Error State: 1</td>
+        </tr>
+        <tr>
+          <td>Error Line: 4</td>
+        </tr>
+        <tr>
+          <td>Error Proc: Not within procedure</td>
+        </tr>
+        <tr>
+          <td>Msg 8134, Level 16, State 1, Line 4</td>
+        </tr>
+        <tr>
+          <td>Divide by zero error encountered.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h2 id="add-an-error-handling-routine">Add an Error Handling Routine</h2>
+
+<ol>
+  <li>Modify your code to look like this:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'A'</span></span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+    PRINT <span class="hljs-number"><span class="hljs-number">5.</span></span> / <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(@<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">4</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+    <span class="hljs-keyword"><span class="hljs-keyword">EXECUTE</span></span> dbo.GetErrorInfo;
+    
+    IF ERROR_NUMBER() = 8134
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span>
+        PRINT <span class="hljs-string"><span class="hljs-string">'Handling devision by zero...'</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">ELSE</span></span> 
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span>
+        PRINT <span class="hljs-string"><span class="hljs-string">'Throwing original error'</span></span>;
+        THROW;
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span>;
+    
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+</code></pre>
+
+<ol>
+  <li>
+    <p>Run the modified code  As you’ll see, it executes the stored procedure to display the error, identifies that it isn’t error number 8134, and throws the error again.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Started executing query at line 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Error Number: 8114</td>
+        </tr>
+        <tr>
+          <td>Error Message: Error converting data type varchar to numeric.</td>
+        </tr>
+        <tr>
+          <td>Error Severity: 16</td>
+        </tr>
+        <tr>
+          <td>Error State: 5</td>
+        </tr>
+        <tr>
+          <td>Error Line: 5</td>
+        </tr>
+        <tr>
+          <td>Error Proc: Not within procedure</td>
+        </tr>
+        <tr>
+          <td>Throwing original error</td>
+        </tr>
+        <tr>
+          <td>Msg 8114, Level 16, State 5, Line 5</td>
+        </tr>
+        <tr>
+          <td>Error converting data type varchar to numeric.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h2 id="challenges">Challenges</h2>
+
+<p>Now it’s time to try using what you’ve learned.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>: Try to determine the appropriate solutions for yourself. If you get stuck, suggested answers are provided at the end of this lab.</p>
+</blockquote>
+
+<h3 id="challenge-1-catch-errors-and-display-only-valid-records">Challenge 1: Catch errors and display only valid records</h3>
+
+<p>The marketing manager is using the following T-SQL query, but they are getting unexpected results. They have asked you to make the code more resilient, to stop it crashing and to not display duplicates when there is no data.</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">customerID</span></span> AS INT = <span class="hljs-number"><span class="hljs-number">30110</span></span>;
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">fname</span></span> AS NVARCHAR(<span class="hljs-number"><span class="hljs-number">20</span></span>);
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">lname</span></span> AS NVARCHAR(<span class="hljs-number"><span class="hljs-number">30</span></span>);
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">maxReturns</span></span> AS INT = <span class="hljs-number"><span class="hljs-number">1</span></span>; 
+
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">WHILE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">maxReturns</span></span> &lt;= <span class="hljs-number"><span class="hljs-number">10</span></span>
+BEGIN
+    SELECT @fname = FirstName, @lname = LastName FROM SalesLT.Customer
+        WHERE CustomerID = @CustomerID;
+    <span class="hljs-selector-tag"><span class="hljs-selector-tag">PRINT</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">fname</span></span> + N<span class="hljs-string"><span class="hljs-string">' '</span></span> + @lname;
+    <span class="hljs-selector-tag"><span class="hljs-selector-tag">SET</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">maxReturns</span></span> += <span class="hljs-number"><span class="hljs-number">1</span></span>;
+    <span class="hljs-selector-tag"><span class="hljs-selector-tag">SET</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">CustomerID</span></span> += <span class="hljs-number"><span class="hljs-number">1</span></span>;
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">END</span></span>;
+</code></pre>
+
+<ol>
+  <li>Catch the error
+    <ul>
+      <li>Add a TRY .. CATCH block around the SELECT query.</li>
+    </ul>
+  </li>
+  <li>Warn the user that an error has occurred
+    <ul>
+      <li>Extend your TSQL code to display a warning to the user that their is an error.</li>
+    </ul>
+  </li>
+  <li>Only display valid customer records
+    <ul>
+      <li>Extend the T-SQL using the @<a href="https://github.com/ROWCOUNT" class="user-mention">@ROWCOUNT</a> &gt; 0 check to only display a result if the customer ID exists.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="challenge-2-create-a-simple-error-display-procedure">Challenge 2: Create a simple error display procedure</h3>
+
+<p>Error messages and error handling are essential for good code. Your manager has asked you to develop a common error display procedure.  Use this sample code as your base.</p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">DECLARE</span></span> <span class="hljs-variable"><span class="hljs-variable">@num</span></span> varchar(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'Challenge 2'</span></span>;
+
+<span class="hljs-attribute"><span class="hljs-attribute">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Casting: '</span></span> + CAST(<span class="hljs-variable"><span class="hljs-variable">@num</span></span> AS numeric(<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">4</span></span>));
+</code></pre>
+
+<ol>
+  <li>Catch the error
+    <ul>
+      <li>Add a TRY…CATCH around the PRINT statement.</li>
+    </ul>
+  </li>
+  <li>Create a stored procedure
+    <ul>
+      <li>Create a stored procedure called dbo.DisplayErrorDetails.  It should display a title and the value for <strong>ERROR_NUMBER</strong>, <strong>ERROR_MESSAGE</strong> and <strong>ERROR_SEVERITY</strong>.</li>
+    </ul>
+  </li>
+  <li>Display the error information
+    <ul>
+      <li>Use the stored procedure to display the error information when an error occurs.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="challenge-solutions">Challenge Solutions</h2>
+
+<p>This section contains suggested solutions for the challenge queries.</p>
+
+<h3 id="challenge-1">Challenge 1</h3>
+
+<ol>
+  <li>Catch the error</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs ruby">DECLARE @customerID AS INT = <span class="hljs-number"><span class="hljs-number">30110</span></span>;
+DECLARE @fname AS NVARCHAR(<span class="hljs-number"><span class="hljs-number">20</span></span>);
+DECLARE @lname AS NVARCHAR(<span class="hljs-number"><span class="hljs-number">30</span></span>);
+DECLARE @maxReturns AS INT = <span class="hljs-number"><span class="hljs-number">1</span></span>;
+
+WHILE @maxReturns &lt;= <span class="hljs-number"><span class="hljs-number">10</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+        SELECT @fname = FirstName, @lname = LastName FROM SalesLT.Customer
+            WHERE CustomerID = @CustomerID;
+
+        PRINT CAST(@customerID as NVARCHAR(<span class="hljs-number"><span class="hljs-number">20</span></span>)) + N<span class="hljs-string"><span class="hljs-string">' '</span></span> + @fname + N<span class="hljs-string"><span class="hljs-string">' '</span></span> + @lname;
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+
+    SET @maxReturns += <span class="hljs-number"><span class="hljs-number">1</span></span>;
+    SET @CustomerID += <span class="hljs-number"><span class="hljs-number">1</span></span>;
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span>;
+</code></pre>
+
+<ol>
+  <li>Warn the user that an error has occurred</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs ruby">DECLARE @customerID AS INT = <span class="hljs-number"><span class="hljs-number">30110</span></span>;
+DECLARE @fname AS NVARCHAR(<span class="hljs-number"><span class="hljs-number">20</span></span>);
+DECLARE @lname AS NVARCHAR(<span class="hljs-number"><span class="hljs-number">30</span></span>);
+DECLARE @maxReturns AS INT = <span class="hljs-number"><span class="hljs-number">1</span></span>;
+
+WHILE @maxReturns &lt;= <span class="hljs-number"><span class="hljs-number">10</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+        SELECT @fname = FirstName, @lname = LastName FROM SalesLT.Customer
+            WHERE CustomerID = @CustomerID;
+
+            PRINT CAST(@customerID as NVARCHAR(<span class="hljs-number"><span class="hljs-number">20</span></span>)) + N<span class="hljs-string"><span class="hljs-string">' '</span></span> + @fname + N<span class="hljs-string"><span class="hljs-string">' '</span></span> + @lname;
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+        PRINT <span class="hljs-string"><span class="hljs-string">'Unable to run query'</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+
+    SET @maxReturns += <span class="hljs-number"><span class="hljs-number">1</span></span>;
+    SET @CustomerID += <span class="hljs-number"><span class="hljs-number">1</span></span>;
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span>;
+</code></pre>
+
+<ol>
+  <li>Only display valid customer records</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs ruby">DECLARE @customerID AS INT = <span class="hljs-number"><span class="hljs-number">30110</span></span>;
+DECLARE @fname AS NVARCHAR(<span class="hljs-number"><span class="hljs-number">20</span></span>);
+DECLARE @lname AS NVARCHAR(<span class="hljs-number"><span class="hljs-number">30</span></span>);
+DECLARE @maxReturns AS INT = <span class="hljs-number"><span class="hljs-number">1</span></span>;
+
+WHILE @maxReturns &lt;= <span class="hljs-number"><span class="hljs-number">10</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+        SELECT @fname = FirstName, @lname = LastName FROM SalesLT.Customer
+            WHERE CustomerID = @CustomerID;
+
+        IF @@ROWCOUNT &gt; <span class="hljs-number"><span class="hljs-number">0</span></span> 
+        <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span>
+            PRINT CAST(@customerID as NVARCHAR(<span class="hljs-number"><span class="hljs-number">20</span></span>)) + N<span class="hljs-string"><span class="hljs-string">' '</span></span> + @fname + N<span class="hljs-string"><span class="hljs-string">' '</span></span> + @lname;
+        <span class="hljs-keyword"><span class="hljs-keyword">END</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+    <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+        PRINT <span class="hljs-string"><span class="hljs-string">'Unable to run query'</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH
+
+    SET @maxReturns += <span class="hljs-number"><span class="hljs-number">1</span></span>;
+    SET @CustomerID += <span class="hljs-number"><span class="hljs-number">1</span></span>;
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span>;
+</code></pre>
+
+<h3 id="challenge-2">Challenge 2</h3>
+
+<ol>
+  <li>Catch the error</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'Challenge 2'</span></span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+    PRINT <span class="hljs-string"><span class="hljs-string">'Casting: '</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(@<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">4</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+</code></pre>
+
+<ol>
+  <li>Create a stored procedure</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs php">CREATE PROCEDURE dbo.DisplayErrorDetails <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'ERROR INFORMATION'</span></span>;
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Error Number: '</span></span> + CAST(ERROR_NUMBER() <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> varchar(<span class="hljs-number"><span class="hljs-number">10</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Error Message: '</span></span> + ERROR_MESSAGE();
+<span class="hljs-keyword"><span class="hljs-keyword">PRINT</span></span> <span class="hljs-string"><span class="hljs-string">'Error Severity: '</span></span> + CAST(ERROR_SEVERITY() <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> varchar(<span class="hljs-number"><span class="hljs-number">10</span></span>));
+</code></pre>
+
+<ol>
+  <li>Display the error information</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">DECLARE</span></span> @<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-built_in"><span class="hljs-built_in">varchar</span></span>(<span class="hljs-number"><span class="hljs-number">20</span></span>) = <span class="hljs-string"><span class="hljs-string">'Challenge 2'</span></span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> TRY
+    PRINT <span class="hljs-string"><span class="hljs-string">'Casting: '</span></span> + <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(@<span class="hljs-keyword"><span class="hljs-keyword">num</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">4</span></span>));
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> TRY
+<span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> CATCH
+    <span class="hljs-keyword"><span class="hljs-keyword">EXECUTE</span></span> dbo.DisplayErrorDetails;
+<span class="hljs-keyword"><span class="hljs-keyword">END</span></span> CATCH;
+</code></pre>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="ml-2">
+                    MicrosoftLearning/dp-080-Transact-SQL
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.js"></script>
+
+
+
+</body></html>

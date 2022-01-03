@@ -1,0 +1,427 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#准备工作">准备工作</a></li><li class="nav-item"><a class="nav-link" href="#练习-0配置实验室先决条件">练习 0：配置实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习-1将-azure-key-vault-与-azure-devops-集成">练习 1：将 Azure Key Vault 与 Azure DevOps 集成</a></li><li class="nav-item"><a class="nav-link" href="#练习-2删除-azure-实验室资源">练习 2：删除 Azure 实验室资源</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-07-将-azure-key-vault-与-azure-devops-集成">实验室 07： 将 Azure Key Vault 与 Azure DevOps 集成</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室概述">实验室概述</h2>
+
+<p>Azure Key Vault 可安全存储和管理敏感数据，例如密钥、密码和证书。Azure Key Vault 支持硬件安全模块以及各种加密算法和密钥长度。通过使用 Azure Key Vault，可以最大程序降低通过源代码泄漏敏感数据的可能性，这是开发人员经常犯的一个错误。访问 Azure Key Vault 需要正确的身份验证和授权，从而支持对其内容进行细化的权限管理。</p>
+
+<p>在本实验室中，你将了解如何使用以下步骤将 Azure Key Vault 与 Azure DevOps 管道集成：</p>
+
+<ul>
+  <li>创建 Azure Key Vault 以将 MySQL 服务器密码存储为机密。</li>
+  <li>创建 Azure 服务主体以提供对 Azure Key Vault 中的机密的访问权限。</li>
+  <li>配置权限以允许服务主体读取机密。</li>
+  <li>配置管道，以从 Azure Key Vault 检索密码并将其传递到后续任务。</li>
+</ul>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>创建 Azure Active Directory (Azure AD) 服务主体。</li>
+  <li>创建 Azure 密钥保管库。</li>
+  <li>通过 Azure DevOps 管道跟踪拉取请求。</li>
+</ul>
+
+<h2 id="实验室持续时间">实验室持续时间</h2>
+
+<ul>
+  <li>预计用时：<strong>40 分钟</strong></li>
+</ul>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="准备工作">准备工作</h3>
+
+<h4 id="登录到实验室虚拟机">登录到实验室虚拟机</h4>
+
+<p>请确保已使用以下凭据登录到 Windows 10 虚拟机：</p>
+
+<ul>
+  <li>用户名：<strong>Student</strong></li>
+  <li>密码：<strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="查看本实验室所需的应用程序">查看本实验室所需的应用程序</h4>
+
+<p>确定你将在本实验室中使用的应用程序：</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+</ul>
+
+<h4 id="准备-azure-订阅">准备 Azure 订阅</h4>
+
+<ul>
+  <li>标识现有的 Azure 订阅或创建一个新的 Azure 订阅。</li>
+  <li>验证你拥有 Microsoft 帐户或 Azure AD 帐户，该帐户在 Azure 订阅中具有所有者角色并且在与 Azure 订阅关联的 Azure AD 租户中具有全局管理员角色。有关详细信息，请参阅<a href="https://docs.microsoft.com/zh-cn/azure/role-based-access-control/role-assignments-list-portal">使用 Azure 门户列出 Azure 角色分配</a>和<a href="https://docs.microsoft.com/zh-cn/azure/active-directory/roles/manage-roles-portal#view-my-roles">在 Azure Active Directory 中查看和分配管理员角色</a>。</li>
+</ul>
+
+<h4 id="设置-azure-devops-组织">设置 Azure DevOps 组织</h4>
+
+<p>如果还没有可用于本实验室的 Azure DevOps 组织，请按照<a href="https://docs.microsoft.com/zh-cn/azure/devops/organizations/accounts/create-organization?view=azure-devops">创建组织或项目集合</a>中的说明创建一个。</p>
+
+<h3 id="练习-0配置实验室先决条件">练习 0：配置实验室先决条件</h3>
+
+<p>在本练习中，你将设置实验室先决条件，其中包括基于 Azure DevOps 演示生成器模板的预配置的 Parts Unlimited 团队项目。</p>
+
+<h4 id="任务-1配置团队项目">任务 1：配置团队项目</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 演示生成器基于 <strong>Azure Key Vault</strong> 模板生成新项目。</p>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器并导航到 <a href="https://azuredevopsdemogenerator.azurewebsites.net">Azure DevOps 演示生成器</a>。此实用工具将对以下过程进行自动化：在你的帐户中创建预填充了实验室所需内容（工作项、存储库等）的 Azure DevOps 项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：有关该站点的详细信息，请参阅 https://docs.microsoft.com/zh-cn/azure/devops/demo-gen。</p>
+    </blockquote>
+  </li>
+  <li>单击 <strong>“登录”</strong>，并使用与你的 Azure DevOps 订阅相关联的 Microsoft 帐户登录。</li>
+  <li>如果需要，在 <strong>“Azure DevOps 演示生成器”</strong> 页面上，单击 <strong>“接受”</strong> 以接受访问 Azure DevOps 订阅的权限请求。</li>
+  <li>在 <strong>“新建项目”</strong> 页面上的 <strong>“新建项目名称”</strong> 文本框中，键入 <strong>“将 Azure Key Vault 与 Azure DevOps 集成”</strong>，在 <strong>“选择组织”</strong> 下拉列表中选择你的 Azure DevOps 组织，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>在 <strong>“选择模板”</strong> 页面上的标题菜单中，单击 <strong>“DevOps 实验室”</strong>，在模板列表中，单击 <strong>“Azure Key Vault”</strong> 模板，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>
+    <p>返回 <strong>“新建项目”</strong> 页面，选中 <strong>“ARM 输出”</strong> 标签下方的复选框，然后单击 <strong>“创建项目”</strong></p>
+
+    <blockquote>
+      <p><strong>备注</strong>：等待此过程完成。该过程大约需要 2 分钟。如果该过程失败，请导航到你的 DevOps 组织，删除项目并重试。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“新建项目”</strong> 页面上，单击 <strong>“导航到项目”</strong>。</li>
+</ol>
+
+<h3 id="练习-1将-azure-key-vault-与-azure-devops-集成">练习 1：将 Azure Key Vault 与 Azure DevOps 集成</h3>
+
+<ul>
+  <li>创建 Azure 服务主体以提供对 Azure 密钥保管库中机密的访问权限。</li>
+  <li>创建 Azure 密钥保管库以将 MySQL 服务器密码作为机密存储。</li>
+  <li>配置权限以允许服务主体读取机密。</li>
+  <li>配置管道，以从 Azure Key Vault 检索密码并将其传递到后续任务。</li>
+</ul>
+
+<h4 id="任务-1创建服务主体">任务 1：创建服务主体</h4>
+
+<p>在本任务中，你将使用 Azure CLI 创建服务主体。</p>
+
+<blockquote>
+  <p><strong>备注</strong>：如果你已有一个服务主体，则可以直接进行下一个任务。</p>
+</blockquote>
+
+<p>你需要服务主体才能将应用从 Azure Pipelines 部署到 Azure 资源。由于我们要检索管道中的机密，因此创建 Azure 密钥保管库时，我们需要为该服务授予权限。</p>
+
+<p>从管道定义内部连接到 Azure 订阅或从项目设置页面新建服务连接时，Azure Pipeline 会自动创建服务主体。你也可以从门户或使用 Azure CLI 手动创建服务主体，然后在项目中重复使用。如果要获取一组预定义的权限，建议使用现有的服务主体。</p>
+
+<ol>
+  <li>从实验室计算机启动 Web 浏览器，导航到 <a href="https://portal.azure.com"><strong>Azure 门户</strong></a>，并使用用户帐户登录，该帐户在本实验室中将使用的 Azure 订阅中具有所有者角色，并在与此订阅关联的 Azure AD 租户中具有全局管理员角色。</li>
+  <li>在 Azure 门户中，单击页面顶部搜索文本框右侧的 <strong>Cloud Shell</strong> 图标。</li>
+  <li>如果提示选择 <strong>“Bash”</strong> 或 <strong>“PowerShell”</strong>，请选择 <strong>“Bash”</strong>。</li>
+</ol>
+
+<blockquote>
+  <p><strong>备注</strong>：如果这是第一次启动 <strong>Cloud Shell</strong>，并显示消息 <strong>“未装载任何存储”</strong>，请选择你将在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 <strong>Bash</strong> 提示符的 <strong>Cloud Shell</strong> 窗格中，运行以下命令以创建服务主体（将 <code>&lt;service-principal-name&gt;</code> 替换为任意由字母和数字组成的唯一字符串）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql">az ad sp <span class="hljs-keyword"><span class="hljs-keyword">create</span></span>-<span class="hljs-keyword"><span class="hljs-keyword">for</span></span>-rbac <span class="hljs-comment"><span class="hljs-comment">--name &lt;service-principal-name&gt;</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：此命令将生成 JSON 输出。将输出复制到文本文件中。稍后将在本实验室用到它。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>Bash</strong> 提示符的 <strong>Cloud Shell</strong> 窗格中，运行以下命令以检索 Azure 订阅 ID 和订阅名称属性的值：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql">az account <span class="hljs-keyword"><span class="hljs-keyword">show</span></span> <span class="hljs-comment"><span class="hljs-comment">--query id --output tsv</span></span>
+az <span class="hljs-keyword"><span class="hljs-keyword">account</span></span> <span class="hljs-keyword"><span class="hljs-keyword">show</span></span> <span class="hljs-comment"><span class="hljs-comment">--query name --output tsv</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：将两个值都复制到文本文件中。稍后将在本实验室用到它们。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2创建-azure-密钥保管库">任务 2：创建 Azure 密钥保管库</h4>
+
+<p>在本任务中，你将使用 Azure 门户创建 Azure 密钥保管库。</p>
+
+<p>对于本实验室方案，我们使用可连接到 MySQL 数据库的应用。我们打算将 MySQL 数据库的密码作为机密存储到密钥保管库中。</p>
+
+<ol>
+  <li>在 Azure 门户中的 <strong>“搜索资源、服务和文档”</strong> 文本框中，键入 <strong>“Key vaults”</strong>，然后按 <strong>Enter</strong> 键。</li>
+  <li>在 <strong>“密钥保管库”</strong> 边栏选项卡上，单击 <strong>“+ 机密”</strong>。</li>
+  <li>
+    <p>在 <strong>“创建密钥保管库”</strong> 边栏选项卡的 <strong>“基本”</strong> 选项卡中，指定以下设置，然后单击 <strong>“下一步：访问策略”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>资源组</td>
+          <td>新资源组名称 <strong>az400m07l01-RG</strong></td>
+        </tr>
+        <tr>
+          <td>密钥保管库名称</td>
+          <td>任何唯一有效的名称</td>
+        </tr>
+        <tr>
+          <td>区域</td>
+          <td>靠近实验室环境位置的 Azure 区域</td>
+        </tr>
+        <tr>
+          <td>定价层</td>
+          <td><strong>标准</strong></td>
+        </tr>
+        <tr>
+          <td>保留已删除保管库的天数</td>
+          <td><strong>7</strong></td>
+        </tr>
+        <tr>
+          <td>清除保护</td>
+          <td><strong>禁用清除保护</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>在 <strong>“创建密钥保管库”</strong> 边栏选项卡的 <strong>“访问策略”</strong> 选项卡上，单击 <strong>“+ 添加访问策略”</strong> 以设置新策略。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：你需要保护对密钥保管库的访问，只允许得到授权的应用程序和用户进行访问。若要从保管库访问数据，你需要提供对服务主体的读取（获取）权限，以便在管道中进行身份验证。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“添加访问策略”</strong> 边栏选项卡上，直接单击 <strong>“选择主体”</strong> 标签下的 <strong>“未选择”</strong> 链接。</li>
+  <li>
+    <p>在 <strong>“主体”</strong> 边栏选项卡上，搜索在上一练习中创建的安全主体，将其选中，然后单击 <strong>“选择”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 可以按主体的名称或 ID 进行搜索。</p>
+    </blockquote>
+  </li>
+  <li>返回 <strong>“添加访问策略”</strong> 边栏选项卡，在 <strong>“机密权限”</strong> 下拉列表中，选中 <strong>“获取”</strong> 和 <strong>“列出”</strong> 权限旁的复选框，然后单击 <strong>“添加”</strong>。</li>
+  <li>
+    <p>返回 <strong>“创建密钥保管库”</strong> 边栏选项卡的 <strong>“访问策略”</strong> 选项卡，单击 <strong>“查看 + 创建”</strong>，然后在 <strong>“查看 + 创建”</strong> 边栏选项卡上，单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：等待预配 Azure 密钥保管库。所需时间应该不超过一分钟。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“部署完成”</strong> 边栏选项卡上，单击 <strong>“转到资源”</strong>。</li>
+  <li>在 Azure 密钥保管库边栏选项卡左侧的垂直菜单中的 <strong>“设置”</strong> 部分，单击 <strong>“机密”</strong>。</li>
+  <li>在 <strong>“机密”</strong> 边栏选项卡上，单击 <strong>“生成/导入”</strong>。</li>
+  <li>
+    <p>在 <strong>“创建机密”</strong> 边栏选项卡上，指定以下设置并单击 <strong>“创建”</strong>（将其他设置保留为默认值）：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>上传选项</td>
+          <td><strong>手动</strong></td>
+        </tr>
+        <tr>
+          <td>名称</td>
+          <td><strong>sqldbpassword</strong></td>
+        </tr>
+        <tr>
+          <td>值</td>
+          <td>任何有效的 MySQL 密码值</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="任务-3检查-azure-pipeline">任务 3：检查 Azure Pipeline</h4>
+
+<p>在本任务中，将 Azure Pipeline 配置为从 Azure 密钥保管库检索机密。</p>
+
+<ol>
+  <li>在实验计算机上启动 Web 浏览器，然后导航到在上一练习中创建的 Azure DevOps 项目 <strong>“将 Azure Key Vault 与 Azure DevOps 集成”</strong>。</li>
+  <li>在 Azure DevOps 门户的垂直导航窗格中，选择 <strong>“管道”</strong>，然后验证是否显示了 <strong>“管道”</strong> 窗格。</li>
+  <li>在“<strong>管道</strong>”窗格中，单击表示 <strong>SmartHotel-CouponManagement-CI</strong> 管道的条目。单击“<strong>编辑</strong>”。</li>
+  <li>在管道定义中，将“<strong>管道</strong>” &gt; “<strong>代理规范</strong>”修改为“<strong>ubuntu 18.04</strong>”。单击“<strong>保存并排队</strong>” &gt; “<strong>保存并运行</strong>”以触发生成。</li>
+  <li>在 Azure DevOps 门户的垂直导航窗格中的 <strong>“管道”</strong> 部分，选择 <strong>“版本”</strong>。</li>
+  <li>在 <strong>“SmartHotel-CouponManagement-CD”</strong> 窗格上，单击右上角的 <strong>“编辑”</strong>。</li>
+  <li>
+    <p>在 <strong>“所有管道”&gt;“SmartHotel-CouponManagement-CD”</strong> 窗格上，选择 <strong>“任务”</strong> 选项卡，然后在下拉菜单中选择 <strong>“开发”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>“开发”</strong> 阶段的版本定义具有 <strong>Azure Key Vault</strong> 任务。此任务从 Azure Key Vault 下载<em>机密</em>。你需要指向之前在实验室中创建的订阅和 Azure Key Vault 资源。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：你需要为管道授权才能部署到 Azure。Azure 管道可以使用新的服务主体自动创建服务连接，<strong>但建议使用之前创建的服务连接</strong>，因为它有权读取机密。</p>
+    </blockquote>
+  </li>
+  <li>选择“<strong>在代理上运行</strong>”，并将“<strong>代理池</strong>”字段修改为“<strong>Azure Pipelines</strong>”，将代理规范修改为“<strong>ubuntu 18.04</strong>”。</li>
+  <li>选择 <strong>“Azure Key Vault”</strong> 任务，然后在右侧的 <strong>“Azure Key Vault”</strong> 任务属性的 <strong>“Azure 订阅”</strong> 标签旁，单击 <strong>“管理”</strong>。 
+这将打开另一个浏览器标签页，该选项卡显示了 Azure DevOps 门户中的 <strong>“服务连接”</strong> 窗格。</li>
+  <li>在 <strong>“服务连接”</strong> 窗格上，单击 <strong>“新建服务连接”</strong>。</li>
+  <li>在 <strong>“新建服务连接”</strong> 窗格上，选择 <strong>“Azure 资源管理器”</strong> 选项，单击 <strong>“下一步”</strong>，选择 <strong>“服务主体(手动)”</strong>，然后再次单击 <strong>“下一步”</strong>。</li>
+  <li>
+    <p>在 <strong>“新建服务连接”</strong> 窗格上，使用 Azure CLI 创建服务主体，然后使用复制到本练习的第一个任务内的文本文件中的信息来指定以下设置：</p>
+
+    <ul>
+      <li>订阅 ID：通过运行 <code>az account show --query id --output tsv</code> 获取的值</li>
+      <li>订阅名称：通过运行 <code>az account show --query name --output tsv</code> 获取的值</li>
+      <li>服务主体 ID：通过运行 <code>az ad sp create-for-rbac --name &lt;service-principal-name&gt;</code> 而生成的输出中的标记为 <strong>appId</strong> 的值</li>
+      <li>服务主体密钥：通过运行 <code>az ad sp create-for-rbac --name &lt;service-principal-name&gt;</code> 而生成的输出中的标记为 <strong>“密码”</strong> 的值</li>
+      <li>租户 ID：通过运行 <code>az ad sp create-for-rbac --name &lt;service-principal-name&gt;</code> 而生成的输出中的标记为 <strong>“租户”</strong> 的值</li>
+    </ul>
+  </li>
+  <li>在 <strong>“新建服务连接”</strong> 窗格上，单击 <strong>“验证”</strong> 以确定提供的信息是否有效。</li>
+  <li>收到 <strong>“验证成功”</strong> 响应后，在 <strong>“服务连接名称”</strong> 文本框中，键入 <strong>“kv-service-connection”</strong>，然后单击 <strong>“验证并保存”</strong>。</li>
+  <li>切换回显示管道定义和 <strong>Azure Key Vault</strong> 任务的 Web 浏览器标签页。</li>
+  <li>
+    <p>选中 <strong>“Azure Key Vault”</strong> 任务后，在 <strong>“Azure Key Vault”</strong> 窗格上，单击 <strong>“刷新”</strong> 按钮，在 <strong>“Azure 订阅”</strong> 下拉列表中，选择 <strong>“kv-service-connection”</strong> 条目，在 <strong>“密钥保管库”</strong> 下拉列表中，选择在第一个任务中创建的表示 Azure 密钥保管库的条目，然后在 <strong>“机密筛选器”</strong> 文本框中，键入 <strong>“sqldbpassword”</strong>。最后，展开 <strong>“输出变量”</strong> 部分，然后在 <strong>“参考名称”</strong> 文本框中，键入 <strong>“sqldbpassword”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：在运行时，Azure Pipelines 将提取最新的机密值，然后将其设置为任务变量 <strong>$(sqldbpassword)</strong>。通过引用该变量，这些任务可以被后续任务使用。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>若要验证这一点，请选择下一个任务 <strong>“Azure 部署”</strong> （部署 ARM 模板），并查看 <strong>“覆盖模板参数”</strong> 文本框中的内容。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs javascript">-webAppName $(webappName) -mySQLAdminLoginName <span class="hljs-string"><span class="hljs-string">"azureuser"</span></span> -mySQLAdminLoginPassword $(sqldbpassword)
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>： <strong>“覆盖模板参数”</strong> 内容会引用 <strong>sqldbpassword</strong> 变量来设置 mySQL 管理员密码。这将使用在密钥保管库中指定的密码来预配 ARM 模板中定义的 MySQL 数据库。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>可以通过指定任务的订阅（如果在项目中使用了新的订阅，请单击 <strong>“授权”</strong>）和位置来完成管道定义。对 <strong>“Azure 应用服务部署”</strong> 管道中的最后一项任务<em>重复</em>相同的操作（从下拉列表中的 <strong>“可用 Azure 服务连接”</strong> 部分选择订阅）。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 在“Azure 订阅”下拉列表中，你将看到已被授权连接到 Azure 的订阅的<strong>可用 Azure 服务连接</strong>。如果再次从 <strong>“可用 Azure 订阅”</strong> 列表选择已授权的订阅并尝试 <strong>“授权”</strong>，该过程会失败。</p>
+    </blockquote>
+  </li>
+  <li>在“<strong>变量</strong>”选项卡上，将“<strong>resourcegroup</strong>”变量更改为纯文本（单击锁定），并将“<strong>az400m07l01-RG</strong>”写入值字段中。</li>
+  <li>
+    <p>最后，<strong>保存</strong>并单击 <strong>“新建发布” &gt; “创建”</strong> （保留默认值）以开始部署。</p>
+  </li>
+  <li>请确保管道成功运行，并在完成后通过在 Azure 门户中打开资源组 <strong>az400m07l01-RG</strong> 来查看创建的资源。打开并浏览（<strong>“概述”-&gt;“浏览”</strong>） <strong>“应用服务”</strong>，查看已发布的网站。</li>
+</ol>
+
+<h3 id="练习-2删除-azure-实验室资源">练习 2：删除 Azure 实验室资源</h3>
+
+<p>在本练习中，你将删除在本实验室中预配的 Azure 资源，避免产生意外费用。</p>
+
+<blockquote>
+  <p><strong>备注</strong>：请记得删除不再使用的所有新创建的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<h4 id="任务-1删除-azure-实验室资源">任务 1：删除 Azure 实验室资源</h4>
+
+<p>在此任务中，你将使用 Azure Cloud Shell 删除在本实验室中预配的 Azure 资源，避免产生不必要的费用。</p>
+
+<ol>
+  <li>在 Azure 门户中，在 <strong>Cloud Shell</strong> 窗格中打开 <strong>Bash</strong> Shell 会话。</li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m07l01-RG')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">shell</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-sh hljs bash">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m07l01-RG')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：该命令以异步方式执行（由 –nowait 参数决定），因此，虽然你随后可在同一 Bash 会话中立即运行另一个 Azure CLI 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本实验室中，你已使用以下步骤将 Azure Key Vault 与 Azure DevOps 管道集成：</p>
+
+<ul>
+  <li>创建了 Azure 密钥保管库以将 MySQL 服务器密码作为机密存储。</li>
+  <li>创建了 Azure 服务主体以提供对 Azure 密钥保管库中机密的访问权限。</li>
+  <li>配置了权限以允许服务主体读取机密。</li>
+  <li>配置了管道以从 Azure 密钥保管库检索密码并将其传递给后续任务。</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

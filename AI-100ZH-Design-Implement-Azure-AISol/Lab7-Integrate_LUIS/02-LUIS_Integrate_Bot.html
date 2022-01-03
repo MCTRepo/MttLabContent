@@ -1,0 +1,279 @@
+<!DOCTYPE html><html lang="en-US"><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>实验室 7：将 LUIS 集成到机器人对话中 | AI-100ZH-Design-Implement-Azure-AISol</title>
+<meta name="generator" content="Jekyll v3.9.0">
+<meta property="og:title" content="实验室 7：将 LUIS 集成到机器人对话中">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="AI100T01A ILT 课程的实验文件">
+<meta property="og:description" content="AI100T01A ILT 课程的实验文件">
+<link rel="canonical" href="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab7-Integrate_LUIS/02-LUIS_Integrate_Bot.html">
+<meta property="og:url" content="https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab7-Integrate_LUIS/02-LUIS_Integrate_Bot.html">
+<meta property="og:site_name" content="AI-100ZH-Design-Implement-Azure-AISol">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="实验室 7：将 LUIS 集成到机器人对话中">
+<script type="application/ld+json">
+{"description":"AI100T01A ILT 课程的实验文件","url":"https://microsoftlearning.github.io/AI-100ZH-Design-Implement-Azure-AISol/Lab7-Integrate_LUIS/02-LUIS_Integrate_Bot.html","@type":"WebPage","headline":"实验室 7：将 LUIS 集成到机器人对话中","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <style class="anchorjs"></style><link rel="stylesheet" href="../assets/css/style_v%3D3a0ab1c74f6d3ca7c17e819da8185129fa5047f9.css">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/AI-100ZH-Design-Implement-Azure-AISol/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="../">AI-100ZH-Design-Implement-Azure-AISol</a></h1>
+      
+
+      <h1 id="实验室-7将-luis-集成到机器人对话中">实验室 7：将 LUIS 集成到机器人对话中</h1>
+
+<h2 id="简介">简介<a class="anchorjs-link " href="#简介" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>机器人现在能够获取用户输入并根据用户输入做出响应。遗憾的是，机器人的沟通技能薄弱。有一个拼写错误或者换一种表达方式，机器人就无法理解了。这可能会令用户感到失望。使机器人能使用我们在<a href="../Lab6-Implement_LUIS/02-Implement_LUIS.html">实验 6</a> 中生成的 LUIS 模型理解自然语言，可以大幅提高机器人的会话能力。</p>
+
+<p>必须更新机器人才能使用 LUIS。  修改“Startup.cs”和“PictureBot.cs”就能实现这一点。</p>
+
+<blockquote>
+  <p>先决条件：本实验以<a href="../Lab3-Basic_Filter_Bot/02-Basic_Filter_Bot.html">实验 3</a> 为基础。建议执行该实验，这样才能实现本实验中涵盖的记录。如果没有执行该实验，可以仔细阅读所有练习，并根据需要查看一些代码或者将代码用于自己的应用程序中。</p>
+</blockquote>
+
+<blockquote>
+  <p>注意：如果要使用 Finished 文件夹中的代码，则必须将应用特定的信息替换为自己的应用 ID 和终结点。</p>
+</blockquote>
+
+<h2 id="实验-71添加自然语言理解">实验 7.1：添加自然语言理解<a class="anchorjs-link " href="#实验-71添加自然语言理解" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<h3 id="向-startupcs-添加-luis">向 Startup.cs 添加 LUIS<a class="anchorjs-link " href="#向-startupcs-添加-luis" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h3>
+
+<ol>
+  <li>
+    <p>如果尚未打开，请在 Visual Studio 中打开 <strong>“PictureBot”解决方案</strong></p>
+
+    <blockquote>
+      <p><strong>注</strong>：如果不是从实验室 1 开始，也可以从“<strong>{GitHubPath}/Lab7-Integrate_LUIS/code/Starter/PictureBot/PictureBot.sln</strong>”解决方案开始。
+请务必替换所有应用设置值</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>打开 <strong>“Startup.cs”</strong> 并找到<code class="language-plaintext highlighter-rouge">ConfigureServices</code>方法。在此，我们添加 LUIS 的方式是：在创建并注册状态访问器后额外添加一个 LUIS 服务。</p>
+
+    <p>如下所示：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">services</span><span class="p">.</span><span class="nf">AddSingleton</span><span class="p">((</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">IServiceProvider</span><span class="p">,</span> <span class="n">PictureBotAccessors</span><span class="p">&gt;)(</span><span class="n">sp</span> <span class="p">=&gt;</span>
+ <span class="p">{</span>
+     <span class="p">.</span>
+     <span class="p">.</span>
+     <span class="p">.</span>
+     <span class="k">return</span> <span class="n">accessors</span><span class="p">;</span>
+ <span class="p">});</span>
+</code></pre></div>    </div>
+
+    <p>添加：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c1">// Create and register a LUIS recognizer.</span>
+ <span class="n">services</span><span class="p">.</span><span class="nf">AddSingleton</span><span class="p">(</span><span class="n">sp</span> <span class="p">=&gt;</span>
+ <span class="p">{</span>
+     <span class="kt">var</span> <span class="n">luisApplication</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">LuisApplication</span><span class="p">(</span>
+         <span class="n">Configuration</span><span class="p">.</span><span class="nf">GetSection</span><span class="p">(</span><span class="s">"luisAppId"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">,</span>
+         <span class="n">Configuration</span><span class="p">.</span><span class="nf">GetSection</span><span class="p">(</span><span class="s">"luisAppKey"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">,</span>
+         <span class="n">Configuration</span><span class="p">.</span><span class="nf">GetSection</span><span class="p">(</span><span class="s">"luisEndPoint"</span><span class="p">)?.</span><span class="n">Value</span><span class="p">);</span>
+         <span class="c1">// Set the recognizer options depending on which endpoint version you want to use.</span>
+         <span class="c1">// More details can be found in https://docs.microsoft.com/en-gb/azure/cognitive-services/luis/luis-migration-api-v3</span>
+         <span class="kt">var</span> <span class="n">recognizerOptions</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">LuisRecognizerOptionsV3</span><span class="p">(</span><span class="n">luisApplication</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="n">PredictionOptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Microsoft</span><span class="p">.</span><span class="n">Bot</span><span class="p">.</span><span class="n">Builder</span><span class="p">.</span><span class="n">AI</span><span class="p">.</span><span class="n">LuisV3</span><span class="p">.</span><span class="n">LuisPredictionOptions</span>
+             <span class="p">{</span>
+                 <span class="n">IncludeAllIntents</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+             <span class="p">}</span>
+         <span class="p">};</span>
+     <span class="k">return</span> <span class="k">new</span> <span class="nf">LuisRecognizer</span><span class="p">(</span><span class="n">recognizerOptions</span><span class="p">);</span>
+ <span class="p">});</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>对 <strong>“appsettings.json”</strong> 进行修改，使其包括以下属性，请务必使用自己的 LUIS 实例值填写它们：</p>
+
+    <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w"> </span><span class="nl">"luisAppId"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="err">,</span><span class="w">
+ </span><span class="nl">"luisAppKey"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="err">,</span><span class="w">
+ </span><span class="nl">"luisEndPoint"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+</span></code></pre></div>    </div>
+
+    <blockquote>
+      <p><strong>注</strong>：.NET SDK 的 Luis 终结点 URL 应该类似于 <strong>“https://{region}.api.cognitive.microsoft.com”</strong>，之后没有 API 或版本。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="实验-72将-luis-添加到-picturebot-的-maindialog">实验 7.2：将 LUIS 添加到 PictureBot 的 MainDialog<a class="anchorjs-link " href="#实验-72将-luis-添加到-picturebot-的-maindialog" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>
+    <p>打开 <strong>PictureBot.cs</strong>。首先需要初始化 LUIS 识别器，具体做法与为 <code class="language-plaintext highlighter-rouge">PictureBotAccessors</code> 执行初始化的操作相似。在注释行 <code class="language-plaintext highlighter-rouge">private readonly PictureBotAccessors _accessors;</code> 下面添加以下内容：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">private</span> <span class="n">LuisRecognizer</span> <span class="n">_recognizer</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>在 <strong>Program.cs</strong> 文件顶部添加以下命名空间：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">using</span> <span class="nn">Microsoft.Bot.Builder.AI.Luis</span><span class="p">;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>导航到 <strong>PictureBot</strong> 构造函数。找到行：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">public</span> <span class="nf">PictureBot</span><span class="p">(</span><span class="n">PictureBotAccessors</span> <span class="n">accessors</span><span class="p">)</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>添加输入要求（参数 <code class="language-plaintext highlighter-rouge">LuisRecognizer recognizer</code>）</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">public</span> <span class="nf">PictureBot</span><span class="p">(</span><span class="n">PictureBotAccessors</span> <span class="n">accessors</span><span class="p">,</span> <span class="n">LuisRecognizer</span> <span class="n">recognizer</span><span class="p">)</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>在该构造函数顶部添加以下行，并将 <code class="language-plaintext highlighter-rouge">using System;</code> 添加到文件顶部。</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">_recognizer</span> <span class="p">=</span> <span class="n">recognizer</span> <span class="p">??</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentNullException</span><span class="p">(</span><span class="k">nameof</span><span class="p">(</span><span class="n">recognizer</span><span class="p">));</span>
+</code></pre></div>    </div>
+
+    <blockquote>
+      <p>同样，这和初始化 <code class="language-plaintext highlighter-rouge">_accessors</code> 实例的方式非常相似。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<p>就更新 <code class="language-plaintext highlighter-rouge">MainDialog</code> 而言，我们不需要向最初的 <code class="language-plaintext highlighter-rouge">GreetingAsync</code> 步骤添加任何内容，因为无论用户输入是什么内容，我们都希望在对话开始时问候用户。</p>
+
+<ol>
+  <li>
+    <p>在 <code class="language-plaintext highlighter-rouge">MainMenuAsync</code> 中，我们确实希望首先尝试使用 Regex，所以将保留大部分内容。但是，如果 Regex 没有找到意图，我们希望 <code class="language-plaintext highlighter-rouge">default</code> 操作有所不同。这时候，需要调用 LUIS。</p>
+
+    <p>在 <code class="language-plaintext highlighter-rouge">MainMenuAsync</code> 切换块中，将：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">default</span><span class="p">:</span>
+     <span class="p">{</span>
+         <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithConfused</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+         <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">EndDialogAsync</span><span class="p">();</span>
+     <span class="p">}</span>
+</code></pre></div>    </div>
+
+    <p>替换为：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">default</span><span class="p">:</span>
+ <span class="p">{</span>
+     <span class="c1">// Call LUIS recognizer</span>
+     <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_recognizer</span><span class="p">.</span><span class="nf">RecognizeAsync</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">cancellationToken</span><span class="p">);</span>
+     <span class="c1">// Get the top intent from the results</span>
+     <span class="kt">var</span> <span class="n">topIntent</span> <span class="p">=</span> <span class="n">result</span><span class="p">?.</span><span class="nf">GetTopScoringIntent</span><span class="p">();</span>
+     <span class="c1">// Based on the intent, switch the conversation, similar concept as with Regex above</span>
+     <span class="k">switch</span> <span class="p">((</span><span class="n">topIntent</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">?</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">intent</span> <span class="p">:</span> <span class="k">null</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="k">case</span> <span class="k">null</span><span class="p">:</span>
+             <span class="c1">// Add app logic when there is no result.</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithConfused</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">break</span><span class="p">;</span>
+         <span class="k">case</span> <span class="s">"None"</span><span class="p">:</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithConfused</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="c1">// with each statement, we're adding the LuisScore, purely to test, so we know whether LUIS was called or not</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithLuisScore</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">intent</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">score</span><span class="p">);</span>
+             <span class="k">break</span><span class="p">;</span>
+         <span class="k">case</span> <span class="s">"Greeting"</span><span class="p">:</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithGreeting</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithHelp</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithLuisScore</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">intent</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">score</span><span class="p">);</span>
+             <span class="k">break</span><span class="p">;</span>
+         <span class="k">case</span> <span class="s">"OrderPic"</span><span class="p">:</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithOrderConfirmation</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithLuisScore</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">intent</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">score</span><span class="p">);</span>
+             <span class="k">break</span><span class="p">;</span>
+         <span class="k">case</span> <span class="s">"SharePic"</span><span class="p">:</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithShareConfirmation</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithLuisScore</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">intent</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">score</span><span class="p">);</span>
+             <span class="k">break</span><span class="p">;</span>
+         <span class="k">case</span> <span class="s">"SearchPic"</span><span class="p">:</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithSearchConfirmation</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithLuisScore</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">intent</span><span class="p">,</span> <span class="n">topIntent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">score</span><span class="p">);</span>
+             <span class="k">break</span><span class="p">;</span>
+         <span class="k">default</span><span class="p">:</span>
+             <span class="k">await</span> <span class="n">MainResponses</span><span class="p">.</span><span class="nf">ReplyWithConfused</span><span class="p">(</span><span class="n">stepContext</span><span class="p">.</span><span class="n">Context</span><span class="p">);</span>
+             <span class="k">break</span><span class="p">;</span>
+     <span class="p">}</span>
+     <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">EndDialogAsync</span><span class="p">();</span>
+ <span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>在相同的方法 <code class="language-plaintext highlighter-rouge">MainMenuAsync</code> 中，删除空对话框块以避免混淆。找到以下代码，并将其删除：</p>
+
+    <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>     <span class="k">case</span> <span class="s">"search"</span><span class="p">:</span>
+         <span class="c1">// switch to the search dialog</span>
+         <span class="k">return</span> <span class="k">await</span> <span class="n">stepContext</span><span class="p">.</span><span class="nf">BeginDialogAsync</span><span class="p">(</span><span class="s">"searchDialog"</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="n">cancellationToken</span><span class="p">);</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p>简述一下我们在添加新代码过程中所做的工作。首先，我们将调用 LUIS，而不是回答我们不明白。于是，我们使用 LUIS 识别器调用 LUIS，并将排在最前面的意图存储在变量中。然后我们使用 <code class="language-plaintext highlighter-rouge">switch</code> 以不同的方式响应，具体取决于选取的意图。这几乎与使用 Regex 执行的操作相同。</p>
+
+<blockquote>
+  <p><strong>注意</strong>：如果在 LUIS 中未按<a href="../Lab6-Implement_LUIS/02-Implement_LUIS.html">实验室 6</a> 随附的代码中的说明为意图命名，需要对 <code class="language-plaintext highlighter-rouge">case</code> 语句做出相应修改。</p>
+</blockquote>
+
+<p>另外需要注意的是，我们会在调用 LUIS 的每个回答之后添加 LUIS 意图值和分数。这样做只是为了向你展示调用 LUIS 而不是 Regex 的时间（你可以从最终产品中删除这些回答，但这些回答在测试机器人时是非常棒的指示）。</p>
+
+<h2 id="实验-73测试自然语音短语">实验 7.3：测试自然语音短语<a class="anchorjs-link " href="#实验-73测试自然语音短语" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ol>
+  <li>
+    <p>按 <strong>F5</strong>以运行应用。</p>
+  </li>
+  <li>
+    <p>切换到 Bot Emulator。尝试向机器人发送不同的图片搜索方式。当你说“给我发水的图片”或“给我看狗的图片”时会发生什么？尝试使用一些其他方式来索要、分享和订购图片。</p>
+  </li>
+</ol>
+
+<p>如果有额外的时间，请看看是否有你希望 LUIS 选取，但它未选取的内容。现在可能非常适合前往 luis.ai，<a href="https://docs.microsoft.com/zh-cn/azure/cognitive-services/LUIS/label-suggested-utterances">查看终结点言语</a>，并重新训练/重新发布模型。</p>
+
+<blockquote>
+  <p><strong>有趣的是</strong>：查看终结点言语功能极其强大。  LUIS 会明智地决定要显示的言语。  它会选择那些最能帮助它改进的言语，由“人机回圈”手动标记出来。  例如，如果 LUIS 模型预测一个给定的言语以 47% 的置信度映射到 Intent1，并预测它以 48% 的置信度映射到 Intent2，那么这是一个非常适合显示给人类以进行手动映射的候选项，因为模型在两个意图之间非常接近。</p>
+</blockquote>
+
+<h2 id="延伸阅读">延伸阅读<a class="anchorjs-link " href="#延伸阅读" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>如果在自定义 LUIS 实现方面存在问题，请查看<a href="https://docs.microsoft.com/zh-cn/azure/bot-service/bot-builder-howto-v4-luis?view=azure-bot-service-4.0&amp;tabs=cs">此处</a>关于向机器人添加 LUIS 的文档指南。</p>
+
+<blockquote>
+  <p>卡住或中断？可以在 <a href="code/Finished/">code/Finished</a> 下找到适用于到目前为止的实验的解决方案。你需要在 <code class="language-plaintext highlighter-rouge">appsettings.json</code> 文件中插入 Azure 机器人服务的密钥。建议使用此代码作为参考，而不是作为运行的解决方案，但如果选择运行此代码，请务必添加必需的密钥（在本节中，不应添加密钥）。</p>
+</blockquote>
+
+<h2 id="友情提示"><strong>友情提示</strong><a class="anchorjs-link " href="#友情提示" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<p>如果希望在先前补充的 LUIS 模型与搜索 <a href="https://github.com/Azure/LearnAI-Bootcamp/tree/master/lab01.5-luis">培训</a> 的基础上，尝试集成 LUIS 机器人（包括 Azure 认知搜索），请按以下培训资料操作：<a href="https://github.com/Azure/LearnAI-Bootcamp/tree/master/lab02.1-azure_search">Azure 认知搜索</a>和 <a href="https://github.com/Azure/LearnAI-Bootcamp/blob/master/lab02.2-building_bots/2_Azure_Search.md">Azure 认知搜索机器人</a>。</p>
+
+<h2 id="后续步骤">后续步骤<a class="anchorjs-link " href="#后续步骤" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<ul>
+  <li><a href="../Lab8-Detect_Language/01-Introduction.html">实验 08-01：检测语言</a></li>
+</ul>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  
+
+</body></html>

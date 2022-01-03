@@ -1,0 +1,230 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            dp-080-Transact-SQL
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                dp-080-Transact-SQL
+            </a>
+            <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#challenge-1-return-a-rank-value-for-products">Challenge 1: Return a RANK value for products</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2-return-the-next-years-budget-value">Challenge 2: Return the next year’s budget value</a></li><li class="nav-item"><a class="nav-link" href="#challenge-3-return-the-first-and-last-budget-values-for-each-year">Challenge 3: Return the first and last budget values for each year</a></li><li class="nav-item"><a class="nav-link" href="#challenge-4-count-the-products-in-each-category">Challenge 4: Count the products in each category</a></li><li class="nav-item"><a class="nav-link" href="#challenge-1">Challenge 1</a></li><li class="nav-item"><a class="nav-link" href="#challenge-2">Challenge 2</a></li><li class="nav-item"><a class="nav-link" href="#challenge-3">Challenge 3</a></li><li class="nav-item"><a class="nav-link" href="#challenge-4">Challenge 4</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="use-window-functions">Use window functions</h1>
+
+<p>In this lab, you’ll run window functions on the <strong>adventureworks</strong> database. For your reference, the following diagram shows the tables in the database (you may need to resize the pane to see them clearly).
+<a href="images/adventureworks-erd.png" target="_blank"><img src="images/adventureworks-erd.png" alt="An entity relationship diagram of the adventureworks database"></a></p>
+<blockquote>
+  <p><strong>Note</strong>: If you’re familiar with the standard <strong>AdventureWorks</strong> sample database, you may notice that in this lab we are using a simplified version that makes it easier to focus on learning Transact-SQL syntax.</p>
+</blockquote>
+
+<h2 id="ranking-function">Ranking function</h2>
+
+<p>In this exercise you will create a query that uses a window function to return a ranking value. The query uses a CTE (common table expression) called <strong>sales</strong>. You then use the <strong>sales</strong> CTE to add the RANK window function.</p>
+
+<ol>
+  <li>Start Azure Data Studio, and create a new query (you can do this from the <strong>File</strong> menu or on the <em>welcome</em> page).</li>
+  <li>In the new <strong>SQLQuery_…</strong> pane, use the <strong>Connect</strong> button to connect the query to the <strong>AdventureWorks</strong> saved connection.</li>
+  <li>
+    <p>Copy the following T-SQL code into the query window, highlight it and select <strong>⏵Run</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs sql"> WITH sales AS
+ (
+     <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> C.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Category'</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(D.LineTotal) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">12</span></span>, <span class="hljs-number"><span class="hljs-number">2</span></span>)) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'SalesValue'</span></span>
+     <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> D
+     <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> P
+         <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> D.ProductID = P.ProductID
+     <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> C
+         <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> P.ProductCategoryID = C.ProductCategoryID
+     <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> C.ParentProductCategoryID = <span class="hljs-number"><span class="hljs-number">4</span></span>
+         <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> C.Name
+ )
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Category</span></span>, SalesValue, <span class="hljs-keyword"><span class="hljs-keyword">RANK</span></span>() <span class="hljs-keyword"><span class="hljs-keyword">OVER</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> SalesValue <span class="hljs-keyword"><span class="hljs-keyword">DESC</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Rank'</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> sales
+     <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Category</span></span>;
+</code></pre>
+  </li>
+</ol>
+
+<p>The product categories now have a rank number according to the <strong>SalesValue</strong> for each category. Notice that the RANK function required the rows to be ordered by <strong>SalesValue</strong>, but the final result set was ordered by <strong>Category</strong>.</p>
+
+<h2 id="offset-function">Offset function</h2>
+
+<p>In this exercise you will create a new table called <strong>Budget</strong> populated with budget values for five years. You will then use the LAG window function to return each year’s budget, together with the previous year’s budget value.</p>
+
+<ol>
+  <li>
+    <p>In the query editor, under the existing code enter the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">TABLE</span></span> dbo.Budget
+ (
+     [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>] <span class="hljs-built_in"><span class="hljs-built_in">int</span></span> <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span> PRIMARY <span class="hljs-keyword"><span class="hljs-keyword">KEY</span></span>,
+     Budget <span class="hljs-built_in"><span class="hljs-built_in">int</span></span> <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>
+ );
+
+ <span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> dbo.Budget ([<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>], Budget)
+     <span class="hljs-keyword"><span class="hljs-keyword">VALUES</span></span>
+         (<span class="hljs-number"><span class="hljs-number">2017</span></span>, <span class="hljs-number"><span class="hljs-number">14600</span></span>),
+         (<span class="hljs-number"><span class="hljs-number">2018</span></span>, <span class="hljs-number"><span class="hljs-number">16300</span></span>),
+         (<span class="hljs-number"><span class="hljs-number">2019</span></span>, <span class="hljs-number"><span class="hljs-number">18200</span></span>),
+         (<span class="hljs-number"><span class="hljs-number">2020</span></span>, <span class="hljs-number"><span class="hljs-number">21500</span></span>),
+         (<span class="hljs-number"><span class="hljs-number">2021</span></span>, <span class="hljs-number"><span class="hljs-number">22800</span></span>);
+
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>], Budget, LAG(Budget, <span class="hljs-number"><span class="hljs-number">1</span></span>, <span class="hljs-number"><span class="hljs-number">0</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">OVER</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>]) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Previous'</span></span>
+     <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> dbo.Budget
+     <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>]; 
+</code></pre>
+  </li>
+  <li>
+    <p>Highlight the code and select <strong>⏵Run</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="aggregation-function">Aggregation function</h2>
+
+<p>In this exercise you will create a query that uses PARTITION BY to count the number of subcategories in each category.</p>
+
+<ol>
+  <li>
+    <p>In the query editor, under the existing code enter the following code to return a count of products in each category:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> C.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Category'</span></span>, SC.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Subcategory'</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(SC.Name) <span class="hljs-keyword"><span class="hljs-keyword">OVER</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">PARTITION</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> C.Name) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'SubcatCount'</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> D
+ <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> P
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> D.ProductID = P.ProductID
+ <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SC
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> P.ProductCategoryID = SC.ProductCategoryID
+ <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> C
+     <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> SC.ParentProductCategoryID = C.ProductCategoryID
+     <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> C.Name, SC.Name
+     <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> C.Name, SC.Name;
+</code></pre>
+  </li>
+  <li>
+    <p>Highlight the code and select <strong>⏵Run</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="challenges">Challenges</h2>
+
+<p>Now it’s your turn to use window functions.</p>
+
+<blockquote>
+  <p><strong>Tip</strong>: Try to determine the appropriate code for yourself. If you get stuck, suggested answers are provided at the end of this lab.</p>
+</blockquote>
+
+<h3 id="challenge-1-return-a-rank-value-for-products">Challenge 1: Return a RANK value for products</h3>
+
+<p>Amend the T-SQL code with the RANK clause so that it returns a Rank value for products within each category.</p>
+
+<h3 id="challenge-2-return-the-next-years-budget-value">Challenge 2: Return the next year’s budget value</h3>
+
+<p>Using the <strong>Budget</strong> table you have already created, amend the SELECT statement to return the following year’s budget value as “Next”.</p>
+
+<h3 id="challenge-3-return-the-first-and-last-budget-values-for-each-year">Challenge 3: Return the first and last budget values for each year</h3>
+
+<p>Using the <strong>Budget</strong> table you have already created, amend the select statement to return the first budget value in one column, and the last budget value in another column, where budget values are ordered by year in ascending order.</p>
+
+<h3 id="challenge-4-count-the-products-in-each-category">Challenge 4: Count the products in each category</h3>
+
+<p>Amend the code containing the aggregation function to return a count of products by category.</p>
+
+<h2 id="challenge-solutions">Challenge Solutions</h2>
+
+<p>This section contains suggested solutions for the challenge queries.</p>
+
+<h3 id="challenge-1">Challenge 1</h3>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs sql">WITH sales AS
+(
+    <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> C.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Category'</span></span>, SC.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Subcategory'</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">CAST</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(D.LineTotal) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-built_in"><span class="hljs-built_in">numeric</span></span>(<span class="hljs-number"><span class="hljs-number">12</span></span>, <span class="hljs-number"><span class="hljs-number">2</span></span>)) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'SalesValue'</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> D
+    <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> P
+        <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> D.ProductID = P.ProductID
+    <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SC
+        <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> P.ProductCategoryID = SC.ProductCategoryID
+    <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> C
+        <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> SC.ParentProductCategoryID = C.ProductCategoryID
+        <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> C.Name, SC.Name
+)
+<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Category</span></span>, Subcategory, SalesValue, <span class="hljs-keyword"><span class="hljs-keyword">RANK</span></span>() <span class="hljs-keyword"><span class="hljs-keyword">OVER</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">PARTITION</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Category</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> SalesValue <span class="hljs-keyword"><span class="hljs-keyword">DESC</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Rank'</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> sales
+    <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Category</span></span>, SalesValue <span class="hljs-keyword"><span class="hljs-keyword">DESC</span></span>;
+</code></pre>
+
+<h3 id="challenge-2">Challenge 2</h3>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>], Budget, <span class="hljs-keyword"><span class="hljs-keyword">LEAD</span></span>(Budget, <span class="hljs-number"><span class="hljs-number">1</span></span>, <span class="hljs-number"><span class="hljs-number">0</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">OVER</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>]) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Next'</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> dbo.Budget
+    <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>];
+</code></pre>
+
+<h3 id="challenge-3">Challenge 3</h3>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>], Budget,
+        <span class="hljs-keyword"><span class="hljs-keyword">FIRST_VALUE</span></span>(Budget) <span class="hljs-keyword"><span class="hljs-keyword">OVER</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>]) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'First_Value'</span></span>,
+        <span class="hljs-keyword"><span class="hljs-keyword">LAST_VALUE</span></span>(Budget) <span class="hljs-keyword"><span class="hljs-keyword">OVER</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>] <span class="hljs-keyword"><span class="hljs-keyword">ROWS</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BETWEEN</span></span> <span class="hljs-keyword"><span class="hljs-keyword">CURRENT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ROW</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AND</span></span> <span class="hljs-keyword"><span class="hljs-keyword">UNBOUNDED</span></span> <span class="hljs-keyword"><span class="hljs-keyword">FOLLOWING</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Last_Value'</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> dbo.Budget
+    <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> [<span class="hljs-keyword"><span class="hljs-keyword">Year</span></span>];
+</code></pre>
+
+<h3 id="challenge-4">Challenge 4</h3>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs sql"><span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> C.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Category'</span></span>, SC.Name <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'Subcategory'</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">COUNT</span></span>(P.Name) <span class="hljs-keyword"><span class="hljs-keyword">OVER</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">PARTITION</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> C.Name) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> <span class="hljs-string"><span class="hljs-string">'ProductCount'</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> SalesLT.SalesOrderDetail <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> D
+    <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.Product <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> P
+        <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> D.ProductID = P.ProductID
+    <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> SC
+        <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> P.ProductCategoryID = SC.ProductCategoryID
+    <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> SalesLT.ProductCategory <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> C
+        <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> SC.ParentProductCategoryID = C.ProductCategoryID
+    <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> C.Name, SC.Name, P.Name
+    <span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> C.Name, SC.Name, P.Name;
+</code></pre>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/dp-080-Transact-SQL" target="_blank" class="ml-2">
+                    MicrosoftLearning/dp-080-Transact-SQL
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D2df2a36a02d76b7c7d5687e30ec4acf097392490.js"></script>
+
+
+
+</body></html>

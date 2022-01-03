@@ -1,0 +1,320 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="detect-objects-in-images-with-custom-vision">Detect Objects in Images with Custom Vision</h1>
+
+<p>In this exercise, you will use the Custom Vision service to train an <em>object detection</em> model that can detect and locate three classes of fruit (apple, banana, and orange) in an image.</p>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have already cloned <strong>AI-102-AIEngineer</strong> code repository to the environment where you’re working on this lab, open it in Visual Studio Code; otherwise, follow these steps to clone it now.</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="create-custom-vision-resources">Create Custom Vision resources</h2>
+
+<p>If you already have <strong>Custom Vision</strong> resources for training and prediction in your Azure subscription, you can use them in this exercise. If not, use the following instructions to create them.</p>
+
+<ol>
+  <li>In a new browser tab, open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>Select the <strong>＋Create a resource</strong> button, search for <em>custom vision</em>, and create a <strong>Custom Vision</strong> resource with the following settings:
+    <ul>
+      <li><strong>Create options</strong>: Both</li>
+      <li><strong>Subscription</strong>: <em>Your Azure subscription</em></li>
+      <li><strong>Resource group</strong>: <em>Choose or create a resource group (if you are using a restricted subscription, you may not have permission to create a new resource group - use the one provided)</em></li>
+      <li><strong>Name</strong>: <em>Enter a unique name</em></li>
+      <li><strong>Training location</strong>: <em>Choose any available region</em></li>
+      <li><strong>Training pricing tier</strong>: F0</li>
+      <li><strong>Prediction location</strong>: <em>The same region as the training resource</em></li>
+      <li><strong>Prediction pricing tier</strong>: F0</li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you already have an F0 custom vision service in your subscription, select <strong>S0</strong> for this one.</p>
+    </blockquote>
+  </li>
+  <li>Wait for the resources to be created, and then view the deployment details and note that two Custom Vision resources are provisioned; one for training, and another for prediction. You can view these by navigating to the resource group where you created them.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Important</strong>: Each resource has its own <em>endpoint</em> and <em>keys</em>, which are used to manage access from your code. To train an image classification model, your code must use the <em>training</em> resource (with its endpoint and key); and to use the trained model to predict image classes, your code must use the <em>prediction</em> resource (with its endpoint and key).</p>
+</blockquote>
+
+<h2 id="create-a-custom-vision-project">Create a Custom Vision project</h2>
+
+<p>To train an object detection model, you need to create a Custom Vision project based on your training resource. To do this, you’ll use the Custom Vision portal.</p>
+
+<ol>
+  <li>In a new browser tab, open the Custom Vision portal at <code>https://customvision.ai</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>Create a new project with the following settings:
+    <ul>
+      <li><strong>Name</strong>: Detect Fruit</li>
+      <li><strong>Description</strong>: Object detection for fruit.</li>
+      <li><strong>Resource</strong>: <em>The Custom Vision resource you created previously</em></li>
+      <li><strong>Project Types</strong>: Object Detection</li>
+      <li><strong>Domains</strong>: General</li>
+    </ul>
+  </li>
+  <li>Wait for the project to be created and opened in the browser.</li>
+</ol>
+
+<h2 id="add-and-tag-images">Add and tag images</h2>
+
+<p>To train an object detection model, you need to upload images that contain the classes you want the model to identify, and tag them to indicate bounding boxes for each object instance.</p>
+
+<ol>
+  <li>In Visual Studio Code, view the training images in the <strong>18-object-detection/training-images</strong> folder where you cloned the repository. This folder contains images of fruit.</li>
+  <li>In the Custom Vision portal, in your object detection project, select <strong>Add images</strong> and upload all of the images in the extracted folder.</li>
+  <li>After the images have been uploaded, select the first one to open it.</li>
+  <li>Hold the mouse over any object in the image until an automatically detected region is displayed like the image below. Then select the object, and if necessary resize the region to surround it.</li>
+</ol>
+
+<p><a href="images/object-region.jpg" target="_blank"><img src="images/object-region.jpg" alt="The default region for an object"></a></p>
+
+<p>Alternatively, you can simply drag around the object to create a region.</p>
+
+<ol>
+  <li>When the region surrounds the object, add a new tag with the appropriate object type (<em>apple</em>, <em>banana</em>, or <em>orange</em>) as shown here:</li>
+</ol>
+
+<p><a href="images/object-tag.jpg" target="_blank"><img src="images/object-tag.jpg" alt="A tagged object in an image"></a></p>
+
+<ol>
+  <li>Select and tag each other object in the image, resizing the regions and adding new tags as required.</li>
+</ol>
+
+<p><a href="images/object-tags.jpg" target="_blank"><img src="images/object-tags.jpg" alt="Two tagged objects in an image"></a></p>
+
+<ol>
+  <li>
+    <p>Use the <strong>&gt;</strong> link on the right to go to the next image, and tag its objects. Then just keep working through the entire image collection, tagging each apple, banana, and orange.</p>
+  </li>
+  <li>
+    <p>When you have finished tagging the last image, close the <strong>Image Detail</strong> editor and on the <strong>Training Images</strong> page, under <strong>Tags</strong>, select <strong>Tagged</strong> to see all of your tagged images:</p>
+  </li>
+</ol>
+
+<p><a href="images/tagged-images.jpg" target="_blank"><img src="images/tagged-images.jpg" alt="Tagged images in a project"></a></p>
+
+<h2 id="use-the-training-api-to-upload-images">Use the Training API to upload images</h2>
+
+<p>You can use the graphical tool in the Custom Vision portal to tag your images, but many AI development teams use other tools that generate files containing information about tags and object regions in images. In scenarios like this, you can use the Custom Vision training API to upload tagged images to the project.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: In this exercise, you can choose to use the API from either the <strong>C#</strong> or <strong>Python</strong> SDK. In the steps below, perform the actions appropriate for your preferred language.</p>
+</blockquote>
+
+<ol>
+  <li>Click the <em>settings</em> (⚙) icon at the top right of the <strong>Training Images</strong> page in the Custom Vision portal to view the project settings.</li>
+  <li>Under <strong>General</strong> (on the left), note the <strong>Project Id</strong> that uniquely identifies this project.</li>
+  <li>On the right, under <strong>Resources</strong> note that the details for the <em>training</em> resource, including its key and endpoint are shown (you can also obtain this information by viewing the resource in the Azure portal).</li>
+  <li>In Visual Studio Code, under the <strong>18-object-detection</strong> folder, expand the <strong>C-Sharp</strong> or <strong>Python</strong> folder depending on your language preference.</li>
+  <li>Right-click the <strong>train-detector</strong> folder and open an integrated terminal. Then install the Custom Vision Training package by running the appropriate command for your language preference:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CustomVision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Training</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 2<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-customvision==<span class="hljs-number"><span class="hljs-number">3</span></span>.<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+
+<ol>
+  <li>View the contents of the <strong>train-detector</strong> folder, and note that it contains a file for configuration settings:
+    <ul>
+      <li><strong>C#</strong>: appsettings.json</li>
+      <li><strong>Python</strong>: .env</li>
+    </ul>
+
+    <p>Open the configuration file and update the configuration values it contains to reflect the endpoint and key for your Custom Vision <em>training</em> resource, and the project ID for the classification project you created previously. Save your changes.</p>
+  </li>
+  <li>
+    <p>In the <strong>train-detector</strong> folder, open <strong>tagged-images.json</strong> and examine the JSON it contains. The JSON defines a list of images, each containing one or more tagged regions. Each tagged region includes a tag name, and the top and left coordinates and width and height dimensions of the bounding box containing the tagged object.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The coordinates and dimensions in this file indicate relative points on the image. For example, a <em>height</em> value of 0.7 indicates a box that is 70% of the height of the image. Some tagging tools generate other formats of file in which the coordinate and dimension values represent pixels, inches, or other units of measurements.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Note that the <strong>train-detector</strong> folder contains a subfolder in which the image files referenced in the JSON file are stored.</p>
+  </li>
+  <li>
+    <p>Note that the <strong>train-detector</strong> folder contains a code file for the client application:</p>
+
+    <ul>
+      <li><strong>C#</strong>: Program.cs</li>
+      <li><strong>Python</strong>: train-detector.py</li>
+    </ul>
+
+    <p>Open the code file and review the code it contains, noting the following details:</p>
+    <ul>
+      <li>Namespaces from the package you installed are imported</li>
+      <li>The <strong>Main</strong> function retrieves the configuration settings, and uses the key and endpoint to create an authenticated <strong>CustomVisionTrainingClient</strong>, which is then used with the project ID to create a <strong>Project</strong> reference to your project.</li>
+      <li>The <strong>Upload_Images</strong> function extracts the tagged region information from the JSON file and uses it to create a batch of images with regions, which it then uploads to the project.</li>
+    </ul>
+  </li>
+  <li>Return the integrated terminal for the <strong>train-detector</strong> folder, and enter the following command to run the program:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">train-detector</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+
+<ol>
+  <li>Wait for the program to end. Then return to your browser and view the <strong>Training Images</strong> page for your project in the Custom Vision portal (refreshing the browser if necessary).</li>
+  <li>Verify that some new tagged images have been added to the project.</li>
+</ol>
+
+<h2 id="train-and-test-a-model">Train and test a model</h2>
+
+<p>Now that you’ve tagged the images in your project, you’re ready to train a model.</p>
+
+<ol>
+  <li>In the Custom Vision project, click <strong>Train</strong> to train an object detection model using the tagged images. Select the <strong>Quick Training</strong> option.</li>
+  <li>Wait for training to complete (it might take ten minutes or so), and then review the <em>Precision</em>, <em>Recall</em>, and <em>mAP</em> performance metrics - these measure the prediction accuracy of the classification model, and should all be high.</li>
+  <li>At the top right of the page, click <strong>Quick Test</strong>, and then in the <strong>Image URL</strong> box, enter <code>https://aka.ms/apple-orange</code> and view the prediction that is generated. Then close the <strong>Quick Test</strong> window.</li>
+</ol>
+
+<h2 id="publish-the-object-detection-model">Publish the object detection model</h2>
+
+<p>Now you’re ready to publish your trained model so that it can be used from a client application.</p>
+
+<ol>
+  <li>In the Custom Vision portal, on the <strong>Performance</strong> page,  click <strong>🗸 Publish</strong> to publish the trained model with the following settings:
+    <ul>
+      <li><strong>Model name</strong>: fruit-detector</li>
+      <li><strong>Prediction Resource</strong>: <em>The <strong>prediction</strong> resource you created previously (<u>not</u> the training resource)</em>.</li>
+    </ul>
+  </li>
+  <li>At the top left of the <strong>Project Settings</strong> page, click the <em>Projects Gallery</em> (👁) icon to return to the Custom Vision portal home page, where your project is now listed.</li>
+  <li>On the Custom Vision portal home page, at the top right, click the <em>settings</em> (⚙) icon to view the settings for your Custom Vision service. Then, under <strong>Resources</strong>, find your <em>prediction</em> resource (<u>not</u> the training resource) to determine its <strong>Key</strong> and <strong>Endpoint</strong> values (you can also obtain this information by viewing the resource in the Azure portal).</li>
+</ol>
+
+<h2 id="use-the-image-classifier-from-a-client-application">Use the image classifier from a client application</h2>
+
+<p>Now that you’ve published the image classification model, you can use it from a client application. Once again, you can choose to use <strong>C#</strong> or <strong>Python</strong>.</p>
+
+<ol>
+  <li>In Visual Studio Code, browse to the <strong>18-object-detection</strong> folder and in the folder for your preferred language (<strong>C-Sharp</strong> or <strong>Python</strong>), expand the <strong>test-detector</strong> folder.</li>
+  <li>Right-click the <strong>test-detector</strong> folder and open an integrated terminal. Then enter the following SDK-specific command to install the Custom Vision Prediction package:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs css"><span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CustomVision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Prediction</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 2<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-customvision==<span class="hljs-number"><span class="hljs-number">3</span></span>.<span class="hljs-number"><span class="hljs-number">1</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+
+<blockquote>
+  <p><strong>Note</strong>: The Python SDK package includes both training and prediction packages, and may already be installed.</p>
+</blockquote>
+
+<ol>
+  <li>Open the configuration file for your client application (<em>appsettings.json</em> for C# or <em>.env</em> for Python) and update the configuration values it contains to reflect the endpoint and key for your Custom Vision <em>prediction</em> resource, the project ID for the object detection project, and the name of your published model (which should be <em>fruit-detector</em>). Save your changes.</li>
+  <li>Open the code file for your client application (<em>Program.cs</em> for C#, <em>test-detector.py</em> for Python) and review the code it contains, noting the following details:
+    <ul>
+      <li>Namespaces from the package you installed are imported</li>
+      <li>The <strong>Main</strong> function retrieves the configuration settings, and uses the key and endpoint to create an authenticated <strong>CustomVisionPredictionClient</strong>.</li>
+      <li>The prediction client object is used to get object detection predictions for the <strong>produce.jpg</strong> image, specifying the project ID and model name in the request. The predicted tagged regions are then drawn on the image, and the result is saved as <strong>output.jpg</strong>.</li>
+    </ul>
+  </li>
+  <li>Return to the integrated terminal for the <strong>test-detector</strong> folder, and enter the following command to run the program:</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs bash">python <span class="hljs-built_in"><span class="hljs-built_in">test</span></span>-detector.py
+</code></pre>
+
+<ol>
+  <li>After the program has completed, view the resulting <strong>output.jpg</strong> file to see the detected objects in the image.</li>
+</ol>
+
+<h2 id="more-information">More information</h2>
+
+<p>For more information about object detection with the Custom Vision service, see the <a href="https://docs.microsoft.com/azure/cognitive-services/custom-vision-service/">Custom Vision documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

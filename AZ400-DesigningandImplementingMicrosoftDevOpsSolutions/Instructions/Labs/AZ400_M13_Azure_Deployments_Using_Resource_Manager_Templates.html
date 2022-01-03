@@ -1,0 +1,631 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-author-and-deploy-azure-resource-manager-templates">Exercise 1: Author and deploy Azure Resource Manager templates</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-13-azure-deployments-using-resource-manager-templates">Lab 13: Azure Deployments Using Resource Manager Templates</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-overview">Lab overview</h2>
+
+<p>In this lab, you will create an Azure Resource Manager (ARM) template and modularize it by using the linked template concept. You will then modify the main deployment template to call the linked template and updated dependencies, and finally deploy the templates to Azure.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After you complete this lab, you will be able to:</p>
+
+<ul>
+  <li>Create Resource Manager template</li>
+  <li>Create a Linked template for storage resources</li>
+  <li>Upload Linked Template to Azure Blob Storage and generate SAS token</li>
+  <li>Modify the main template to call Linked template</li>
+  <li>Modify main template to update dependencies</li>
+  <li>Deploy resources to Azure using linked templates</li>
+</ul>
+
+<h2 id="lab-duration">Lab duration</h2>
+
+<ul>
+  <li>Estimated time: <strong>60 minutes</strong></li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-virtual-machine">Sign in to the lab virtual machine</h4>
+
+<p>Ensure that you’re signed in to your Windows 10 virtual machine by using the following credentials:</p>
+
+<ul>
+  <li>Username: <strong>Student</strong></li>
+  <li>Password: <strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="review-applications-required-for-this-lab">Review applications required for this lab</h4>
+
+<p>Identify the applications that you’ll use in this lab:</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+  <li><a href="https://code.visualstudio.com/">Visual Studio Code</a>. This will be installed as part of prerequisites for this lab.</li>
+</ul>
+
+<h4 id="prepare-an-azure-subscription">Prepare an Azure subscription</h4>
+
+<ul>
+  <li>Identify an existing Azure subscription or create a new one.</li>
+  <li>Verify that you have a Microsoft account or an Azure AD account with the Owner role in the Azure subscription and the Global Administrator role in the Azure AD tenant associated with the Azure subscription.</li>
+</ul>
+
+<h3 id="exercise-0-configure-the-lab-prerequisites">Exercise 0: Configure the lab prerequisites</h3>
+
+<p>In this exercise, you will set up the prerequisites for the lab, which include Visual Studio Code.</p>
+
+<h4 id="task-1-install-and-configure-git-and-visual-studio-code">Task 1: Install and configure Git and Visual Studio Code</h4>
+
+<p>In this task, you will install Visual Studio Code. If you have already implemented this prerequisite, you can proceed directly to the next task.</p>
+
+<ol>
+  <li>If you don’t have Visual Studio Code installed yet, from your lab computer, start a web browser, navigate to the <a href="https://code.visualstudio.com/">Visual Studio Code download page</a>, download it, and install it.</li>
+</ol>
+
+<h3 id="exercise-1-author-and-deploy-azure-resource-manager-templates">Exercise 1: Author and deploy Azure Resource Manager templates</h3>
+
+<p>In this lab, you will create an Azure Resource manager template and modularize it by using a linked template. You will then modify the main deployment template to call the linked template and updated dependencies, and finally deploy the templates to Azure.</p>
+
+<h4 id="task-1-create-resource-manager-template">Task 1: Create Resource Manager template</h4>
+
+<p>In this task, you will use Visual Studio Code to create a Resource Manager template</p>
+
+<ol>
+  <li>From your lab computer, start Visual Studio Code, in Visual Studio Code, click the <strong>File</strong> top level menu, in the dropdown menu, select <strong>Preferences</strong>, in the cascading menu, select <strong>Extensions</strong>, in the <strong>Search Extensions</strong> textbox, type <strong>Azure Resource Manager (ARM) Tools</strong>, select the corresponding search result, and click <strong>Install</strong> to install the Azure Resource Manager Tools</li>
+  <li>
+    <p>In a web browser, connect to <strong>https://github.com/Azure/azure-quickstart-templates/blob/master/quickstarts/microsoft.compute/vm-simple-windows/azuredeploy.json</strong>. Click on <strong>Raw</strong> option for the file. Copy the contents of the code window and paste it into Visual Studio Code editor.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Rather than creating a template from scratch we will use one of the <a href="https://azure.microsoft.com/en-us/resources/templates/">Azure Quickstart Templates</a> named <strong>Deploy a simple Windows template VM</strong>. The templates are downloadable the templates from GitHub - <a href="https://github.com/Azure/azure-quickstart-templates/blob/master/quickstarts/microsoft.compute/vm-simple-windows">vm-simple-windows</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On your lab computer, open File Explorer and create the following local folders that will serve to store templates:</p>
+
+    <ul>
+      <li><strong>C:\templates</strong></li>
+      <li><strong>C:\templates\storage</strong></li>
+    </ul>
+  </li>
+  <li>Switch back to Visual Studio Code window with our azuredeploy.json template, click the <strong>File</strong> top level menu, in the dropdown menu, click <strong>Save as</strong>, and save the template as <strong>azuredeploy.json</strong> in the newly created local folder <strong>C:\templates</strong>.</li>
+  <li>
+    <p>Review the template to get a better understanding of its structure. There are five resource types included in the template:</p>
+
+    <ul>
+      <li>Microsoft.Storage/storageAccounts</li>
+      <li>Microsoft.Network/publicIPAddresses</li>
+      <li>Microsoft.Network/virtualNetworks</li>
+      <li>Microsoft.Network/networkInterfaces</li>
+      <li>Microsoft.Compute/virtualMachines</li>
+    </ul>
+  </li>
+  <li>
+    <p>In Visual Studio Code, save the file again, but this time choose <strong>C:\templates\storage</strong> as the destination and <strong>storage.json</strong> as the file name.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: We now have two identical JSON files: <strong>C:\templates\azuredeploy.json</strong> and <strong>C:\templates\storage\storage.json</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-create-a-linked-template-for-storage-resources">Task 2: Create a Linked template for storage resources</h4>
+
+<p>In this task, you will modify the templates you saved in the previous task such that the linked storage template <strong>storage.json</strong> will create a storage account only, while its execution will be invoked by the first template. The linked storage template needs to pass a value back to the main template, <strong>azuredeploy.json</strong>, and this value will be defined in the outputs element of the linked storage template.</p>
+
+<ol>
+  <li>
+    <p>In the <strong>storage.json</strong> file displayed in the Visual Studio Code window, under the <strong>resources section</strong>, remove all the resource elements except the <strong>storageAccounts</strong> resource. It should result in a resource section looking as follows:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-json hljs"><span class="hljs-string"><span class="hljs-string">"resources"</span></span>: [
+  {
+    <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"Microsoft.Storage/storageAccounts"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"[variables('storageAccountName')]"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"location"</span></span>: <span class="hljs-string"><span class="hljs-string">"[parameters('location')]"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"apiVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"2021-04-01"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"sku"</span></span>: {
+       <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"Standard_LRS"</span></span>
+    },
+    <span class="hljs-attr"><span class="hljs-attr">"kind"</span></span>: <span class="hljs-string"><span class="hljs-string">"Storage"</span></span>
+  }
+],
+</code></pre>
+  </li>
+  <li>
+    <p>Rename the name element of storageAccount from variables to parameters</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-json hljs"><span class="hljs-string"><span class="hljs-string">"resources"</span></span>: [
+  {
+    <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"Microsoft.Storage/storageAccounts"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"[parameters('storageAccountName')]"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"location"</span></span>: <span class="hljs-string"><span class="hljs-string">"[parameters('location')]"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"apiVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"2021-04-01"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"sku"</span></span>: {
+       <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"Standard_LRS"</span></span>
+    },
+    <span class="hljs-attr"><span class="hljs-attr">"kind"</span></span>: <span class="hljs-string"><span class="hljs-string">"Storage"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {}
+  }
+],
+</code></pre>
+  </li>
+  <li>
+    <p>Next, remove the entire variables section and all variable definitions:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-json hljs"><span class="hljs-string"><span class="hljs-string">"variables"</span></span>: {
+  <span class="hljs-attr"><span class="hljs-attr">"storageAccountName"</span></span>: <span class="hljs-string"><span class="hljs-string">"[concat('bootdiags', uniquestring(resourceGroup().id))]"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"nicName"</span></span>: <span class="hljs-string"><span class="hljs-string">"myVMNic"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"addressPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"10.0.0.0/16"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"subnetName"</span></span>: <span class="hljs-string"><span class="hljs-string">"Subnet"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"subnetPrefix"</span></span>: <span class="hljs-string"><span class="hljs-string">"10.0.0.0/24"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"virtualNetworkName"</span></span>: <span class="hljs-string"><span class="hljs-string">"MyVNET"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"networkSecurityGroupName"</span></span>: <span class="hljs-string"><span class="hljs-string">"default-NSG"</span></span>
+},
+</code></pre>
+  </li>
+  <li>
+    <p>Next, remove all parameter values except location and add the following parameter code, resulting in the following outcome:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-json hljs"><span class="hljs-string"><span class="hljs-string">"parameters"</span></span>: {
+  <span class="hljs-attr"><span class="hljs-attr">"location"</span></span>: {
+    <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"string"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"defaultValue"</span></span>: <span class="hljs-string"><span class="hljs-string">"[resourceGroup().location]"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"metadata"</span></span>: {
+      <span class="hljs-attr"><span class="hljs-attr">"description"</span></span>: <span class="hljs-string"><span class="hljs-string">"Location for all resources."</span></span>
+    }
+  },
+    <span class="hljs-attr"><span class="hljs-attr">"storageAccountName"</span></span>:{
+    <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"string"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"metadata"</span></span>: {
+      <span class="hljs-attr"><span class="hljs-attr">"description"</span></span>: <span class="hljs-string"><span class="hljs-string">"Azure Storage account name."</span></span>
+    }
+  }
+},
+</code></pre>
+  </li>
+  <li>
+    <p>Next, update the output section to define a storageURI output value. The storageUri value is required by the virtual machine resource definition in the main template. You pass the value back to the main template as an output value. Modify the output so it looks like the below.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-json hljs"><span class="hljs-string"><span class="hljs-string">"outputs"</span></span>: {
+  <span class="hljs-attr"><span class="hljs-attr">"storageUri"</span></span>: {
+    <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"string"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"value"</span></span>: <span class="hljs-string"><span class="hljs-string">"[reference(parameters('storageAccountName')).primaryEndpoints.blob]"</span></span>
+  }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Last, make sure schema version is 2019-04-01 (ignore warnings/errors if shown in VS Code) :</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-json hljs">     {
+       <span class="hljs-attr"><span class="hljs-attr">"$schema"</span></span>: <span class="hljs-string"><span class="hljs-string">"https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"contentVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.0.0.0"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"parameters"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"storageAccountName"</span></span>:{
+           <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"string"</span></span>,
+           <span class="hljs-attr"><span class="hljs-attr">"metadata"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"description"</span></span>: <span class="hljs-string"><span class="hljs-string">"Azure Storage account name."</span></span>
+           }
+</code></pre>
+  </li>
+  <li>
+    <p>Save the storage.json template. The linked storage template should now look as follows:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-json hljs"> {
+   <span class="hljs-attr"><span class="hljs-attr">"$schema"</span></span>: <span class="hljs-string"><span class="hljs-string">"https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"contentVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.0.0.0"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"metadata"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"_generator"</span></span>: {
+       <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"bicep"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-string"><span class="hljs-string">"0.4.1.14562"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"templateHash"</span></span>: <span class="hljs-string"><span class="hljs-string">"8381960602397537918"</span></span>
+     }
+   },
+   <span class="hljs-attr"><span class="hljs-attr">"parameters"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"location"</span></span>: {
+       <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"string"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"defaultValue"</span></span>: <span class="hljs-string"><span class="hljs-string">"[resourceGroup().location]"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"metadata"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"description"</span></span>: <span class="hljs-string"><span class="hljs-string">"Location for all resources."</span></span>
+       }
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"storageAccountName"</span></span>: {
+       <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"string"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"metadata"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"description"</span></span>: <span class="hljs-string"><span class="hljs-string">"Azure Storage account name."</span></span>
+       }
+     }
+    
+   },
+   <span class="hljs-attr"><span class="hljs-attr">"functions"</span></span>: [],
+   <span class="hljs-attr"><span class="hljs-attr">"variables"</span></span>: {
+   },
+   <span class="hljs-attr"><span class="hljs-attr">"resources"</span></span>: [
+     {
+       <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"Microsoft.Storage/storageAccounts"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"apiVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"2021-04-01"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"[parameters('storageAccountName')]"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"location"</span></span>: <span class="hljs-string"><span class="hljs-string">"[parameters('location')]"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"sku"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"Standard_LRS"</span></span>
+       },
+       <span class="hljs-attr"><span class="hljs-attr">"kind"</span></span>: <span class="hljs-string"><span class="hljs-string">"Storage"</span></span>
+     }
+   ],
+   <span class="hljs-attr"><span class="hljs-attr">"outputs"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"storageUri"</span></span>: {
+       <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"string"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"value"</span></span>: <span class="hljs-string"><span class="hljs-string">"[reference(parameters('storageAccountName')).primaryEndpoints.blob]"</span></span>
+     }
+   }
+ }
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-3-upload-linked-template-to-azure-blob-storage-and-generate-sas-token">Task 3: Upload Linked Template to Azure Blob Storage and generate SAS token</h4>
+
+<p>In this task, you will upload the linked template you created in the previous task to Azure Blob Storage and generate SAS token to provide access to it during subsequent deployments.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: When linking to a template, the Azure Resource Manager service must be able to access it via either http or https. In order to accomplish this, you will upload the linked storage template, <strong>storage.json</strong>, to blob storage in Azure. Then you will generate a digitally signed URL that provides a limited access to that corresponding blob. You will perform these steps by using Azure CLI in Azure Cloud Shell. Alternatively, you could manually create a blob container via the Azure Portal, upload the file and generate a URL or use either Azure CLI or Azure PowerShell modules installed on your lab computer.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>On the lab computer, start a web browser and navigate to the <a href="https://portal.azure.com"><strong>Azure Portal</strong></a>, and sign in with the user account that has at least the Contributor role in the Azure subscription you will be using in this lab.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, in the toolbar, click the <strong>Cloud Shell</strong> icon located directly to the right of the search text box.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Alternatively, you can navigate to <a href="http://shell.azure.com">Azure Cloud Shell</a> directly.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>From a <strong>PowerShell</strong> session in the Cloud Shell pane, run the following to create a blob storage container, upload the template file you created in the previous task, and generate a SAS token that you will reference in the main template to access the linked template.</li>
+  <li>
+    <p>First, copy and paste the following lines of code to set a value for the Azure region you want to deploy to. The command will wait for your input as shown in the prompt.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell"># Provide the name of the closest Azure region in which you can provision Azure VMs
+$location = Read-Host -Prompt 'Enter the name of Azure region (i.e. centralus)'
+</code></pre>
+  </li>
+  <li>
+    <p>Second, copy and paste the following code into the same Cloud Shell session to create a blob storage container:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell"> # This is a random string used to assign the name to the Azure storage account
+ $suffix = Get-Random
+ $resourceGroupName = 'az400m13l01-RG'
+ $storageAccountName = 'az400m13blob' + $suffix
+
+ # The name of the Blob container to be created
+ $containerName = 'linktempblobcntr' 
+
+ # A file name used for downloading and uploading the linked template
+ $fileName = 'storage.json' 
+    
+ # Create a resource group
+ New-AzResourceGroup -Name $resourceGroupName -Location $location 
+    
+ # Create a storage account
+ $storageAccount = New-AzStorageAccount `
+   -ResourceGroupName $resourceGroupName `
+   -Name $storageAccountName `
+   -Location $location `
+   -SkuName 'Standard_LRS'
+    
+ $context = $storageAccount.Context
+    
+ # Create a container
+ New-AzureStorageContainer -Name $containerName -Context $context
+</code></pre>
+  </li>
+  <li>
+    <p>In the Cloud Shell pane, click the <strong>Upload/download files</strong> icon and, in the dropdown menu, click <strong>Upload</strong>. In the <strong>Open</strong> dialog box, navigate to and select <strong>C:\templates\storage\storage.json</strong> and click <strong>Open</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell"> # Upload the linked template
+ Set-AzureStorageBlobContent `
+   -Container $containerName `
+   -File "$home/$fileName" `
+   -Blob $fileName `
+   -Context $context
+
+ # Generate a SAS token. We set an expiry time of 24 hours, but you could have shorter values for increased security.
+ $templateURI = New-AzureStorageBlobSASToken `
+   -Context $context `
+   -Container $containerName `
+   -Blob $fileName `
+   -Permission r `
+   -ExpiryTime (Get-Date).AddHours(24.0) `
+   -FullUri
+
+ "Resource Group Name: $resourceGroupName"
+ "Linked template URI with SAS token: $templateURI"
+</code></pre>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: Make sure to record the final output generated by the script. You will need it later in the lab.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>Note</strong>: The output values should resemble the following:</p>
+</blockquote>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs apache">      <span class="hljs-attribute"><span class="hljs-attribute">Resource</span></span> Group Name: az400m13l01-RG
+      <span class="hljs-attribute"><span class="hljs-attribute">Linked</span></span> template URI with SAS token: https://az400m13blob1677205310.blob.core.windows.net/linktempblobcntr/storage.json?sv=2018-03-28&amp;sr=b&amp;sig=B4hDLt9rFaWHZXToJlMwMjejAQGT7x0INdDR9bHBQnI<span class="hljs-number"><span class="hljs-number">%3</span></span>D&amp;se=2020-11-23T21<span class="hljs-number"><span class="hljs-number">%3</span></span>A54<span class="hljs-number"><span class="hljs-number">%3</span></span>A53Z&amp;sp=r
+</code></pre>
+
+<blockquote>
+  <p><strong>Note</strong>: For scenarios requiring increased level of security, you could generate a SAS token dynamically during main template deployment and assign the SAS token a shorter validity period.</p>
+</blockquote>
+
+<ol>
+  <li>Close the Cloud Shell pane.</li>
+</ol>
+
+<h4 id="task-4-modify-the-main-template-to-call-the-linked-template">Task 4: Modify the main template to call the linked template</h4>
+
+<p>In this task, you will modify the main template to reference the linked template you uploaded to Azure Blob Storage in the previous task.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: To account for the changes we made to the templates structure by modularizing all the storage elements, we now need to modify the main template to call the new storage resource definition.</p>
+</blockquote>
+
+<ol>
+  <li>In Visual Studio Code, click the <strong>File</strong> top level menu, in the dropdown menu, select <strong>Open File</strong>, in the Open File dialog box, navigate to <strong>C:\templates\azuredeploy.json</strong>, select it, and click <strong>Open</strong>.</li>
+  <li>
+    <p>In the <strong>azuredeploy.json</strong> file, in the resource section remove the storage resource element</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-json hljs">{
+  <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"Microsoft.Storage/storageAccounts"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"[variables('storageAccountName')]"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"location"</span></span>: <span class="hljs-string"><span class="hljs-string">"[parameters('location')]"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"apiVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"2021-04-01"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"sku"</span></span>: {
+    <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"Standard_LRS"</span></span>
+  },
+  <span class="hljs-attr"><span class="hljs-attr">"kind"</span></span>: <span class="hljs-string"><span class="hljs-string">"Storage"</span></span>
+},
+</code></pre>
+  </li>
+  <li>
+    <p>Next, add the following code directly in the same location where the newly deleted storage resource element was:</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Make sure to replace the <code>&lt;linked_template_URI_with_SAS_token&gt;</code> placeholder with its actual value that you recorded at the end of the previous task.</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-json hljs">{
+  <span class="hljs-attr"><span class="hljs-attr">"name"</span></span>: <span class="hljs-string"><span class="hljs-string">"linkedTemplate"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"Microsoft.Resources/deployments"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"apiVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"2018-05-01"</span></span>,
+  <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+      <span class="hljs-attr"><span class="hljs-attr">"mode"</span></span>: <span class="hljs-string"><span class="hljs-string">"Incremental"</span></span>,
+      <span class="hljs-attr"><span class="hljs-attr">"templateLink"</span></span>: {
+          <span class="hljs-attr"><span class="hljs-attr">"uri"</span></span>:<span class="hljs-string"><span class="hljs-string">"&lt;linked_template_URI_with_SAS_token&gt;"</span></span>
+      },
+      <span class="hljs-attr"><span class="hljs-attr">"parameters"</span></span>: {
+          <span class="hljs-attr"><span class="hljs-attr">"storageAccountName"</span></span>:{<span class="hljs-attr"><span class="hljs-attr">"value"</span></span>: <span class="hljs-string"><span class="hljs-string">"[variables('storageAccountName')]"</span></span>},
+          <span class="hljs-attr"><span class="hljs-attr">"location"</span></span>:{<span class="hljs-attr"><span class="hljs-attr">"value"</span></span>: <span class="hljs-string"><span class="hljs-string">"[parameters('location')]"</span></span>}
+      }
+   }
+},
+</code></pre>
+  </li>
+  <li>
+    <p>Review the following details in the main template:</p>
+
+    <ul>
+      <li>A Microsoft.Resources/deployments resource in the main template is used to link to another template.</li>
+      <li>The deployments resource has a name called linkedTemplate. This name is used for configuring dependency.</li>
+      <li>You can only use Incremental deployment mode when calling linked templates.</li>
+      <li>templateLink/uri contains the linked template URI.</li>
+      <li>Use parameters to pass values from the main template to the linked template.</li>
+    </ul>
+  </li>
+  <li>Save the template.</li>
+</ol>
+
+<h4 id="task-5-modify-main-template-to-update-dependencies">Task 5: Modify main template to update dependencies</h4>
+
+<p>In this task, you will modify the main template to account for remaining dependencies that need to be updated.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Since the storage account is defined in the linked storage template, you need to update the <strong>Microsoft.Compute/virtualMachines</strong> resource definition.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the resource section in the virtual machines element, update the <strong>dependsOn</strong> element by replacing:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-json hljs"><span class="hljs-string"><span class="hljs-string">"dependsOn"</span></span>: [
+  <span class="hljs-string"><span class="hljs-string">"[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"</span></span>,
+  <span class="hljs-string"><span class="hljs-string">"[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"</span></span>
+]
+</code></pre>
+
+    <p>with</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-json hljs"><span class="hljs-string"><span class="hljs-string">"dependsOn"</span></span>: [
+      
+  <span class="hljs-string"><span class="hljs-string">"[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"</span></span>,
+  <span class="hljs-string"><span class="hljs-string">"linkedTemplate"</span></span>
+]
+</code></pre>
+  </li>
+  <li>
+    <p>In the resources section under the <strong>Microsoft.Compute/virtualMachines</strong> element, reconfigure the <strong>properties/diagnosticsProfile/bootDiagnostics/storageUri</strong> element to reflect the output value you defined in the linked storage template by replacing:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-json hljs"><span class="hljs-string"><span class="hljs-string">"diagnosticsProfile"</span></span>: {
+  <span class="hljs-attr"><span class="hljs-attr">"bootDiagnostics"</span></span>: {
+    <span class="hljs-attr"><span class="hljs-attr">"enabled"</span></span>: <span class="hljs-literal"><span class="hljs-literal">true</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"storageUri"</span></span>: <span class="hljs-string"><span class="hljs-string">"[reference(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))).primaryEndpoints.blob]"</span></span>
+  }
+</code></pre>
+
+    <p>with</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-json hljs"><span class="hljs-string"><span class="hljs-string">"diagnosticsProfile"</span></span>: {
+  <span class="hljs-attr"><span class="hljs-attr">"bootDiagnostics"</span></span>: {
+    <span class="hljs-attr"><span class="hljs-attr">"enabled"</span></span>: <span class="hljs-literal"><span class="hljs-literal">true</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"storageUri"</span></span>: <span class="hljs-string"><span class="hljs-string">"[reference('linkedtemplate').outputs.storageUri.value]"</span></span>
+  }
+</code></pre>
+  </li>
+  <li>
+    <p>Save the updated main deployment template.</p>
+  </li>
+</ol>
+
+<h4 id="task-6-deploy-resources-to-azure-by-using-linked-templates">Task 6: Deploy resources to Azure by using linked templates</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: You can deploy templates in several ways, such as directly from the Azure Portal, by using Azure CLI or PowerShell installed locally or from the Azure Cloud Shell. In this lab, you will use Azure CLI from the Azure Cloud Shell.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>Note</strong>: To use Azure Cloud Shell, you will upload the main deployment template, azuredeploy.json into your Cloud Shell’s home directory. Alternatively, you could also upload it to Azure Blob Storage, just as you did upload the linked template, and reference it by using its URI rather than local file system path.</p>
+</blockquote>
+
+<ol>
+  <li>On the lab computer, in the web browser displaying the Azure Portal, click the <strong>Cloud Shell</strong> icon to open Cloud Shell.
+    <blockquote>
+      <p><strong>Note</strong>: If you have the PowerShell session from earlier in this exercise still active, you can use this without switching to Bash (next step). The following steps can be run in both a PowerShell and Bash session of Cloud Shell. If you are opening a new Cloud Shell session, follow the instructions.</p>
+    </blockquote>
+  </li>
+  <li>In the Cloud Shell pane, click <strong>PowerShell</strong>, in the dropdown menu, click <strong>Bash</strong> and, when prompted, click <strong>Confirm</strong>.</li>
+  <li>In the Cloud Shell pane, click the <strong>Upload/download files</strong> icon and, in the dropdown menu, click <strong>Upload</strong>.</li>
+  <li>In the <strong>Open</strong> dialog box, navigate to and select <strong>C:\templates\azuredeploy.json</strong> and click <strong>Open</strong>.</li>
+  <li>
+    <p>From a <strong>Bash</strong> session in the Cloud Shell pane, run the following to perform a deployment by using a newly uploaded template:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-bash hljs">az deployment group create --name az400m13l01deployment --resource-group az400m13l01-RG --template-file azuredeploy.json
+</code></pre>
+  </li>
+  <li>When prompted to provide the value for ‘adminUsername’, type <strong>Student</strong> and press the <strong>Enter</strong> key.</li>
+  <li>
+    <p>When prompted to provide the value for ‘adminPassword’, type <strong>Pa55w.rd1234</strong> and press the <strong>Enter</strong> key. (Password typing will not be shown)</p>
+  </li>
+  <li>
+    <p>If you receive errors when running the above command to deploy the template, try the following:</p>
+
+    <ul>
+      <li>If you have multiple Azure subscriptions ensure you have set the subscription context to the correct one where the resource group is deployed.</li>
+      <li>Ensure that the linked template is accessible via the URI you specified.</li>
+    </ul>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: As a next step, you could now modularize the remaining resource definitions in the main deployment template, such as the network and virtual machine resource definitions.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>Note</strong>: If you are not planning on using the deployed resources, you should delete them to avoid associated charges. You can do so simply by deleting the resource group <strong>az400m13l01-RG</strong>.</p>
+</blockquote>
+
+<h3 id="exercise-2-remove-the-azure-lab-resources">Exercise 2: Remove the Azure lab resources</h3>
+
+<p>In this exercise, you will remove the Azure resources provisione in this lab to eliminate unexpected charges.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Remember to remove any newly created Azure resources that you no longer use. Removing unused resources ensures you will not see unexpected charges.</p>
+</blockquote>
+
+<h4 id="task-1-remove-the-azure-lab-resources">Task 1: Remove the Azure lab resources</h4>
+
+<p>In this task, you will use Azure Cloud Shell to remove the Azure resources provisioned in this lab to eliminate unnecessary charges.</p>
+
+<ol>
+  <li>In the Azure portal, open the <strong>Bash</strong> shell session within the <strong>Cloud Shell</strong> pane.</li>
+  <li>
+    <p>List all resource groups created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m13l01-RG')].name"</span></span> --output tsv
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all resource groups you created throughout the labs of this module by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-bash hljs">az group list --query <span class="hljs-string"><span class="hljs-string">"[?starts_with(name,'az400m13l01-RG')].[name]"</span></span> --output tsv | xargs -L1 bash -c <span class="hljs-string"><span class="hljs-string">'az group delete --name $0 --no-wait --yes'</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command executes asynchronously (as determined by the –nowait parameter), so while you will be able to run another Azure CLI command immediately afterwards within the same Bash session, it will take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="review">Review</h2>
+
+<p>In this lab, you learned how to create an Azure Resource manager template, modularize it by using a linked template, modify the main deployment template to call the linked template and updated dependencies, and finally deploy the templates to Azure.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ400-DesigningandImplementingMicrosoftDevOpsSolutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc4119e2670c1341e2dee3899942ea4f91a667f7e.js"></script>
+
+
+
+</body></html>

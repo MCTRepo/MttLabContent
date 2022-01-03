@@ -1,0 +1,538 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-104ZH-MicrosoftAzureAdministrator
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-104ZH-MicrosoftAzureAdministrator
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#说明">说明</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-05---实现网站间的连接性">实验室 05 - 实现网站间的连接性</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>Contoso 在波士顿、纽约和西雅图办公室的数据中心通过网状广域网链接进行连接，彼此之间完全相连。需要实现一个能够反映 Contoso 本地网络拓扑并验证其功能的实验室环境</p>
+
+<h2 id="目标">目标</h2>
+
+<p>在本实验室中，你将：</p>
+
+<ul>
+  <li>任务 1：预配实验室环境</li>
+  <li>任务 2：配置本地和全局虚拟网络对等互连</li>
+  <li>任务 3：测试网站间的连接性</li>
+</ul>
+
+<h2 id="预计用时30-分钟">预计用时：30 分钟</h2>
+
+<h2 id="体系结构图">体系结构图</h2>
+
+<p><a href="../media/lab05.png" target="_blank"><img src="../media/lab05.png" alt="图像"></a></p>
+
+<h3 id="说明">说明</h3>
+
+<h4 id="任务-1预配实验室环境">任务 1：预配实验室环境</h4>
+
+<p>在此任务中，你将部署三个虚拟机，每个虚拟机都部署到一个独立的虚拟网络中。其中两个在同一个 Azure 区域中，第三个在另一个 Azure 区域中。</p>
+
+<ol>
+  <li>
+    <p>登录到 <a href="https://portal.azure.com">Azure 门户</a>。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户中，单击 Azure 门户右上方的图标，打开 <strong>Azure Cloud Shell</strong>。</p>
+  </li>
+  <li>
+    <p>提示选择 <strong>Bash</strong> 或 <strong>PowerShell</strong> 时，选择 <strong>PowerShell</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：如果这是第一次启动 <strong>Cloud Shell</strong>，并看到 <strong>“未装载任何存储”</strong> 消息，请选择在本实验室中使用的订阅，然后选择 <strong>“创建存储”</strong>。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格的工具栏中，单击 <strong>“上传/下载文件”</strong> 图标，在下拉菜单中单击 <strong>“上传”</strong>，然后将文件 <strong>\Allfiles\Labs\05\az104-05-vnetvm-loop-template.json</strong> 和 <strong>\Allfiles\Labs\05\az104-05-vnetvm-loop-parameters.json</strong> 上传到 Cloud Shell 主目录中。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令以创建将托管实验室环境的资源组。前两个虚拟网络和一对虚拟机将部署在 <code>[Azure_region_1]</code> 中。第三个虚拟网络和第三个虚拟机将部署在同一资源组 <code>[Azure_region_2]</code> 中。（将占位符 <code>[Azure_region_1]</code> 和 <code>[Azure_region_2]</code> 替换为你打算在其中部署这些 Azure 虚拟机的两个不同 Azure 区域的名称）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location1 = '[Azure_region_1]'
+
+$location2 = '[Azure_region_2]'
+
+$rgName = 'az104-05-rg1'
+
+New-AzResourceGroup -Name $rgName -Location $location1
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：为了识别 Azure 区域，请从 Cloud Shell 中的 PowerShell 会话中运行 <strong>(Get-AzLocation).Location</strong></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 Cloud Shell 窗格中，运行以下命令创建三个虚拟网络，并使用上传的模板和参数文件将虚拟机部署到其中：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+   -ResourceGroupName $rgName `
+   -TemplateFile $HOME/az104-05-vnetvm-loop-template.json `
+   -TemplateParameterFile $HOME/az104-05-vnetvm-loop-parameters.json `
+   -location1 $location1 `
+   -location2 $location2
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：请等待部署完成之后再继续下一步。该操作需约 2 分钟。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>关闭 Cloud Shell 窗格。</p>
+  </li>
+</ol>
+
+<h4 id="任务-2配置本地和全局虚拟网络对等互连">任务 2：配置本地和全局虚拟网络对等互连</h4>
+
+<p>在此任务中，你需要在之前的任务中部署的虚拟网络之间配置本地和全局对等互连。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟网络”</strong>。</p>
+  </li>
+  <li>
+    <p>查看你在上一个任务中创建的虚拟网络，并验证是否前两个位于相同的 Azure 区域、第三个位于不同的 Azure 区域。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：用于部署三个虚拟网络的模板可确保三个虚拟网络的 IP 地址范围不重叠。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在虚拟网络列表中，单击 <strong>“az104-05-vnet0”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-05-vnet0”</strong> 虚拟网络边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“对等互连”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个对等互连，设置如下（其他设置保留默认值），然后单击 <strong>“添加”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>此虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-05-vnet0_to_az104-05-vnet1</strong></td>
+        </tr>
+        <tr>
+          <td>此虚拟网络：流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>此虚拟网络：从远程虚拟网络转发的流量</td>
+          <td><strong>阻止来自此虚拟网络外部的流量</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无</strong></td>
+        </tr>
+        <tr>
+          <td>远程虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-05-vnet1_to_az104-05-vnet0</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络部署模型</td>
+          <td><strong>资源管理器</strong></td>
+        </tr>
+        <tr>
+          <td>我知道我的资源 ID</td>
+          <td>未选定</td>
+        </tr>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az104-05-vnet1</strong></td>
+        </tr>
+        <tr>
+          <td>流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>从远程虚拟网络转发的流量</td>
+          <td><strong>阻止来自此虚拟网络外部的流量</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>：此步骤将建立两个本地对等互连 - 一个从 az104-05-vnet0 到 az104-05-vnet1，另一个从 az104-05-vnet1 到 az104-05-vnet0。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果 Azure 门户界面未显示上一任务中创建的虚拟网络，可以在 Cloud Shell 中运行以下 PowerShell 命令来配置对等互连：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">$rgName = 'az104-05-rg1'
+
+$vnet0 = Get-AzVirtualNetwork -Name 'az104-05-vnet0' -ResourceGroupName $rgname
+
+$vnet1 = Get-AzVirtualNetwork -Name 'az104-05-vnet1' -ResourceGroupName $rgname
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet0_to_az104-05-vnet1' -VirtualNetwork $vnet0 -RemoteVirtualNetworkId $vnet1.Id
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet1_to_az104-05-vnet0' -VirtualNetwork $vnet1 -RemoteVirtualNetworkId $vnet0.Id
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>“az104-05-vnet0”</strong> 虚拟网络边栏选项卡的 <strong>“设置”</strong> 部分，单击 <strong>“对等互连”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个对等互连，设置如下（其他设置保留默认值），然后单击 <strong>“添加”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>此虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-05-vnet0_to_az104-05-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>此虚拟网络：流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>此虚拟网络：从远程虚拟网络转发的流量</td>
+          <td><strong>阻止来自此虚拟网络外部的流量</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无</strong></td>
+        </tr>
+        <tr>
+          <td>远程虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-05-vnet2_to_az104-05-vnet0</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络部署模型</td>
+          <td><strong>资源管理器</strong></td>
+        </tr>
+        <tr>
+          <td>我知道我的资源 ID</td>
+          <td>未选定</td>
+        </tr>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az104-05-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>从远程虚拟网络转发的流量</td>
+          <td><strong>阻止来自此虚拟网络外部的流量</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>：此步骤建立两个全局对等互连：一个从 az104-05-vnet0 到 az104-05-vnet2，另一个从 az104-05-vnet2 到 az104-05-vnet0。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果 Azure 门户界面未显示上一任务中创建的虚拟网络，可以在 Cloud Shell 中运行以下 PowerShell 命令来配置对等互连：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">$rgName = 'az104-05-rg1'
+
+$vnet0 = Get-AzVirtualNetwork -Name 'az104-05-vnet0' -ResourceGroupName $rgname
+
+$vnet2 = Get-AzVirtualNetwork -Name 'az104-05-vnet2' -ResourceGroupName $rgname
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet0_to_az104-05-vnet2' -VirtualNetwork $vnet0 -RemoteVirtualNetworkId $vnet2.Id
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet2_to_az104-05-vnet0' -VirtualNetwork $vnet2 -RemoteVirtualNetworkId $vnet0.Id
+</code></pre>
+  </li>
+  <li>
+    <p>导航回 <strong>“虚拟网络”</strong> 边栏选项卡，然后在虚拟网络列表中单击 <strong>“az104-05-vnet1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-05-vnet1”</strong> 虚拟网络边栏选项卡的 <strong>“设定”</strong> 部分，单击 <strong>“对等互连”</strong>，然后单击 <strong>“+ 添加”</strong>。</p>
+  </li>
+  <li>
+    <p>添加一个对等互连，设置如下（其他设置保留默认值），然后单击 <strong>“添加”</strong>：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>设置</th>
+          <th>值</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>此虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-05-vnet1_to_az104-05-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>此虚拟网络：流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>此虚拟网络：从远程虚拟网络转发的流量</td>
+          <td><strong>阻止来自此虚拟网络外部的流量</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无</strong></td>
+        </tr>
+        <tr>
+          <td>远程虚拟网络：对等互连链接名称</td>
+          <td><strong>az104-05-vnet2_to_az104-05-vnet1</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络部署模型</td>
+          <td><strong>资源管理器</strong></td>
+        </tr>
+        <tr>
+          <td>我知道我的资源 ID</td>
+          <td>未选定</td>
+        </tr>
+        <tr>
+          <td>订阅</td>
+          <td>在本实验室中使用的 Azure 订阅的名称</td>
+        </tr>
+        <tr>
+          <td>虚拟网络</td>
+          <td><strong>az104-05-vnet2</strong></td>
+        </tr>
+        <tr>
+          <td>流向远程虚拟网络的流量</td>
+          <td><strong>允许（默认）</strong></td>
+        </tr>
+        <tr>
+          <td>从远程虚拟网络转发的流量</td>
+          <td><strong>阻止来自此虚拟网络外部的流量</strong></td>
+        </tr>
+        <tr>
+          <td>虚拟网络网关</td>
+          <td><strong>无</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>备注</strong>：此步骤建立两个全局对等互连：一个从 az104-05-vnet1 到 az104-05-vnet2，另一个从 az104-05-vnet2 到 az104-05-vnet1。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果 Azure 门户界面未显示上一任务中创建的虚拟网络，可以在 Cloud Shell 中运行以下 PowerShell 命令来配置对等互连：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">$rgName = 'az104-05-rg1'
+
+$vnet1 = Get-AzVirtualNetwork -Name 'az104-05-vnet1' -ResourceGroupName $rgname
+
+$vnet2 = Get-AzVirtualNetwork -Name 'az104-05-vnet2' -ResourceGroupName $rgname
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet1_to_az104-05-vnet2' -VirtualNetwork $vnet1 -RemoteVirtualNetworkId $vnet2.Id
+
+Add-AzVirtualNetworkPeering -Name 'az104-05-vnet2_to_az104-05-vnet1' -VirtualNetwork $vnet2 -RemoteVirtualNetworkId $vnet1.Id
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="任务-3测试网站间的连接性">任务 3：测试网站间的连接性</h4>
+
+<p>在此任务中，将测试在上一个任务中通过本地和全局对等互连连接的三个虚拟网络上的虚拟机之间的连接性。</p>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，搜索并选择 <strong>“虚拟机”</strong>。</p>
+  </li>
+  <li>
+    <p>在虚拟机列表中，单击 <strong>“az104-05-vm0”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-05-vm0”</strong> 边栏选项卡中，单击 <strong>“连接”</strong>，在下拉菜单中，单击 <strong>“RDP”</strong>，在 <strong>“连接到 RDP”</strong> 边栏选项卡中，单击 <strong>“下载 RDP 文件”</strong>，并按照提示启动远程桌面会话。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：此步骤是指在 Windows 计算机中通过远程桌面进行连接。在 Mac 上，可以使用 Mac App Store 中的远程桌面客户端，而在 Linux 计算机上，可以使用开源 RDP 客户端软件。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：连接到目标虚拟机时，可以忽略任何警告提示。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>出现提示时，请使用 <strong>“Student”</strong> 用户名和 <strong>“Pa55w.rd1234”</strong> 密码登录。</p>
+  </li>
+  <li>
+    <p>在与 <strong>az104-05-vm0</strong> 的远程桌面会话中，右键单击 <strong>“开始”</strong> 按钮，然后在右键菜单中单击 <strong>“Windows PowerShell (管理员)”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Windows PowerShell 控制台窗口，运行以下命令以测试通过 TCP 端口 3389 与 <strong>az104-05-vm1</strong>（其专用 IP 地址为 <strong>10.51.0.4</strong>）的连接性：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Test-NetConnection -ComputerName 10.51.0.4 -Port 3389 -InformationLevel 'Detailed'
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：该测试使用 TCP 3389，因为这是操作系统防火墙默认允许使用的端口。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>检查命令输出并验证连接是否成功。</p>
+  </li>
+  <li>
+    <p>在 Windows PowerShell 控制台窗口中，运行以下命令以测试与 <strong>az104-05-vm2</strong>（其专用 IP 地址为 <strong>10.52.0.4</strong>）的连接性：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Test-NetConnection -ComputerName 10.52.0.4 -Port 3389 -InformationLevel 'Detailed'
+</code></pre>
+  </li>
+  <li>
+    <p>在实验室计算机上切换回 Azure 门户，然后返回 <strong>“虚拟机”</strong> 边栏选项卡。</p>
+  </li>
+  <li>
+    <p>在虚拟机列表中，单击 <strong>“az104-05-vm1”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“az104-05-vm1”</strong> 边栏选项卡中，单击 <strong>“连接”</strong>，在下拉菜单中，单击 <strong>“RDP”</strong>，在 <strong>“连接到 RDP”</strong> 边栏选项卡中，单击 <strong>“下载 RDP 文件”</strong>，并按照提示启动远程桌面会话。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：此步骤是指在 Windows 计算机中通过远程桌面进行连接。在 Mac 上，可以使用 Mac App Store 中的远程桌面客户端，而在 Linux 计算机上，可以使用开源 RDP 客户端软件。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：连接到目标虚拟机时，可以忽略任何警告提示。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>出现提示时，请使用 <strong>“Student”</strong> 用户名和 <strong>“Pa55w.rd1234”</strong> 密码登录。</p>
+  </li>
+  <li>
+    <p>在与 <strong>az104-05-vm1</strong> 的远程桌面会话中，右键单击 <strong>“开始”</strong> 按钮，然后在右键菜单中单击 <strong>“Windows PowerShell (管理员)”</strong>。</p>
+  </li>
+  <li>
+    <p>在 Windows PowerShell 控制台窗口，运行以下命令以测试通过 TCP 端口 3389 与 <strong>az104-05-vm2</strong>（其专用 IP 地址为 <strong>10.52.0.4</strong>）的连接性：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">Test-NetConnection -ComputerName 10.52.0.4 -Port 3389 -InformationLevel 'Detailed'
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：该测试使用 TCP 3389，因为这是操作系统防火墙默认允许使用的端口。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>检查命令输出并验证连接是否成功。</p>
+  </li>
+</ol>
+
+<h4 id="清理资源">清理资源</h4>
+
+<blockquote>
+  <p><strong>备注</strong>：请记得删除任何新创建而不会再使用的 Azure 资源。删除未使用的资源，确保不产生意外费用。</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>在 Azure 门户中，在 <strong>Cloud Shell</strong> 窗格中打开 <strong>“PowerShell”</strong> 会话。</p>
+  </li>
+  <li>
+    <p>运行以下命令，列出在本模块各实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-05*'
+</code></pre>
+  </li>
+  <li>
+    <p>运行以下命令，删除在本模块各个实验室中创建的所有资源组：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az104-05*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注</strong>：该命令以异步方式执行（由 -AsJob 参数决定），因此，虽然你随后可在同一 PowerShell 会话中立即运行另一个 PowerShell 命令，但实际上要花几分钟才能删除资源组。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本实验室中，你已：</p>
+
+<ul>
+  <li>预配实验室环境</li>
+  <li>配置本地和全局虚拟网络对等互连</li>
+  <li>测试网站间的连接性</li>
+</ul>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-104ZH-MicrosoftAzureAdministrator
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

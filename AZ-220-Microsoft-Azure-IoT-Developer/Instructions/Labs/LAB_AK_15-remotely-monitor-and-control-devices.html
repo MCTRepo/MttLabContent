@@ -1,0 +1,929 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#simplified-lab-conditions">Simplified Lab Conditions</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-review-code-to-send-and-receive-telemetry">Exercise 2: Review Code to Send and Receive Telemetry</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-complete-a-second-app-to-receive-telemetry">Exercise 3: Complete a Second App to Receive Telemetry</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-include-code-to-invoke-a-direct-method">Exercise 4: Include Code to Invoke a Direct Method</a></li><li class="nav-item"><a class="nav-link" href="#exercise-5-implement-the-device-twin-functionality">Exercise 5: Implement the Device Twin functionality</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="remotely-monitor-and-control-devices-with-azure-iot-hub">Remotely monitor and control devices with Azure IoT Hub</h1>
+
+<h2 id="lab-scenario">Lab Scenario</h2>
+
+<p>Contoso is proud of its award-winning cheeses and is careful to maintain the perfect temperature and humidity during the entire manufacturing process, but conditions during the aging process have always received special attention.</p>
+
+<p>In recent years, Contoso has used environmental sensors to record the conditions within their natural cheese caves where aging occurs, and has used that data to identify a near perfect environment. Data from the most successful (aka award producing) locations indicates that the ideal temperature for aging cheese is approximately 50 degrees Fahrenheit +/- 5 degrees (10 degrees Celsius +/- 2.8 degrees). The ideal humidity value, measured in percentage of maximum saturation, is approximately 85% +/- 10%.</p>
+
+<p>These ideal temperature and humidity values work well for most types of cheese. However, minor variations are required for especially hard or especially soft cheeses. The environment must also be adjusted at critical times/phases within the aging process to achieve specific results, such as a desired condition for the cheese rind.</p>
+
+<p>Contoso is lucky enough to operate cheese caves (in certain geographic regions) that naturally maintain ideal conditions almost year-round. However, even in these locations, managing the environment during the aging process is critical. Also, natural caves often have a number of different chambers, each of which can have a slightly different environment. Cheese varieties are placed in a chamber (zone) that matches their specific requirements. To keep environmental conditions within desired limits, Contoso uses an air processing/conditioning system that controls both temperature and humidity.</p>
+
+<p>Currently, an operator monitors the environmental conditions within each zone of a cave facility and adjusts the air processing system settings when required to maintain the desired temperature and humidity. Operators are able to visit each zone and check the environmental conditions every 4 hours. In locations where temperature changes dramatically between the daytime high and nighttime low, conditions can slip outside of the desired limits.</p>
+
+<p>Contoso has tasked you with implementing an automated system that keeps the cave environment within control limits.</p>
+
+<p>In this lab, you will be prototyping a cheese cave monitoring system that implements IoT devices. Each device is equipped with temperature and humidity sensors, and is connected to the air processing system that controls temperature and humidity for the zone where the device is located.</p>
+
+<h3 id="simplified-lab-conditions">Simplified Lab Conditions</h3>
+
+<p>The frequency of telemetry output is an important consideration in production solutions. A temperature sensor in a refrigeration unit may only need to report once a minute, whereas an acceleration sensor on an aircraft may have to report ten times per second. In some cases, the frequency at which telemetry must be sent is dependent on current conditions. For example, if the temperature our cheese cave scenario tends to drop quickly at night, you may benefit from having more frequent sensor readings beginning two hours before sunset. Of course the requirement to change the frequency of telemetry does not need to be part of a predictable pattern, the events that drive our need to change IoT device settings can be unpredictable.</p>
+
+<p>To keep things simple in this lab, we will make the following assumptions:</p>
+
+<ul>
+  <li>The device will send telemetry (temperature and humidity values) to the IoT Hub every few seconds. Although this frequency is unrealistic for a cheese cave, it is great for a lab environment when we need to see changes frequently, not every 15 minutes.</li>
+  <li>The air processing system is a fan that can be in one of three states: On, Off, or Failed.
+    <ul>
+      <li>The fan is initialized to the Off state.</li>
+      <li>Electrical power to the fan is controlled (On/Off) using a direct method on the IoT device.</li>
+      <li>Device Twin desired property values are used to set the desired state of the fan. The desired property values will override any default settings for the fan/device.</li>
+      <li>Temperature can be controlled by turning the fan On/Off (turning the fan On will lower the temperature)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Coding in this lab is broken down into three parts: sending and receiving telemetry, invoking and running a direct method, setting and reading device twin properties.</p>
+
+<p>You will start by writing two apps: one for a device to send telemetry, and one for a back-end service (that will run in the cloud) to receive the telemetry.</p>
+
+<p>The following resources will be created:</p>
+
+<p><a href="media/LAB_AK_15-architecture.png" target="_blank"><img src="media/LAB_AK_15-architecture.png" alt="Lab 15 Architecture"></a></p>
+
+<h2 id="in-this-lab">In this lab</h2>
+
+<p>In this lab, you will complete the following activities:</p>
+
+<ul>
+  <li>
+    <p>Verify that the lab prerequisites are met (that you have the required Azure resources)</p>
+
+    <ul>
+      <li>The script will create an IoT Hub if needed.</li>
+      <li>The script will create a new device identity needed for this lab.</li>
+    </ul>
+  </li>
+  <li>Create a simulated device app to send device telemetry to the IoT Hub</li>
+  <li>Create a back-end service app to listen for the telemetry</li>
+  <li>Implement a direct method, to communicate settings to the IoT device</li>
+  <li>Implement device twins functionality, to manage IoT device properties</li>
+</ul>
+
+<h2 id="lab-instructions">Lab Instructions</h2>
+
+<h3 id="exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</h3>
+
+<p>This lab assumes the following Azure resources are available:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Resource Type</th>
+      <th style="text-align: left">Resource Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Resource Group</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Hub</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Device</td>
+      <td style="text-align: left">sensor-th-0055</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To ensure these resources are available, complete the following tasks.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Deploy to Azure</strong>:</p>
+
+    <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoftLearning%2FAZ-220-Microsoft-Azure-IoT-Developer%2Fbicep%2FAllfiles%2FARM%2Flab15.json">Deploy To Azure</a></p>
+  </li>
+  <li>
+    <p>If prompted, login to the <strong>Azure Portal</strong>.</p>
+
+    <p>The <strong>Custom deployment</strong> page will be displayed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Project details</strong>, in the <strong>Subscription</strong> dropdown, ensure that the Azure subscription that you intend to use for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, select <strong>rg-az220</strong>.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If <strong>rg-az220</strong> is not listed:</p>
+
+      <ol>
+        <li>Under the <strong>Resource group</strong> dropdown, click <strong>Create new</strong>.</li>
+        <li>Under <strong>Name</strong>, enter <strong>rg-az220</strong>.</li>
+        <li>Click <strong>OK</strong>.</li>
+      </ol>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, in the <strong>Region</strong> dropdown, select the region closest to you.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If the <strong>rg-az220</strong> group already exists, the <strong>Region</strong> field is set to the region used by the resource group and is read-only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Your ID</strong> field, enter the unique ID you created in Exercise 1.</p>
+  </li>
+  <li>
+    <p>In the <strong>Course ID</strong> field, enter <strong>az220</strong>.</p>
+  </li>
+  <li>
+    <p>To validate the template, click <strong>Review and create</strong>.</p>
+  </li>
+  <li>
+    <p>If validation passes, click <strong>Create</strong>.</p>
+
+    <p>The deployment will start.</p>
+  </li>
+  <li>
+    <p>Once the deployment has completed, in the left navigation area, to review any output values from the template,  click <strong>Outputs</strong>.</p>
+
+    <p>Make a note of the outputs for use later:</p>
+
+    <ul>
+      <li>deviceConnectionString</li>
+      <li>devicePrimaryKey</li>
+      <li>eventHubsCompatibleEndpoint</li>
+      <li>eventHubsCompatiblePath</li>
+      <li>iotHubSasKey</li>
+      <li>serviceConnectionString</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The resources have now been created.</p>
+
+<h3 id="exercise-2-review-code-to-send-and-receive-telemetry">Exercise 2: Review Code to Send and Receive Telemetry</h3>
+
+<p>In this exercise, you will be completing the simulated device app (for the sensor-th-0055 device) that sends telemetry to your IoT Hub.</p>
+
+<h4 id="task-1-open-a-simulated-device-that-generates-telemetry">Task 1: Open a simulated device that generates telemetry</h4>
+
+<ol>
+  <li>
+    <p>Open <strong>Visual Studio Code</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Open Folder</strong></p>
+  </li>
+  <li>
+    <p>In the Open Folder dialog, navigate to the lab 15 Starter folder.</p>
+
+    <p>In <em>Lab 3: Setup the Development Environment</em>, you cloned the GitHub repository containing lab resources by downloading a ZIP file and extracting the contents locally. The extracted folder structure includes the following folder path:</p>
+
+    <ul>
+      <li>Allfiles
+        <ul>
+          <li>Labs
+            <ul>
+              <li>15-Remotely monitor and control devices with Azure IoT Hub
+                <ul>
+                  <li>Starter
+                    <ul>
+                      <li>CheeseCaveDevice</li>
+                      <li>CheeseCaveOperator</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Click <strong>cheesecavedevice</strong>, and then click <strong>Select Folder</strong>.</p>
+
+    <p>You should see the following files listed in the EXPLORER pane of Visual Studio Code:</p>
+
+    <ul>
+      <li>cheesecavedevice.csproj</li>
+      <li>Program.cs</li>
+    </ul>
+  </li>
+  <li>
+    <p>To open the code file, click <strong>Program.cs</strong>.</p>
+
+    <p>A cursory glance will reveal that this application is very similar to the simulated device applications that you have worked on in the preceding labs. This version uses symmetric Key authentication, sends both telemetry and logging messages to the IoT Hub, and has a more complex sensor implementation.</p>
+  </li>
+  <li>
+    <p>On the <strong>Terminal</strong> menu, click <strong>New Terminal</strong>.</p>
+
+    <p>Notice the directory path indicated as part of the command prompt. You do not want to start building this project within the folder structure of a previous lab project.</p>
+  </li>
+  <li>
+    <p>At the terminal command prompt, to verify the application builds, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs"> dotnet build
+</code></pre>
+
+    <p>The output will be similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-text"> &gt; dotnet build
+ Microsoft (R) Build Engine version 16.5.0+d4cbfca49 for .NET Core
+ Copyright (C) Microsoft Corporation. All rights reserved.
+
+ Restore completed in 39.27 ms for D:\Az220-Code\AllFiles\Labs\15-Remotely monitor and control devices with Azure IoT Hub\Starter\CheeseCaveDevice\CheeseCaveDevice.csproj.
+ CheeseCaveDevice -&gt; D:\Az220-Code\AllFiles\Labs\15-Remotely monitor and control devices with Azure IoT Hub\Starter\CheeseCaveDevice\bin\Debug\netcoreapp3.1\CheeseCaveDevice.dll
+
+ Build succeeded.
+     0 Warning(s)
+     0 Error(s)
+
+ Time Elapsed 00:00:01.16
+</code></pre>
+  </li>
+</ol>
+
+<p>In the next task, you will configure the connection string and review the application.</p>
+
+<h4 id="task-2-configure-connection-and-review-code">Task 2: Configure connection and review code</h4>
+
+<p>The simulated device app that you will build in this task simulates an IoT device that monitors temperature and humidity. The app will simulate sensor readings and communicate sensor data every two seconds.</p>
+
+<ol>
+  <li>
+    <p>In <strong>Visual Studio Code</strong>, ensure that the Program.cs file is open.</p>
+  </li>
+  <li>
+    <p>In the code editor, locate the following line of code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> deviceConnectionString = <span class="hljs-string"><span class="hljs-string">"&lt;your device connection string&gt;"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Replace the <strong>&lt;your device connection string&gt;</strong> with the device connection string that you saved earlier.</p>
+
+    <p>This is the only change that you need to implement before sending telemetry to the IoT Hub.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Take a moment to review the structure of the application.</p>
+
+    <p>Notice that the application structure is similar to that used in previous labs:</p>
+
+    <ul>
+      <li>Using statements</li>
+      <li>Namespace definition
+        <ul>
+          <li>Program class - responsible for connecting to Azure IoT and sending telemetry</li>
+          <li>CheeseCaveSimulator class - (replaces EnvironmentSensor) rather than just generating telemetry, this class also simulates a running cheese cave environment that is impacted by the operation of a cooling fan.</li>
+          <li>ConsoleHelper - a class that encapsulates writing different colored text to the console</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Review the <strong>Main</strong> method.</p>
+
+    <p>As in earlier labs, the <strong>Main</strong> method is used to establish a connection to your IoT hub. You may have noticed that it will be used to integrate the device twin property changes, and in this case, you will also be integrating a direct method.</p>
+  </li>
+  <li>
+    <p>Take a brief look at the <strong>SendDeviceToCloudMessagesAsync</strong> method.</p>
+
+    <p>Notice that it is very similar to previous versions you have created in earlier labs.</p>
+  </li>
+  <li>
+    <p>Take a look at the <strong>CheeseCaveSimulator</strong> class.</p>
+
+    <p>This is an evolution of the <strong>EnvironmentSensor</strong> class used in earlier labs. The primary difference is the introduction of a fan -  if the fan is <strong>On</strong>, the temperature and humidity will gradually move towards the desired values, whereas is the fan is <strong>Off</strong> (or <strong>Failed</strong>), then the temperature and humidity values will move towards the ambient values. Of interest is the fact that there is a 1% chance that fan will be set to the <strong>Failed</strong> state when the temperature is read.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-test-your-code-to-send-telemetry">Task 3: Test your Code to Send Telemetry</h4>
+
+<ol>
+  <li>
+    <p>In Visual Studio Code, ensure that you still have the Terminal open.</p>
+  </li>
+  <li>
+    <p>At the Terminal command prompt, to run the simulated device app, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> dotnet run
+</code></pre>
+
+    <p>This command will run the <strong>Program.cs</strong> file in the current folder.</p>
+  </li>
+  <li>
+    <p>Notice the output being sent to the Terminal.</p>
+
+    <p>You should quickly see console output, similar to the following:</p>
+
+    <p><a href="media/LAB_AK_15-cheesecave-telemetry.png" target="_blank"><img src="media/LAB_AK_15-cheesecave-telemetry.png" alt="Console Output"></a></p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Green text is used to indicate when things are working as they should be. Red text is used to indicate when there is a problem. If you don’t get a screen similar to the image above, start by checking your device connection string.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave this app running.</p>
+
+    <p>You need to be sending telemetry to IoT Hub later in this lab.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-3-complete-a-second-app-to-receive-telemetry">Exercise 3: Complete a Second App to Receive Telemetry</h3>
+
+<p>Now that you have your (simulated) cheese cave device sending telemetry to your IoT Hub, you need to complete a back-end app that can connect to IoT Hub and “listen” for that telemetry. Eventually, this back-end app will be used to automate the control of the temperature in the cheese cave.</p>
+
+<h4 id="task-1-complete-an-app-to-receive-telemetry">Task 1: Complete an app to receive telemetry</h4>
+
+<p>In this task, you will begin work on the back-end app that will be used to receive telemetry from the IoT Hub Event Hub endpoint.</p>
+
+<ol>
+  <li>
+    <p>Open a new instance of Visual Studio Code.</p>
+
+    <p>Since your simulated device app is running in the Visual Studio Code windows that you already have open, you need a new instance of Visual Studio Code for the back-end app.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, click <strong>Open Folder</strong></p>
+  </li>
+  <li>
+    <p>In the <strong>Open Folder</strong> dialog, navigate to lab 15 Starter folder.</p>
+  </li>
+  <li>
+    <p>Click <strong>CheeseCaveOperator</strong>, and then click <strong>Select Folder</strong>.</p>
+
+    <p>The CheeseCaveOperator application that has been prepared for you is a simple console application that includes a couple of NuGet package libraries and some comments that will be used guide you through the process of building your code. You will need to add code blocks to the project before you are able to run the application.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-enable-the-telemetry-receiver-code">Task 3: Enable the telemetry receiver code</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>EXPLORER</strong> pane, click <strong>Program.cs</strong>.</p>
+  </li>
+  <li>
+    <p>Locate and review the using statements - most have been used in earlier labs. However, two new namespaces have been added:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Messaging.EventHubs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Messaging.EventHubs.Consumer;
+</code></pre>
+
+    <p>Both of these namespaces originate from the <a href="https://www.nuget.org/packages/Azure.Messaging.EventHubs/"><strong>Azure.Messaging.EventHubs</strong> NuGet package</a>. This client library allows for both publishing and consuming events using Azure Event Hubs. In this lab, the library will be configured to connect to the IoT Hub built-in EventHub compatible endpoint.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The NuGet package can be installed with the following command: <code>dotnet add package Azure.Messaging.EventHubs</code> and further information can be found at the link below:</p>
+      <ul>
+        <li><a href="https://docs.microsoft.com/en-us/dotnet/api/overview/azure/messaging.eventhubs-readme?view=azure-dotnet">Azure Event Hubs client library for .NET - Version 5.5.0</a></li>
+      </ul>
+    </blockquote>
+  </li>
+  <li>
+    <p>Locate the <code>Global variables.</code> comment.</p>
+  </li>
+  <li>
+    <p>Take a moment to review the global variables.</p>
+
+    <p>The <strong>eventHubsCompatibleEndpoint</strong> variable is used to store the URI for the IoT Hub built-in service-facing endpoint (messages/events) that is compatible with Event Hubs.</p>
+
+    <p>The <strong>eventHubsCompatiblePath</strong> variable will contain the path to the Event Hub entity.</p>
+
+    <p>The <strong>iotHubSasKey</strong> variable will contain the key name to the corresponding shared access policy rule for the namespace, or entity.</p>
+
+    <p>The <strong>iotHubSasKeyName</strong> variable will contain the key for the corresponding shared access policy rule of the namespace or entity.</p>
+
+    <p>The <strong>eventHubClient</strong> variable will contain the event hub client instance, which will be used to receive messages from the IoT Hub.</p>
+
+    <p>The <strong>serviceClient</strong> variable will contain the service client instance that will be used to send messages from the app to the IoT Hub (and from there, on to targeted devices, etc.).</p>
+
+    <p>The <strong>serviceConnectionString</strong> variable will contain the connection string that will enable the operator app to connect to the IoT Hub.</p>
+
+    <p>The <strong>deviceId</strong> variable contains the device ID (<code>"sensor-th-0055"</code>) used by the <strong>CheeseCaveDevice</strong> application.</p>
+  </li>
+  <li>
+    <p>Locate the code line used to assign the service connection string</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> serviceConnectionString = <span class="hljs-string"><span class="hljs-string">"&lt;your service connection string&gt;"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Replace <strong>&lt;your service connection string&gt;</strong> with the IoT Hub Service connection string that you saved earlier in this lab.</p>
+
+    <p>You should have saved the iothubowner shared access policy primary connection string generated by the ARM Template that you ran during Exercise 1.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You may be curious as to why the <strong>iothubowner</strong> shared policy is used rather than the <strong>service</strong> shared policy. The answer is related to the IoT Hub permissions assigned to each policy. The <strong>service</strong> policy has the <strong>ServiceConnect</strong> permission and is usually used by back-end cloud services. It confers the following rights:</p>
+
+      <ul>
+        <li>Grants access to cloud service-facing communication and monitoring endpoints.</li>
+        <li>Grants permission to receive device-to-cloud messages, send cloud-to-device messages, and retrieve the corresponding delivery acknowledgments.</li>
+        <li>Grants permission to retrieve delivery acknowledgments for file uploads.</li>
+        <li>Grants permission to access twins to update tags and desired properties, retrieve reported properties, and run queries.</li>
+      </ul>
+
+      <p>For the first part of the lab, where the <strong>serviceoperator</strong> application calls a direct method to toggle the fan state, the <strong>service</strong> policy has sufficient rights. However, during the latter part of the lab, the device registry is queried. This is achieved via the <strong>RegistryManager</strong> class. In order to use the <strong>RegistryManager</strong> class to query the device registry, the shared access policy used to connect to the IoT Hub must have the <strong>Registry read</strong> permission, which confers the following right:</p>
+
+      <ul>
+        <li>Grants read access to the identity registry.</li>
+      </ul>
+
+      <p>As the <strong>iothubowner</strong> policy has been granted the <strong>Registry write</strong> permission, it inherits the <strong>Registry read</strong> permission, so it is suitable for your needs.</p>
+
+      <p>In a production scenario, you might consider adding a new shared access policy that has just the <strong>Service connect</strong> and <strong>Registry read</strong> permissions.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Replace the <strong>&lt;your event hub endpoint&gt;</strong>, <strong>&lt;your event hub path&gt;</strong>, and the <strong>&lt;your event hub SaS key&gt;</strong> with the values that you saved earlier in this lab.</p>
+  </li>
+  <li>
+    <p>Locate the <strong>Main</strong> method and take a moment to review the code (and code comments).</p>
+
+    <p>Notice how the connection string is constructed from the values you entered earlier. This, along with the default consumer group is then used to create and configure an instance of the <strong>EventHubConsumerClient</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The code <code>var consumerGroup = EventHubConsumerClient.DefaultConsumerGroupName;</code> assigns the string <code>"$Default</code> to the <strong>consumerGroup</strong>. It is common to create a custom consumer group, in which case the name of the consumer group would be used here instead.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Information</strong>: You can learn more about consumer groups <a href="https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-features#consumer-groups">here</a></p>
+    </blockquote>
+
+    <p>This <strong>EventHubConsumerClient</strong> class is used to read values from an <strong>EventHub</strong>, in this case, the built-in Event Hub endpoint of the IoT Hub.</p>
+
+    <p>The <strong>EventHubConsumerClient</strong> reference is stored in the <strong>consumer</strong> variable. Next, the consumer is used to retrieve an array of partition ID strings which are then stored in <strong>d2cPartitions</strong> variable. This array will be used to create a list of tasks that will receive messages from each partition.</p>
+
+    <blockquote>
+      <p><strong>Information</strong>: You can learn more about the purpose of partitions <a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-scaling#partitions">here</a>.</p>
+    </blockquote>
+
+    <p>As messages sent from devices to an IoT Hub may be handled by any of the partitions, the app has to retrieve messages from each. The next section of code creates a list of asynchronous tasks - each task will receive messages from a specific partition. The final line will wait for all tasks to complete - as each task is going to be in an infinite loop, this line prevents the application from exiting.</p>
+  </li>
+  <li>
+    <p>Locate and review the <strong>ReceiveMessagesFromDeviceAsync</strong> method.</p>
+
+    <p>This method is supplied with an argument that defines the target partition. Recall that the default configuration specifies 4 partitions - therefore, this method is called 4 times, each running asynchronously and in parallel, one for each partition.</p>
+
+    <p>Next, the starting position for the first event present in the partition is specified.</p>
+
+    <blockquote>
+      <p><strong>Information</strong>: Although <code>EventPosition.Earliest</code> may look like it is an enum, <code>EventPosition</code> is actually a struct that not only provides definitions for <code>Earliest</code> and <code>Latest</code>, but also methods that return event positions calculated from enqueued time, offset and sequence number. You can learn more about the <strong>EventPosition Struct</strong> <a href="https://docs.microsoft.com/dotnet/api/azure.messaging.eventhubs.consumer.eventposition?view=azure-dotnet">here</a>.</p>
+    </blockquote>
+
+    <p>The next section reads events from the requested partition as an asynchronous enumerable, allowing events to be iterated as they become available on the partition, waiting as necessary should there be no events available.</p>
+
+    <blockquote>
+      <p><strong>Information</strong>: You can learn more about asynchronous streams <a href="https://docs.microsoft.com/dotnet/csharp/whats-new/csharp-8#asynchronous-streams">here</a></p>
+    </blockquote>
+
+    <p>If an event is received, then binary body data is converted to a string and written to the console - of course, in the “real-world” the JSON would likely be deserialized and so on. The event data properties are then iterated and, in this case, checked to see if a value is true - in the current scenario, this represents an alert. Should an alert be found, it is written to the console.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, to save your changes to the Program.cs file, click <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-test-your-code-to-receive-telemetry">Task 3: Test your Code to Receive Telemetry</h4>
+
+<p>This test is important, checking whether your back-end app is picking up the telemetry being sent out by your simulated device. Remember your device app is still running, and sending telemetry.</p>
+
+<ol>
+  <li>
+    <p>To run the <strong>CheeseCaveOperator</strong> back-end app in the terminal, open a Terminal pane, and then enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-bash hljs"> dotnet run
+</code></pre>
+
+    <p>This command will run the <strong>Program.cs</strong> file in the current folder.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  You can ignore the warning about the unused variable <strong>serviceConnectionString</strong> - you will be adding code to use that variable shortly.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Take a minute to observe the output to the Terminal.</p>
+
+    <p>You should quickly see console output, and the app will display telemetry message data almost immediately if it connects to IoT Hub successfully.</p>
+
+    <p>If not, carefully check your IoT Hub service connection string, noting that this string should be the service connection string, and not any other:</p>
+
+    <p><a href="media/LAB_AK_15-cheesecave-telemetry-received.png" target="_blank"><img src="media/LAB_AK_15-cheesecave-telemetry-received.png" alt="Console Output"></a></p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Green text is used to show things are working as they should and red text when bad stuff is happening. If you don’t get a screen similar to this image, start by checking your device connection string.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave this app running for a moment longer.</p>
+  </li>
+  <li>
+    <p>With both apps running, verify that the telemetry displayed by the Operator app is in sync with the telemetry sent by the Device app.</p>
+
+    <p>Visually compare the telemetry that is being sent with the telemetry that is being received.</p>
+
+    <ul>
+      <li>Is there an exact data match?</li>
+      <li>Is there much of a delay between when data is sent and when it is received?</li>
+    </ul>
+  </li>
+  <li>
+    <p>Once you have verified the telemetry data, stop the running apps and close the Terminal pane in both instances of VS Code, but do not close the Visual Studio Code windows.</p>
+  </li>
+</ol>
+
+<p>You now have an app sending telemetry from a device, and a back-end app acknowledging receipt of the data. In the next Exercise you will begin work on the steps that handle the control side - what to do when issues arise with the data.</p>
+
+<h3 id="exercise-4-include-code-to-invoke-a-direct-method">Exercise 4: Include Code to Invoke a Direct Method</h3>
+
+<p>Calls from the back-end app to invoke direct methods can include multiple parameters as part of the payload. Direct methods are typically used to turn features of the device off and on, or specify settings for the device.</p>
+
+<p>In the Contoso scenario, you will be implementing a direct method on the device that controls the operation of a fan located in the cheese cave (simulating the control of temperature and humidity by turing the fan On or Off). The Operator application will communicate with your IoT Hub to invoke the direct method on the device.</p>
+
+<p>There are several error conditions that you need to check for when your cheese cave device receives an instruction to run the direct method. One of these checks is simply to respond with an error if the fan is in a failed state. Another error condition to report is when an invalid parameter is received. Clear error reporting is important, given the potential remoteness of the device.</p>
+
+<p>Direct methods require that the back-end app prepares the parameters, then makes a call specifying the single device on which to invoke the method. The back-end app will then wait for, and report, a response.</p>
+
+<p>The device app contains the functional code for the direct method. The function name is registered with the IoT client for the device. This process ensures the client knows what function to run when the call comes from the IoT Hub (there could be many direct methods).</p>
+
+<p>In this Exercise, you will update your device app by adding the code for a direct method that will simulate turning on the fan in the cheese cave. Next, you will add code to the back-end service app to invoke this direct method.</p>
+
+<h4 id="task-1-enable-code-to-define-a-direct-method-in-the-device-app">Task 1: Enable Code to Define a Direct Method in the Device App</h4>
+
+<ol>
+  <li>
+    <p>Return to the Visual Studio Code instance that contains your <strong>cheesecavedevice</strong> application.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the app is still running, use the Terminal pane to exit the app (click inside the Terminal pane to set the focus and the press <strong>CTRL+C</strong> to exit the running application).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Ensure that <strong>Program.cs</strong> is open in the code editor.</p>
+  </li>
+  <li>
+    <p>Locate the <code>UNCOMMENT register direct method code below here</code> comment.</p>
+  </li>
+  <li>
+    <p>To register the direct method, uncomment the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-csharp hljs"> deviceClient.SetMethodHandlerAsync(<span class="hljs-string"><span class="hljs-string">"SetFanState"</span></span>, SetFanState, <span class="hljs-literal"><span class="hljs-literal">null</span></span>).Wait();
+</code></pre>
+
+    <p>Notice that the <strong>SetFanState</strong> direct method handler is also set up by this code. As you can see, the <strong>SetMethodHandlerAsync</strong> method of deviceClient takes the remote method name <code>"SetFanState"</code> as an argument, along with the actual local method to call, and a user context object (in this case null).</p>
+  </li>
+  <li>
+    <p>Locate the <code>UNCOMMENT SetFanState method below here</code> comment.</p>
+  </li>
+  <li>
+    <p>Uncomment the <strong>SetFanState</strong> direct method, and review the code and comments.</p>
+
+    <p>This is the method that runs on the device when the associated remote method, also called <strong>SetFanState</strong>, is invoked via the IoT Hub. Notice that in addition to receiving a <strong>MethodRequest</strong> instance, it also receives the <strong>userContext</strong> object that was defined when the direct message callback was registered (in this case it will be null).</p>
+
+    <p>The first line of this method determines whether the cheese cave fan is currently in a <strong>Failed</strong> state - the assumption made by the cheese cave simulator is that once the fan has failed, any subsequent command will automatically fail. Therefore, a JSON string is created with the <strong>result</strong> property set to <strong>Fan Failed</strong>. A new <strong>MethodResponse</strong> object is then constructed, with the result string encoded into a byte array and an HTTP status code - in this instance, <strong>400</strong> is used which, in the context of a REST API means a generic client-side error has occurred. As direct method callbacks are required to return a <strong>Task&lt;MethodResponse&gt;</strong>, a new task is created and returned.</p>
+
+    <blockquote>
+      <p><strong>Information</strong>: You can learn more about how HTTP Status Codes are used within REST APIs <a href="https://restfulapi.net/http-status-codes/">here</a>.</p>
+    </blockquote>
+
+    <p>If the fan state is not <strong>Failed</strong>, the code then proceeds to process the data sent as part of the method request. The <strong>methodRequest.Data</strong> property contains the data in the form of a byte array, so it is first converted to a string. In this scenario, the following two values are expected (including the quotes):</p>
+
+    <ul>
+      <li>“On”</li>
+      <li>“Off”</li>
+    </ul>
+
+    <p>It is assumed that the received data maps to members of the <strong>StateEnum</strong> :</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">internal</span></span> <span class="hljs-keyword"><span class="hljs-keyword">enum</span></span> StateEnum
+ {
+     Off,
+     On,
+     Failed
+ }
+</code></pre>
+
+    <p>In order to parse the data, the quotes must first be removed and then the <strong>Enum.Parse</strong> method is used to find a matching enum value. Should this fail (the data needs to match exactly), an exception is thrown, which is caught below. Notice that the exception handler creates and returns a similar error method response to the one created for the fan failed state.</p>
+
+    <p>If a matching value is found in the <strong>StateEnum</strong>, the cheese cave simulator <strong>UpdateFan</strong> method is called. In this case, the method merely sets the <strong>FanState</strong> property to the supplied value - a real-world implementation would interact with the fan to change the state and determine if the state change was successful. However, in this scenario, success is assumed and the appropriate <strong>result</strong> and <strong>MethodResponse</strong> are created and returned - this time using the HTTP Status code <strong>200</strong> to indicate success.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, to save the Program.cs file, click <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<p>You have now completed the coding that is required on the device side. Next, you need to add code to the back-end Operator application that will invoke the direct method.</p>
+
+<h4 id="task-2-add-code-to-call-your-direct-method">Task 2: Add Code to Call Your Direct Method</h4>
+
+<ol>
+  <li>
+    <p>Return to the Visual Studio Code instance that contains the <strong>CheeseCaveOperator</strong> application.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the app is still running, use the Terminal pane to exit the app (click inside the Terminal pane to set the focus and the press <strong>CTRL+C</strong> to exit the running application).</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Ensure that <strong>Program.cs</strong> is open in the code editor.</p>
+  </li>
+  <li>
+    <p>The application defines a global variable to hold a service client instance:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> ServiceClient serviceClient;
+</code></pre>
+
+    <p>The <strong>ServiceClient</strong> is used to send messages to devices.</p>
+  </li>
+  <li>
+    <p>Locate the <code>UNCOMMENT create service client instance below here</code> comment.</p>
+  </li>
+  <li>
+    <p>Uncomment the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-comment"><span class="hljs-comment">// Create a ServiceClient to communicate with service-facing endpoint</span></span>
+ <span class="hljs-comment"><span class="hljs-comment">// on your hub.</span></span>
+ serviceClient = ServiceClient.CreateFromConnectionString(serviceConnectionString);
+ <span class="hljs-comment"><span class="hljs-comment">// Invokes a Direct Method on the device</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> InvokeMethod();
+</code></pre>
+
+    <p>Notice how the <strong>ServiceClient</strong> connects using the <strong>serviceConnectionString</strong> defined earlier. The <strong>InvokeMethod</strong> is then called.</p>
+  </li>
+  <li>
+    <p>Locate the <code>UNCOMMENT InvokeMethod method below here</code> comment.</p>
+  </li>
+  <li>
+    <p>Uncomment and review the code that invokes the direct method.</p>
+
+    <p>The <strong>CloudToDeviceMethod</strong> class encapsulates the information regarding the direct method - the method name, timeout, and payload. The <strong>ServiceClient</strong> instance created earlier is then used to invoke the direct method via the IoT Hub, returning a response object. A <code>response.Status</code> property value of <code>200</code> indicates success.</p>
+
+    <blockquote>
+      <p><strong>Information</strong>: The <strong>ServiceClient</strong> class encapsulates interaction with the underlying Azure REST APIs. You can learn more about the underlying REST API for invoking direct methods here - <a href="https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods">Understand and invoke direct methods from IoT Hub</a>. You can also find the additional status codes documented:</p>
+      <ul>
+        <li>200 indicates successful execution of direct method;</li>
+        <li>404 indicates that either device ID is invalid, or that the device was not online upon invocation of a direct method and for connectTimeoutInSeconds thereafter (use accompanied error message to understand the root cause);</li>
+        <li>504 indicates gateway timeout caused by device not responding to a direct method call within responseTimeoutInSeconds.</li>
+      </ul>
+    </blockquote>
+
+    <p>This code is used to invoke the <strong>SetFanState</strong> direct method on the device app.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, to save the Program.cs file, click <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<p>You have now completed the code changes to support the <strong>SetFanState</strong> direct method.</p>
+
+<h4 id="task-3-test-the-direct-method">Task 3: Test the direct method</h4>
+
+<p>To test the direct method, you will need to start the apps in the correct order. You can’t invoke a direct method that hasn’t been registered!</p>
+
+<ol>
+  <li>
+    <p>Switch to the instance of Visual Studio Code that contains the <strong>cheesecavedevice</strong> device app.</p>
+  </li>
+  <li>
+    <p>To start the <strong>cheesecavedevice</strong> device app, open a Terminal pane and then enter a <code>dotnet run</code> command.</p>
+
+    <p>It will begin writing to the terminal, and telemetry messages will be displayed.</p>
+  </li>
+  <li>
+    <p>Switch to the instance of Visual Studio Code that contains the <strong>CheeseCaveOperator</strong> back-end app.</p>
+  </li>
+  <li>
+    <p>To start the <strong>CheeseCaveOperator</strong> back-end app, open a Terminal pane and then enter a <code>dotnet run</code> command.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  If you see the message <code>Direct method failed: timed-out</code> then double check you have saved the changes in the <strong>CheeseCaveDevice</strong> and started the app.</p>
+    </blockquote>
+
+    <p>The CheeseCaveOperator back-end app will immediately call the direct method.</p>
+
+    <p>Notice the output similar to the following:</p>
+
+    <p><a href="media/LAB_AK_15-cheesecave-direct-method-sent.png" target="_blank"><img src="media/LAB_AK_15-cheesecave-direct-method-sent.png" alt="Console Output"></a></p>
+  </li>
+  <li>
+    <p>Now check the console output for the <strong>cheesecavedevice</strong> device app, you should see that the fan has been turned on.</p>
+
+    <p><a href="media/LAB_AK_15-cheesecave-direct-method-received.png" target="_blank"><img src="media/LAB_AK_15-cheesecave-direct-method-received.png" alt="Console Output"></a></p>
+  </li>
+</ol>
+
+<p>You are now successfully monitoring and controlling a remote device. You have implemented a direct method on the device that can be invoked from the cloud. In the Contoso scenario, the direct method is used to turn on a fan, which will bring the environment in the cave to our desired settings. You should notice that the temperature and humidity readings reduce over time, eventually removing the alerts (unless the fan fails).</p>
+
+<p>But what if you want to remotely specify the desired settings for the cheese cave environment? Perhaps you want to set a particular target temperature for the cheese cave at a certain point in the aging process. You could specify desired settings with a direct method (which is a valid approach), or you could use another feature of IoT Hub that is designed for this purpose, device twins. In the next Exercise, you will work on implementing device twin properties within your solution.</p>
+
+<h3 id="exercise-5-implement-the-device-twin-functionality">Exercise 5: Implement the Device Twin functionality</h3>
+
+<p>As a reminder, a device twin contains four types of information:</p>
+
+<ul>
+  <li><strong>Tags</strong>: information on the device that isn’t visible to the device.</li>
+  <li><strong>Desired properties</strong>: the desired settings specified by the back-end app.</li>
+  <li><strong>Reported properties</strong>: the reported values of the settings on the device.</li>
+  <li><strong>Device identity properties</strong>: read-only information identifying the device.</li>
+</ul>
+
+<p>Device twins, which are managed through IoT Hub, are designed for querying, and they are synchronized with the real IoT device. The device twin can be queried, at any time, by the back-end app. This query can return the current state information for the device. Getting this data doesn’t involve a call to the device, as the device and twin will have synchronized. Much of the functionality of device twins is provided by Azure IoT Hub, so not much code needs to be written to make use of them.</p>
+
+<p>There is some overlap between the functionality of device twins and direct methods. You could set device properties using direct methods, which might seem an intuitive way of doing things. However, using direct methods would require the back-end app to record those settings explicitly, if they ever needed to be accessed. Using device twins, this information is stored and maintained by default.</p>
+
+<p>In this exercise, you will enable some code in the back-end service app, to show device twin synchronization in operation (the device code for twin synchronization is already added and has been covered in earlier labs).</p>
+
+<h4 id="task-1-enable-code-to-use-device-twins-to-synchronize-device-properties">Task 1: Enable Code To Use Device Twins To Synchronize Device Properties</h4>
+
+<ol>
+  <li>
+    <p>Return to the Visual Studio Code instance that is running the <strong>CheeseCaveOperator</strong> back-end app.</p>
+  </li>
+  <li>
+    <p>If the app is still running, place input focus on the terminal and press <strong>CTRL+C</strong> to exit the app.</p>
+  </li>
+  <li>
+    <p>Ensure that the <strong>Program.cs</strong> is open.</p>
+  </li>
+  <li>
+    <p>A global variable for a <strong>RegistryManager</strong> instance is already defined:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> RegistryManager registryManager;
+</code></pre>
+
+    <p>The <strong>RegistryManager</strong> class encapsulates some of the IoT Hub Service REST APIs that include operations on the device identity registry, querying device twins, and import/export jobs. In this exercise, it will be used to update a device twin.</p>
+  </li>
+  <li>
+    <p>Locate the <code>UNCOMMENT registry manager variable below here</code> comment.</p>
+  </li>
+  <li>
+    <p>To insert the registry manager variable, enter the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> RegistryManager registryManager;
+</code></pre>
+  </li>
+  <li>
+    <p>Locate the <code>UNCOMMENT device twin management below here</code> comment.</p>
+  </li>
+  <li>
+    <p>To add the functionality that creates the registry manager instance and sets the twin properties, enter the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-comment"><span class="hljs-comment">// A registry manager is used to access the digital twins.</span></span>
+ registryManager = RegistryManager
+     .CreateFromConnectionString(serviceConnectionString);
+ <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> SetTwinProperties();
+</code></pre>
+
+    <p>Notice that the <strong>serviceConnectionString</strong> value is used to connect to the IoT Hub with the appropriate access level. The <strong>SetTwinProperties</strong> is then called.</p>
+  </li>
+  <li>
+    <p>Locate the <code>UNCOMMENT Device twins section below here</code> comment.</p>
+  </li>
+  <li>
+    <p>To add the functionality that updates device twin desired properties, uncomment the <strong>SetTwinProperties</strong> and review the code and comments:</p>
+
+    <p>The <strong>SetTwinProperties</strong> method creates a piece of JSON that defines tags and properties that will be added to the device twin, and then updates the twin. The next part of the method demonstrates how a query can be performed to list the devices where the <strong>cheeseCave</strong> tag is set to “CheeseCave1”. This query requires that the connection has the <strong>Registry read</strong> permission.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, to save the Program.cs file, click <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-enable-code-to-synchronize-device-twin-settings-for-the-device">Task 2: Enable Code to Synchronize Device Twin Settings for the Device</h4>
+
+<ol>
+  <li>
+    <p>Return to the Visual Studio Code instance that contains the <strong>cheesecavedevice</strong> app.</p>
+  </li>
+  <li>
+    <p>If the app is still running, place input focus on the terminal and press <strong>CTRL+C</strong> to exit the app.</p>
+  </li>
+  <li>
+    <p>Ensure that the <strong>Program.cs</strong> file is open in the Code Editor pane.</p>
+  </li>
+  <li>
+    <p>Locate the <code>UNCOMMENT register desired property changed handler code below here</code> comment.</p>
+  </li>
+  <li>
+    <p>To register the desired property changed handler, uncomment the following code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-comment"><span class="hljs-comment">// Get the device twin to report the initial desired properties.</span></span>
+ Twin deviceTwin = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> deviceClient.GetTwinAsync();
+ ConsoleHelper.WriteGreenMessage(<span class="hljs-string"><span class="hljs-string">"Initial twin desired properties: "</span></span> + deviceTwin.Properties.Desired.ToJson());
+
+ <span class="hljs-comment"><span class="hljs-comment">// Set the device twin update callback.</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> deviceClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertyChanged, <span class="hljs-literal"><span class="hljs-literal">null</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>Locate the <code>UNCOMMENT OnDesiredPropertyChanged method below here</code> comment.</p>
+  </li>
+  <li>
+    <p>To enable the code that responds to a device twin property change, uncomment the <strong>OnDesiredPropertyChanged</strong> method and review the code:</p>
+
+    <p>This code defines the handler that is invoked when a desired property changes in the device twin. Notice that new values are then reported back to the IoT Hub to confirm the change.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, to save the Program.cs file, click <strong>Save</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Now you have added support for device twins to your app, you can reconsider having explicit variables such as <strong>desiredHumidity</strong>. You could use the variables in the device twin object instead.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-test-the-device-twins">Task 3: Test the Device Twins</h4>
+
+<p>To test the code that manages device twin desired property changes, you will start the apps in the correct order, device application first and then back-end application.</p>
+
+<ol>
+  <li>
+    <p>Switch to the instance of Visual Studio Code that contains the <strong>cheesecavedevice</strong> device app.</p>
+  </li>
+  <li>
+    <p>To start the <strong>cheesecavedevice</strong> device app, open a Terminal pane and then enter a <code>dotnet run</code> command.</p>
+
+    <p>It will begin writing to the terminal, and telemetry messages will be displayed.</p>
+  </li>
+  <li>
+    <p>Switch to the instance of Visual Studio Code that contains the <strong>CheeseCaveOperator</strong> back-end app.</p>
+  </li>
+  <li>
+    <p>To start the <strong>CheeseCaveOperator</strong> back-end app, open a Terminal pane and then enter a <code>dotnet run</code> command.</p>
+  </li>
+  <li>
+    <p>Switch back to the instance of Visual Studio Code that contains the <strong>cheesecavedevice</strong> device app.</p>
+  </li>
+  <li>
+    <p>Check the console output and confirm that the device twin synchronized correctly.</p>
+
+    <p><a href="media/LAB_AK_15-cheesecave-device-twin-received.png" target="_blank"><img src="media/LAB_AK_15-cheesecave-device-twin-received.png" alt="Console Output"></a></p>
+
+    <p>If you let the fan do its work, you should eventually see red alerts turn off (unless the fan fails)</p>
+
+    <p><a href="media/LAB_AK_15-cheesecave-device-twin-success.png" target="_blank"><img src="media/LAB_AK_15-cheesecave-device-twin-success.png" alt="Console Output"></a></p>
+  </li>
+  <li>
+    <p>For both instances of Visual Studio Code, stop the app and then close the Visual Studio Code window.</p>
+  </li>
+</ol>
+
+<p>The code that you implemented in this lab isn’t production quality, but it does demonstrate the basics of monitoring and controlling an IoT device using a combination direct methods and device twin properties. You should recognize that in this implementation, operator control messages are only being sent when the back-end service app is first run. Typically, a back-end service app would require a browser interface, for an operator to send direct methods, or set device twin properties, whenever required.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.js"></script>
+
+
+
+</body></html>

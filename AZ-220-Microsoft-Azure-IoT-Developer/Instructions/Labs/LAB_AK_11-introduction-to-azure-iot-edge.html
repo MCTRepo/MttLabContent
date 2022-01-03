@@ -1,0 +1,1042 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-create-and-configure-an-iot-edge-vm">Exercise 2: Create and configure an IoT Edge VM</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-add-edge-module-to-edge-device">Exercise 3: Add Edge Module to Edge Device</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-deploy-azure-stream-analytics-as-iot-edge-module">Exercise 4: Deploy Azure Stream Analytics as IoT Edge Module</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="introduction-to-azure-iot-edge">Introduction to Azure IoT Edge</h1>
+
+<h2 id="lab-scenario">Lab Scenario</h2>
+
+<p>To encourage local consumers in a global marketplace, Contoso has partnered with local artisans to produce cheese in new regions around the globe.</p>
+
+<p>Each location supports multiple production lines that are equipped with the mixing and processing machines that are used to create the local cheeses. Currently, the facilities have IoT devices connected to each machine. These devices stream sensor data to Azure and all data is processed in the cloud.</p>
+
+<p>Due to the large amount of data being collected and the urgent time response needed on some of the machines, Contoso wants to use an IoT Edge gateway device to bring some of the intelligence to the edge for immediate processing. A portion of the data will still be sent to the cloud. Bringing data intelligence to the IoT Edge also ensures that they will be able to process data and react quickly even if the local network is poor.</p>
+
+<p>You have been tasked with prototyping the Azure IoT Edge solution. To begin, you will be setting up an IoT Edge device that monitors temperature (simulating a device connected to one of the cheese processing machines). You will then deploy a Stream Analytics module to the device that will be used to calculate the average temperature and generate an alert notification if process control values are exceeded.</p>
+
+<p>The following resources will be created:</p>
+
+<p><a href="media/LAB_AK_11-architecture.png" target="_blank"><img src="media/LAB_AK_11-architecture.png" alt="Lab 11 Architecture"></a></p>
+
+<h2 id="in-this-lab">In This Lab</h2>
+
+<p>In this lab, you will complete the following activities:</p>
+
+<ul>
+  <li>Verify that the lab prerequisites are met (that you have the required Azure resources)</li>
+  <li>Deploy an Azure IoT Edge Enabled Linux VM</li>
+  <li>Create an IoT Edge Device Identity in IoT Hub using Azure CLI</li>
+  <li>Connect the IoT Edge Device to IoT Hub</li>
+  <li>Add an Edge Module to the Edge Device</li>
+  <li>Deploy Azure Stream Analytics as an IoT Edge Module</li>
+</ul>
+
+<h2 id="lab-instructions">Lab Instructions</h2>
+
+<h3 id="exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</h3>
+
+<p>This lab assumes that the following Azure resources are available:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Resource Type</th>
+      <th style="text-align: left">Resource Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Resource Group</td>
+      <td style="text-align: left">rg-az220</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT Hub</td>
+      <td style="text-align: left">iot-az220-training-{your-id}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To ensure these resources are available, complete the following tasks.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Deploy to Azure</strong>:</p>
+
+    <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoftLearning%2FAZ-220-Microsoft-Azure-IoT-Developer%2Fbicep%2FAllfiles%2FARM%2Flab11.json">Deploy To Azure</a></p>
+  </li>
+  <li>
+    <p>If prompted, login to the <strong>Azure Portal</strong>.</p>
+
+    <p>The <strong>Custom deployment</strong> page will be displayed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Project details</strong>, in the <strong>Subscription</strong> dropdown, ensure that the Azure subscription that you intend to use for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, select <strong>rg-az220</strong>.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If <strong>rg-az220</strong> is not listed:</p>
+
+      <ol>
+        <li>Under the <strong>Resource group</strong> dropdown, click <strong>Create new</strong>.</li>
+        <li>Under <strong>Name</strong>, enter <strong>rg-az220</strong>.</li>
+        <li>Click <strong>OK</strong>.</li>
+      </ol>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, in the <strong>Region</strong> dropdown, select the region closest to you.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If the <strong>rg-az220</strong> group already exists, the <strong>Region</strong> field is set to the region used by the resource group and is read-only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Your ID</strong> field, enter the unique ID you created in Exercise 1.</p>
+  </li>
+  <li>
+    <p>In the <strong>Course ID</strong> field, enter <strong>az220</strong>.</p>
+  </li>
+  <li>
+    <p>To validate the template, click <strong>Review and create</strong>.</p>
+  </li>
+  <li>
+    <p>If validation passes, click <strong>Create</strong>.</p>
+
+    <p>The deployment will start.</p>
+  </li>
+  <li>
+    <p>Once the deployment has completed, in the left navigation area, to review any output values from the template,  click <strong>Outputs</strong>.</p>
+
+    <p>Make a note of the outputs for use later:</p>
+
+    <ul>
+      <li>connectionString</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The resources have now been created.</p>
+
+<h3 id="exercise-2-create-and-configure-an-iot-edge-vm">Exercise 2: Create and configure an IoT Edge VM</h3>
+
+<p>In this exercise, you will create an IoT Edge device identity and then use the device connection string to configure the IoT Edge runtime.</p>
+
+<h4 id="task-1-create-an-iot-edge-device-identity-in-iot-hub-using-azure-cli">Task 1: Create an IoT Edge Device Identity in IoT Hub using Azure CLI</h4>
+
+<p>In this task, you will create a new IoT Edge Device Identity within Azure IoT Hub using the Azure CLI.</p>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On the Azure portal toolbar, to open the Azure Cloud Shell, click <strong>Cloud Shell</strong>.</p>
+
+    <p>On the Azure portal toolbar, not the left side navigation menu, the Cloud Shell button has an icon that looks similar ot a command prompt.</p>
+  </li>
+  <li>
+    <p>Ensure that you are using the <strong>Bash</strong> environment option.</p>
+
+    <p>In the upper left corner of the Cloud Shell, Bash should be selected in the environment dropdown.</p>
+  </li>
+  <li>
+    <p>At the command prompt, to create an IoT Edge device identity in your IoT hub, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs"> az iot hub device-identity create --hub-name iot-az220-training-{your-id} --device-id sensor-th-0067 --edge-enabled
+</code></pre>
+
+    <p>Be sure to replace the <code>{your-id}</code> placeholder with the YOUR-ID value that you created at the start of this course.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You could also create this IoT Edge device using your IoT Hub in the Azure portal: <strong>IoT Hub</strong> -&gt; <strong>IoT Edge</strong> -&gt; <strong>Add an IoT Edge device</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Review the output that the command created.</p>
+
+    <p>Notice that the output contains information about the <strong>Device Identity</strong> that was created for the IoT Edge device. For example, you can see it defaults to <code>symmetricKey</code> authentication with auto-generated keys, and the <code>iotEdge</code> capability is set to <code>true</code> as indicated by the <code>--edge-enabled</code> parameter that was specified.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"authentication"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"symmetricKey"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"primaryKey"</span></span>: <span class="hljs-string"><span class="hljs-string">"jftBfeefPsXgrd87UcotVKJ88kBl5Zjk1oWmMwwxlME="</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"secondaryKey"</span></span>: <span class="hljs-string"><span class="hljs-string">"vbegAag/mTJReQjNvuEM9HEe1zpGPnGI2j6DJ7nECxo="</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"sas"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"x509Thumbprint"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"primaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"secondaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+         }
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"capabilities"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"iotEdge"</span></span>: <span class="hljs-literal"><span class="hljs-literal">true</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"cloudToDeviceMessageCount"</span></span>: <span class="hljs-number"><span class="hljs-number">0</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"connectionState"</span></span>: <span class="hljs-string"><span class="hljs-string">"Disconnected"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"connectionStateUpdatedTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"sensor-th-0067"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceScope"</span></span>: <span class="hljs-string"><span class="hljs-string">"ms-azure-iot-edge://sensor-th-0067-637093398936580016"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"etag"</span></span>: <span class="hljs-string"><span class="hljs-string">"OTg0MjI1NzE1"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"generationId"</span></span>: <span class="hljs-string"><span class="hljs-string">"637093398936580016"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"lastActivityTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"enabled"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"statusReason"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"statusUpdatedTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>To display the <strong>Connection String</strong> for your IoT Edge device, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs"> az iot hub device-identity connection-string show --device-id sensor-th-0067 --hub-name iot-az220-training-{your-id}
+</code></pre>
+
+    <p>Be sure to replace the <code>{your-id}</code> placeholder with the YOUR-ID value that you created at the start of this course.</p>
+  </li>
+  <li>
+    <p>Copy the value of the <code>connectionString</code> from the JSON output of the command, and then save it for reference later.</p>
+
+    <p>This connection string will be used to configure the IoT Edge device to connect to IoT Hub.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-json hljs">     {
+       <span class="hljs-attr"><span class="hljs-attr">"connectionString"</span></span>: <span class="hljs-string"><span class="hljs-string">"HostName={IoTHubName}.azure-devices.net;DeviceId=sensor-th-0067;SharedAccessKey=jftBfeefPsXgrd87UcotVKJ88kBl5Zjk1oWmMwwxlME="</span></span>
+     }
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>:  The IoT Edge Device Connection String can also be accessed within the Azure Portal, by navigating to <strong>IoT Hub</strong> -&gt; <strong>IoT Edge</strong> -&gt; <strong>Your Edge Device</strong> -&gt; <strong>Connection String (primary key)</strong></p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-provision-iot-edge-vm">Task 2: Provision IoT Edge VM</h4>
+
+<p>In this task, you will use an ARM (Azure Resource Manager) Template to provision a Linux VM, install the IoT Edge runtime and configure the connection.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Deploy to Azure</strong>:</p>
+
+    <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoftLearning%2FAZ-220-Microsoft-Azure-IoT-Developer%2Fbicep%2FAllfiles%2FARM%2Flab11a.json"><a href="media/deploytoazure.png" target="_blank"><img src="media/deploytoazure.png" alt="Deploy To Azure"></a></a></p>
+  </li>
+  <li>
+    <p>If prompted, login to the <strong>Azure Portal</strong>.</p>
+
+    <p>The <strong>Custom deployment</strong> page will be displayed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Project details</strong>, in the <strong>Subscription</strong> dropdown, ensure that the Azure subscription that you intend to use for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, select  create and enter <strong>rg-az220vm</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Region</strong> field, enter the same location you have used earlier.</p>
+  </li>
+  <li>
+    <p>In the <strong>Virtual Machine Name</strong> textbox, enter <strong>vm-az220-training-edge0001-{your-id}</strong></p>
+  </li>
+  <li>
+    <p>In the <strong>Device Connection String</strong> field, enter a the connection string value from the previous exercise.</p>
+  </li>
+  <li>
+    <p>In the <strong>Virtual Machine Size</strong> field, ensure <strong>Standard_DS1_v2</strong> is entered.</p>
+  </li>
+  <li>
+    <p>In the <strong>Ubuntu OS Version</strong> field, ensure that <strong>18.04-LTS</strong> is entered.</p>
+  </li>
+  <li>
+    <p>In the <strong>Admin Username</strong> field, enter a username.</p>
+  </li>
+  <li>
+    <p>In the <strong>Authentication Type</strong> field, ensure <strong>Password</strong> is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Admin Password Or Key</strong> field, enter the password you wish to use.</p>
+  </li>
+  <li>
+    <p>In the <strong>Allow SSH</strong> field, ensure <strong>true</strong> is selected.</p>
+  </li>
+  <li>
+    <p>To validate the template, click <strong>Review and create</strong>.</p>
+  </li>
+  <li>
+    <p>If validation passes, click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  Deployment can take as much as 5 minutes to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Once the template has completed, navigate to the <strong>Outputs</strong> pane and make a note of the following:</p>
+
+    <ul>
+      <li>Public FQDN</li>
+      <li>Public SSH</li>
+    </ul>
+  </li>
+</ol>
+
+<h4 id="task-3-connect-to-the-vm">Task 3: Connect to the VM</h4>
+
+<ol>
+  <li>
+    <p>If Cloud Shell is not still open, click <strong>Cloud Shell</strong>.</p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, paste the <strong>Public SSH</strong> command that you noted earlier, and then press <strong>Enter</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command will be similar to:</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs"> ssh username@vm-az220-training-edge0001-{your-id}.{region}.cloudapp.azure.com
+</code></pre>
+  </li>
+  <li>
+    <p>When prompted with <strong>Are you sure you want to continue connecting?</strong>, type <code>yes</code> and then press <strong>Enter</strong>.</p>
+
+    <p>This prompt is a security confirmation since the certificate used to secure the connection to the VM is self-signed. The answer to this prompt will be remembered for subsequent connections, and is only prompted on the first connection.</p>
+  </li>
+  <li>
+    <p>When prompted to enter the password, enter the administrator password that you created when the VM was provisioned.</p>
+  </li>
+  <li>
+    <p>Once connected, the terminal command prompt will change to show the name of the Linux VM, similar to the following.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs"> username@vm-az220-training-edge0001-{your-id}:~$
+</code></pre>
+
+    <p>This tells you which VM you are connected to.</p>
+  </li>
+  <li>
+    <p>To ensure the IoT Edge daemon is running, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-bash hljs"> sudo iotedge system status
+</code></pre>
+
+    <p>A successful response will be similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-bash hljs"> System services:
+     aziot-edged             Running
+     aziot-identityd         Running
+     aziot-keyd              Running
+     aziot-certd             Running
+     aziot-tpmd              Ready
+
+ Use <span class="hljs-string"><span class="hljs-string">'iotedge system logs'</span></span> to check <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> non-fatal errors.
+ Use <span class="hljs-string"><span class="hljs-string">'iotedge check'</span></span> to diagnose connectivity and configuration issues.
+</code></pre>
+  </li>
+  <li>
+    <p>To verify the IoT Edge runtime has connected, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-bash hljs"> sudo iotedge check
+</code></pre>
+
+    <p>This runs a number of checks and displays the results. For this lab, ignore the <strong>Configuration checks</strong> warnings/errors. The <strong>Connectivity checks</strong> should succeed and be similar to:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-bash hljs"> Connectivity checks
+ -------------------
+ √ container on the default network can connect to IoT Hub AMQP port - OK
+ √ container on the default network can connect to IoT Hub HTTPS / WebSockets port - OK
+ √ container on the default network can connect to IoT Hub MQTT port - OK
+ √ container on the IoT Edge module network can connect to IoT Hub AMQP port - OK
+ √ container on the IoT Edge module network can connect to IoT Hub HTTPS / WebSockets port - OK
+ √ container on the IoT Edge module network can connect to IoT Hub MQTT port - OK
+</code></pre>
+
+    <p>If the connection fails, double-check the connection string value in <strong>/etc/aziot/config.toml</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-3-add-edge-module-to-edge-device">Exercise 3: Add Edge Module to Edge Device</h3>
+
+<p>In this exercise, you will add a Simulated Temperature Sensor as a custom IoT Edge Module, and deploy it to run on the IoT Edge Device.</p>
+
+<h4 id="task-1-configure-module-for-deployment">Task 1: Configure module for deployment</h4>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On your Resource group tile, to open your IoT Hub, click <strong>iot-az220-training-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>At the left of the <strong>IoT Hub</strong> blade, under <strong>Automatic Device Management</strong>, click <strong>IoT Edge</strong>.</p>
+  </li>
+  <li>
+    <p>On the list of IoT Edge Devices, click <strong>sensor-th-0067</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>sensor-th-0067</strong> blade, notice that the <strong>Modules</strong> tab displays a list of the modules currently configured for the device.</p>
+
+    <p>Currently, the IoT Edge device is configured with only the Edge Agent (<code>$edgeAgent</code>) and Edge Hub (<code>$edgeHub</code>) modules that are part of the IoT Edge Runtime.</p>
+  </li>
+  <li>
+    <p>At the top of the <strong>sensor-th-0067</strong> blade, click <strong>Set Modules</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set modules on device: sensor-th-0067</strong> blade, locate the <strong>IoT Edge Modules</strong> section.</p>
+  </li>
+  <li>
+    <p>Under <strong>IoT Edge Modules</strong>, click <strong>Add</strong>, and then click <strong>IoT Edge Module</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add IoT Edge Module</strong> pane, under <strong>IOT Edge Module Name</strong>, enter <strong>tempsensor</strong></p>
+
+    <p>We will be naming our custom module “tempsensor”</p>
+  </li>
+  <li>
+    <p>Under <strong>Image URI</strong>, enter <strong>asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor</strong></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This image is a published image on Docker Hub that is provided by the product group to support this testing scenario.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To change the selected tab, click <strong>Module Twin Settings</strong>.</p>
+  </li>
+  <li>
+    <p>To specify the desired properties for the module twin, enter the following JSON:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"EnableProtobufSerializer"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"EventGeneratingSettings"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"IntervalMilliSec"</span></span>: <span class="hljs-number"><span class="hljs-number">500</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"PercentageChange"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"SpikeFactor"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"StartValue"</span></span>: <span class="hljs-number"><span class="hljs-number">20</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"SpikeFrequency"</span></span>: <span class="hljs-number"><span class="hljs-number">20</span></span>
+     }
+ }
+</code></pre>
+
+    <p>This JSON configures the Edge Module by setting the desired properties of its module twin.</p>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Add</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set modules on device: sensor-th-0067</strong> blade, at the bottom of the blade, click <strong>Next: Routes &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>Notice that a default route is already configured.</p>
+
+    <ul>
+      <li>Name: <strong>route</strong></li>
+      <li>Value: <code>FROM /messages/* INTO $upstream</code></li>
+    </ul>
+
+    <p>This route will send all messages from all modules on the IoT Edge Device to IoT Hub</p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Deployment</strong>, take a minute to review the deployment manifest that is displayed.</p>
+
+    <p>As you can see, the Deployment Manifest for the IoT Edge Device is formatted as JSON, which makes it pretty easy to read.</p>
+
+    <p>Under the <code>properties.desired</code> section is the <code>modules</code> section that declares the IoT Edge Modules that will be deployed to the IoT Edge Device. This includes the Image URIs of all the modules, including any container registry credentials.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"modulesContent"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"$edgeAgent"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"properties.desired"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"modules"</span></span>: {
+                     <span class="hljs-attr"><span class="hljs-attr">"tempsensor"</span></span>: {
+                         <span class="hljs-attr"><span class="hljs-attr">"settings"</span></span>: {
+                             <span class="hljs-attr"><span class="hljs-attr">"image"</span></span>: <span class="hljs-string"><span class="hljs-string">"asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor"</span></span>,
+                             <span class="hljs-attr"><span class="hljs-attr">"createOptions"</span></span>: <span class="hljs-string"><span class="hljs-string">""</span></span>
+                         },
+                         <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"docker"</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"running"</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"restartPolicy"</span></span>: <span class="hljs-string"><span class="hljs-string">"always"</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>
+                    },
+</code></pre>
+
+    <p>Lower in the JSON is the <strong>$edgeHub</strong> section that contains the desired properties for the Edge Hub. This section also includes the routing configuration for routing events between modules, and to IoT Hub.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-json hljs">     <span class="hljs-string"><span class="hljs-string">"$edgeHub"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"properties.desired"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"routes"</span></span>: {
+               <span class="hljs-attr"><span class="hljs-attr">"route"</span></span>: <span class="hljs-string"><span class="hljs-string">"FROM /messages/* INTO $upstream"</span></span>
+             },
+             <span class="hljs-attr"><span class="hljs-attr">"schemaVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.1"</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"storeAndForwardConfiguration"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"timeToLiveSecs"</span></span>: <span class="hljs-number"><span class="hljs-number">7200</span></span>
+             }
+         }
+     },
+</code></pre>
+
+    <p>Lower still in the JSON is a section for the <strong>tempsensor</strong> module, where the <code>properties.desired</code> section contains the desired properties for the configuration of the edge module.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-json hljs">             },
+             <span class="hljs-string"><span class="hljs-string">"tempsensor"</span></span>: {
+                 <span class="hljs-attr"><span class="hljs-attr">"properties.desired"</span></span>: {
+                     <span class="hljs-attr"><span class="hljs-attr">"EnableProtobufSerializer"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+                     <span class="hljs-attr"><span class="hljs-attr">"EventGeneratingSettings"</span></span>: {
+                         <span class="hljs-attr"><span class="hljs-attr">"IntervalMilliSec"</span></span>: <span class="hljs-number"><span class="hljs-number">500</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"PercentageChange"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"SpikeFactor"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"StartValue"</span></span>: <span class="hljs-number"><span class="hljs-number">20</span></span>,
+                         <span class="hljs-attr"><span class="hljs-attr">"SpikeFrequency"</span></span>: <span class="hljs-number"><span class="hljs-number">20</span></span>
+                     }
+                 }
+             }
+         }
+     }
+</code></pre>
+  </li>
+  <li>
+    <p>At the bottom of the blade, to finish setting the modules for the device, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>sensor-th-0067</strong> blade, under <strong>Modules</strong>, notice that <strong>tempsensor</strong> is now listed.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You may have to click <strong>Refresh</strong> to see the module listed for the first time.</p>
+    </blockquote>
+
+    <p>You may notice that the RUNTIME STATUS for <strong>tempsensor</strong> is not reported.</p>
+  </li>
+  <li>
+    <p>At the top of the blade, click <strong>Refresh</strong>.</p>
+  </li>
+  <li>
+    <p>Notice that the <strong>RUNTIME STATUS</strong> for the <strong>tempsensor</strong> module is now set to <strong>running</strong>.</p>
+
+    <p>If the value is still not reported, wait a moment and refresh the blade again.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-confirm-module-deployment">Task 2: Confirm module deployment</h4>
+
+<ol>
+  <li>
+    <p>Open a Cloud Shell session (if it is not still open).</p>
+
+    <p>If you are no longer connected to the <code>vm-az220-training-edge0001-{your-id}</code> virtual machine, connect using <strong>SSH</strong> as before.</p>
+  </li>
+  <li>
+    <p>At the Cloud Shell command prompt, to list the modules currently running on the IoT Edge Device, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-bash hljs"> iotedge list
+</code></pre>
+  </li>
+  <li>
+    <p>The output of the command look similar to the following.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-bash hljs"> demouser@vm-az220-training-edge0001-{your-id}:~$ iotedge list
+ NAME             STATUS           DESCRIPTION      CONFIG
+ edgeHub          running          Up a minute      mcr.microsoft.com/azureiotedge-hub:1.1
+ edgeAgent        running          Up 26 minutes    mcr.microsoft.com/azureiotedge-agent:1.1
+ tempsensor       running          Up 34 seconds    asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor
+</code></pre>
+
+    <p>Notice that <code>tempsensor</code> is listed as one of the running modules.</p>
+  </li>
+  <li>
+    <p>To view the module logs, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-bash hljs"> iotedge logs tempsensor
+</code></pre>
+
+    <p>The output of the command looks similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-bash hljs"> demouser@vm-az220-training-edge0001-{your-id}:~$ iotedge logs tempsensor
+ 11/14/2019 18:05:02 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:41.199999999999925,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0182182583425192},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:21.460937846433808,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:25},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T18:05:02.8765526Z"</span></span>}
+ 11/14/2019 18:05:03 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:41.599999999999923,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0185790159334602},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:20.51992724976499,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:26},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T18:05:03.3789786Z"</span></span>}
+ 11/14/2019 18:05:03 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:41.999999999999922,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0189397735244012},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:20.715225311096397,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:26},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T18:05:03.8811372Z"</span></span>}
+</code></pre>
+
+    <p>The <code>iotedge logs</code> command can be used to view the module logs for any of the Edge modules.</p>
+  </li>
+  <li>
+    <p>The Simulated Temperature Sensor Module will stop after it sends 500 messages. It can be restarted by running the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-bash hljs"> iotedge restart tempsensor
+</code></pre>
+
+    <p>You do not need to restart the module now, but if you find it stops sending telemetry later, then go back into Cloud Shell, SSH to your Edge VM, and run this command to reset it. Once reset, the module will start sending telemetry again.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-4-deploy-azure-stream-analytics-as-iot-edge-module">Exercise 4: Deploy Azure Stream Analytics as IoT Edge Module</h3>
+
+<p>Now that the tempSensor module is deployed and running on the IoT Edge device, we can add a Stream Analytics module that can process messages on the IoT Edge device before sending them on to the IoT Hub.</p>
+
+<h4 id="task-1-create-azure-storage-account">Task 1: Create Azure Storage Account</h4>
+
+<ol>
+  <li>
+    <p>If necessary, log in to your Azure portal using your Azure account credentials.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On the Azure portal menu, click <strong>+ Create a resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a resource</strong> blade, in the search textbox type <strong>storage</strong> and then press <strong>Enter</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Marketplace</strong> blade, click <strong>Storage account</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Storage account</strong> blade, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create storage account</strong> blade, ensure that the Subscription dropdown is displaying the subscription that you are using for this course.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, click <strong>rg-az220</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Storage account name</strong> textbox, enter <strong>az220store{your-id}</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: For this field, {your-id} must be entered in lower-case, and no dash or underline characters are allowed.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Set the <strong>Region</strong> field to the same Azure Region used for Azure IoT Hub.</p>
+  </li>
+  <li>
+    <p>Set the <strong>Performance</strong> field to <strong>Standard</strong>.</p>
+  </li>
+  <li>
+    <p>Set the <strong>Redundancy</strong> field to <strong>Locally-redundant storage (LRS)</strong>.</p>
+  </li>
+  <li>
+    <p>Leave all other settings unchanged.</p>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>Wait until you see the <strong>Validation passed</strong> message, and then click <strong>Create</strong>.</p>
+
+    <p>It can take a few moments for the deployment to complete - you can continue creating the Stream Analytics resource while this is being created.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-create-an-azure-stream-analytics-job">Task 2: Create an Azure Stream Analytics job</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal menu, click <strong>+ Create a resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a resource</strong> blade, in the search textbox type <strong>stream analytics job</strong> and then press <strong>Enter</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Marketplace</strong> blade, click <strong>stream analytics job</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Stream Analytics Job</strong> blade, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>New Stream Analytics job</strong> blade, in the <strong>Job name</strong> field, enter <strong>asa-az220-training-{your-id}</strong></p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, click <strong>rg-az220</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Location</strong> dropdown, select the same Azure Region used for the Storage Account and Azure IoT Hub.</p>
+  </li>
+  <li>
+    <p>Set the <strong>Hosting environment</strong> field to <strong>Edge</strong>.</p>
+
+    <p>This determines that the Stream Analytics job will deployed to an on-premises IoT Gateway Edge device.</p>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Create</strong>.</p>
+
+    <p>It can take a few moments to for this resource to be deployed.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-configure-azure-stream-analytics-job">Task 3: Configure Azure Stream Analytics Job</h4>
+
+<ol>
+  <li>
+    <p>When you see the <strong>Your deployment is complete</strong> message, click <strong>Go to resource</strong>.</p>
+
+    <p>You should now be on the Overview pane of your new Stream Analytics job.</p>
+  </li>
+  <li>
+    <p>On the left side navigation menu, under <strong>Job topology</strong>, click <strong>Inputs</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Inputs</strong> pane, click <strong>Add stream input</strong>, and then click <strong>Edge Hub</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Edge Hub</strong> pane, in the <strong>Input alias</strong> field, enter <strong>temperature</strong></p>
+  </li>
+  <li>
+    <p>In the <strong>Event serialization format</strong> dropdown, ensure that <strong>JSON</strong> is selected.</p>
+
+    <p>Stream Analytics needs to understand the message format. JSON is the standard format.</p>
+  </li>
+  <li>
+    <p>In the <strong>Encoding</strong> dropdown, ensure that <strong>UTF-8</strong> is selected.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  UTF-8 is the only JSON encoding supported at the time of writing.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Event compression type</strong> dropdown, ensure that <strong>None</strong> is selected.</p>
+
+    <p>For this lab, compression will not be used. GZip and Deflate formats are also supported by the service.</p>
+  </li>
+  <li>
+    <p>At the bottom of the pane, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the left side navigation menu, under <strong>Job topology</strong>, click <strong>Outputs</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Outputs</strong> pane, click <strong>+ Add</strong>, and then click <strong>Edge Hub</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Edge Hub</strong> pane, in the <strong>Output alias</strong> field, enter <strong>alert</strong></p>
+  </li>
+  <li>
+    <p>In the <strong>Event serialization format</strong> dropdown, ensure that <strong>JSON</strong> is selected.</p>
+
+    <p>Stream Analytics needs to understand the message format. JSON is the standard format, but CSV is also supported by the service.</p>
+  </li>
+  <li>
+    <p>In the <strong>Format</strong> dropdown, ensure that <strong>Line separated</strong> is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Encoding</strong> dropdown, ensure that <strong>UTF-8</strong> is selected.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  UTF-8 is the only JSON encoding supported at the time of writing.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the bottom of the pane, click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the left side navigation menu, under <strong>Job topology</strong>, click <strong>Query</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Query</strong> pane, replace the Default query with the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span>
+     <span class="hljs-string"><span class="hljs-string">'reset'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> command
+ <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span>
+     alert
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span>
+     temperature <span class="hljs-keyword"><span class="hljs-keyword">TIMESTAMP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> timeCreated
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> TumblingWindow(<span class="hljs-keyword"><span class="hljs-keyword">second</span></span>,<span class="hljs-number"><span class="hljs-number">15</span></span>)
+ <span class="hljs-keyword"><span class="hljs-keyword">HAVING</span></span> <span class="hljs-keyword"><span class="hljs-keyword">Avg</span></span>(machine.temperature) &gt; <span class="hljs-number"><span class="hljs-number">25</span></span>
+</code></pre>
+
+    <p>This query looks at the events coming into the <code>temperature</code> Input, and groups by a Tumbling Windows of 15 seconds, then it checks if the average temperature value within that grouping is greater than 25. If the average is greater than 25, then it sends an event with the <code>command</code> property set to the value of <code>reset</code> to the <code>alert</code> Output.</p>
+
+    <p>For more information about the <code>TumblingWindow</code> functions, reference this link: <a href="https://docs.microsoft.com/en-us/stream-analytics-query/tumbling-window-azure-stream-analytics">https://docs.microsoft.com/en-us/stream-analytics-query/tumbling-window-azure-stream-analytics</a></p>
+  </li>
+  <li>
+    <p>At the top of the query editor, click <strong>Save query</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-configure-storage-account-settings">Task 4: Configure Storage Account Settings</h4>
+
+<p>To prepare the Stream Analytics job to be deployed to an IoT Edge Device, it needs to be associated with an Azure Blob Storage container. When the job is deployed, the job definition is exported to the storage container.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>Stream Analytics job</strong> blade, on the left side navigation menu under <strong>Configure</strong>, click <strong>Storage account settings</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Storage account settings</strong> pane, click <strong>Add storage account</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Storage account settings</strong>, ensure that <strong>Select Blob storage/ADLS Gen2 from your subscriptions</strong> is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Storage account</strong> dropdown, ensure that the <strong>az220store{your-id}</strong> storage account is selected.</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>TODO</strong>: The container step is no longer present…</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>Under <strong>Container</strong>, click <strong>Create new</strong>, and then enter <strong>jobdefinition</strong> as the name of the container.</p>
+  </li>
+  <li>
+    <p>At the top of the pane, click <strong>Save</strong>.</p>
+
+    <p>If prompted to confirm that you want to save the changes, click <strong>Yes</strong></p>
+  </li>
+</ol>
+
+<h4 id="task-5-deploy-the-stream-analytics-job">Task 5: Deploy the Stream Analytics Job</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate to your <strong>iot-az220-training-{your-id}</strong> IoT Hub resource.</p>
+  </li>
+  <li>
+    <p>On the left side navigation menu, under <strong>Automatic Device Management</strong>, click <strong>IoT Edge</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Device ID</strong>, click <strong>sensor-th-0067</strong>.</p>
+  </li>
+  <li>
+    <p>At the top of the <strong>sensor-th-0067</strong> pane, click <strong>Set Modules</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set modules on device: sensor-th-0067</strong> pane, locate the <strong>IoT Edge Modules</strong> section.</p>
+  </li>
+  <li>
+    <p>Under <strong>IoT Edge Modules</strong>, click <strong>Add</strong>, and then click <strong>Azure Stream Analytics Module</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Edge deployment</strong> pane, under <strong>Subscription</strong>, ensure that the subscription you are using for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Edge job</strong> dropdown, ensure that the <strong>asa-az220-training-{your-id}</strong> Steam Analytics job is selected.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  The job may already be selected, yet the <strong>Save</strong> button is disabled - just open the <strong>Edge job</strong> dropdown again and select the <strong>asa-az220-training-{your-id}</strong> job again. The <strong>Save</strong> button should then become enabled.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the bottom of the pane, click <strong>Save</strong>.</p>
+
+    <p>Deployment may take a few moments.</p>
+  </li>
+  <li>
+    <p>Once the Edge package has been successfully published, notice that the new ASA module is listed under the <strong>IoT Edge Modules</strong> section</p>
+  </li>
+  <li>
+    <p>Under <strong>IoT Edge Modules</strong>, click <strong>asa-az220-training-{your-id}</strong>.</p>
+
+    <p>This is the Steam Analytics module that was just added to your Edge device.</p>
+  </li>
+  <li>
+    <p>On the <strong>Update IoT Edge Module</strong> pane, notice that the <strong>Image URI</strong> points to a standard Azure Stream Analytics image.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-text"> mcr.microsoft.com/azure-stream-analytics/azureiotedge:1.0.8
+</code></pre>
+
+    <p>This is the same image used for every ASA job that gets deployed to an IoT Edge Device.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  The version number at the end of the <strong>Image URI</strong> that is configured will reflect the current latest version when you created the Stream Analytics Module. At the time or writing this unit, the version was <code>1.0.8</code>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave all values as their defaults, and close the <strong>IoT Edge Custom Modules</strong> pane.</p>
+  </li>
+  <li>
+    <p>On the <strong>Set modules on device: sensor-th-0067</strong> pane, click <strong>Next: Routes &gt;</strong>.</p>
+
+    <p>Notice that the existing routing is displayed.</p>
+  </li>
+  <li>
+    <p>Replace the default route defined with the following three routes:</p>
+
+    <ul>
+      <li>Route 1
+        <ul>
+          <li>NAME: <strong>telemetryToCloud</strong></li>
+          <li>VALUE: <code>FROM /messages/modules/tempsensor/* INTO $upstream</code></li>
+        </ul>
+      </li>
+      <li>Route 2
+        <ul>
+          <li>NAME: <strong>alertsToReset</strong></li>
+          <li>VALUE: <code>FROM /messages/modules/asa-az220-training-{your-id}/* INTO BrokeredEndpoint("/modules/tempsensor/inputs/control")</code></li>
+        </ul>
+      </li>
+      <li>Route 3
+        <ul>
+          <li>NAME: <strong>telemetryToAsa</strong></li>
+          <li>VALUE: <code>FROM /messages/modules/tempsensor/* INTO BrokeredEndpoint("/modules/asa-az220-training-{your-id}/inputs/temperature")</code></li>
+        </ul>
+      </li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: Be sure to replace the <code>asa-az220-training-{your-id}</code> placeholder with the name of your Azure Stream Analytics job module. You can click <strong>Previous</strong> to view the list of modules and their names, then click <strong>Next</strong> to come back to this step.</p>
+    </blockquote>
+
+    <p>The routes being defined are as follows:</p>
+
+    <ul>
+      <li>The <strong>telemetryToCloud</strong> route sends the all messages from the <code>tempsensor</code> module output to Azure IoT Hub.</li>
+      <li>The <strong>alertsToReset</strong> route sends all alert messages from the Stream Analytics module output to the input of the <strong>tempsensor</strong> module.</li>
+      <li>The <strong>telemetryToAsa</strong> route sends all messages from the <code>tempsensor</code> module output to the Stream Analytics module input.</li>
+    </ul>
+  </li>
+  <li>
+    <p>At the bottom of the <strong>Set modules on device: sensor-th-0067</strong> blade, click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, notice that the <strong>Deployment Manifest</strong> JSON is now updated with the Stream Analytics module and the routing definition that was just configured.</p>
+  </li>
+  <li>
+    <p>Notice the JSON configuration for the <code>tempsensor</code> Simulated Temperature Sensor module:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-json hljs"> <span class="hljs-string"><span class="hljs-string">"tempsensor"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"settings"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"image"</span></span>: <span class="hljs-string"><span class="hljs-string">"asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"createOptions"</span></span>: <span class="hljs-string"><span class="hljs-string">""</span></span>
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"type"</span></span>: <span class="hljs-string"><span class="hljs-string">"docker"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"running"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"restartPolicy"</span></span>: <span class="hljs-string"><span class="hljs-string">"always"</span></span>
+ },
+</code></pre>
+  </li>
+  <li>
+    <p>Notice the JSON configuration for the routes that were previously configured, and how they are configured in the JSON Deployment definition:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-json hljs"> <span class="hljs-string"><span class="hljs-string">"$edgeHub"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"properties.desired"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"routes"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"telemetryToCloud"</span></span>: <span class="hljs-string"><span class="hljs-string">"FROM /messages/modules/tempsensor/* INTO $upstream"</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"alertsToReset"</span></span>: <span class="hljs-string"><span class="hljs-string">"FROM /messages/modules/asa-az220-training-CP122619/* INTO BrokeredEndpoint(\\\"/modules/tempsensor/inputs/control\\\")"</span></span>,
+             <span class="hljs-attr"><span class="hljs-attr">"telemetryToAsa"</span></span>: <span class="hljs-string"><span class="hljs-string">"FROM /messages/modules/tempsensor/* INTO BrokeredEndpoint(\\\"/modules/asa-az220-training-CP122619/inputs/temperature\\\")"</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"schemaVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"storeAndForwardConfiguration"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"timeToLiveSecs"</span></span>: <span class="hljs-number"><span class="hljs-number">7200</span></span>
+         }
+     }
+ },
+</code></pre>
+  </li>
+  <li>
+    <p>At the bottom of the blade, click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-6-view-data">Task 6: View Data</h4>
+
+<ol>
+  <li>
+    <p>Go back to the <strong>Cloud Shell</strong> session where you’re connected to the <strong>IoT Edge Device</strong> over <strong>SSH</strong>.</p>
+
+    <p>If it is closed or timed out, reconnect. Run the <code>SSH</code> command and login as before.</p>
+  </li>
+  <li>
+    <p>At the command prompt, to view a list of the modules deployed to the device, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-bash hljs"> iotedge list
+</code></pre>
+
+    <p>It can take a minute for the new Stream Analytics module to be deployed to the IoT Edge Device. Once it’s there, you will see it in the list output by this command.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-bash hljs"> demouser@vm-az220-training-edge0001-{your-id}:~$ iotedge list
+ NAME               STATUS           DESCRIPTION      CONFIG
+ asa-az220-training-CP1119  running          Up a minute      mcr.microsoft.com/azure-stream-analytics/azureiotedge:1.0.5
+ edgeAgent          running          Up 6 hours       mcr.microsoft.com/azureiotedge-agent:1.0
+ edgeHub            running          Up 4 hours       mcr.microsoft.com/azureiotedge-hub:1.0
+ tempsensor         running          Up 4 hours       asaedgedockerhubtest/asa-edge-test-module:simulated-temperature-sensor
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>:  If the Stream Analytics module does not show up in the list, wait a minute or two, then try again. It can take a minute for the module deployment to be updated on the IoT Edge Device.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>At the command prompt, to watch the telemetry being sent from the Edge device by the <code>tempsensor</code> module, enter the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-bash hljs"> iotedge logs tempsensor
+</code></pre>
+  </li>
+  <li>
+    <p>Take a minute to observe the output.</p>
+
+    <p>While watching the temperature telemetry being sent by <strong>tempsensor</strong>, notice that a <strong>reset</strong> command is sent by the Stream Analytics job when the <code>machine.temperature</code> reaches an average above <code>25</code>. This is the action configured in the Stream Analytics job query.</p>
+
+    <p>Output of this event will look similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-bash hljs"> 11/14/2019 22:26:44 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:231.599999999999959,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0095600761599359},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:21.430643635304012,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:24},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T22:26:44.7904425Z"</span></span>}
+ 11/14/2019 22:26:45 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:531.999999999999957,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:1.0099208337508767},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:20.569532965342297,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:25},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T22:26:45.2901801Z"</span></span>}
+ Received message
+ Received message Body: [{<span class="hljs-string"><span class="hljs-string">"command"</span></span>:<span class="hljs-string"><span class="hljs-string">"reset"</span></span>}]
+ Received message MetaData: {<span class="hljs-string"><span class="hljs-string">"MessageId"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"To"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"ExpiryTimeUtc"</span></span>:<span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,<span class="hljs-string"><span class="hljs-string">"CorrelationId"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"SequenceNumber"</span></span>:0,<span class="hljs-string"><span class="hljs-string">"LockToken"</span></span>:<span class="hljs-string"><span class="hljs-string">"e0e778b5-60ff-4e5d-93a4-ba5295b995941"</span></span>,<span class="hljs-string"><span class="hljs-string">"EnqueuedTimeUtc"</span></span>:<span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,<span class="hljs-string"><span class="hljs-string">"DeliveryCount"</span></span>:0,<span class="hljs-string"><span class="hljs-string">"UserId"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"MessageSchema"</span></span>:null,<span class="hljs-string"><span class="hljs-string">"CreationTimeUtc"</span></span>:<span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,<span class="hljs-string"><span class="hljs-string">"ContentType"</span></span>:<span class="hljs-string"><span class="hljs-string">"application/json"</span></span>,<span class="hljs-string"><span class="hljs-string">"InputName"</span></span>:<span class="hljs-string"><span class="hljs-string">"control"</span></span>,<span class="hljs-string"><span class="hljs-string">"ConnectionDeviceId"</span></span>:<span class="hljs-string"><span class="hljs-string">"sensor-th-0067"</span></span>,<span class="hljs-string"><span class="hljs-string">"ConnectionModuleId"</span></span>:<span class="hljs-string"><span class="hljs-string">"asa-az220-training-CP1119"</span></span>,<span class="hljs-string"><span class="hljs-string">"ContentEncoding"</span></span>:<span class="hljs-string"><span class="hljs-string">"utf-8"</span></span>,<span class="hljs-string"><span class="hljs-string">"Properties"</span></span>:{},<span class="hljs-string"><span class="hljs-string">"BodyStream"</span></span>:{<span class="hljs-string"><span class="hljs-string">"CanRead"</span></span>:<span class="hljs-literal"><span class="hljs-literal">true</span></span>,<span class="hljs-string"><span class="hljs-string">"CanSeek"</span></span>:<span class="hljs-literal"><span class="hljs-literal">false</span></span>,<span class="hljs-string"><span class="hljs-string">"CanWrite"</span></span>:<span class="hljs-literal"><span class="hljs-literal">false</span></span>,<span class="hljs-string"><span class="hljs-string">"CanTimeout"</span></span>:<span class="hljs-literal"><span class="hljs-literal">false</span></span>}}
+ Resetting temperature sensor..
+ 11/14/2019 22:26:45 - Send Json Event : {<span class="hljs-string"><span class="hljs-string">"machine"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:320.4,<span class="hljs-string"><span class="hljs-string">"pressure"</span></span>:0.99945886361358849},<span class="hljs-string"><span class="hljs-string">"ambient"</span></span>:{<span class="hljs-string"><span class="hljs-string">"temperature"</span></span>:20.940019742324957,<span class="hljs-string"><span class="hljs-string">"humidity"</span></span>:26},<span class="hljs-string"><span class="hljs-string">"timeCreated"</span></span>:<span class="hljs-string"><span class="hljs-string">"2019-11-14T22:26:45.7931201Z"</span></span>}
+</code></pre>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.js"></script>
+
+
+
+</body></html>

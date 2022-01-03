@@ -1,0 +1,528 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-create-http-web-hook-logic-app-that-sends-an-email">Exercise 2: Create HTTP Web Hook Logic App that sends an email</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-configure-azure-iot-hub-event-subscription">Exercise 3: Configure Azure IoT Hub Event Subscription</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-test-your-logic-app-with-new-devices">Exercise 4: Test Your Logic App with New Devices</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="integrate-iot-hub-with-event-grid">Integrate IoT Hub with Event Grid</h1>
+
+<h2 id="lab-scenario">Lab Scenario</h2>
+
+<p>Contoso management is impressed with the prototype solutions that you’ve created using Azure IoT services, and they feel comfortable assigning additional budget the capabilities that you have already demonstrated. They are now asking that you explore the integration of certain operational support capabilities. Specifically, they would like to see how the Azure tools support sending alert notifications to the managers who are responsible for specific work areas. Alert criteria will be defined by the business area managers. The telemetry data arriving at IoT hub will be evaluated to generate the notifications.</p>
+
+<p>You’ve identified a business manager, Nancy, that you’ve had success working with in the past. You’ll work with her during the initial phase of your solution.</p>
+
+<p>Nancy informs you that her team of facility technicians is responsible for installing the new connected thermostats that will be used to monitor temperature across different cheese caves. The thermostat devices function as IoT devices that can be connected to IoT hub. To get your project started, you agree to create an alert that will generate a notification when a new device has been implemented.</p>
+
+<p>To generate an alert, you will push a device created event type to Event Grid when a new thermostat device is created in IoT Hub. You will create a Logic Apps instance that reacts to this event (on Event Grid) and which will send an email to alert facilities when a new device has been created, specifying the device ID and connection state.</p>
+
+<p>The following resources will be created:</p>
+
+<p><a href="media/LAB_AK_09-architecture.png" target="_blank"><img src="media/LAB_AK_09-architecture.png" alt="Lab 9 Architecture"></a></p>
+
+<h2 id="in-this-lab">In This Lab</h2>
+
+<p>In this lab, you will complete the following activities:</p>
+
+<ul>
+  <li>Verify that the lab prerequisites are met (that you have the required Azure resources)</li>
+  <li>Create a Logic App that sends an email</li>
+  <li>Configure an Azure IoT Hub Event Subscription</li>
+  <li>Create new devices to trigger the Logic App</li>
+</ul>
+
+<h3 id="exercise-1-verify-lab-prerequisites">Exercise 1: Verify Lab Prerequisites</h3>
+
+<p>This lab assumes the following Azure resources are available:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Resource Type</th>
+      <th>Resource Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Resource Group</td>
+      <td>rg-az220</td>
+    </tr>
+    <tr>
+      <td>IoT Hub</td>
+      <td>iot-az220-training-{your-id}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To ensure these resources are available, complete the following tasks.</p>
+
+<ol>
+  <li>
+    <p>Select <strong>Deploy to Azure</strong>:</p>
+
+    <p><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoftLearning%2FAZ-220-Microsoft-Azure-IoT-Developer%2Fbicep%2FAllfiles%2FARM%2Flab09.json">Deploy To Azure</a></p>
+  </li>
+  <li>
+    <p>If prompted, login to the <strong>Azure Portal</strong>.</p>
+
+    <p>The <strong>Custom deployment</strong> page will be displayed.</p>
+  </li>
+  <li>
+    <p>Under <strong>Project details</strong>, in the <strong>Subscription</strong> dropdown, ensure that the Azure subscription that you intend to use for this course is selected.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, select <strong>rg-az220</strong>.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If <strong>rg-az220</strong> is not listed:</p>
+
+      <ol>
+        <li>Under the <strong>Resource group</strong> dropdown, click <strong>Create new</strong>.</li>
+        <li>Under <strong>Name</strong>, enter <strong>rg-az220</strong>.</li>
+        <li>Click <strong>OK</strong>.</li>
+      </ol>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, in the <strong>Region</strong> dropdown, select the region closest to you.</p>
+
+    <blockquote>
+      <p><strong>NOTE</strong>: If the <strong>rg-az220</strong> group already exists, the <strong>Region</strong> field is set to the region used by the resource group and is read-only.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>Your ID</strong> field, enter the unique ID you created in Exercise 1.</p>
+  </li>
+  <li>
+    <p>In the <strong>Course ID</strong> field, enter <strong>az220</strong>.</p>
+  </li>
+  <li>
+    <p>To validate the template, click <strong>Review and create</strong>.</p>
+  </li>
+  <li>
+    <p>If validation passes, click <strong>Create</strong>.</p>
+
+    <p>The deployment will start.</p>
+  </li>
+  <li>
+    <p>Once the deployment has completed, in the left navigation area, to review any output values from the template,  click <strong>Outputs</strong>.</p>
+
+    <p>Make a note of the outputs for use later:</p>
+
+    <ul>
+      <li>connectionString</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The resources have now been created.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: You may need to register the <strong>microsoft.eventgrid</strong> resource provider for this lab to be successful. Run the following command to check:</p>
+</blockquote>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs">az provider show --namespace microsoft.eventgrid -o tsv
+</code></pre>
+<blockquote>
+  <p>If the results shows <strong>Registered</strong> nothing more is required. If <strong>NotRegistered</strong>, run the following command to register the <strong>microsoft.eventgrid</strong> provider:</p>
+</blockquote>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs">az provider register --namespace microsoft.eventgrid
+</code></pre>
+<blockquote>
+  <p>This may take 15 minutes or longer to complete. You should see the following message:</p>
+</blockquote>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs">Registering is still on-going. You can monitor using <span class="hljs-string"><span class="hljs-string">'az provider show -n microsoft.eventgrid'</span></span>
+</code></pre>
+
+<h3 id="exercise-2-create-http-web-hook-logic-app-that-sends-an-email">Exercise 2: Create HTTP Web Hook Logic App that sends an email</h3>
+
+<p>Azure Logic Apps is a cloud service that helps you schedule, automate, and orchestrate tasks, business processes, and workflows when you need to integrate apps, data, systems, and services across enterprises or organizations.</p>
+
+<p>In this exercise, you will create a new Azure Logic App that will be triggered via an HTTP Web Hook, then send an email using an Outlook.com email address.</p>
+
+<h4 id="task-1-create-a-logic-app-resource-in-the-azure-portal">Task 1: Create a Logic App resource in the Azure portal</h4>
+
+<ol>
+  <li>
+    <p>If necessary, log in to the <a href="https://portal.azure.com">Azure portal</a> using the Azure account credentials that you are using for this course.</p>
+
+    <p>If you have more than one Azure account, be sure that you are logged in with the account that is tied to the subscription that you will be using for this course.</p>
+  </li>
+  <li>
+    <p>On the Azure portal menu, click <strong>+ Create a resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a resource</strong> blade, in the <strong>Search services and marketplace</strong> box, enter <strong>logic app</strong></p>
+  </li>
+  <li>
+    <p>In the search results, click <strong>Logic App</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Logic App</strong> blade, click <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab, under <strong>Project details</strong>, select the <strong>Subscription</strong> that you are using for this course.</p>
+  </li>
+  <li>
+    <p>In the <strong>Resource group</strong> dropdown, under <strong>Select existing</strong>, click <strong>rg-az220</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>Instance details</strong>, under <strong>Type</strong> select <strong>Consumption</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Name</strong> field, enter <strong>logic-az220-training-{your-id}</strong></p>
+
+    <p>For example: <strong>logic-az220-training-cp191218</strong></p>
+
+    <p>The name of your Azure Logic App must be globally unique because it is a publicly accessible resource that you must be able to access from any IP connected device.</p>
+  </li>
+  <li>
+    <p>In the <strong>Region</strong> dropdown, select the same Azure region that was used for the resource group.</p>
+  </li>
+  <li>
+    <p>Leave <strong>Enable Log Analytics</strong> set to <strong>No</strong>.</p>
+  </li>
+  <li>
+    <p>Click <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, click <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  It will take a minute or two for the Logic App deployment to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Navigate back to your Azure portal Dashboard.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-your-logic-app">Task 2: Configure Your Logic App</h4>
+
+<ol>
+  <li>
+    <p>On your resource group tile, click the link to the Logic App resource that was just deployed.</p>
+
+    <p>If the <strong>logic-az220-training-{your-id}</strong> Logic app is not displayed, refresh the resource group tile.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: When navigating to the <strong>Logic App</strong> for the first time, the <strong>Logic Apps Designer</strong> pane will be displayed. If this page doesn’t come up automatically, click <strong>Logic app designer</strong> under the <strong>Development Tools</strong> section on the <strong>Logic App</strong> blade.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Under the <strong>Start with a common trigger</strong> section, click <strong>When a HTTP request is received</strong>.</p>
+
+    <p>Starting out with one of the commonly used triggers is a convenient way to get started on your Logic App.</p>
+  </li>
+  <li>
+    <p>Notice that the visual designer opens with the <strong>When a HTTP request is received</strong> trigger selected.</p>
+  </li>
+  <li>
+    <p>On the <strong>When a HTTP request is received</strong> trigger, under the <strong>Request Body JSON Schema</strong> textbox, click the <strong>Use sample payload to generate schema</strong> link.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: In the next step you will be adding the <strong>DeviceCreated</strong> sample event schema to the Request Body JSON Schema textbox. This sample, along with a couple of other event schema samples and some associated documentation, can be found at the following link for those who want to learn more: <a href="https://docs.microsoft.com/en-us/azure/event-grid/event-schema-iot-hub">Azure Event Grid event schema for IoT Hub</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Use a copy-and-paste operation to add the following sample JSON to the <strong>Enter or paste a sample JSON payload.</strong> textbox, and then click <strong>Done</strong>.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-json hljs"> [{
+   <span class="hljs-attr"><span class="hljs-attr">"id"</span></span>: <span class="hljs-string"><span class="hljs-string">"56afc886-767b-d359-d59e-0da7877166b2"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"topic"</span></span>: <span class="hljs-string"><span class="hljs-string">"/SUBSCRIPTIONS/&lt;subscription ID&gt;/RESOURCEGROUPS/&lt;resource group name&gt;/PROVIDERS/MICROSOFT.DEVICES/IOTHUBS/&lt;hub name&gt;"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"subject"</span></span>: <span class="hljs-string"><span class="hljs-string">"devices/LogicAppTestDevice"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"eventType"</span></span>: <span class="hljs-string"><span class="hljs-string">"Microsoft.Devices.DeviceCreated"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"eventTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"2018-01-02T19:17:44.4383997Z"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"data"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"twin"</span></span>: {
+       <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"LogicAppTestDevice"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"etag"</span></span>: <span class="hljs-string"><span class="hljs-string">"AAAAAAAAAAE="</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"deviceEtag"</span></span>: <span class="hljs-string"><span class="hljs-string">"null"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"status"</span></span>: <span class="hljs-string"><span class="hljs-string">"enabled"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"statusUpdateTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"connectionState"</span></span>: <span class="hljs-string"><span class="hljs-string">"Disconnected"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"lastActivityTime"</span></span>: <span class="hljs-string"><span class="hljs-string">"0001-01-01T00:00:00"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"cloudToDeviceMessageCount"</span></span>: <span class="hljs-number"><span class="hljs-number">0</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"authenticationType"</span></span>: <span class="hljs-string"><span class="hljs-string">"sas"</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"x509Thumbprint"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"primaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"secondaryThumbprint"</span></span>: <span class="hljs-literal"><span class="hljs-literal">null</span></span>
+       },
+       <span class="hljs-attr"><span class="hljs-attr">"version"</span></span>: <span class="hljs-number"><span class="hljs-number">2</span></span>,
+       <span class="hljs-attr"><span class="hljs-attr">"properties"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"desired"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2018-01-02T19:17:44.4383997Z"</span></span>
+           },
+           <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         },
+         <span class="hljs-attr"><span class="hljs-attr">"reported"</span></span>: {
+           <span class="hljs-attr"><span class="hljs-attr">"$metadata"</span></span>: {
+             <span class="hljs-attr"><span class="hljs-attr">"$lastUpdated"</span></span>: <span class="hljs-string"><span class="hljs-string">"2018-01-02T19:17:44.4383997Z"</span></span>
+           },
+           <span class="hljs-attr"><span class="hljs-attr">"$version"</span></span>: <span class="hljs-number"><span class="hljs-number">1</span></span>
+         }
+       }
+     },
+     <span class="hljs-attr"><span class="hljs-attr">"hubName"</span></span>: <span class="hljs-string"><span class="hljs-string">"egtesthub1"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"deviceId"</span></span>: <span class="hljs-string"><span class="hljs-string">"LogicAppTestDevice"</span></span>
+   },
+   <span class="hljs-attr"><span class="hljs-attr">"dataVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1"</span></span>,
+   <span class="hljs-attr"><span class="hljs-attr">"metadataVersion"</span></span>: <span class="hljs-string"><span class="hljs-string">"1"</span></span>
+ }]
+</code></pre>
+
+    <p>This sample JSON is an example of the JSON that Event Grid will POST to the Web Hook endpoint for the Logic App once it’s created. This sample includes the IoT Hub Message Telemetry properties for the IoT Device that will be sending telemetry messages.</p>
+  </li>
+  <li>
+    <p>Notice that the <strong>Request Body JSON Schema</strong> textbox is now populated with a JSON schema that was automatically generated based on the sample JSON that you provided.</p>
+  </li>
+  <li>
+    <p>Below the <strong>When a HTTP request is received</strong> trigger, click <strong>+ New step</strong>.</p>
+  </li>
+  <li>
+    <p>Below <strong>Choose an action</strong>, in the search textbox, enter <strong>Outlook.com</strong></p>
+  </li>
+  <li>
+    <p>In the list of Actions, scroll down to the Send options, and then click <strong>Send an email (V2)</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>:  These instructions walk through configuring the Logic App to send an email using an <strong>Outlook.com</strong> email address. Alternatively, the Logic App can also be configured to send email using the Office 365 Outlook or Gmail connectors as well.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Outlook.com</strong> connector, click <strong>Sign in</strong>, and then follow the prompts to authenticate with an existing Outlook.com account.</p>
+  </li>
+  <li>
+    <p>If prompted to <strong>Let this app access your info</strong>, click <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Send an email (V2)</strong> action, in the <strong>To</strong> field, enter an email address to send email messages to.</p>
+
+    <p>For the purposes of this lab, you will provide an email address where you can receive the email notification. You can enter the Outlook.com account used for this connector, or another email account that is easy for you to access.</p>
+
+    <p>The Outlook.com account that was authenticated in the step above will be used to send the emails.</p>
+  </li>
+  <li>
+    <p>In the <strong>Subject</strong> field, enter <strong>IoT Hub alert:</strong></p>
+  </li>
+  <li>
+    <p>In the <strong>Body</strong> field, enter the following message content:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-text"> This is an automated email to inform you that:
+
+ {eventType} occurred at {eventTime}
+
+ IoT Hub: {hubName}
+ Device ID: {deviceID}
+ Connection state: {connectionState}
+</code></pre>
+  </li>
+  <li>
+    <p>Take a moment to examine the message body that you just entered.</p>
+
+    <p>You may have realized that the curly-braces entries are intended to represent dynamic content. You will need to replace these placeholder entries with the actual Dynamic content values.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the Add dynamic content tools are not displayed to the right of the connector, click the <strong>Add dynamic content</strong> hyperlink located directly under the <strong>Body</strong> text box. If it doesn’t list the fields you need, click <strong>See more</strong> in the Dynamic content pane to include the fields included in the message body that you entered.</p>
+    </blockquote>
+
+    <p>In the next step you will replace each placeholder value with the corresponding Dynamic content value.</p>
+  </li>
+  <li>
+    <p>For each dynamic content placeholder, delete the entry and then replace it with the corresponding Dynamic content field.</p>
+
+    <p>When you add the first dynamic content value, because the input data schema is for an array, the Logic Apps Designer will automatically change the e-mail action to be nested inside of a <strong>For each</strong> action. When this happens, the <strong>Send an email (V2)</strong> action will collapse. To reopen your email message, click <strong>Send an email (V2)</strong>, and then continue editing the message body.</p>
+
+    <p>When you have completed this step you should see a message body that is similar to the following:</p>
+
+    <p><a href="media/LAB_AK_09-email_content.png" target="_blank"><img src="media/LAB_AK_09-email_content.png" alt="Fill out email information"></a></p>
+  </li>
+  <li>
+    <p>At the top of the designer, to save all changes to the Logic App Workflow, click <strong>Save</strong> .</p>
+  </li>
+  <li>
+    <p>To expand the <em>When a HTTP request is received</em> trigger, click <strong>When a HTTP request is received</strong>.</p>
+  </li>
+  <li>
+    <p>Copy the value for the <strong>HTTP POST URL</strong> that is displayed.</p>
+
+    <p>The <strong>HTTP POST URL</strong> will look similar to the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-text"> https://prod-87.eastus.logic.azure.com:443/workflows/b16b5556cbc54c97b063479ed55b2669/triggers/manual/paths/invoke?api-version=2016-10-01&amp;sp=%2Ftriggers%2Fmanual%2Frun&amp;sv=1.0&amp;sig=ZGqYl-R5JKTugLG3GR5Ir1FuM0zIpCrMw4Q2WycJRiM
+</code></pre>
+
+    <p>This URL is the Web Hook endpoint that is used to call the Logic App trigger via HTTPS. Notice the <strong>sig</strong> query string parameter and it’s value. The <strong>sig</strong> parameter contains the shared access key that is used to authenticate requests to the Web Hook endpoint.</p>
+  </li>
+  <li>
+    <p>Save the URL for future reference.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-3-configure-azure-iot-hub-event-subscription">Exercise 3: Configure Azure IoT Hub Event Subscription</h3>
+
+<p>Azure IoT Hub integrates with Azure Event Grid so that you can send event notifications to other services and trigger downstream processes. You can configure business applications to listen for IoT Hub events so that you can react to critical events in a reliable, scalable, and secure manner. For example, build an application that updates a database, creates a work ticket, and delivers an email notification every time a new IoT device is registered to your IoT hub.</p>
+
+<p>In this exercise, you will create an Event Subscription within Azure IoT Hub to setup Event Grid integration that will trigger a Logic App to send an alert email.</p>
+
+<ol>
+  <li>
+    <p>Navigate back to your Azure portal dashboard.</p>
+  </li>
+  <li>
+    <p>On your resource group tile, to navigate to your IoT Hub, click <strong>iot-az220-training-{your-id}</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>IoT Hub</strong> blade, on the left side navigation menu, click <strong>Events</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Events</strong> pane, at the top, click <strong>+ Event Subscription</strong>.</p>
+  </li>
+  <li>
+    <p>On the Create Event Subscription blade, in the <strong>Name</strong> field, enter <strong>MyDeviceCreateEvent</strong></p>
+  </li>
+  <li>
+    <p>Ensure that the <strong>EventSchema</strong> filed is set to <strong>Event Grid Schema</strong>.</p>
+  </li>
+  <li>
+    <p>Leave the <strong>TOPIC DETAILS</strong> section unchanged.</p>
+
+    <p>This section is informational and read-only</p>
+  </li>
+  <li>
+    <p>Under <strong>EVENT TYPES</strong>, open the <strong>Filter to Event Types</strong> dropdown, and then de-select all of the choices except <strong>Device Created</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>ENDPOINT DETAILS</strong>, open the <strong>Endpoint Type</strong> dropdown, and then click <strong>Web Hook</strong>.</p>
+  </li>
+  <li>
+    <p>Under <strong>ENDPOINT DETAILS</strong>, click <strong>Select an endpoint</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Select Web Hook</strong> pane, under <strong>Subscriber Endpoint</strong>, paste the URL that you copied from your logic app, then click <strong>Confirm Selection</strong>.</p>
+
+    <blockquote>
+      <p><strong>Important</strong>: Do not click Create!</p>
+    </blockquote>
+
+    <p>You could save the event subscription here, and receive notifications for every device that is created in your IoT hub. However, for this lab we will use the optional fields to filter for specific devices.</p>
+  </li>
+  <li>
+    <p>At the top of the pane, click <strong>Filters</strong> .</p>
+
+    <p>You will be using filters to filter for specific devices.</p>
+  </li>
+  <li>
+    <p>Under <strong>ADVANCED FILTERS</strong>, click <strong>Add new filter</strong>, and then fill in the fields with these values:</p>
+
+    <ul>
+      <li>
+        <p><strong>Key</strong>: Enter <code>Subject</code></p>
+      </li>
+      <li>
+        <p><strong>Operator</strong>: Select <code>String begins with</code></p>
+      </li>
+      <li>
+        <p><strong>Value</strong>:  Enter <code>devices/sensor-th</code></p>
+      </li>
+    </ul>
+
+    <p>We will use this value to filter for device events associated with the Cheese Cave temperature and humidity sensors.</p>
+  </li>
+  <li>
+    <p>To save the event subscription, click <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-4-test-your-logic-app-with-new-devices">Exercise 4: Test Your Logic App with New Devices</h3>
+
+<p>Test your logic app by creating a new device to trigger an event notification email.</p>
+
+<ol>
+  <li>
+    <p>In your Azure portal, if needed, navigate to your IoT Hub blade.</p>
+  </li>
+  <li>
+    <p>On the left side navigation menu, under <strong>Explorers</strong>, click <strong>IoT Devices</strong>.</p>
+  </li>
+  <li>
+    <p>At the top of the IoT devices blade, click <strong>+ New</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Device ID</strong> field, enter <strong>sensor-th-0050</strong></p>
+  </li>
+  <li>
+    <p>Leave all other fields at the defaults, and then click <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>To test the event subscription filters, create additional devices using the following device IDs:</p>
+
+    <ul>
+      <li><code>sensor-v-3002</code></li>
+      <li><code>sensor-th-0030</code></li>
+      <li><code>sensor-v-3003</code></li>
+    </ul>
+
+    <p>If you added the four examples total, your list of IoT devices should look like the following image:</p>
+
+    <p><a href="media/LAB_AK_09-iot-hub-device-list.png" target="_blank"><img src="media/LAB_AK_09-iot-hub-device-list.png" alt="IoT Hub device list"></a></p>
+  </li>
+  <li>
+    <p>Once you’ve added a few devices to your IoT hub, check your email to see which ones triggered the logic app.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dfdcd20e7353e74116ec5bb7c4b9ad222d1bd751d.js"></script>
+
+
+
+</body></html>

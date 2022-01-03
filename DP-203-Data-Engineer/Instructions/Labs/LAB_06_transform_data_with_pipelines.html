@@ -1,0 +1,1453 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            DP-203-Data-Engineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D928deb11f009d00944c1feae30c16de739b6478a.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                DP-203-Data-Engineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/DP-203-Data-Engineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#task-1-create-sql-table">Task 1: Create SQL table</a></li><li class="nav-item"><a class="nav-link active" href="#task-2-create-linked-service">Task 2: Create linked service</a></li><li class="nav-item"><a class="nav-link" href="#task-3-create-data-sets">Task 3: Create data sets</a></li><li class="nav-item"><a class="nav-link" href="#task-4-create-campaign-analytics-dataset">Task 4: Create campaign analytics dataset</a></li><li class="nav-item"><a class="nav-link" href="#task-5-create-campaign-analytics-data-flow">Task 5: Create campaign analytics data flow</a></li><li class="nav-item"><a class="nav-link" href="#task-6-create-campaign-analytics-data-pipeline">Task 6: Create campaign analytics data pipeline</a></li><li class="nav-item"><a class="nav-link" href="#task-7-run-the-campaign-analytics-data-pipeline">Task 7: Run the campaign analytics data pipeline</a></li><li class="nav-item"><a class="nav-link" href="#task-8-view-campaign-analytics-table-contents">Task 8: View campaign analytics table contents</a></li><li class="nav-item"><a class="nav-link" href="#task-1-create-mapping-data-flow">Task 1: Create Mapping Data Flow</a></li><li class="nav-item"><a class="nav-link" href="#task-1-create-pipeline">Task 1: Create pipeline</a></li><li class="nav-item"><a class="nav-link" href="#task-2-trigger-monitor-and-analyze-the-user-profile-data-pipeline">Task 2: Trigger, monitor, and analyze the user profile data pipeline</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-6---transform-data-with-azure-data-factory-or-azure-synapse-pipelines">Lab 6 - Transform data with Azure Data Factory or Azure Synapse Pipelines</h1>
+
+<p>This lab teaches you how to build data integration pipelines to ingest from multiple data sources, transform data using mapping data flows and notebooks, and perform data movement into one or more data sinks.</p>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ul>
+  <li>Execute code-free transformations at scale with Azure Synapse Pipelines</li>
+  <li>Create data pipeline to import poorly formatted CSV files</li>
+  <li>Create Mapping Data Flows</li>
+</ul>
+
+<h2 id="lab-setup-and-pre-requisites">Lab setup and pre-requisites</h2>
+
+<p>Before starting this lab, you must complete <strong>Lab 5: <em>Ingest and load data into the Data Warehouse</em></strong>.</p>
+
+<p>This lab uses the dedicated SQL pool you created in the previous lab. You should have paused the SQL pool at the end of the previous lab, so resume it by following these instructions:</p>
+
+<ol>
+  <li>Open Synapse Studio (<a href="https://web.azuresynapse.net/">https://web.azuresynapse.net/</a>).</li>
+  <li>Select the <strong>Manage</strong> hub.</li>
+  <li>
+    <p>Select <strong>SQL pools</strong> in the left-hand menu. If the <strong>SQLPool01</strong> dedicated SQL pool is paused, hover over its name and select <strong>▷</strong>.</p>
+
+    <p><a href="images/resume-dedicated-sql-pool.png" target="_blank"><img src="images/resume-dedicated-sql-pool.png" alt="The resume button is highlighted on the dedicated SQL pool." title="Resume"></a></p>
+  </li>
+  <li>When prompted, select <strong>Resume</strong>. It will take a minute or two to resume the pool.</li>
+  <li>Continue to the next exercise while the dedicated SQL pool resumes.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Important:</strong> Once started, a dedicated SQL pool consumes credits in your Azure subscription until it is paused. If you take a break from this lab, or decide not to complete it; follow the instructions at the end of the lab to pause your SQL pool!</p>
+</blockquote>
+
+<h2 id="exercise-1---code-free-transformation-at-scale-with-azure-synapse-pipelines">Exercise 1 - Code-free transformation at scale with Azure Synapse Pipelines</h2>
+
+<p>Tailwind Traders would like code-free options for data engineering tasks. Their motivation is driven by the desire to allow junior-level data engineers who understand the data but do not have a lot of development experience build and maintain data transformation operations. The other driver for this requirement is to reduce fragility caused by complex code with reliance on libraries pinned to specific versions, remove code testing requirements, and improve ease of long-term maintenance.</p>
+
+<p>Their other requirement is to maintain transformed data in a data lake in addition to the dedicated SQL pool. This gives them the flexibility to retain more fields in their data sets than they otherwise store in fact and dimension tables, and doing this allows them to access the data when they have paused the dedicated SQL pool, as a cost optimization.</p>
+
+<p>Given these requirements, you recommend building Mapping Data Flows.</p>
+
+<p>Mapping Data flows are pipeline activities that provide a visual way of specifying how to transform data, through a code-free experience. This feature offers data cleansing, transformation, aggregation, conversion, joins, data copy operations, etc.</p>
+
+<p>Additional benefits</p>
+
+<ul>
+  <li>Cloud scale via Spark execution</li>
+  <li>Guided experience to easily build resilient data flows</li>
+  <li>Flexibility to transform data per user’s comfort</li>
+  <li>Monitor and manage data flows from a single pane of glass</li>
+</ul>
+
+<h3 id="task-1-create-sql-table">Task 1: Create SQL table</h3>
+
+<p>The Mapping Data Flow we will build will write user purchase data to a dedicated SQL pool. Tailwind Traders does not yet have a table to store this data. We will execute a SQL script to create this table as a pre-requisite.</p>
+
+<ol>
+  <li>
+    <p>In Synapse Analytics Studio, navigate to the <strong>Develop</strong> hub.</p>
+
+    <p><a href="images/develop-hub.png" target="_blank"><img src="images/develop-hub.png" alt="The Develop menu item is highlighted." title="Develop hub"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>+</strong> menu, select <strong>SQL script</strong>.</p>
+
+    <p><a href="images/synapse-studio-new-sql-script.png" target="_blank"><img src="images/synapse-studio-new-sql-script.png" alt="The SQL script context menu item is highlighted." title="New SQL script"></a></p>
+  </li>
+  <li>
+    <p>In the toolbar menu, connect to the <strong>SQLPool01</strong> database.</p>
+
+    <p><a href="images/synapse-studio-query-toolbar-connect.png" target="_blank"><img src="images/synapse-studio-query-toolbar-connect.png" alt="The connect to option is highlighted in the query toolbar." title="Query toolbar"></a></p>
+  </li>
+  <li>
+    <p>In the query window, replace the script with the following code to create a new table that joins users’ preferred products stored in Azure Cosmos DB with top product purchases per user from the e-commerce site, stored in JSON files within the data lake:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">TABLE</span></span> [wwi].[UserTopProductPurchases]
+ (
+     [UserId] [<span class="hljs-built_in"><span class="hljs-built_in">int</span></span>]  <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [ProductId] [<span class="hljs-built_in"><span class="hljs-built_in">int</span></span>]  <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [ItemsPurchasedLast12Months] [<span class="hljs-built_in"><span class="hljs-built_in">int</span></span>]  <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [IsTopProduct] [<span class="hljs-built_in"><span class="hljs-built_in">bit</span></span>]  <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [IsPreferredProduct] [<span class="hljs-built_in"><span class="hljs-built_in">bit</span></span>]  <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>
+ )
+ <span class="hljs-keyword"><span class="hljs-keyword">WITH</span></span>
+ (
+     DISTRIBUTION = <span class="hljs-keyword"><span class="hljs-keyword">HASH</span></span> ( [UserId] ),
+     CLUSTERED COLUMNSTORE <span class="hljs-keyword"><span class="hljs-keyword">INDEX</span></span>
+ )
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>Run</strong> on the toolbar menu to run the script (you may need to wait for the SQL pool to resume).</p>
+
+    <p><a href="images/synapse-studio-query-toolbar-run.png" target="_blank"><img src="images/synapse-studio-query-toolbar-run.png" alt="The run button is highlighted in the query toolbar." title="Run"></a></p>
+  </li>
+  <li>
+    <p>In the query window, replace the script with the following to create a new table for the Campaign Analytics CSV file:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">TABLE</span></span> [wwi].[CampaignAnalytics]
+ (
+     [Region] [<span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>](<span class="hljs-number"><span class="hljs-number">50</span></span>)  <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [Country] [<span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>](<span class="hljs-number"><span class="hljs-number">30</span></span>)  <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [ProductCategory] [<span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>](<span class="hljs-number"><span class="hljs-number">50</span></span>)  <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [CampaignName] [<span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>](<span class="hljs-number"><span class="hljs-number">500</span></span>)  <span class="hljs-keyword"><span class="hljs-keyword">NOT</span></span> <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [Revenue] [<span class="hljs-built_in"><span class="hljs-built_in">decimal</span></span>](<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">2</span></span>)  <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [RevenueTarget] [<span class="hljs-built_in"><span class="hljs-built_in">decimal</span></span>](<span class="hljs-number"><span class="hljs-number">10</span></span>,<span class="hljs-number"><span class="hljs-number">2</span></span>)  <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [City] [<span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>](<span class="hljs-number"><span class="hljs-number">50</span></span>)  <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,
+     [State] [<span class="hljs-keyword"><span class="hljs-keyword">nvarchar</span></span>](<span class="hljs-number"><span class="hljs-number">25</span></span>)  <span class="hljs-literal"><span class="hljs-literal">NULL</span></span>
+ )
+ <span class="hljs-keyword"><span class="hljs-keyword">WITH</span></span>
+ (
+     DISTRIBUTION = <span class="hljs-keyword"><span class="hljs-keyword">HASH</span></span> ( [Region] ),
+     CLUSTERED COLUMNSTORE <span class="hljs-keyword"><span class="hljs-keyword">INDEX</span></span>
+ )
+</code></pre>
+  </li>
+  <li>
+    <p>Run the script to create the table.</p>
+  </li>
+</ol>
+
+<h3 id="task-2-create-linked-service">Task 2: Create linked service</h3>
+
+<p>Azure Cosmos DB is one of the data sources that will be used in the Mapping Data Flow. Tailwind Traders has not yet created the linked service. Follow the steps in this section to create one.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: Skip this section if you have already created a Cosmos DB linked service.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>Navigate to the <strong>Manage</strong> hub.</p>
+
+    <p><a href="images/manage-hub.png" target="_blank"><img src="images/manage-hub.png" alt="The Manage menu item is highlighted." title="Manage hub"></a></p>
+  </li>
+  <li>
+    <p>Open <strong>Linked services</strong> and select <strong>+ New</strong> to create a new linked service. Select <strong>Azure Cosmos DB (SQL API)</strong> in the list of options, then select <strong>Continue</strong>.</p>
+
+    <p><a href="images/create-cosmos-db-linked-service-step1.png" target="_blank"><img src="images/create-cosmos-db-linked-service-step1.png" alt="Manage, New, and the Azure Cosmos DB linked service option are highlighted." title="New linked service"></a></p>
+  </li>
+  <li>
+    <p>Name the linked service <code>asacosmosdb01</code>, and then select the <strong>asacosmosdb<em>xxxxxxx</em></strong> Cosmos DB account name and the <strong>CustomerProfile</strong> database. Then select <strong>Test connection</strong> to ensure success, before clicking <strong>Create</strong>.</p>
+
+    <p><a href="images/create-cosmos-db-linked-service.png" target="_blank"><img src="images/create-cosmos-db-linked-service.png" alt="New Azure Cosmos DB linked service." title="New linked service"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-3-create-data-sets">Task 3: Create data sets</h3>
+
+<p>User profile data comes from two different data sources, which we will create now. The customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months is stored within JSON files in the data lake. User profile data containing, among other things, product preferences and product reviews is stored as JSON documents in Cosmos DB.</p>
+
+<p>In this section, you’ll create datasets for the SQL tables that will serve as data sinks for data pipelines you’ll create later in this lab.</p>
+
+<ol>
+  <li>
+    <p>Navigate to the <strong>Data</strong> hub.</p>
+
+    <p><a href="images/data-hub.png" target="_blank"><img src="images/data-hub.png" alt="The Data menu item is highlighted." title="Data hub"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>+</strong> menu, select <strong>Integration dataset</strong> to create a new dataset.</p>
+
+    <p><a href="images/new-dataset.png" target="_blank"><img src="images/new-dataset.png" alt="Create new Dataset." title="New Dataset"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Azure Cosmos DB (SQL API)</strong>, then click <strong>Continue</strong>.</p>
+
+    <p><a href="images/new-cosmos-db-dataset.png" target="_blank"><img src="images/new-cosmos-db-dataset.png" alt="The Azure Cosmos DB SQL API option is highlighted." title="Integration dataset"></a></p>
+  </li>
+  <li>
+    <p>Configure the dataset as follows, then select <strong>OK</strong>:</p>
+
+    <ul>
+      <li><strong>Name</strong>: Enter <code>asal400_customerprofile_cosmosdb</code>.</li>
+      <li><strong>Linked service</strong>: Select <strong>asacosmosdb01</strong>.</li>
+      <li>
+        <p><strong>Collection</strong>: Select <strong>OnlineUserProfile01</strong>.</p>
+
+        <p><a href="images/create-cosmos-db-dataset.png" target="_blank"><img src="images/create-cosmos-db-dataset.png" alt="New Azure Cosmos DB dataset." title="New Cosmos DB dataset"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>After creating the dataset, select <strong>Preview data</strong> under its <strong>Connection</strong> tab.</p>
+
+    <p><a href="images/cosmos-dataset-preview-data-link.png" target="_blank"><img src="images/cosmos-dataset-preview-data-link.png" alt="The preview data button on the dataset is highlighted." title="Preview data"></a></p>
+  </li>
+  <li>
+    <p>Preview data queries the selected Azure Cosmos DB collection and returns a sample of the documents within. The documents are stored in JSON format and include fields for <strong>userId</strong>, <strong>cartId</strong>, <strong>preferredProducts</strong> (an array of product IDs that may be empty), and <strong>productReviews</strong> (an array of written product reviews that may be empty).</p>
+
+    <p><a href="images/cosmos-db-dataset-preview-data.png" target="_blank"><img src="images/cosmos-db-dataset-preview-data.png" alt="A preview of the Azure Cosmos DB data is displayed." title="Preview data"></a></p>
+  </li>
+  <li>
+    <p>Close the preview. Then on the <strong>Data</strong> hub, in the <strong>+</strong> menu, select <strong>Integration dataset</strong> to create the second source data dataset we need.</p>
+
+    <p><a href="images/new-dataset.png" target="_blank"><img src="images/new-dataset.png" alt="Create new Dataset." title="New Dataset"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Azure Data Lake Storage Gen2</strong>, then click <strong>Continue</strong>.</p>
+
+    <p><a href="images/new-adls-dataset.png" target="_blank"><img src="images/new-adls-dataset.png" alt="The ADLS Gen2 option is highlighted." title="Integration dataset"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>JSON</strong> format, then select <strong>Continue</strong>.</p>
+
+    <p><a href="images/json-format.png" target="_blank"><img src="images/json-format.png" alt="The JSON format is selected." title="Select format"></a></p>
+  </li>
+  <li>
+    <p>Configure the dataset as follows, then select <strong>OK</strong>:</p>
+
+    <ul>
+      <li><strong>Name</strong>: Enter <code>asal400_ecommerce_userprofiles_source</code>.</li>
+      <li><strong>Linked service</strong>: Select the <strong>asadatalake<em>xxxxxxx</em></strong> linked service.</li>
+      <li><strong>File path</strong>: Browse to the <strong>wwi-02/online-user-profiles-02</strong> path.</li>
+      <li><strong>Import schema</strong>: Select <strong>From connection/store</strong>.</li>
+    </ul>
+
+    <p><a href="images/new-adls-dataset-form.png" target="_blank"><img src="images/new-adls-dataset-form.png" alt="The form is configured as described." title="Set properties"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Data</strong> hub, in the <strong>+</strong> menu, select <strong>Integration dataset</strong> to create a third dataset that references the destination table for campaign analytics.</p>
+
+    <p><a href="images/new-dataset.png" target="_blank"><img src="images/new-dataset.png" alt="Create new Dataset." title="New Dataset"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Azure Synapse Analytics</strong>, then select <strong>Continue</strong>.</p>
+
+    <p><a href="images/new-synapse-dataset.png" target="_blank"><img src="images/new-synapse-dataset.png" alt="The Azure Synapse Analytics option is highlighted." title="Integration dataset"></a></p>
+  </li>
+  <li>
+    <p>Configure the dataset as follows, then select <strong>OK</strong>:</p>
+
+    <ul>
+      <li><strong>Name</strong>: Enter <code>asal400_wwi_campaign_analytics_asa</code>.</li>
+      <li><strong>Linked service</strong>: Select the <strong>SqlPool01</strong> .</li>
+      <li><strong>Table name</strong>: Select <strong>wwi.CampaignAnalytics</strong>.</li>
+      <li><strong>Import schema</strong>: Select <strong>From connection/store</strong>.</li>
+    </ul>
+
+    <p><a href="images/new-dataset-campaignanalytics.png" target="_blank"><img src="images/new-dataset-campaignanalytics.png" alt="New dataset form is displayed with the described configuration." title="New dataset"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Data</strong> hub, in the <strong>+</strong> menu, select <strong>Integration dataset</strong> to create a fourth dataset that references the destination table for top product purchases.</p>
+
+    <p><a href="images/new-dataset.png" target="_blank"><img src="images/new-dataset.png" alt="Create new Dataset." title="New Dataset"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Azure Synapse Analytics</strong>, then select <strong>Continue</strong>.</p>
+
+    <p><a href="images/new-synapse-dataset.png" target="_blank"><img src="images/new-synapse-dataset.png" alt="The Azure Synapse Analytics option is highlighted." title="Integration dataset"></a></p>
+  </li>
+  <li>
+    <p>Configure the dataset as follows, then select <strong>OK</strong>:</p>
+
+    <ul>
+      <li><strong>Name</strong>: Enter <code>asal400_wwi_usertopproductpurchases_asa</code>.</li>
+      <li><strong>Linked service</strong>: Select the <strong>SqlPool01</strong>.</li>
+      <li><strong>Table name</strong>: Select <strong>wwi.UserTopProductPurchases</strong>.</li>
+      <li><strong>Import schema</strong>: Select <strong>From connection/store</strong>.</li>
+    </ul>
+
+    <p><a href="images/new-dataset-usertopproductpurchases.png" target="_blank"><img src="images/new-dataset-usertopproductpurchases.png" alt="The data set form is displayed with the described configuration." title="Integration dataset"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-4-create-campaign-analytics-dataset">Task 4: Create campaign analytics dataset</h3>
+
+<p>Your organization was provided a poorly formatted CSV file containing marketing campaign data. The file was uploaded to the data lake and now it must be imported into the data warehouse.</p>
+
+<p><a href="images/poorly-formatted-csv.png" target="_blank"><img src="images/poorly-formatted-csv.png" alt="Screenshot of the CSV file." title="Poorly formatted CSV"></a></p>
+
+<p>Issues include invalid characters in the revenue currency data, and misaligned columns.</p>
+
+<ol>
+  <li>
+    <p>On the <strong>Data</strong> hub, in the <strong>+</strong> menu, select <strong>Integration dataset</strong> to create a new dataset.</p>
+
+    <p><a href="images/new-dataset.png" target="_blank"><img src="images/new-dataset.png" alt="Create new Dataset." title="New Dataset"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Azure Data Lake Storage Gen2</strong>, then select <strong>Continue</strong>.</p>
+
+    <p><a href="images/new-adls-dataset.png" target="_blank"><img src="images/new-adls-dataset.png" alt="The ADLS Gen2 option is highlighted." title="Integration dataset"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>DelimitedText</strong> format, then select <strong>Continue</strong>.</p>
+
+    <p><a href="images/delimited-text-format.png" target="_blank"><img src="images/delimited-text-format.png" alt="The DelimitedText format is selected." title="Select format"></a></p>
+  </li>
+  <li>
+    <p>Configure the dataset as follows, then select <strong>OK</strong>:</p>
+
+    <ul>
+      <li><strong>Name</strong>: Enter <code>asal400_campaign_analytics_source</code>.</li>
+      <li><strong>Linked service</strong>: Select the <strong>asadatalake<em>xxxxxxx</em></strong> linked service.</li>
+      <li><strong>File path</strong>: Browse to <strong>wwi-02/campaign-analytics/campaignanalytics.csv</strong>.</li>
+      <li><strong>First row as header</strong>: Leave unchecked (we are skipping the header because there is a mismatch between the number of columns in the header and the number of columns in the data rows).</li>
+      <li><strong>Import schema</strong>: Select <strong>From connection/store</strong>.</li>
+    </ul>
+
+    <p><a href="images/new-adls-dataset-form-delimited.png" target="_blank"><img src="images/new-adls-dataset-form-delimited.png" alt="The form is configured as described." title="Set properties"></a></p>
+  </li>
+  <li>
+    <p>After creating the dataset, on its <strong>Connection</strong> tab, review the default settings. They should match the following configuration:</p>
+
+    <ul>
+      <li><strong>Compression type</strong>: None.</li>
+      <li><strong>Column delimiter</strong>: Comma (,)</li>
+      <li><strong>Row delimiter</strong>: Default (\r,\n, or \r\n)</li>
+      <li><strong>Encoding</strong>: Default(UTF-8)</li>
+      <li><strong>Escape character</strong>: Backslash (\)</li>
+      <li><strong>Quote character</strong>: Double quote (“)</li>
+      <li><strong>First row as header</strong>: <em>Unchecked</em></li>
+      <li><strong>Null value</strong>: <em>Empty</em></li>
+    </ul>
+
+    <p><a href="images/campaign-analytics-dataset-connection.png" target="_blank"><img src="images/campaign-analytics-dataset-connection.png" alt="The configuration settings under Connection are set as defined." title="Connection"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Preview data</strong> (close the <strong>Properties</strong> pane if it is in the way).</p>
+
+    <p>The preview displays a sample of the CSV file. You can see some of the issues shown at the beginning of this task. Notice that since we are not setting the first row as the header, the header columns appear as the first row. Also, notice that the city and state values do not appear. This is because of the mismatch in the number of columns in the header row compared to the rest of the file. We will exclude the first row when we create the data flow in the next exercise.</p>
+
+    <p><a href="images/campaign-analytics-dataset-preview-data.png" target="_blank"><img src="images/campaign-analytics-dataset-preview-data.png" alt="A preview of the CSV file is displayed." title="Preview data"></a></p>
+  </li>
+  <li>
+    <p>Close the preview, and then select <strong>Publish all</strong> and click <strong>Publish</strong> to save your new resources.</p>
+
+    <p><a href="images/publish-all-1.png" target="_blank"><img src="images/publish-all-1.png" alt="Publish all is highlighted." title="Publish all"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-5-create-campaign-analytics-data-flow">Task 5: Create campaign analytics data flow</h3>
+
+<ol>
+  <li>
+    <p>Navigate to the <strong>Develop</strong> hub.</p>
+
+    <p><a href="images/develop-hub.png" target="_blank"><img src="images/develop-hub.png" alt="The Develop menu item is highlighted." title="Develop hub"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>+</strong> menu, select <strong>Data flow</strong> to create a new data flow (if a tip is displayed, close it.)</p>
+
+    <p><a href="images/new-data-flow-link.png" target="_blank"><img src="images/new-data-flow-link.png" alt="The new data flow link is highlighted." title="New data flow"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>General</strong> settings of the <strong>Properties</strong> blade of the new data flow, change the <strong>Name</strong> to <code>asal400_lab2_writecampaignanalyticstoasa</code>.</p>
+
+    <p><a href="images/data-flow-campaign-analysis-name.png" target="_blank"><img src="images/data-flow-campaign-analysis-name.png" alt="The name field is populated with the defined value." title="Name"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Add Source</strong> on the data flow canvas (again, if a tip is displayed, close it.)</p>
+
+    <p><a href="images/data-flow-canvas-add-source.png" target="_blank"><img src="images/data-flow-canvas-add-source.png" alt="Select Add Source on the data flow canvas." title="Add Source"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Source settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>CampaignAnalytics</code>.</li>
+      <li><strong>Source type</strong>: Select <strong>Integration dataset</strong>.</li>
+      <li><strong>Dataset</strong>: Select <strong>asal400_campaign_analytics_source</strong>.</li>
+      <li><strong>Options</strong>: Select <strong>Allow schema drift</strong> and leave the other options unchecked.</li>
+      <li><strong>Skip line count</strong>: Enter <code>1</code>. This allows us to skip the header row which has two fewer columns than the rest of the rows in the CSV file, truncating the last two data columns.</li>
+      <li><strong>Sampling</strong>: Select <strong>Disable</strong>.</li>
+    </ul>
+
+    <p><a href="images/data-flow-campaign-analysis-source-settings.png" target="_blank"><img src="images/data-flow-campaign-analysis-source-settings.png" alt="The form is configured with the defined settings." title="Source settings"></a></p>
+
+    <p>When you create data flows, certain features are enabled by turning on debug, such as previewing data and importing a schema (projection). Due to the amount of time it takes to enable this option, and to minimize resource consumption in the lab environment, we will bypass these features.</p>
+  </li>
+  <li>
+    <p>The data source has a schema we need to set. To do this, select <strong>Script</strong> above the design canvas.</p>
+
+    <p><a href="images/data-flow-script.png" target="_blank"><img src="images/data-flow-script.png" alt="The script link is highlighted above the canvas." title="Script"></a></p>
+  </li>
+  <li>
+    <p>Replace the script with the following to provide the column mappings, then select <strong>OK</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-json hljs"> source(output(
+         {_col0_} as string,
+         {_col1_} as string,
+         {_col2_} as string,
+         {_col3_} as string,
+         {_col4_} as string,
+         {_col5_} as double,
+         {_col6_} as string,
+         {_col7_} as double,
+         {_col8_} as string,
+         {_col9_} as string
+     ),
+     allowSchemaDrift: <span class="hljs-literal"><span class="hljs-literal">true</span></span>,
+     validateSchema: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+     ignoreNoFilesFound: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+     skipLines: <span class="hljs-number"><span class="hljs-number">1</span></span>) ~&gt; CampaignAnalytics
+</code></pre>
+  </li>
+  <li>
+    <p>Select the <strong>CampaignAnalytics</strong> data source, then select <strong>Projection</strong>. The projection should display the following schema:</p>
+
+    <p><a href="images/data-flow-campaign-analysis-source-projection.png" target="_blank"><img src="images/data-flow-campaign-analysis-source-projection.png" alt="The imported projection is displayed." title="Projection"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>CampaignAnalytics</strong> step, then select the <strong>Select</strong> schema modifier.</p>
+
+    <p><a href="images/data-flow-campaign-analysis-new-select.png" target="_blank"><img src="images/data-flow-campaign-analysis-new-select.png" alt="The new Select schema modifier is highlighted." title="New Select schema modifier"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Select settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>MapCampaignAnalytics</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>CampaignAnalytics</strong>.</li>
+      <li><strong>Options</strong>: Check both options.</li>
+      <li><strong>Input columns</strong>: make sure <strong>Auto mapping</strong> is unselected, then provide the following values in the <strong>Name as</strong> fields:
+        <ul>
+          <li><code>Region</code></li>
+          <li><code>Country</code></li>
+          <li><code>ProductCategory</code></li>
+          <li><code>CampaignName</code></li>
+          <li><code>RevenuePart1</code></li>
+          <li><code>Revenue</code></li>
+          <li><code>RevenueTargetPart1</code></li>
+          <li><code>RevenueTarget</code></li>
+          <li><code>City</code></li>
+          <li><code>State</code></li>
+        </ul>
+      </li>
+    </ul>
+
+    <p><a href="images/data-flow-campaign-analysis-select-settings.png" target="_blank"><img src="images/data-flow-campaign-analysis-select-settings.png" alt="The select settings are displayed as described." title="Select settings"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>MapCampaignAnalytics</strong> step, then select the <strong>Derived Column</strong> schema modifier.</p>
+
+    <p><a href="images/data-flow-campaign-analysis-new-derived.png" target="_blank"><img src="images/data-flow-campaign-analysis-new-derived.png" alt="The new Derived Column schema modifier is highlighted." title="New Derived Column"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Derived column’s settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>ConvertColumnTypesAndValues</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>MapCampaignAnalytics</strong>.</li>
+      <li>
+        <p><strong>Columns</strong>: Provide the following information:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Expression</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Revenue</td>
+              <td><code>toDecimal(replace(concat(toString(RevenuePart1), toString(Revenue)), '\\', ''), 10, 2, '$###,###.##')</code></td>
+            </tr>
+            <tr>
+              <td>RevenueTarget</td>
+              <td><code>toDecimal(replace(concat(toString(RevenueTargetPart1), toString(RevenueTarget)), '\\', ''), 10, 2, '$###,###.##')</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+
+    <blockquote>
+      <p><strong>Note</strong>: To insert the second column, select <strong>+ Add</strong> above the Columns list, then select <strong>Add column</strong>.</p>
+    </blockquote>
+
+    <p><a href="images/data-flow-campaign-analysis-derived-column-settings.png" target="_blank"><img src="images/data-flow-campaign-analysis-derived-column-settings.png" alt="The derived column's settings are displayed as described." title="Derived column's settings"></a></p>
+
+    <p>The expressions you defined will concatenate and clean-up the <strong>RevenuePart1</strong> and <strong>Revenue</strong> values and the <strong>RevenueTargetPart1</strong> and <strong>RevenueTarget</strong> values.</p>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>ConvertColumnTypesAndValues</strong> step, then select the <strong>Select</strong> schema modifier from the context menu.</p>
+
+    <p><a href="images/data-flow-campaign-analysis-new-select2.png" target="_blank"><img src="images/data-flow-campaign-analysis-new-select2.png" alt="The new Select schema modifier is highlighted." title="New Select schema modifier"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Select settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>SelectCampaignAnalyticsColumns</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>ConvertColumnTypesAndValues</strong>.</li>
+      <li><strong>Options</strong>: Check both options.</li>
+      <li><strong>Input columns</strong>: make sure <strong>Auto mapping</strong> is unchecked, then <strong>Delete</strong> <strong>RevenuePart1</strong> and <strong>RevenueTargetPart1</strong>. We no longer need these fields.</li>
+    </ul>
+
+    <p><a href="images/data-flow-campaign-analysis-select-settings2.png" target="_blank"><img src="images/data-flow-campaign-analysis-select-settings2.png" alt="The select settings are displayed as described." title="Select settings"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>SelectCampaignAnalyticsColumns</strong> step, then select the <strong>Sink</strong> destination.</p>
+
+    <p><a href="images/data-flow-campaign-analysis-new-sink.png" target="_blank"><img src="images/data-flow-campaign-analysis-new-sink.png" alt="The new Sink destination is highlighted." title="New sink"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Sink</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>CampaignAnalyticsASA</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>SelectCampaignAnalyticsColumns</strong>.</li>
+      <li><strong>Sink type</strong>: Select <strong>Integration dataset</strong>.</li>
+      <li><strong>Dataset</strong>: Select <strong>asal400_wwi_campaign_analytics_asa</strong>.</li>
+      <li><strong>Options</strong>: Check <strong>Allow schema drift</strong> and uncheck <strong>Validate schema</strong>.</li>
+    </ul>
+
+    <p><a href="images/data-flow-campaign-analysis-new-sink-settings.png" target="_blank"><img src="images/data-flow-campaign-analysis-new-sink-settings.png" alt="The sink settings are shown." title="Sink settings"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Settings</strong> tab, configure the following options:</p>
+
+    <ul>
+      <li><strong>Update method</strong>: Check <strong>Allow insert</strong> and leave the rest unchecked.</li>
+      <li><strong>Table action</strong>: Select <strong>Truncate table</strong>.</li>
+      <li><strong>Enable staging</strong>: Uncheck this option. The sample CSV file is small, making the staging option unnecessary.</li>
+    </ul>
+
+    <p><a href="images/data-flow-campaign-analysis-new-sink-settings-options.png" target="_blank"><img src="images/data-flow-campaign-analysis-new-sink-settings-options.png" alt="The settings are shown." title="Settings"></a></p>
+  </li>
+  <li>
+    <p>Your completed data flow should look similar to the following:</p>
+
+    <p><a href="images/data-flow-campaign-analysis-complete.png" target="_blank"><img src="images/data-flow-campaign-analysis-complete.png" alt="The completed data flow is displayed." title="Completed data flow"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Publish all</strong> then <strong>Publish</strong> to save your new data flow.</p>
+
+    <p><a href="images/publish-all-1.png" target="_blank"><img src="images/publish-all-1.png" alt="Publish all is highlighted." title="Publish all"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-6-create-campaign-analytics-data-pipeline">Task 6: Create campaign analytics data pipeline</h3>
+
+<p>In order to run the new data flow, you need to create a new pipeline and add a data flow activity to it.</p>
+
+<ol>
+  <li>
+    <p>Navigate to the <strong>Integrate</strong> hub.</p>
+
+    <p><a href="images/integrate-hub.png" target="_blank"><img src="images/integrate-hub.png" alt="The Integrate hub is highlighted." title="Integrate hub"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>+</strong> menu, select <strong>Pipeline</strong> to create a new pipeline.</p>
+
+    <p><a href="images/new-pipeline.png" target="_blank"><img src="images/new-pipeline.png" alt="The new pipeline context menu item is selected." title="New pipeline"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>General</strong> section of the <strong>Properties</strong> blade for the new pipeline, enter the following <strong>Name</strong>: <code>Write Campaign Analytics to ASA</code>.</p>
+  </li>
+  <li>
+    <p>Expand <strong>Move &amp; transform</strong> within the Activities list, then drag the <strong>Data flow</strong> activity onto the pipeline canvas.</p>
+
+    <p><a href="images/pipeline-campaign-analysis-drag-data-flow.png" target="_blank"><img src="images/pipeline-campaign-analysis-drag-data-flow.png" alt="Drag the data flow activity onto the pipeline canvas." title="Pipeline canvas"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>General</strong> tab for the data flow (beneath the pipeline canvas), set the <strong>Name</strong> to <code>asal400_lab2_writecampaignanalyticstoasa</code>.</p>
+
+    <p><a href="images/pipeline-campaign-analysis-adding-data-flow.png" target="_blank"><img src="images/pipeline-campaign-analysis-adding-data-flow.png" alt="The adding data flow form is displayed with the described configuration." title="Adding data flow"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>Settings</strong> tab; and then, in the <strong>Data flow</strong> list, select <strong>asal400_lab2_writecampaignanalyticstoasa</strong> .</p>
+
+    <p><a href="images/pipeline-campaign-analysis-data-flow-settings-tab.png" target="_blank"><img src="images/pipeline-campaign-analysis-data-flow-settings-tab.png" alt="The data flow is selected." title="Settings"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Publish all</strong> to save your new pipeline, and then select <strong>Publish</strong>.</p>
+
+    <p><a href="images/publish-all-1.png" target="_blank"><img src="images/publish-all-1.png" alt="Publish all is highlighted." title="Publish all"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-7-run-the-campaign-analytics-data-pipeline">Task 7: Run the campaign analytics data pipeline</h3>
+
+<ol>
+  <li>
+    <p>Select <strong>Add trigger</strong>, and then select <strong>Trigger now</strong> in the toolbar at the top of the pipeline canvas.</p>
+
+    <p><a href="images/pipeline-trigger.png" target="_blank"><img src="images/pipeline-trigger.png" alt="The add trigger button is highlighted." title="Pipeline trigger"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>Pipeline run</strong> pane, select <strong>OK</strong> to start the pipeline run.</p>
+
+    <p><a href="images/pipeline-trigger-run.png" target="_blank"><img src="images/pipeline-trigger-run.png" alt="The pipeline run blade is displayed." title="Pipeline run"></a></p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>Monitor</strong> hub.</p>
+
+    <p><a href="images/monitor-hub.png" target="_blank"><img src="images/monitor-hub.png" alt="The Monitor hub menu item is selected." title="Monitor hub"></a></p>
+  </li>
+  <li>
+    <p>Wait for the pipeline run to successfully complete, which will take some time. You may need to refresh the view.</p>
+
+    <p><a href="images/pipeline-campaign-analysis-run-complete.png" target="_blank"><img src="images/pipeline-campaign-analysis-run-complete.png" alt="The pipeline run succeeded." title="Pipeline runs"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-8-view-campaign-analytics-table-contents">Task 8: View campaign analytics table contents</h3>
+
+<p>Now that the pipeline run is complete, let’s take a look at the SQL table to verify the data successfully copied.</p>
+
+<ol>
+  <li>
+    <p>Navigate to the <strong>Data</strong> hub.</p>
+
+    <p><a href="images/data-hub.png" target="_blank"><img src="images/data-hub.png" alt="The Data menu item is highlighted." title="Data hub"></a></p>
+  </li>
+  <li>
+    <p>Expand the <strong>SqlPool01</strong> database underneath the <strong>Workspace</strong> section, then expand <strong>Tables</strong> (you may need to refresh to see the new tables).</p>
+  </li>
+  <li>
+    <p>Right-click the <strong>wwi.CampaignAnalytics</strong> table, then select <strong>New SQL script</strong> and <strong>Select TOP 100 rows</strong>.</p>
+
+    <p><a href="images/select-top-1000-rows-campaign-analytics.png" target="_blank"><img src="images/select-top-1000-rows-campaign-analytics.png" alt="The Select TOP 1000 rows menu item is highlighted." title="Select TOP 1000 rows"></a></p>
+  </li>
+  <li>
+    <p>The properly transformed data should appear in the query results.</p>
+
+    <p><a href="images/campaign-analytics-query-results.png" target="_blank"><img src="images/campaign-analytics-query-results.png" alt="The CampaignAnalytics query results are displayed." title="Query results"></a></p>
+  </li>
+  <li>
+    <p>Modify the query as follows and run the script:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> ProductCategory
+ ,<span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(Revenue) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> TotalRevenue
+ ,<span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(RevenueTarget) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> TotalRevenueTarget
+ ,(<span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(RevenueTarget) - <span class="hljs-keyword"><span class="hljs-keyword">SUM</span></span>(Revenue)) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> Delta
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> [wwi].[CampaignAnalytics]
+ <span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> ProductCategory
+</code></pre>
+  </li>
+  <li>
+    <p>In the query results, select the <strong>Chart</strong> view. Configure the columns as defined:</p>
+
+    <ul>
+      <li><strong>Chart type</strong>: Column.</li>
+      <li><strong>Category column</strong>: ProductCategory.</li>
+      <li><strong>Legend (series) columns</strong>: TotalRevenue, TotalRevenueTarget, and Delta.</li>
+    </ul>
+
+    <p><a href="images/campaign-analytics-query-results-chart.png" target="_blank"><img src="images/campaign-analytics-query-results-chart.png" alt="The new query and chart view are displayed." title="Chart view"></a></p>
+  </li>
+</ol>
+
+<h2 id="exercise-2---create-mapping-data-flow-for-top-product-purchases">Exercise 2 - Create Mapping Data Flow for top product purchases</h2>
+
+<p>Tailwind Traders needs to combine top product purchases imported as JSON files from their eCommerce system with user preferred products from profile data stored as JSON documents in Azure Cosmos DB. They want to store the combined data in a dedicated SQL pool as well as their data lake for further analysis and reporting.</p>
+
+<p>To do this, you will build a mapping data flow that performs the following tasks:</p>
+
+<ul>
+  <li>Adds two ADLS Gen2 data sources for the JSON data</li>
+  <li>Flattens the hierarchical structure of both sets of files</li>
+  <li>Performs data transformations and type conversions</li>
+  <li>Joins both data sources</li>
+  <li>Creates new fields on the joined data set based on conditional logic</li>
+  <li>Filters null records for required fields</li>
+  <li>Writes to the dedicated SQL pool</li>
+  <li>Simultaneously writes to the data lake</li>
+</ul>
+
+<h3 id="task-1-create-mapping-data-flow">Task 1: Create Mapping Data Flow</h3>
+
+<ol>
+  <li>
+    <p>In Synapse Analytics Studio, navigate to the <strong>Develop</strong> hub.</p>
+
+    <p><a href="images/develop-hub.png" target="_blank"><img src="images/develop-hub.png" alt="The Develop menu item is highlighted." title="Develop hub"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>+</strong> menu, select <strong>Data flow</strong> to create a new data flow.</p>
+
+    <p><a href="images/new-data-flow-link.png" target="_blank"><img src="images/new-data-flow-link.png" alt="The new data flow link is highlighted." title="New data flow"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>General</strong> section of the <strong>Properties</strong> pane of the new data flow, update the <strong>Name</strong> to the following: <code>write_user_profile_to_asa</code>.</p>
+
+    <p><a href="images/data-flow-general.png" target="_blank"><img src="images/data-flow-general.png" alt="The name is displayed." title="General properties"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>Properties</strong> button to hide the pane.</p>
+
+    <p><a href="images/data-flow-properties-button.png" target="_blank"><img src="images/data-flow-properties-button.png" alt="The button is highlighted." title="Properties button"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Add Source</strong> on the data flow canvas.</p>
+
+    <p><a href="images/data-flow-canvas-add-source.png" target="_blank"><img src="images/data-flow-canvas-add-source.png" alt="Select Add Source on the data flow canvas." title="Add Source"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Source settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>EcommerceUserProfiles</code>.</li>
+      <li><strong>Source type</strong>: Select <strong>Integration dataset</strong>.</li>
+      <li>
+        <p><strong>Dataset</strong>: Select <strong>asal400_ecommerce_userprofiles_source</strong>.</p>
+
+        <p><a href="images/data-flow-user-profiles-source-settings.png" target="_blank"><img src="images/data-flow-user-profiles-source-settings.png" alt="The source settings are configured as described." title="Source settings"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select the <strong>Source options</strong> tab, then configure the following:</p>
+
+    <ul>
+      <li><strong>Wildcard paths</strong>: Enter <code>online-user-profiles-02/*.json</code></li>
+      <li>
+        <p><strong>JSON Settings</strong>: Expand this section, then select the <strong>Array of documents</strong> setting. This indicates that each file contains an array of JSON documents.</p>
+
+        <p><a href="images/data-flow-user-profiles-source-options.png" target="_blank"><img src="images/data-flow-user-profiles-source-options.png" alt="The source options are configured as described." title="Source options"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>EcommerceUserProfiles</strong> source, then select the <strong>Derived Column</strong> schema modifier.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-derived-column.png" target="_blank"><img src="images/data-flow-user-profiles-new-derived-column.png" alt="The plus sign and Derived Column schema modifier are highlighted." title="New Derived Column"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Derived column’s settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>userId</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>EcommerceUserProfiles</strong>.</li>
+      <li>
+        <p><strong>Columns</strong>: Provide the following information:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Expression</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>visitorId</td>
+              <td><code>toInteger(visitorId)</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><a href="images/data-flow-user-profiles-derived-column-settings.png" target="_blank"><img src="images/data-flow-user-profiles-derived-column-settings.png" alt="The derived column's settings are configured as described." title="Derived column's settings"></a></p>
+
+        <p>This expression converts the <strong>visitorId</strong> column value to an integer data type.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>userId</strong> step, then select the <strong>Flatten</strong> formatter.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-flatten.png" target="_blank"><img src="images/data-flow-user-profiles-new-flatten.png" alt="The plus sign and the Flatten schema modifier are highlighted." title="New Flatten schema modifier"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Flatten settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>UserTopProducts</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>userId</strong>.</li>
+      <li><strong>Unroll by</strong>: Select <strong>[] topProductPurchases</strong>.</li>
+      <li>
+        <p><strong>Input columns</strong>: Provide the following information:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>userId’s column</th>
+              <th>Name as</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>visitorId</td>
+              <td><code>visitorId</code></td>
+            </tr>
+            <tr>
+              <td>topProductPurchases.productId</td>
+              <td><code>productId</code></td>
+            </tr>
+            <tr>
+              <td>topProductPurchases.itemsPurchasedLast12Months</td>
+              <td><code>itemsPurchasedLast12Months</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <blockquote>
+          <p>Select <strong>+ Add mapping</strong>, then select <strong>Fixed mapping</strong> to add each new column mapping.</p>
+        </blockquote>
+
+        <p><a href="images/data-flow-user-profiles-flatten-settings.png" target="_blank"><img src="images/data-flow-user-profiles-flatten-settings.png" alt="The flatten settings are configured as described." title="Flatten settings"></a></p>
+      </li>
+    </ul>
+
+    <p>These settings provide a flattened representation of the data.</p>
+  </li>
+  <li>
+    <p>The user interface defines the mappings by generating a script. To view the script, select the <strong>Script</strong> button on the toolbar.</p>
+
+    <p><a href="images/dataflowactivityscript.png" target="_blank"><img src="images/dataflowactivityscript.png" alt="Data flow script button." title="Data flow script button"></a></p>
+
+    <p>Verify that the script looks like this and then <strong>Cancel</strong> to return the graphical UI (if not, modify the script):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs coffeescript">source(output(
+        visitorId <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> string,
+        topProductPurchases <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> (productId <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> string, itemsPurchasedLast12Months <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> string)[]
+    ),
+    allowSchemaDrift: <span class="hljs-literal"><span class="hljs-literal">true</span></span>,
+    validateSchema: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+    ignoreNoFilesFound: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+    documentForm: <span class="hljs-string"><span class="hljs-string">'arrayOfDocuments'</span></span>,
+    wildcardPaths:[<span class="hljs-string"><span class="hljs-string">'online-user-profiles-02/*.json'</span></span>]) ~&gt; EcommerceUserProfiles
+EcommerceUserProfiles derive(visitorId = toInteger(visitorId)) ~&gt; userId
+userId foldDown(unroll(topProductPurchases),
+    mapColumn(
+        visitorId,
+        productId = topProductPurchases.productId,
+        itemsPurchasedLast12Months = topProductPurchases.itemsPurchasedLast12Months
+    ),
+    skipDuplicateMapInputs: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+    skipDuplicateMapOutputs: <span class="hljs-literal"><span class="hljs-literal">false</span></span>) ~&gt; UserTopProducts
+</code></pre>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>UserTopProducts</strong> step, then select the <strong>Derived Column</strong> schema modifier from the context menu.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-derived-column2.png" target="_blank"><img src="images/data-flow-user-profiles-new-derived-column2.png" alt="The plus sign and Derived Column schema modifier are highlighted." title="New Derived Column"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Derived column’s settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>DeriveProductColumns</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>UserTopProducts</strong>.</li>
+      <li>
+        <p><strong>Columns</strong>: Provide the following information:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Expression</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>productId</td>
+              <td><code>toInteger(productId)</code></td>
+            </tr>
+            <tr>
+              <td>itemsPurchasedLast12Months</td>
+              <td><code>toInteger(itemsPurchasedLast12Months)</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><a href="images/data-flow-user-profiles-derived-column2-settings.png" target="_blank"><img src="images/data-flow-user-profiles-derived-column2-settings.png" alt="The derived column's settings are configured as described." title="Derived column's settings"></a></p>
+
+        <blockquote>
+          <p><strong>Note</strong>: To add a column to the derived column settings, select <strong>+</strong> to the right of the first column, then select <strong>Add column</strong>.</p>
+        </blockquote>
+
+        <p><a href="images/data-flow-add-derived-column.png" target="_blank"><img src="images/data-flow-add-derived-column.png" alt="The add column menu item is highlighted." title="Add derived column"></a></p>
+
+        <p>These expressions covert the <strong>productid</strong> and <strong>itemsPurchasedLast12Months</strong> columns values to integers.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Add Source</strong> on the data flow canvas beneath the <strong>EcommerceUserProfiles</strong> source.</p>
+
+    <p><a href="images/data-flow-user-profiles-add-source.png" target="_blank"><img src="images/data-flow-user-profiles-add-source.png" alt="Select Add Source on the data flow canvas." title="Add Source"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Source settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>UserProfiles</code>.</li>
+      <li><strong>Source type</strong>: Select <strong>Integration dataset</strong>.</li>
+      <li>
+        <p><strong>Dataset</strong>: Select <strong>asal400_customerprofile_cosmosdb</strong>.</p>
+
+        <p><a href="images/data-flow-user-profiles-source2-settings.png" target="_blank"><img src="images/data-flow-user-profiles-source2-settings.png" alt="The source settings are configured as described." title="Source settings"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Since we are not using the data flow debugger, we need to enter the data flow’s Script view to update the source projection. Select <strong>Script</strong> in the toolbar above the canvas.</p>
+
+    <p><a href="images/data-flow-user-profiles-script-link.png" target="_blank"><img src="images/data-flow-user-profiles-script-link.png" alt="The Script link is highlighted above the canvas." title="Data flow canvas"></a></p>
+  </li>
+  <li>
+    <p>Locate the <strong>UserProfiles</strong> source in the script, which looks like this:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs cs">source(output(
+    userId <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span>,
+    cartId <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span>,
+    preferredProducts <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span>[],
+    <span class="hljs-function"><span class="hljs-function">productReviews </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">as</span></span></span><span class="hljs-function"> (</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">productId </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">as</span></span></span></span><span class="hljs-function"><span class="hljs-params"> </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">, reviewText </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">as</span></span></span></span><span class="hljs-function"><span class="hljs-params"> </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">, reviewDate </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">as</span></span></span></span><span class="hljs-function"><span class="hljs-params"> </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span></span><span class="hljs-function">)[]
+),
+allowSchemaDrift: </span><span class="hljs-literal"><span class="hljs-function"><span class="hljs-literal">true</span></span></span><span class="hljs-function">,
+validateSchema: </span><span class="hljs-literal"><span class="hljs-function"><span class="hljs-literal">false</span></span></span><span class="hljs-function">,
+format: 'document') ~&gt; UserProfiles
+</span></span></code></pre>
+  </li>
+  <li>
+    <p>Modify script block as follows to set <strong>preferredProducts</strong> as an <strong>integer[]</strong> array and ensure the data types within the <strong>productReviews</strong> array are correctly defined. Then select <strong>OK</strong> to apply the script changes.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs cs">source(output(
+        cartId <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span>,
+        preferredProducts <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> integer[],
+        <span class="hljs-function"><span class="hljs-function">productReviews </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">as</span></span></span><span class="hljs-function"> (</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">productId </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">as</span></span></span></span><span class="hljs-function"><span class="hljs-params"> integer, reviewDate </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">as</span></span></span></span><span class="hljs-function"><span class="hljs-params"> </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">, reviewText </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">as</span></span></span></span><span class="hljs-function"><span class="hljs-params"> </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span></span><span class="hljs-function">)[],
+        userId </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">as</span></span></span><span class="hljs-function"> integer
+    ),
+    allowSchemaDrift: </span><span class="hljs-literal"><span class="hljs-function"><span class="hljs-literal">true</span></span></span><span class="hljs-function">,
+    validateSchema: </span><span class="hljs-literal"><span class="hljs-function"><span class="hljs-literal">false</span></span></span><span class="hljs-function">,
+    ignoreNoFilesFound: </span><span class="hljs-literal"><span class="hljs-function"><span class="hljs-literal">false</span></span></span><span class="hljs-function">,
+    format: 'document') ~&gt; UserProfiles
+</span></span></code></pre>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>UserProfiles</strong> source, then select the <strong>Flatten</strong> formatter.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-flatten2.png" target="_blank"><img src="images/data-flow-user-profiles-new-flatten2.png" alt="The plus sign and the Flatten schema modifier are highlighted." title="New Flatten schema modifier"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Flatten settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>UserPreferredProducts</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>UserProfiles</strong>.</li>
+      <li><strong>Unroll by</strong>: Select <strong>[] preferredProducts</strong>.</li>
+      <li>
+        <p><strong>Input columns</strong>: Provide the following information. Be sure to <strong>delete</strong> <strong>cartId</strong> and <strong>[] productReviews</strong>:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>UserProfiles’s column</th>
+              <th>Name as</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>[] preferredProducts</td>
+              <td><code>preferredProductId</code></td>
+            </tr>
+            <tr>
+              <td>userId</td>
+              <td><code>userId</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><a href="images/data-flow-user-profiles-flatten2-settings.png" target="_blank"><img src="images/data-flow-user-profiles-flatten2-settings.png" alt="The flatten settings are configured as described." title="Flatten settings"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Now it is time to join the two data sources. Select the <strong>+</strong> to the right of the <strong>DeriveProductColumns</strong> step, then select the <strong>Join</strong> option.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-join.png" target="_blank"><img src="images/data-flow-user-profiles-new-join.png" alt="The plus sign and new Join menu item are highlighted." title="New Join"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Join settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>JoinTopProductsWithPreferredProducts</code>.</li>
+      <li><strong>Left stream</strong>: Select <strong>DeriveProductColumns</strong>.</li>
+      <li><strong>Right stream</strong>: Select <strong>UserPreferredProducts</strong>.</li>
+      <li><strong>Join type</strong>: Select <strong>Full outer</strong>.</li>
+      <li>
+        <p><strong>Join conditions</strong>: Provide the following information:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Left: DeriveProductColumns’s column</th>
+              <th>Right: UserPreferredProducts’s column</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>visitorId</td>
+              <td>userId</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><a href="images/data-flow-user-profiles-join-settings.png" target="_blank"><img src="images/data-flow-user-profiles-join-settings.png" alt="The join settings are configured as described." title="Join settings"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Optimize</strong> and configure the following:</p>
+
+    <ul>
+      <li><strong>Broadcast</strong>: Select <strong>Fixed</strong>.</li>
+      <li><strong>Broadcast options</strong>: Check <strong>Left: ‘DeriveProductColumns’</strong>.</li>
+      <li><strong>Partition option</strong>: Select <strong>Set partitioning</strong>.</li>
+      <li><strong>Partition type</strong>: Select <strong>Hash</strong>.</li>
+      <li><strong>Number of partitions</strong>: Enter <code>30</code>.</li>
+      <li>
+        <p><strong>Column</strong>: Select <strong>productId</strong>.</p>
+
+        <p><a href="images/data-flow-user-profiles-join-optimize.png" target="_blank"><img src="images/data-flow-user-profiles-join-optimize.png" alt="The join optimization settings are configured as described." title="Optimize"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select the <strong>Inspect</strong> tab to see the join mapping, including the column feed source and whether the column is used in a join.</p>
+
+    <p><a href="images/data-flow-user-profiles-join-inspect.png" target="_blank"><img src="images/data-flow-user-profiles-join-inspect.png" alt="The inspect blade is displayed." title="Inspect"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>JoinTopProductsWithPreferredProducts</strong> step, then select the <strong>Derived Column</strong> schema modifier.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-derived-column3.png" target="_blank"><img src="images/data-flow-user-profiles-new-derived-column3.png" alt="The plus sign and Derived Column schema modifier are highlighted." title="New Derived Column"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Derived column’s settings</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>DerivedColumnsForMerge</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>JoinTopProductsWithPreferredProducts</strong>.</li>
+      <li>
+        <p><strong>Columns</strong>: Provide the following information (<strong><em>type in</em> the <em>first two</em> column names</strong>):</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Expression</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>isTopProduct</code></td>
+              <td><code>toBoolean(iif(isNull(productId), 'false', 'true'))</code></td>
+            </tr>
+            <tr>
+              <td><code>isPreferredProduct</code></td>
+              <td><code>toBoolean(iif(isNull(preferredProductId), 'false', 'true'))</code></td>
+            </tr>
+            <tr>
+              <td>productId</td>
+              <td><code>iif(isNull(productId), preferredProductId, productId)</code></td>
+            </tr>
+            <tr>
+              <td>userId</td>
+              <td><code>iif(isNull(userId), visitorId, userId)</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><a href="images/data-flow-user-profiles-derived-column3-settings.png" target="_blank"><img src="images/data-flow-user-profiles-derived-column3-settings.png" alt="The derived column's settings are configured as described." title="Derived column's settings"></a></p>
+
+        <p>The derived column settings will provide the following result when the pipeline is run:</p>
+
+        <p><a href="images/data-flow-user-profiles-derived-column3-preview.png" target="_blank"><img src="images/data-flow-user-profiles-derived-column3-preview.png" alt="The data preview is displayed." title="Data preview"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>DerivedColumnsForMerge</strong> step, then select the <strong>Filter</strong> row modifier.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-filter.png" target="_blank"><img src="images/data-flow-user-profiles-new-filter.png" alt="The new Filter destination is highlighted." title="New filter"></a></p>
+
+    <p>We are adding the filter step to remove any records where the <strong>ProductId</strong> is null. The data sets have a small percentage of invalid records, and null <strong>ProductId</strong> values will cause errors when loading into the <strong>UserTopProductPurchases</strong> dedicated SQL pool table.</p>
+  </li>
+  <li>
+    <p>Set the <strong>Filter on</strong> expression to <code>!isNull(productId)</code>.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-filter-settings.png" target="_blank"><img src="images/data-flow-user-profiles-new-filter-settings.png" alt="The filter settings are shown." title="Filter settings"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>Filter1</strong> step, then select the <strong>Sink</strong> destination from the context menu.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-sink.png" target="_blank"><img src="images/data-flow-user-profiles-new-sink.png" alt="The new Sink destination is highlighted." title="New sink"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Sink</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>UserTopProductPurchasesASA</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>Filter1</strong>.</li>
+      <li><strong>Sink type</strong>: select <strong>Integration Dataset</strong>.</li>
+      <li><strong>Dataset</strong>: Select <strong>asal400_wwi_usertopproductpurchases_asa</strong>.</li>
+      <li><strong>Options</strong>: Check <strong>Allow schema drift</strong> and uncheck <strong>Validate schema</strong>.</li>
+    </ul>
+
+    <p><a href="images/data-flow-user-profiles-new-sink-settings.png" target="_blank"><img src="images/data-flow-user-profiles-new-sink-settings.png" alt="The sink settings are shown." title="Sink settings"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Settings</strong>, then configure the following:</p>
+
+    <ul>
+      <li><strong>Update method</strong>: Check <strong>Allow insert</strong> and leave the rest unchecked.</li>
+      <li><strong>Table action</strong>: Select <strong>Truncate table</strong>.</li>
+      <li>
+        <p><strong>Enable staging</strong>: Check this option. Since we are importing a lot of data, we want to enable staging to improve performance.</p>
+
+        <p><a href="images/data-flow-user-profiles-new-sink-settings-options.png" target="_blank"><img src="images/data-flow-user-profiles-new-sink-settings-options.png" alt="The settings are shown." title="Settings"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Mapping</strong>, then configure the following:</p>
+
+    <ul>
+      <li><strong>Auto mapping</strong>: De-select this option.</li>
+      <li>
+        <p><strong>Columns</strong>: Provide the following information:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Input columns</th>
+              <th>Output columns</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>userId</td>
+              <td>UserId</td>
+            </tr>
+            <tr>
+              <td>productId</td>
+              <td>ProductId</td>
+            </tr>
+            <tr>
+              <td>itemsPurchasedLast12Months</td>
+              <td>ItemsPurchasedLast12Months</td>
+            </tr>
+            <tr>
+              <td>isTopProduct</td>
+              <td>IsTopProduct</td>
+            </tr>
+            <tr>
+              <td>isPreferredProduct</td>
+              <td>IsPreferredProduct</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><a href="images/data-flow-user-profiles-new-sink-settings-mapping.png" target="_blank"><img src="images/data-flow-user-profiles-new-sink-settings-mapping.png" alt="The mapping settings are configured as described." title="Mapping"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select the <strong>+</strong> to the right of the <strong>Filter1</strong> step, then select the <strong>Sink</strong> destination from the context menu to add a second sink.</p>
+
+    <p><a href="images/data-flow-user-profiles-new-sink2.png" target="_blank"><img src="images/data-flow-user-profiles-new-sink2.png" alt="The new Sink destination is highlighted." title="New sink"></a></p>
+  </li>
+  <li>
+    <p>Under <strong>Sink</strong>, configure the following:</p>
+
+    <ul>
+      <li><strong>Output stream name</strong>: Enter <code>DataLake</code>.</li>
+      <li><strong>Incoming stream</strong>: Select <strong>Filter1</strong>.</li>
+      <li><strong>Sink type</strong>: select <strong>Inline</strong>.</li>
+      <li><strong>Inline dataset type</strong>: select <strong>Delta</strong>.</li>
+      <li><strong>Linked service</strong>: Select <strong>asaworkspace<em>xxxxxxx</em>-WorkspaceDefaultStorage</strong>.</li>
+      <li>
+        <p><strong>Options</strong>: Check <strong>Allow schema drift</strong> and uncheck <strong>Validate schema</strong>.</p>
+
+        <p><a href="images/data-flow-user-profiles-new-sink-settings2.png" target="_blank"><img src="images/data-flow-user-profiles-new-sink-settings2.png" alt="The sink settings are shown." title="Sink settings"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Settings</strong>, then configure the following:</p>
+
+    <ul>
+      <li><strong>Folder path</strong>: Enter <code>wwi-02</code> / <code>top-products</code> (type these two values into the fields since the <strong>top-products</strong> folder does not yet exist).</li>
+      <li><strong>Compression type</strong>: Select <strong>snappy</strong>.</li>
+      <li><strong>Compression level</strong>: Select <strong>Fastest</strong>.</li>
+      <li><strong>Vacuum</strong>: Enter <code>0</code>.</li>
+      <li><strong>Table action</strong>: Select <strong>Truncate</strong>.</li>
+      <li><strong>Update method</strong>: Check <strong>Allow insert</strong> and leave the rest unchecked.</li>
+      <li>
+        <p><strong>Merge schema (under Delta options)</strong>: Unchecked.</p>
+
+        <p><a href="images/data-flow-user-profiles-new-sink-settings-options2.png" target="_blank"><img src="images/data-flow-user-profiles-new-sink-settings-options2.png" alt="The settings are shown." title="Settings"></a></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Mapping</strong>, then configure the following:</p>
+
+    <ul>
+      <li><strong>Auto mapping</strong>: Uncheck this option.</li>
+      <li>
+        <p><strong>Columns</strong>: Define the following column mappings:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Input columns</th>
+              <th>Output columns</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>visitorId</td>
+              <td>visitorId</td>
+            </tr>
+            <tr>
+              <td>productId</td>
+              <td>productId</td>
+            </tr>
+            <tr>
+              <td>itemsPurchasedLast12Months</td>
+              <td>itemsPurchasedLast12Months</td>
+            </tr>
+            <tr>
+              <td>preferredProductId</td>
+              <td>preferredProductId</td>
+            </tr>
+            <tr>
+              <td>userId</td>
+              <td>userId</td>
+            </tr>
+            <tr>
+              <td>isTopProduct</td>
+              <td>isTopProduct</td>
+            </tr>
+            <tr>
+              <td>isPreferredProduct</td>
+              <td>isPreferredProduct</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><a href="images/data-flow-user-profiles-new-sink-settings-mapping2.png" target="_blank"><img src="images/data-flow-user-profiles-new-sink-settings-mapping2.png" alt="The mapping settings are configured as described." title="Mapping"></a></p>
+
+        <blockquote>
+          <p>Notice that we have chosen to keep two additional fields for the data lake sink vs. the SQL pool sink (<strong>visitorId</strong> and <strong>preferredProductId</strong>). This is because we aren’t adhering to a fixed destination schema (like a SQL table), and because we want to retain the original data as much as possible in the data lake.</p>
+        </blockquote>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Verify that your completed data flow looks similar to the following:</p>
+
+    <p><a href="images/data-flow-user-profiles-complete.png" target="_blank"><img src="images/data-flow-user-profiles-complete.png" alt="The completed data flow is displayed." title="Completed data flow"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Publish all</strong>, then <strong>Publish</strong> to save your new data flow.</p>
+
+    <p><a href="images/publish-all-1.png" target="_blank"><img src="images/publish-all-1.png" alt="Publish all is highlighted." title="Publish all"></a></p>
+  </li>
+</ol>
+
+<h2 id="exercise-3---orchestrate-data-movement-and-transformation-in-azure-synapse-pipelines">Exercise 3 - Orchestrate data movement and transformation in Azure Synapse Pipelines</h2>
+
+<p>Tailwind Traders is familiar with Azure Data Factory (ADF) pipelines and wants to know if Azure Synapse Analytics can either integrate with ADF or has a similar capability. They want to orchestrate data ingest, transformation, and load activities across their entire data catalog, both internal and external to their data warehouse.</p>
+
+<p>You recommend using Synapse Pipelines, which includes over 90 built-in connectors, can load data by manual execution of the pipeline or by orchestration, supports common loading patterns, enables fully parallel loading into the data lake or SQL tables, and shares a code base with ADF.</p>
+
+<p>By using Synapse Pipelines, Tailwind Traders can experience the same familiar interface as ADF without having to use an orchestration service outside of Azure Synapse Analytics.</p>
+
+<h3 id="task-1-create-pipeline">Task 1: Create pipeline</h3>
+
+<p>Let’s start by executing our new Mapping Data Flow. In order to run the new data flow, we need to create a new pipeline and add a data flow activity to it.</p>
+
+<ol>
+  <li>
+    <p>Navigate to the <strong>Integrate</strong> hub.</p>
+
+    <p><a href="images/integrate-hub.png" target="_blank"><img src="images/integrate-hub.png" alt="The Integrate hub is highlighted." title="Integrate hub"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>+</strong> menu, select <strong>Pipeline</strong>.</p>
+
+    <p><a href="images/new-pipeline.png" target="_blank"><img src="images/new-pipeline.png" alt="The new pipeline menu item is highlighted." title="New pipeline"></a></p>
+  </li>
+  <li>
+    <p>In the <strong>General</strong> section of the <strong>Properties</strong> pane of the new data flow, update the <strong>Name</strong> to <code>Write User Profile Data to ASA</code>.</p>
+
+    <p><a href="images/pipeline-general.png" target="_blank"><img src="images/pipeline-general.png" alt="The name is displayed." title="General properties"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>Properties</strong> button to hide the pane.</p>
+
+    <p><a href="images/pipeline-properties-button.png" target="_blank"><img src="images/pipeline-properties-button.png" alt="The button is highlighted." title="Properties button"></a></p>
+  </li>
+  <li>
+    <p>Expand <strong>Move &amp; transform</strong> within the Activities list, then drag the <strong>Data flow</strong> activity onto the pipeline canvas.</p>
+
+    <p><a href="images/pipeline-drag-data-flow.png" target="_blank"><img src="images/pipeline-drag-data-flow.png" alt="Drag the data flow activity onto the pipeline canvas." title="Pipeline canvas"></a></p>
+  </li>
+  <li>
+    <p>Under the <strong>General</strong> tab beneath the pipeline canvas set the <strong>Name</strong> to <code>write_user_profile_to_asa</code>.</p>
+
+    <p><a href="images/pipeline-data-flow-general.png" target="_blank"><img src="images/pipeline-data-flow-general.png" alt="The name is set on the general tab as described." title="Name on the General tab"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Settings</strong> tab, select the <strong>write_user_profile_to_asa</strong> data flow, ensure <strong>AutoResolveIntegrationRuntime</strong> is selected. Choose the <strong>Basic (General purpose)</strong> compute type and set the core count to <strong>4 (+ 4 Driver cores)</strong>.</p>
+  </li>
+  <li>
+    <p>Expand <strong>Staging</strong> and configure the following:</p>
+
+    <ul>
+      <li><strong>Staging linked service</strong>: Select the <strong>asadatalake<em>xxxxxxx</em></strong> linked service.</li>
+      <li>
+        <p><strong>Staging storage folder</strong>: Enter <code>staging</code> / <code>userprofiles</code> (the <strong>userprofiles</strong> folder will be automatically created for you during the first pipeline run).</p>
+
+        <p><a href="images/pipeline-user-profiles-data-flow-settings.png" target="_blank"><img src="images/pipeline-user-profiles-data-flow-settings.png" alt="The mapping data flow activity settings are configured as described." title="Mapping data flow activity settings"></a></p>
+
+        <p>The staging options under PolyBase are recommended when you have a large amount of data to move into or out of Azure Synapse Analytics. You will want to experiment with enabling and disabling staging on the data flow in a production environment to evaluate the difference in performance.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Select <strong>Publish all</strong> then <strong>Publish</strong> to save your pipeline.</p>
+
+    <p><a href="images/publish-all-1.png" target="_blank"><img src="images/publish-all-1.png" alt="Publish all is highlighted." title="Publish all"></a></p>
+  </li>
+</ol>
+
+<h3 id="task-2-trigger-monitor-and-analyze-the-user-profile-data-pipeline">Task 2: Trigger, monitor, and analyze the user profile data pipeline</h3>
+
+<p>Tailwind Traders wants to monitor all pipeline runs and view statistics for performance tuning and troubleshooting purposes.</p>
+
+<p>You have decided to show Tailwind Traders how to manually trigger, monitor, then analyze a pipeline run.</p>
+
+<ol>
+  <li>
+    <p>At the top of the pipeline, select <strong>Add trigger</strong>, then <strong>Trigger now</strong>.</p>
+
+    <p><a href="images/pipeline-user-profiles-trigger.png" target="_blank"><img src="images/pipeline-user-profiles-trigger.png" alt="The pipeline trigger option is highlighted." title="Trigger now"></a></p>
+  </li>
+  <li>
+    <p>There are no parameters for this pipeline, so select <strong>OK</strong> to run the trigger.</p>
+
+    <p><a href="images/pipeline-run-trigger.png" target="_blank"><img src="images/pipeline-run-trigger.png" alt="The OK button is highlighted." title="Pipeline run"></a></p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>Monitor</strong> hub.</p>
+
+    <p><a href="images/monitor-hub.png" target="_blank"><img src="images/monitor-hub.png" alt="The Monitor hub menu item is selected." title="Monitor hub"></a></p>
+  </li>
+  <li>
+    <p>Select <strong>Pipeline runs</strong> and wait for the pipeline run to successfully complete, which may take some time. You may need to refresh the view.</p>
+
+    <p><a href="images/pipeline-user-profiles-run-complete.png" target="_blank"><img src="images/pipeline-user-profiles-run-complete.png" alt="The pipeline run succeeded." title="Pipeline runs"></a></p>
+  </li>
+  <li>
+    <p>Select the name of the pipeline to view the pipeline’s activity runs.</p>
+
+    <p><a href="images/select-pipeline.png" target="_blank"><img src="images/select-pipeline.png" alt="The pipeline name is selected." title="Pipeline runs"></a></p>
+  </li>
+  <li>
+    <p>Hover over the data flow activity name in the <strong>Activity runs</strong> list, then select the <strong>Data flow details</strong> icon.</p>
+
+    <p><a href="images/pipeline-user-profiles-activity-runs.png" target="_blank"><img src="images/pipeline-user-profiles-activity-runs.png" alt="The data flow details icon is highlighted." title="Activity runs"></a></p>
+  </li>
+  <li>
+    <p>The data flow details displays the data flow steps and processing details. In the example below (which may be different from your results), processing time took around 44 seconds to process the SQL pool sink, and around 12 seconds to process the Data Lake sink. The <strong>Filter1</strong> output was around 1 million rows for both. You can see which activities took the longest to complete. The cluster startup time contributed over 2.5 minutes to the total pipeline run.</p>
+
+    <p><a href="images/pipeline-user-profiles-data-flow-details.png" target="_blank"><img src="images/pipeline-user-profiles-data-flow-details.png" alt="The data flow details are displayed." title="Data flow details"></a></p>
+  </li>
+  <li>
+    <p>Select the <strong>UserTopProductPurchasesASA</strong> sink to view its details. In the example below (which may be different from your results), you can see that 1,622,203 rows were calculated with a total of 30 partitions. It took around eight seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 44 seconds (4). It is also apparent that we have a <em>hot partition</em> that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there’s a processing time difference. Finally, the size of the dedicated SQL pool plays a factor in how long it takes to ingest data into the sink.</p>
+
+    <p><a href="images/pipeline-user-profiles-data-flow-sink-details.png" target="_blank"><img src="images/pipeline-user-profiles-data-flow-sink-details.png" alt="The sink details are displayed." title="Sink details"></a></p>
+  </li>
+</ol>
+
+<h2 id="important-pause-your-sql-pool">Important: Pause your SQL pool</h2>
+
+<p>Complete these steps to free up resources you no longer need.</p>
+
+<ol>
+  <li>In Synapse Studio, select the <strong>Manage</strong> hub.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Select <strong>SQL pools</strong> in the left-hand menu. Hover over the <strong>SQLPool01</strong> dedicated SQL pool and select **</td>
+          <td>&nbsp;</td>
+          <td>**.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a href="images/pause-dedicated-sql-pool.png" target="_blank"><img src="images/pause-dedicated-sql-pool.png" alt="The pause button is highlighted on the dedicated SQL pool." title="Pause"></a></p>
+  </li>
+  <li>When prompted, select <strong>Pause</strong>.</li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/DP-203-Data-Engineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/DP-203-Data-Engineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D928deb11f009d00944c1feae30c16de739b6478a.js"></script>
+
+
+
+</body></html>

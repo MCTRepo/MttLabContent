@@ -1,0 +1,547 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            WS-013T00-Azure-Stack-HCI
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                WS-013T00-Azure-Stack-HCI
+            </a>
+            <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#scenario-1">Scenario</a></li><li class="nav-item"><a class="nav-link" href="#task-1-provision-the-lab-environment-vms">Task 1: Provision the lab environment VMs</a></li><li class="nav-item"><a class="nav-link" href="#task-2-configure-the-management-server">Task 2: Configure the management server</a></li><li class="nav-item"><a class="nav-link" href="#task-3-create-and-configure-a-failover-cluster">Task 3: Create and configure a failover cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-4-configure-fault-domains-on-the-failover-cluster">Task 4: Configure fault domains on the failover cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-5-enable-storage-spaces-direct-on-the-failover-cluster">Task 5: Enable Storage Spaces Direct on the failover cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-6-review-the-fault-domain-configuration-on-the-storage-spaces-direct-cluster">Task 6: Review the fault domain configuration on the Storage Spaces Direct cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-7-create-tiered-volumes-on-a-storage-spaces-direct-failover-cluster">Task 7: Create tiered volumes on a Storage Spaces Direct failover cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-8-test-resiliency-of-the-storage-spaces-direct-cluster">Task 8: Test resiliency of the Storage Spaces Direct cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-9-restore-failed-disks-and-nodes-on-the-storage-spaces-direct-cluster">Task 9: Restore failed disks and nodes on the Storage Spaces Direct cluster</a></li><li class="nav-item"><a class="nav-link" href="#task-10-deprovision-the-lab-resources">Task 10: Deprovision the lab resources</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-c-managing-and-monitoring-resiliency-of-a-storage-spaces-direct-cluster">Lab C: Managing and monitoring resiliency of a Storage Spaces Direct cluster</h1>
+
+<h2 id="scenario">Scenario</h2>
+
+<p>You want to examine resiliency in situations when there are simultaneous cluster node and drive failures. You want to understand how resiliency can protect cluster stability and integrity. To start, you will create tiered volumes and test volume, disk, and cluster resiliency.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After completing this lab, you’ll be able to manage and monitor resiliency of a Storage Spaces Direct cluster.</p>
+
+<h2 id="estimated-time-55-minutes">Estimated time: 55 minutes</h2>
+
+<h2 id="lab-setup">Lab setup</h2>
+
+<p>To connect to the VM for the lab, follow the steps provided to you by the lab hosting provider.</p>
+
+<h2 id="exercise-1-managing-and-monitoring-resiliency-of-a-storage-spaces-direct-cluster">Exercise 1: Managing and monitoring resiliency of a Storage Spaces Direct cluster</h2>
+
+<h3 id="scenario-1">Scenario</h3>
+
+<p>You have evaluated the self-healing capabilities of Storage Spaces Direct clusters after removing individual disks. Now you want to examine resiliency in situations when there are simultaneous cluster node and drive failures.</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>Provision the lab environment VMs.</li>
+  <li>Configure the management server.</li>
+  <li>Create and configure a failover cluster.</li>
+  <li>Configure fault domains on the failover cluster.</li>
+  <li>Enable Storage Spaces Direct on the failover cluster.</li>
+  <li>Review fault domain configuration on the Storage Spaces Direct cluster.</li>
+  <li>Create tiered volumes on a Storage Spaces Direct failover cluster.</li>
+  <li>Test resiliency of the Storage Spaces Direct cluster.</li>
+  <li>Restore failed disks and nodes on the Storage Spaces Direct cluster.</li>
+  <li>Deprovision the lab resources.</li>
+</ol>
+
+<h3 id="task-1-provision-the-lab-environment-vms">Task 1: Provision the lab environment VMs</h3>
+
+<ol>
+  <li>
+    <p>On the lab VM, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to rename <strong>LabConfig.ps1</strong> and <strong>Scenario.ps1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Set-Location -Path 'F:\WSLab-master\Scripts'
+Move-Item -Path '.\LabConfig.ps1' -Destination '.\LabConfig.m3l3.ps1' -Force -ErrorAction SilentlyContinue
+Move-Item -Path '.\Scenario.ps1' -Destination '.\Scenario.m3l3.ps1' -Force -ErrorAction SilentlyContinue
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, from the <strong>script</strong> pane, save the following content as <strong>F:\WSLab-master\Scripts\LabConfig.ps1</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">$LabConfig=@{ DomainAdminName='LabAdmin'; AdminPassword='LS1setup!'; Prefix = 'WSLab-'; SwitchName = 'LabSwitch'; DCEdition='4'; Internet=$true ; AdditionalNetworksConfig=@(); VMs=@()}
+1..6 | % {
+     $VMNames="S2D";
+     $LABConfig.VMs += @{
+     VMName = "$VMNames$_" ;
+     Configuration = 'S2D' ;
+     ParentVHD = 'Win2019Core_G2.vhdx';
+     SSDNumber = 0;
+     SSDSize=800GB ;
+     HDDNumber = 12;
+     HDDSize= 4TB ;
+     MemoryStartupBytes= 1GB;
+     NestedVirt=$false
+    }
+}
+$LabConfig.VMs += @{
+     VMName = 'Management' ;
+     Configuration = 'Simple';
+     ParentVHD = 'Win2019_G2.vhdx';
+     StaticMemory = $true;
+     MemoryStartupBytes = 8GB;
+     AddToolsVHD = $True;
+     DisableWCF = $True;
+     VMProcessorCount = 4
+}
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell ISE</strong> window, open and run the <strong>F:\WSLab-master\Scripts\3_Deploy.ps1</strong> script to provision VMs for the Storage Spaces Direct environment.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> Select <strong>None</strong> at the Telemetry prompt. The script should complete in about 10 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>When the script completes, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to start the newly provisioned VMs that will host the Storage Spaces Direct environment:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Get-VM -Name 'WSLab-Management' | Start-VM
+Start-Sleep 150
+Get-VM | Where-Object Name -like 'WSLab-S2D*' | Start-VM -AsJob
+</code></pre>
+  </li>
+  <li>On the lab VM, start <strong>Hyper-V Manager</strong> and connect via a console session to <strong>WSLab-DC</strong>. When prompted to sign in, provide the username <strong>CORP\LabAdmin</strong> and the password <strong>LS1setup!</strong>.</li>
+  <li>In the <strong>WSLab-DC</strong> VM console session, start <strong>Windows PowerShell ISE</strong> as an administrator.</li>
+  <li>From the <strong>Administrator: Windows PowerShell ISE</strong> window, run <code>slmgr -rearm</code> and then select <strong>OK</strong>.</li>
+  <li>From the <strong>Administrator: Windows PowerShell ISE</strong> window, run <code>Restart-Computer -Force</code>.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: Make sure that the <strong>WSLab-DC</strong> VM is running before you proceed to the next task.</p>
+</blockquote>
+
+<h3 id="task-2-configure-the-management-server">Task 2: Configure the management server</h3>
+
+<ol>
+  <li>
+    <p>On the lab VM, from <strong>Hyper-V Manager</strong>, and connect with a console session to <strong>WSLab-Management</strong>. When prompted to sign in, provide the username <strong>CORP\LabAdmin</strong> and the password <strong>LS1setup!</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, start <strong>Windows PowerShell ISE</strong> as <strong>Administrator</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to install RSAT:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">Install-WindowsFeature -Name RSAT-Clustering,RSAT-Clustering-Mgmt,RSAT-Clustering-PowerShell,RSAT-Hyper-V-Tools,RSAT-AD-PowerShell,RSAT-ADDS
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Proceed to the next step without waiting for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, start another instance of <strong>Windows PowerShell ISE</strong> as <strong>Administrator</strong>.</p>
+  </li>
+  <li>
+    <p>From the newly started <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to download and install the Microsoft Edge (Chromium) browser:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">$progressPreference='SilentlyContinue'
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2069324&amp;language=en-us&amp;Consent=1" -UseBasicParsing -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
+Start-Process -FilePath "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe" -Wait
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Proceed to the next step without waiting for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, start another instance of <strong>Windows PowerShell ISE</strong> as <strong>Administrator</strong>.</p>
+  </li>
+  <li>
+    <p>From the newly started <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to download and install Windows Admin Center:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Invoke-WebRequest -UseBasicParsing -Uri https://aka.ms/WACDownload -OutFile "$env:USERPROFILE\Downloads\WindowsAdminCenter.msi"
+Start-Process msiexec.exe -Wait -ArgumentList "/i $env:USERPROFILE\Downloads\WindowsAdminCenter.msi /qn /L*v waclog.txt REGISTRY_REDIRECT_PORT_80=1 SME_PORT=443 SSL_CERTIFICATE_OPTION=generate"
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Proceed to the next step without waiting for the installation to complete.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Switch back to the first <strong>Administrator: Windows PowerShell ISE</strong> window where you initiated the installation of RSAT, and wait for the installation to complete.</p>
+  </li>
+  <li>
+    <p>To configure Kerberos-constrained delegation so as to minimize prompts for credentials when using Windows Admin Center, from the <strong>script</strong> pane, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">$gateway = "Management"
+$nodes = Get-ADComputer -Filter * -SearchBase "ou=workshop,DC=corp,dc=contoso,DC=com"
+$gatewayObject = Get-ADComputer -Identity $gateway
+foreach ($node in $nodes){
+ Set-ADComputer -Identity $node -PrincipalsAllowedToDelegateToAccount $gatewayObject
+}
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Before you proceed to the next step, verify that the Microsoft Edge and Windows Admin Center installations completed.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the other two instances of the <strong>Administrator: Windows PowerShell ISE</strong> window you opened earlier in this task.</p>
+  </li>
+  <li>
+    <p>Switch to the <strong>Microsoft Edge</strong> browser window, navigate to <code>https://management.corp.contoso.com</code>, and when prompted to authenticate, sign in as <strong>CORP\LabAdmin</strong> with the password <strong>LS1setup!</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="task-3-create-and-configure-a-failover-cluster">Task 3: Create and configure a failover cluster</h3>
+
+<ol>
+  <li>
+    <p>To provision a failover cluster, In the <strong>WSLab-Management</strong> VM console session, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">$servers = 1..6 | % {"S2D$_"}
+$clusterName = "S2D-Cluster"
+$clusterIP = "10.0.0.111"
+
+# Install features on servers
+Invoke-Command -computername $servers -ScriptBlock {
+    Install-WindowsFeature -Name "Failover-Clustering","Hyper-V-PowerShell","RSAT-Clustering-PowerShell"
+}
+
+# Restart servers since failover clustering in Windows Server 2019 requires reboot
+Restart-Computer -ComputerName $servers -Protocol WSMan -Wait -For PowerShell
+
+# Create cluster
+New-Cluster -Name $clusterName -Node $servers -StaticAddress $clusterIP
+Start-Sleep 5
+Clear-DNSClientCache
+
+# Add File Share Witness
+# Create a new directory
+$witnessName = $clusterName+"Witness"
+Invoke-Command -ComputerName DC -ScriptBlock {New-Item -Path c:\Shares -Name $using:WitnessName -ItemType Directory}
+$accounts = @()
+$accounts += "CORP\$($clusterName)$"
+$accounts += "CORP\Domain Admins"
+New-SmbShare -Name $witnessName -Path "c:\Shares\$witnessName" -FullAccess $accounts -CimSession DC -ErrorAction SilentlyContinue
+# Set NTFS permissions
+Invoke-Command -ComputerName DC -ScriptBlock {(Get-SmbShare $using:witnessName).PresetPathAcl | Set-Acl}
+# Set Quorum
+Set-ClusterQuorum -Cluster $clusterName -FileShareWitness "\\DC\$witnessName"
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Wait until the script completes before you proceed to the next task. This should take about 10 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-4-configure-fault-domains-on-the-failover-cluster">Task 4: Configure fault domains on the failover cluster</h3>
+
+<ol>
+  <li>
+    <p>To configure fault domains on the Storage Spaces Direct cluster, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">$clusterName="S2D-Cluster"
+
+# Create Fault domains with PowerShell (note: Enable-ClusterS2D will fail in Windows Server 2016. Fixed in Windows Server 2019)
+New-ClusterFaultDomain -Name "Rack01" -FaultDomainType Rack -Location "Contoso HQ, Room 4010, Aisle A, Rack 01" -CimSession $clusterName
+New-ClusterFaultDomain -Name "Rack02" -FaultDomainType Rack -Location "Contoso HQ, Room 4010, Aisle A, Rack 02" -CimSession $clusterName
+New-ClusterFaultDomain -Name "Rack03" -FaultDomainType Rack -Location "Contoso HQ, Room 4010, Aisle A, Rack 03" -CimSession $clusterName
+
+# Assign fault domains
+# Assign nodes to racks
+1..2 |ForEach-Object {Set-ClusterFaultDomain -Name "S2D$_" -Parent "Rack01" -CimSession $clusterName}
+3..4 |ForEach-Object {Set-ClusterFaultDomain -Name "S2D$_" -Parent "Rack02" -CimSession $clusterName}
+5..6 |ForEach-Object {Set-ClusterFaultDomain -Name "S2D$_" -Parent "Rack03" -CimSession $clusterName}
+</code></pre>
+  </li>
+  <li>
+    <p>To display the newly configured fault domains, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">$clusterName="S2D-Cluster"
+Get-ClusterFaultDomain -CimSession $clusterName
+Get-ClusterFaultDomainxml -CimSession $clusterName
+</code></pre>
+  </li>
+  <li>within the Windows Admin Center browser window, connect to the <code>s2d-cluster.corp.contoso.com</code> cluster.</li>
+  <li>
+    <p>Review the rack information for each node of the <code>s2d-cluster.corp.contoso.com</code> cluster.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> If necessary, select <strong>Install</strong> to install <strong>RSAT-Clustering-PowerShell</strong>, which is required by Windows Admin Center.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-5-enable-storage-spaces-direct-on-the-failover-cluster">Task 5: Enable Storage Spaces Direct on the failover cluster</h3>
+
+<ol>
+  <li>
+    <p>To enable Storage Spaces Direct on the cluster, In the <strong>WSLab-Management</strong> VM console session, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-powershell">$clusterName="S2D-Cluster"
+Enable-ClusterS2D -CimSession $clusterName -Verbose
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Wait for the installation to complete before you proceed to the next task. This should take about 3 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Review the provisioning steps and note that the Storage Spaces Direct cluster setup has automatically set the default fault domain awareness on the clustered storage subsystem.</p>
+  </li>
+</ol>
+
+<h3 id="task-6-review-the-fault-domain-configuration-on-the-storage-spaces-direct-cluster">Task 6: Review the fault domain configuration on the Storage Spaces Direct cluster</h3>
+
+<ol>
+  <li>
+    <p>To list storage pool properties, In the <strong>WSLab-Management</strong> VM console session, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-powershell">$clusterName="S2D-Cluster"
+Get-StoragePool -CimSession $clusterName -FriendlyName S2D* | fl *
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Verify that <strong>FaultDomainAwarenessDefault</strong> is automatically set to <strong>StorageRack</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To list properties of storage tiers, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-powershell">Get-StorageTier -CimSession s2d-cluster | fl *
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Verify that the two tiers named <strong>MirrorOnHDD</strong> and <strong>Capacity</strong> both have <strong>FaultDomainAwarenessDefault</strong> set to <strong>StorageRack</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-7-create-tiered-volumes-on-a-storage-spaces-direct-failover-cluster">Task 7: Create tiered volumes on a Storage Spaces Direct failover cluster</h3>
+
+<ol>
+  <li>
+    <p>To create a volume referencing the <strong>Capacity</strong> tier, In the <strong>WSLab-Management</strong> VM console session, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-powershell">New-Volume -StoragePoolFriendlyName s2d* -FriendlyName WithTier -FileSystem CSVFS_ReFS -StorageTierFriendlyNames Capacity -StorageTierSizes 1TB -CimSession $clusterName
+</code></pre>
+  </li>
+  <li>
+    <p>To create a volume not referencing any specific tier, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-powershell">New-Volume -StoragePoolFriendlyName s2d* -FriendlyName WithoutTier -FileSystem CSVFS_ReFS -Size 1TB -ResiliencySettingName Mirror -CimSession $clusterName
+</code></pre>
+  </li>
+  <li>In the <strong>WSLab-Management</strong> VM console session, refresh the Windows Admin Center browser window and navigate to the pane displaying the <strong>WithoutTier</strong> volume properties.</li>
+  <li>
+    <p>On the <strong>WithoutTier</strong> volume pane, note that <strong>Fault domain awareness</strong> is set to <strong>Rack</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> The actual <strong>FaultDomainAwareness</strong> property is defined on the virtual disk level.</p>
+    </blockquote>
+  </li>
+  <li>Within the Windows Admin Center browser window, navigate to the pane displaying the <strong>WithTier</strong> volume properties.</li>
+  <li>
+    <p>On the <strong>WithTier</strong> volume pane, note that <strong>Fault domain awareness</strong> is also set to <strong>Rack</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> The actual <strong>FaultDomainAwareness</strong> property is defined on the storage tier associated with the tiered disk.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-8-test-resiliency-of-the-storage-spaces-direct-cluster">Task 8: Test resiliency of the Storage Spaces Direct cluster</h3>
+
+<ol>
+  <li>
+    <p>To simulate a failure of an entire rack containing two cluster nodes, switch to the lab VM and in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-powershell">Get-VM -Name "WSLab-S2D1","WSLab-S2D2" | Stop-VM -TurnOff
+</code></pre>
+  </li>
+  <li>
+    <p>Switch to the console session connected to the <strong>WSLab-Management</strong> VM, and in the browser window displaying Windows Admin Center, navigate to the server inventory of the <code>s2d-cluster.corp.contoso.com</code> cluster.</p>
+  </li>
+  <li>
+    <p>Verify that the <strong>S2D1</strong> and <strong>S2D2</strong> nodes in <strong>Rack01</strong> are down, but that the cluster remains online.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> You might need to refresh the page displaying the Windows Admin Center interface to review the updated status of the cluster nodes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Navigate to the volume inventory of the <code>s2d-cluster.corp.contoso.com</code> cluster, and then verify that all volumes are healthy.</p>
+  </li>
+  <li>
+    <p>To simulate a storage failure caused by removing one capacity disk from both the <strong>S2D3</strong> and <strong>S2D4</strong> cluster nodes, switch to the lab VM, and in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-powershell">Get-VM -Name "WSLab-S2D3","WSLab-S2D4" | Get-VMHardDiskDrive | Where-Object controllerlocation -eq 1 | Remove-VMHardDiskDrive
+</code></pre>
+  </li>
+  <li>
+    <p>Switch to the console session connected to the <strong>WSLab-Management</strong> VM, and in the browser window displaying Windows Admin Center, review the volume inventory of the <code>s2d-cluster.corp.contoso.com</code> cluster, and verify that all volumes are still healthy.</p>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, in the browser window displaying Windows Admin Center, review the summary of drives, and verify that <strong>26</strong> out of <strong>72</strong> drives are listed as <strong>Critical</strong>.</p>
+  </li>
+  <li>
+    <p>To simulate a failure of all disks attached to both <strong>S2D3</strong> and <strong>S2D4</strong> cluster nodes, switch to the lab VM, and in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-powershell">Get-VM -Name "WSLab-S2D3","WSLab-S2D4" | Get-VMHardDiskDrive | Where-Object controllerlocation -ne 0 | Remove-VMHardDiskDrive
+</code></pre>
+  </li>
+  <li>
+    <p>Switch to the console session connected to the <strong>WSLab-Management</strong> VM, and in the browser window displaying Windows Admin Center, review the summary of drives, and verify that <strong>48</strong> out of <strong>72</strong> drives are listed as <strong>Critical</strong>.</p>
+  </li>
+  <li>
+    <p>Navigate to the volume inventory of the <code>s2d-cluster.corp.contoso.com</code> cluster, and verify that all volumes are healthy.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> The storage pool with all volumes might transition to the offline state if you trigger subsequent faults too quickly. If this happens, consider repeating this exercise and pausing between the steps of this task.</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>Note:</strong> The cluster, pool, and virtual disks are all capable of surviving another node failure providing their respective resources reside in the surviving rack.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, start <strong>Failover Cluster Manager</strong> and connect to the <code>s2d-cluster.corp.contoso.com</code> cluster.</p>
+  </li>
+  <li>
+    <p>In <strong>Failover Cluster Manager</strong>, identify the owner node of both the <strong>With Tier</strong> and <strong>Without Tier</strong> virtual disks. If the owner node is listed as <strong>S2D3</strong> or <strong>S2D4</strong>, move it to either <strong>S2D5</strong> or <strong>S2D6</strong>.</p>
+  </li>
+  <li>
+    <p>Identify the owner node of the <strong>Cluster Pool 1</strong> storage pool. If the owner node is listed as <strong>S2D3</strong> or <strong>S2D4</strong>, move it to either <strong>S2D5</strong> or <strong>S2D6</strong>.</p>
+  </li>
+  <li>
+    <p>To simulate a <strong>S2D3</strong> node failure, switch to the lab VM, and in the <strong>console</strong> pane of the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-powershell">Stop-VM -Name "WSLab-S2D3" -TurnOff
+</code></pre>
+  </li>
+  <li>
+    <p>Switch to the console session connected to the <strong>WSLab-Management</strong> VM, and then within the console session, in <strong>Failover Cluster Manager</strong>, verify that the <strong>S2D1</strong>, <strong>S2D2</strong>, and <strong>S2D3</strong> nodes are down but that the cluster remains online.</p>
+  </li>
+  <li>
+    <p>In <strong>Failover Cluster Manager</strong>, verify that all virtual disks are online.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> The disks might transition to the offline state if you trigger subsequent faults too quickly.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the <strong>WSLab-Management</strong> VM console session, switch to the browser window displaying Windows Admin Center and verify that all volumes of the <code>s2d-cluster.corp.contoso.com</code> cluster are healthy.</p>
+  </li>
+  <li>
+    <p>In the browser window displaying Windows Admin Center, navigate to the <code>s2d-cluster.corp.contoso.com</code> cluster’s drive inventory, and verify that <strong>48</strong> out of <strong>72</strong> drives are listed as <strong>Critical</strong>.</p>
+  </li>
+  <li>
+    <p>Review the results and verify that the cluster and its virtual disks remain online with only <strong>24</strong> out of <strong>72</strong> physical disks.</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>Note:</strong> The storage pool with all volumes might transition to the offline state if you trigger subsequent faults too quickly. If this happens, consider repeating this exercise and pausing between the steps of this task.</p>
+</blockquote>
+
+<h3 id="task-9-restore-failed-disks-and-nodes-on-the-storage-spaces-direct-cluster">Task 9: Restore failed disks and nodes on the Storage Spaces Direct cluster</h3>
+
+<ol>
+  <li>
+    <p>To return all disks to the <strong>S2D3</strong> and <strong>S2D4</strong> cluster nodes, switch to the lab VM, and in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-powershell">$vmNames="WSLab-S2D3","WSLab-S2D4"
+foreach ($vmName in $vmNames){
+  $vhds = (Get-ChildItem -Path "$((get-vm $vmName).ConfigurationLocation)\Virtual Hard Disks" | Where-Object name -like HDD*).FullName
+  foreach ($vhd in $vhds){
+     Add-VMHardDiskDrive -VMName $VMName -Path $VHD
+  }
+}
+</code></pre>
+  </li>
+  <li>
+    <p>On the lab VM, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to start the <strong>S2D1</strong>, <strong>S2D2</strong>, and <strong>S2D3</strong> cluster nodes:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-powershell">Start-VM -Name "WSLab-S2D1","WSLab-S2D2","WSLab-S2D3"
+</code></pre>
+  </li>
+  <li>
+    <p>Switch to the console session connected to the <strong>WSLab-Management</strong> VM, and in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the following command to identify the repair and regeneration jobs in progress:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-powershell">Get-StorageSubSystem -CimSession s2d-cluster -FriendlyName CL* | Get-StorageJob
+</code></pre>
+  </li>
+  <li>In the <strong>WSLab-Management</strong> VM console session, switch to the browser window displaying Windows Admin Center, and then review the status of the drives of the <code>s2d-cluster.corp.contoso.com</code> cluster.</li>
+  <li>
+    <p>Within the Windows Admin Center browser window, navigate to the <strong>Dashboard</strong> page of the <code>s2d-cluster.corp.contoso.com</code> cluster, and then review its contents to verify that it reports a status of <strong>Healthy</strong> for all cluster components, and that there are no alerts listed.</p>
+
+    <blockquote>
+      <p><strong>Note:</strong> The storage subsystem should return to the <strong>Healthy</strong> status in about 5 minutes. So, if you are still getting messages indicating storage faults, you might need to wait and rerun the cmdlet.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>To identify the health status of the Storage Spaces Direct cluster, In the <strong>WSLab-Management</strong> VM console session, switch to the <strong>Administrator: Windows PowerShell ISE</strong> window and run the following command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-powershell">Get-HealthFault -CimSession s2d-cluster
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note:</strong> Ignore faults regarding memory consumption on cluster nodes; these are expected.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="task-10-deprovision-the-lab-resources">Task 10: Deprovision the lab resources</h3>
+
+<ol>
+  <li>Switch to the lab VM.</li>
+  <li>On the lab VM, in the <strong>Administrator: Windows PowerShell ISE</strong> window, run the <strong>F:\WSLab-master\Scripts\Cleanup.ps1</strong> script to remove all VMs provisioned in this lab.</li>
+  <li>In the <strong>Administrator: Windows PowerShell ISE</strong> window, close the tab displaying the <strong>F:\WSLab-master\Scripts\Cleanup.ps1</strong> script.</li>
+</ol>
+
+<h2 id="results">Results</h2>
+
+<p>After completing this lab, you will have managed and monitored resiliency of a Storage Spaces Direct cluster.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/WS-013T00-Azure-Stack-HCI" target="_blank" class="ml-2">
+                    MicrosoftLearning/WS-013T00-Azure-Stack-HCI
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3Dc1a34ebd76602349c39aee3b5e82176550978cb5.js"></script>
+
+
+
+</body></html>

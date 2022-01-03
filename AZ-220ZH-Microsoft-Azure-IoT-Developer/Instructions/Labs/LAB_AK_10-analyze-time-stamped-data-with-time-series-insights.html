@@ -1,0 +1,573 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-220ZH-Microsoft-Azure-IoT-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-220ZH-Microsoft-Azure-IoT-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#练习-1验证实验室先决条件">练习 1：验证实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习-2设置时序见解">练习 2：设置时序见解</a></li><li class="nav-item"><a class="nav-link" href="#练习-3运行模拟-iot-设备">练习 3：运行模拟 IoT 设备</a></li><li class="nav-item"><a class="nav-link" href="#练习-4查看-azure-时序见解资源管理器">练习 4：查看 Azure 时序见解资源管理器</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="使用时序见解探索和分析具有时间戳的数据">使用时序见解探索和分析具有时间戳的数据</h1>
+
+<h2 id="实验室场景">实验室场景</h2>
+
+<p>你在实现 Azure IoT 服务和工具方面的辛勤工作已经取得了回报。Contoso 已推出其“资产状况跟踪系统”，该系统可在运输过程中监视奶酪集装箱的环境状况。</p>
+
+<p>启动新系统两星期后，它发现特定货物在运输途中出现温度峰值。运输途中一些奶酪受损，但是新系统确保不会将受影响的奶酪交付给客户。由于你比任何人都更加了解监控系统的 Azure IoT，因此你将负责调查工作。</p>
+
+<p>管理层已要求你确定是否可以改进系统，以防将来的产品损失。你可以将从运输过程中使用的卡车和飞机上获取的 IoT 设备的传感器数据相关联。似乎其中一辆卡车特定车辆区域的温度意外升高，导致其中一个集装箱（装有监控温度和湿度的 IoT 设备）内出现温度峰值。</p>
+
+<p>你的团队认为，对监视系统的进一步改进将需要进行近实时的数据探索和根本原因分析。</p>
+
+<p>你建议在 Azure IoT 解决方案中增加时序见解。这将使 Contoso 可以对卡车、飞机和集装箱中的 IoT 设备生成的大量时序数据进行快速存储、直观呈现和查询，并将不同时间的变化直观呈现出来。</p>
+
+<p>将创建以下资源：</p>
+
+<p><a href="media/LAB_AK_10-architecture.png" target="_blank"><img src="media/LAB_AK_10-architecture.png" alt="实验室 10 基础结构"></a></p>
+
+<h2 id="本实验室概览">本实验室概览</h2>
+
+<p>在本实验室中，你将完成以下活动：</p>
+
+<ul>
+  <li>
+    <p>验证是否满足实验室先决条件（具有必需的 Azure 资源）</p>
+
+    <ul>
+      <li>该脚本将创建 IoT 中心（如果需要）。</li>
+      <li>该脚本将为本实验室创建三个新的设备标识。</li>
+    </ul>
+  </li>
+  <li>创建 Azure 时序见解 (TSI) 环境</li>
+  <li>使用时序见解 (TSI) 连接到 IoT 中心</li>
+  <li>使用时序见解 (TSI) 资源管理器查看时序数据</li>
+</ul>
+
+<h2 id="实验室说明">实验室说明</h2>
+
+<h3 id="练习-1验证实验室先决条件">练习 1：验证实验室先决条件</h3>
+
+<p>本实验室假定以下 Azure 资源可用：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">资源类型</th>
+      <th style="text-align: left">资源名称</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">资源组</td>
+      <td style="text-align: left"><code>rg-az220</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">IoT 中心</td>
+      <td style="text-align: left"><code>iot-az220-training-{your-id}</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">设备 ID</td>
+      <td style="text-align: left"><code>sensor-th-truck0001</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">设备 ID</td>
+      <td style="text-align: left"><code>sensor-th-airplane0001</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">设备 ID</td>
+      <td style="text-align: left"><code>sensor-th-container0001</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>重要说明</strong>： 运行设置脚本以创建所需设备。</p>
+</blockquote>
+
+<p>若要创建任何缺少的资源和新设备，在开始练习 2 之前，需要先按照下面的说明运行 <strong>lab10-setup.azcli</strong> 脚本。脚本文件包含在本地克隆作为开发环境配置（实验室 3）的 GitHub 存储库中。</p>
+
+<p>写入 <strong>lab10-setup.azcli</strong> 脚本，并在 <strong>Bash</strong> shell 环境中运行，执行此操作最简便的方法是在 Azure Cloud Shell 中。</p>
+
+<ol>
+  <li>
+    <p>使用浏览器，打开 <a href="https://shell.azure.com/">Azure Cloud Shell</a>，并使用本课程使用的 Azure 订阅登录。</p>
+  </li>
+  <li>
+    <p>验证 Cloud Shell 是否在使用 <strong>Bash</strong>。</p>
+
+    <p>Azure Cloud Shell 页面左上角的下拉菜单用于选择环境。验证所选的下拉值是否为 <strong>Bash</strong>。</p>
+  </li>
+  <li>
+    <p>在 Cloud Shell 工具栏上，单击 <strong>“上传/下载文件”</strong> （从右数第四个按钮）。</p>
+  </li>
+  <li>
+    <p>在下拉菜单中，单击 <strong>“上传”</strong>。</p>
+  </li>
+  <li>
+    <p>在“文件选择”对话框中，导航到配置开发环境时下载的 GitHub 实验室文件的文件夹位置。</p>
+
+    <p>在“实验室 3：<em>设置开发环境</em>，你可以通过下载 ZIP 文件并从本地提取内容来克隆包含实验室资源的 GitHub 存储库。提取的文件夹结构包括以下文件夹路径：</p>
+
+    <ul>
+      <li>Allfiles
+        <ul>
+          <li>实验室
+            <ul>
+              <li>10-利用时序见解探索和分析时间戳数据
+                <ul>
+                  <li>设置</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>lab10-setup.azcli 脚本文件位于实验室 10 的 Setup 文件夹中。</p>
+  </li>
+  <li>
+    <p>选择 <strong>“lab10-setup.azcli”</strong> 文件，然后单击 <strong>“打开”</strong>。</p>
+
+    <p>文件上传完成后，系统将显示一条通知。</p>
+  </li>
+  <li>
+    <p>若要验证在 Azure Cloud Shell 中已上传了正确文件，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs"> ls
+</code></pre>
+
+    <p>使用 <code>ls</code> 命令列出当前目录的内容。你应该会看到列出的 lab10-setup.azcli 文件。</p>
+  </li>
+  <li>
+    <p>若要为此实验室创建一个包含安装脚本的目录，然后移至该目录，请输入以下 Bash 命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs"> mkdir lab10
+ mv lab10-setup.azcli lab10
+ <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> lab10
+</code></pre>
+  </li>
+  <li>
+    <p>为了确保 <strong>lab10-setup.azcli</strong> 具有执行权限，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs"> chmod +x lab10-setup.azcli
+</code></pre>
+  </li>
+  <li>
+    <p>在 Cloud Shell 工具栏上，请单击 <strong>“打开编辑器”</strong> （右侧的第二个按钮 - <strong>{ }</strong>）以启用对 lab10-setup.azcli 文件的访问。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件存储”</strong> 列表中，展开 lab10 文件夹并打开脚本文件，单击 <strong>“lab10”</strong>，然后单击 <strong>“lab10-setup.azcli”</strong>。</p>
+
+    <p>编辑器现在将显示 <strong>“lab10-setup.azcli”</strong> 文件的内容。</p>
+  </li>
+  <li>
+    <p>在编辑器中，更新 <code>{your-id}</code> 和 <code>{your-location}</code> 分配的值。</p>
+
+    <p>以下面的示例为例，需要将 <code>{your-id}</code> 设置为在本课程开始时创建的唯一 ID，即 <strong>cah191211</strong>，然后将 <code>{your-location}</code> 设置为对你的资源有意义的位置。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs"> <span class="hljs-comment"><span class="hljs-comment">#!/bin/bash</span></span>
+
+ <span class="hljs-comment"><span class="hljs-comment"># 更改这些值！</span></span>
+ YourID=<span class="hljs-string"><span class="hljs-string">"{your-id}"</span></span>
+ Location=<span class="hljs-string"><span class="hljs-string">"{your-location}"</span></span>
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注：</strong>  应将 <code>{your-location}</code> 变量设置为要部署所有资源的区域的短名称。输入以下命令，可以看到可用位置及其短名称的列表（<strong>“名称”</strong> 列）：</p>
+    </blockquote>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs"> az account list-locations -o Table
+
+ DisplayName           Latitude    Longitude    Name
+ --------------------  ----------  -----------  ------------------
+ East Asia             22.267      114.188      eastasia
+ Southeast Asia        1.283       103.833      southeastasia
+ Central US            41.5908     -93.6208     centralus
+ East US               37.3719     -79.8164     eastus
+ East US 2             36.6681     -78.3889     eastus2
+</code></pre>
+  </li>
+  <li>
+    <p>要保存对文件所做的更改并关闭编辑器，请单击编辑器窗口右上角的 “<strong>…</strong>”，然后单击 <strong>“关闭编辑器”</strong>。</p>
+
+    <p>如果提示保存，请单击 <strong>“保存”</strong>，编辑器将会关闭。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  可以使用 <strong>Ctrl+S</strong> 随时保存，使用 <strong>Ctrl+Q</strong> 关闭编辑器。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>要创建本实验室所需的资源，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-bash hljs"> ./lab10-setup.azcli
+</code></pre>
+
+    <p>运行此脚本可能需要几分钟。每个步骤完成时，你都会看到输出。</p>
+
+    <p>该脚本将首先创建一个名为 <strong>rg-az220</strong> 的资源组和一个名为 <strong>iot-az220-training-{your-id}</strong> 的 IoT 中心。如果它们已经存在，将显示相应的消息。然后，该脚本会向 IoT 中心添加三个设备并显示设备连接字符串。设备 ID 为： <strong>Sensor-th-truck0001</strong>、 <strong>sensor-th-airplane0001</strong> 和 <strong>sensor-th-container0001</strong>。</p>
+  </li>
+  <li>
+    <p>请注意，脚本完成后，将显示每个设备的连接字符串。</p>
+
+    <p>连接字符串以 “HostName=” 开头</p>
+  </li>
+  <li>
+    <p>将每个设备的连接字符串复制到文本文档中。</p>
+
+    <p>将连接字符串保存到可以轻松找到的位置后，便可以继续进行本实验室的操作。连接字符串指定与其关联的设备的设备 ID。</p>
+  </li>
+</ol>
+
+<h3 id="练习-2设置时序见解">练习 2：设置时序见解</h3>
+
+<p>Azure 时序见解 (TSI) 是一种端对端平台即服务产品/服务，用于大规模收集、处理、存储、分析和查询 IoT 解决方案中的数据。TSI 专为临时数据资源管理以及针对时序进行了高度语境化和优化的数据的操作分析而设计。</p>
+
+<p>在本练习中，你将设置时序见解与 Azure IoT 中心的集成。</p>
+
+<ol>
+  <li>
+    <p>使用你的 Azure 帐户凭据登录到 <a href="https://portal.azure.com">portal.azure.com</a>。</p>
+
+    <p>如果有多个 Azure 帐户，请确保使用与本课程要使用的订阅绑定的帐户登录。</p>
+  </li>
+  <li>
+    <p>在 Azure 门户菜单上，单击 <strong>“+ 创建资源”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“新建”</strong> 边栏选项卡的 <strong>“搜索市场”</strong> 文本框中，输入 <strong>“时序见解”</strong></p>
+  </li>
+  <li>
+    <p>在搜索结果中，单击 <strong>“时序见解”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“时序见解”</strong> 边栏选项卡上，单击 <strong>“创建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“创建时序见解环境”</strong> 边栏选项卡的 <strong>“环境名称”</strong> 字段中，输入 <strong>“tsi-az220-training”</strong></p>
+  </li>
+  <li>
+    <p>在 <strong>“订阅”</strong> 下拉列表中，选择你用于本课程的订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“资源组”</strong> 下拉列表中，单击 <strong>“rg-az220”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“位置”</strong> 下拉列表中，选择你的资源组使用的 Azure 区域。</p>
+  </li>
+  <li>
+    <p>在 <strong>“层级”</strong> 字段中，请确保已选中 <strong>“Gen1 (S1)”</strong> 定价层，且 <strong>“容量”</strong> 设置为 <strong>“1”</strong>。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡底部，单击 <strong>“下一步: 事件源”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“事件源详细信息”</strong> 部分，确保 <strong>“创建事件源?”</strong> 设置为 <strong>“是”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“名称”</strong> 字段中，输入 <strong>“iot-az220-training-{your-id}”</strong>，为该事件源指定唯一名称。</p>
+  </li>
+  <li>
+    <p>在 <strong>“源类型”</strong> 下拉列表中，请确保已选中 <strong>“IoT 中心”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“选择一个中心”</strong> 下拉列表中，请确保已选中 <strong>“选择现有中心”</strong>。</p>
+
+    <p>这使你能够选择一个已预配的现有 IoT 中心。</p>
+  </li>
+  <li>
+    <p>在 <strong>“订阅”</strong> 下拉列表中，选择你用于本课程的订阅。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 中心名称”</strong> 下拉列表中，选择已预配的 <strong>“iot-az220-training-{your-id}”</strong> Azure IoT 中心服务。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 中心访问策略名称”</strong> 下拉列表中，单击 <strong>“iothubowner”</strong>。</p>
+
+    <p>在生产环境中，最佳做法是在 Azure IoT 中心内创建一个新的“访问策略”__，用于配置对时序见解 (TSI) 的访问。这将使 TSI 的安全性可以独立于连接到同一 Azure IoT 中心的任何其他服务进行管理。  为了方便起见，在这里不这样做。</p>
+  </li>
+  <li>
+    <p>在 <strong>“使用者组”</strong> 部分下的 <strong>“IoT 中心使用者组”</strong> 下拉列表中，单击 <strong>“新建”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“IoT 中心使用者组”</strong> 框中，输入 <strong>“tsievents”</strong>，然后单击 <strong>“添加”</strong>。</p>
+
+    <p>这将添加一个新的“使用者组”__，用于此事件源。使用者组必须专用于此事件源，因为一次只能有一个来自特定使用者组的活动读者。</p>
+  </li>
+  <li>
+    <p>在 <strong>“时间戳”</strong> 部分，将 <strong>“属性名称”</strong> 留空。</p>
+  </li>
+  <li>
+    <p>在边栏选项卡底部，单击 <strong>“查看 + 创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 如果立即返回到 <em>“事件源”</em> 窗格，请再次检查你是否单击了 <strong>“IoT 中心使用者组”</strong> 字段右边的 <strong>“添加”</strong>。在创建使用者组之前，无法创建 TSI 资源。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在边栏选项卡底部，单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong>  时序见解 (TSI) 的部署需要几分钟才能完成。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>完成时序见解部署后，请导航回到仪表板。</p>
+  </li>
+  <li>
+    <p>刷新资源组磁贴，然后单击 <strong>“tsi-az220-training”</strong>。</p>
+
+    <p>你可能需要调整仪表板的大小才能看到所有资源。</p>
+
+    <blockquote>
+      <p><strong>备注：</strong> 你已将 <strong>“时序见解环境”</strong> 资源命名为 <strong>“tsi-az220-training”</strong>。你还应该能看到你创<em>建的时序见解事件源</em>，但你现在想打开 TSI 环境。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“时序见解环境”</strong> 边栏选项卡的左侧菜单中，在 <strong>“设置”</strong> 下方，单击 <strong>“事件源”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“事件源”</strong> 窗格中，请注意列表中的 <strong>“iot-az220-training-{your-id}”</strong> 事件源。</p>
+
+    <p>这是创建 TSI 资源时配置的事件源。</p>
+  </li>
+  <li>
+    <p>要查看事件源的详细信息，请单击 <strong>“iot-az220-training-{your-id}”</strong>。</p>
+
+    <p>请注意，事件源的配置与创建时序见解资源时设置的配置相匹配。</p>
+  </li>
+</ol>
+
+<h3 id="练习-3运行模拟-iot-设备">练习 3：运行模拟 IoT 设备</h3>
+
+<p>在本练习中，你将运行模拟的设备，以便它们开始将遥测事件发送到 Azure IoT 中心。</p>
+
+<ol>
+  <li>
+    <p>打开 <strong>Visual Studio Code</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 菜单上，单击 <strong>“打开文件夹”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“打开文件夹”</strong> 对话框中，导航到实验室 10 的 Starter 文件夹。</p>
+
+    <p>在“实验室 3：<em>设置开发环境</em>，你可以通过下载 ZIP 文件并从本地提取内容来克隆包含实验室资源的 GitHub 存储库。提取的文件夹结构包括以下文件夹路径：</p>
+
+    <ul>
+      <li>Allfiles
+        <ul>
+          <li>实验室
+            <ul>
+              <li>10-利用时序见解探索和分析时间戳数据
+                <ul>
+                  <li>入门</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>在 <strong>“打开文件夹”</strong> 对话框中，单击 <strong>“ContainerSimulation”</strong>，然后单击 <strong>“选择文件夹”</strong>。</p>
+
+    <p>如果出现提示，请加载 C# 扩展和/或执行还原。</p>
+  </li>
+  <li>
+    <p>在“资源管理器”窗格中，请单击 <strong>“Program.cs”</strong> 打开 <strong>“Program.cs”</strong> 文件。</p>
+  </li>
+  <li>
+    <p>找到用于分配连接字符串的变量</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> connectionStringTruck = <span class="hljs-string"><span class="hljs-string">"{Your Truck device connection string here}"</span></span>;
+ <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> connectionStringAirplane = <span class="hljs-string"><span class="hljs-string">"{Your Airplane device connection string here}"</span></span>;
+ <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">readonly</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> connectionStringContainer = <span class="hljs-string"><span class="hljs-string">"{Your Container device connection string here}"</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>使用你之前在实验室中保存的连接字符串更新变量分配。</p>
+
+    <p>务必将占位符值替换为相应的 IoT 设备的连接字符串。</p>
+  </li>
+  <li>
+    <p>在 <strong>“文件”</strong> 菜单中，单击 <strong>“保存”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“查看”</strong> 菜单中，单击 <strong>“终端”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“终端”</strong> 窗格中，确保命令提示符指定了实验室 10 <code>/Starter/ContainerSimulation</code> 目录的路径。</p>
+  </li>
+  <li>
+    <p>在命令提示符处，要生成并运行 <strong>ContainerSimulation</strong> 应用，请输入以下命令：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-cmd/sh"> dotnet run
+</code></pre>
+  </li>
+  <li>
+    <p>请注意“终端”窗格中显示的消息。</p>
+
+    <p><strong>ContainerSimulation</strong> 应用运行时，它会开始向终端输出遥测数据。这是正在向 Azure IoT 中心发送的遥测数据。</p>
+
+    <p><strong>ContainerSimulation</strong> 应用运行时，<strong>终端</strong>输出将类似于以下内容：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-text"> 12/27/2019 8:51:30 PM &gt; Sending TRUCK message: {"temperature":35.15660452608195,"humidity":48.422323938240865}
+ 12/27/2019 8:51:31 PM &gt; Sending AIRPLANE message: {"temperature":17.126545186374237,"humidity":36.46941012936869}
+ 12/27/2019 8:51:31 PM &gt; Sending CONTAINER message: {"temperature":21.986403302500637,"humidity":47.847680384455096}
+ 12/27/2019 8:51:32 PM &gt; Sending TRUCK message: {"temperature":36.10474464823629,"humidity":48.82029906486022}
+ 12/27/2019 8:51:32 PM &gt; Sending AIRPLANE message: {"temperature":16.55005930170971,"humidity":36.49988437459935}
+ 12/27/2019 8:51:32 PM &gt; Sending CONTAINER message: {"temperature":21.811727088543286,"humidity":50.0}
+</code></pre>
+  </li>
+  <li>
+    <p>在本实验室的剩余部分内，让 <strong>ContainerSimulation</strong> 应用保持运行状态。</p>
+
+    <p>这将确保三个设备（集装箱、卡车和飞机）的设备遥测数据都会发送到 Azure IoT 中心。</p>
+  </li>
+  <li>
+    <p>在 <strong>ContainerSimulation</strong> 应用运行 30 秒后，你将看到一条消息，显示<strong>集装箱</strong>设备正在改变运输方式。</p>
+
+    <p>运输方式将每隔 30 秒在<strong>卡车</strong>和<strong>飞机</strong>之间切换。这种情况下，<strong>终端</strong>输出将如下所示：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-text"> 12/27/2019 8:51:40 PM &gt; CONTAINER transport changed to: TRUCK
+</code></pre>
+
+    <blockquote>
+      <p><strong>备注：</strong>  在生产中，集装箱仅在正常运输过程中改变运输方式。对于本实验室中的模拟场景，运输方式每 30 秒改变一次，以提供适合本实验室中的步骤执行过程的足够短的数据周期。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-4查看-azure-时序见解资源管理器">练习 4：查看 Azure 时序见解资源管理器</h3>
+
+<p>本练习将向你介绍如何使用时序见解 (TSI) 资源管理器处理时序数据。</p>
+
+<ol>
+  <li>
+    <p>如果需要，请使用你的 Azure 帐户凭据登录到 <a href="https://portal.azure.com">portal.azure.com</a>。</p>
+
+    <p>如果有多个 Azure 帐户，请确保使用与本课程要使用的订阅绑定的帐户登录。</p>
+  </li>
+  <li>
+    <p>在“资源组”磁贴中，单击 <strong>“tsi-az220-training”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“时序见解环境”</strong> 边栏选项卡的 <strong>“概述”</strong> 窗格顶部，单击 <strong>“转到 TSI 资源管理器”</strong>。</p>
+
+    <p>这将在新的浏览器选项卡中打开 <strong>“Azure 时序见解资源管理器”</strong>。</p>
+  </li>
+  <li>
+    <p>在左侧菜单上，确保已选中 <strong>“分析”</strong>。</p>
+
+    <p>你可以展开导航菜单，以显示按钮名称。这两个选项是“分析”和“模型”。选择“分析”。</p>
+
+    <p>折叠导航菜单，以确保你可以在页面左侧看到查询编辑区域。</p>
+  </li>
+  <li>
+    <p>要开始编辑查询，请单击 <strong>“添加新查询”</strong>。</p>
+  </li>
+  <li>
+    <p>在查询编辑器中的 <strong>“查询 1”</strong> 下，打开 <strong>“度量值”</strong> 下拉列表，然后单击 <strong>“温度”</strong>。</p>
+  </li>
+  <li>
+    <p>打开 <strong>“拆分方式”</strong> 下拉列表，然后单击 <strong>“iothub-connection-device-id”</strong>。</p>
+
+    <p>运行查询时，将拆分图表，以在图表上单独显示来自每个 IoT 设备的遥测数据。</p>
+  </li>
+  <li>
+    <p>要自动刷新显示界面，请在页面顶部单击 <strong>“自动刷新”</strong>。</p>
+
+    <p><strong>“自动刷新”</strong> 启用时，将每隔 30 秒__更新显示界面，以显示最新数据。这仅适用于最后 1 个小时的可用数据。</p>
+  </li>
+  <li>
+    <p>请注意，该图表现在以折线图__的形式显示来自 Azure IoT 中心内的 IoT 设备<strong>的温度</strong>传感器事件数据。</p>
+  </li>
+  <li>
+    <p>注意图表左侧的 <strong>“设备 ID”</strong> 列表。</p>
+
+    <p>将鼠标悬停在某个设备 ID 上时，将在图表显示界面突出显示该设备 ID 的数据。</p>
+  </li>
+  <li>
+    <p>花点时间检查从三个模拟设备流向系统的遥测数据中的温度数据（图表）。</p>
+  </li>
+  <li>
+    <p>请注意，<strong>sensor-th-container0001</strong> 的<strong>温度</strong>峰值与 <strong>sensor-th-truck0001</strong> 或 <strong>sensor-th-airplane0001</strong> 的温度峰值相关联。</p>
+
+    <p>这表示当时正在使用卡车或飞机运输 sensor-th-container0001。</p>
+  </li>
+  <li>
+    <p>要在显示界面中添加第二个查询，请单击 <strong>“添加新查询”</strong>。</p>
+  </li>
+  <li>
+    <p>在 <strong>“查询 2”</strong> 下，将 <strong>“度量值”</strong> 下拉列表设置为 <strong>“湿度”</strong>，将 <strong>“拆分方式”</strong> 下拉列表设置为 <strong>“iothub-connection-device-id”</strong>，然后单击 <strong>“添加”</strong>。</p>
+
+    <p>请注意，现在显示了两个图表。上图显示<strong>温度</strong>，下图显示<strong>湿度</strong>，两个图使用各自的 Y 轴刻度。</p>
+  </li>
+  <li>
+    <p>将鼠标指针放在其中一条图形线条上。</p>
+
+    <p>请注意，将鼠标光标悬停在图表上时，将出现一个弹出窗口，显示图表上某个点的详细信息。弹出窗口显示图表中数据点的最小 (<strong>min</strong>)、平均 (<strong>avg</strong>) 和最大 (<strong>max</strong>) 值（该点在短时间内所表示的值）。与所选数据点关联的时间范围显示在显示器底部的时间轴上。</p>
+  </li>
+  <li>
+    <p>请注意垂直轴线上方可用于控制图表设置的选项。</p>
+  </li>
+  <li>
+    <p>将间隔设置更改为 15 秒。</p>
+
+    <p>请注意数据的显示情况如何随着间隔的增加而变化。</p>
+  </li>
+</ol>
+
+<p>完成数据资源管理后，务必在终端按 <strong>CTRL+C</strong> 停止集装箱模拟器应用。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-220ZH-Microsoft-Azure-IoT-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D653337691cd169b6aa5719d4ea66f4e6a878a19c.js"></script>
+
+
+
+</body></html>

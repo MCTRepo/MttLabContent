@@ -1,0 +1,893 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="m02-unit-3-create-and-configure-a-virtual-network-gateway">M02-Unit 3 Create and configure a virtual network gateway</h1>
+
+<p>In this exercise you will configure a virtual network gateway to connect the Contoso Core Services VNet and Manufacturing VNet.</p>
+
+<p>In this exercise, you will:</p>
+
+<ul>
+  <li>Task 1: Create CoreServicesVnet and ManufacturingVnet</li>
+  <li>Task 2: Create CoreServicesTestVM</li>
+  <li>Task 3: Create ManufacturingTestVM</li>
+  <li>Task 4: Connect to the Test VMs using RDP</li>
+  <li>Task 5: Test the connection between the VMs</li>
+  <li>Task 6: Create CoreServicesVnet Gateway</li>
+  <li>Task 7: Create ManufacturingVnet Gateway</li>
+  <li>Task 8: CoreServicesVnet to ManufacturingVnet</li>
+  <li>Task 9: Connect ManufacturingVnet to CoreServicesVnet</li>
+  <li>Task 10: Verify that the connections connect</li>
+  <li>Task 11: Test the connection between the VMs</li>
+</ul>
+
+<h2 id="task-1-create-coreservicesvnet-and-manufacturingvnet">Task 1: Create CoreServicesVnet and ManufacturingVnet</h2>
+
+<ol>
+  <li>
+    <p>In the Azure portal, open the <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, click the Upload/Download files icon, in the drop-down menu, click Upload and upload the following files <strong>azuredeploy.json</strong> and <strong>azuredeploy.parameters.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>Deploy the following ARM templates to create the virtual network and subnets needed for this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$RGName = "ContosoResourceGroup"
+#create resource group if it doesnt exist
+New-AzResourceGroup -Name $RGName -Location East US
+New-AzResourceGroupDeployment -ResourceGroupName $RGName -TemplateFile azuredeploy.json -TemplateParameterFile azuredeploy.parameters.json
+</code></pre>
+  </li>
+</ol>
+
+<h2 id="task-2-create-coreservicestestvm">Task 2: Create CoreServicesTestVM</h2>
+
+<ol>
+  <li>
+    <p>On the Azure home page, using the global search type <strong>Virtual Machines</strong> and select virtual machines under services.</p>
+  </li>
+  <li>
+    <p>In Virtual Machines, select <strong>+ Create; + Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>Use the information in the following table to create your VM.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Tab</strong></th>
+          <th><strong>Option</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Basics</td>
+          <td>Resource group</td>
+          <td>ContosoResourceGroup</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Virtual machine name</td>
+          <td>CoreServicesTestVM</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Region</td>
+          <td>East US</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Availability options</td>
+          <td>No infrastructure redundancy required</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Image</td>
+          <td>Windows Server 2022 Datacenter- Gen1</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Azure Spot instance</td>
+          <td>Not selected</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Size</td>
+          <td>Standard_D2s_v3 - 2vcpus, 8GiB memory</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Username</td>
+          <td>TestUser</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Password</td>
+          <td>TestPa$$w0rd!</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Public inbound ports</td>
+          <td>Allow selected ports</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Select inbound ports</td>
+          <td>RDP (3389)</td>
+        </tr>
+        <tr>
+          <td>Disks</td>
+          <td>No changes required</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Networking</td>
+          <td>Virtual network</td>
+          <td>CoreServicesVnet</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Subnet</td>
+          <td>DatabaseSubnet (10.20.20.0/24)</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Public IP</td>
+          <td>(new) CoreServicesTestVM-ip</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>NIC network security group</td>
+          <td>Basic</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Public inbound ports</td>
+          <td>Allow selected ports</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Select inbound ports</td>
+          <td>RDP (3389)</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Load balancing</td>
+          <td>Not selected</td>
+        </tr>
+        <tr>
+          <td>Management</td>
+          <td>No changes required</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Advanced</td>
+          <td>No changes required</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Tags</td>
+          <td>No changes required</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Review + create</td>
+          <td>Review your settings and select Create</td>
+          <td>&nbsp;</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>When the deployment is complete, select <strong>Go to resource</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-3-create-manufacturingtestvm">Task 3: Create ManufacturingTestVM</h2>
+
+<ol>
+  <li>
+    <p>On the Azure home page, using the global search type <strong>Virtual Machines</strong> and select virtual machines under services.</p>
+  </li>
+  <li>
+    <p>In Virtual Machines, select <strong>+ Create; + Virtual machine</strong>.</p>
+  </li>
+  <li>
+    <p>Use the information in the following table to create your VM.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Tab</strong></th>
+          <th><strong>Option</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Basics</td>
+          <td>Resource group</td>
+          <td>ContosoResourceGroup</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Virtual machine name</td>
+          <td>ManufacturingTestVM</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Region</td>
+          <td>West Europe</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Availability options</td>
+          <td>No infrastructure redundancy required</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Image</td>
+          <td>Windows Server 2022 Datacenter- Gen1</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Azure Spot instance</td>
+          <td>Not selected</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Size</td>
+          <td>Standard_D2s_v3 - 2vcpus, 8GiB memory</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Username</td>
+          <td>TestUser</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Password</td>
+          <td>TestPa$$w0rd!</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Public inbound ports</td>
+          <td>Allow selected ports</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Select inbound ports</td>
+          <td>RDP (3389)</td>
+        </tr>
+        <tr>
+          <td>Disks</td>
+          <td>No changes required</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Networking</td>
+          <td>Virtual network</td>
+          <td>ManufacturingVnet</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Subnet</td>
+          <td>ManufacturingSystemSubnet (10.40.40.0/24)</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Public IP</td>
+          <td>(new) ManufacturingTestVM-ip</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>NIC network security group</td>
+          <td>Basic</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Public inbound ports</td>
+          <td>Allow selected ports</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Select inbound ports</td>
+          <td>RDP (3389)</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Load balancing</td>
+          <td>Not selected</td>
+        </tr>
+        <tr>
+          <td>Management</td>
+          <td>No changes required</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Advanced</td>
+          <td>No changes required</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Tags</td>
+          <td>No changes required</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Review + create</td>
+          <td>Review your settings and select <strong>Create</strong></td>
+          <td>&nbsp;</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>When the deployment is complete, select <strong>Go to resource</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-4-connect-to-the-test-vms-using-rdp">Task 4: Connect to the Test VMs using RDP</h2>
+
+<ol>
+  <li>On the Azure Portal home page, select <strong>Virtual Machines</strong>.</li>
+  <li>Select <strong>ManufacturingTestVM</strong>.</li>
+  <li>In <strong>ManufacturingTestVM</strong>, select <strong>Connect &gt; RDP</strong>.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>In **ManufacturingTestVM</td>
+          <td>Connect<strong>, select **Download RDP file</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Save the RDP file to your desktop.</li>
+  <li>Connect to ManufacturingTestVM using the RDP file, and the username <strong>TestUser</strong> and the password <strong>TestPa$w0rd!</strong>.</li>
+  <li>On the Azure Portal home page, select <strong>Virtual Machines</strong>.</li>
+  <li>Select <strong>CoreServicesTestVM</strong>.</li>
+  <li>In <strong>CoreServicesTestVM</strong>, select <strong>Connect &gt; RDP</strong>.</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>In **CoreServicesTestVM</td>
+          <td>Connect<strong>, select **Download RDP file</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Save the RDP file to your desktop.</li>
+  <li>Connect to CoreServicesTestVM using the RDP file, and the username <strong>TestUser</strong> and the password <strong>TestPa$w0rd!</strong>.</li>
+  <li>On both VMs, in <strong>Choose privacy settings for your device</strong>, select <strong>Accept</strong>.</li>
+  <li>On both VMs, in <strong>Networks</strong>, select <strong>Yes</strong>.</li>
+  <li>On CoreServicesTestVM, open PowerShell, and run the following command: ipconfig</li>
+  <li>Note the IPv4 address.</li>
+</ol>
+
+<h2 id="task-5-test-the-connection-between-the-vms">Task 5: Test the connection between the VMs</h2>
+
+<ol>
+  <li>
+    <p>On the <strong>ManufacturingTestVM</strong>, open PowerShell.</p>
+  </li>
+  <li>
+    <p>Use the following command to verify that there is no connection to CoreServicesTestVM on CoreServicesVnet. Be sure to use the IPv4 address for CoreServicesTestVM.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-Powershell">Test-NetConnection 10.20.20.4 -port 3389
+</code></pre>
+  </li>
+  <li>
+    <p>The test connection should fail, and you will see a result similar to the following:</p>
+
+    <p><a href="../media/test-netconnection-fail.png" target="_blank"><img src="../media/test-netconnection-fail.png" alt="Test-NetConnection failed."></a></p>
+  </li>
+</ol>
+
+<h2 id="task-6-create-coreservicesvnet-gateway">Task 6: Create CoreServicesVnet Gateway</h2>
+
+<ol>
+  <li>
+    <p>In <strong>Search resources, services, and docs (G+/)</strong>, enter <strong>Virtual network gateway</strong>, and then select <strong>Virtual network gateways</strong> from the results.
+<a href="../media/virtual-network-gateway-search.png" target="_blank"><img src="../media/virtual-network-gateway-search.png" alt="Search for virtual network gateway on Azure Portal."></a></p>
+  </li>
+  <li>
+    <p>In Virtual network gateways, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>Use the information in the following table to create the virtual network gateway:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Tab</strong></th>
+          <th><strong>Section</strong></th>
+          <th><strong>Option</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Basics</td>
+          <td>Project Details</td>
+          <td>Subscription</td>
+          <td>No changes required</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>ResourceGroup</td>
+          <td>ContosoResourceGroup</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Instance Details</td>
+          <td>Name</td>
+          <td>CoreServicesVnetGateway</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Region</td>
+          <td>East US</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Gateway type</td>
+          <td>VPN</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>VPN type</td>
+          <td>Route-based</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>SKU</td>
+          <td>VpnGw1</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Generation</td>
+          <td>Generation1</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Virtual network</td>
+          <td>CoreServicesVnet</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Subnet</td>
+          <td>GatewaySubnet (10.20.0.0/27)</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Public IP address</td>
+          <td>Public IP address</td>
+          <td>Create new</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Public IP address name</td>
+          <td>CoreServicesVnetGateway-ip</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Public IP address SKU</td>
+          <td>Basic</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Enable active-active mode</td>
+          <td>Disabled</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Configure BGP</td>
+          <td>Disabled</td>
+        </tr>
+        <tr>
+          <td>Review + create</td>
+          <td>&nbsp;</td>
+          <td>Review your settings and select <strong>Create</strong>.</td>
+          <td>&nbsp;</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p>[!NOTE]</p>
+
+      <p>It can take up to 45 minutes to create a virtual network gateway.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="task-7-create-manufacturingvnet-gateway">Task 7: Create ManufacturingVnet Gateway</h2>
+
+<ol>
+  <li>
+    <p>In <strong>Search resources, services, and docs (G+/)</strong>, enter <strong>Virtual network gateway</strong>, and then select <strong>Virtual network gateways</strong> from the results.</p>
+  </li>
+  <li>
+    <p>In Virtual network gateways, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>Use the information in the following table to create the virtual network gateway:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Tab</strong></th>
+          <th><strong>Section</strong></th>
+          <th><strong>Option</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Basics</td>
+          <td>Project Details</td>
+          <td>Subscription</td>
+          <td>No changes required</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>ResourceGroup</td>
+          <td>ContosoResourceGroup</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Instance Details</td>
+          <td>Name</td>
+          <td>ManufacturingVnetGateway</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Region</td>
+          <td>West Europe</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Gateway type</td>
+          <td>VPN</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>VPN type</td>
+          <td>Route-based</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>SKU</td>
+          <td>VpnGw1</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Generation</td>
+          <td>Generation1</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Virtual network</td>
+          <td>ManufacturingVnet</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Subnet</td>
+          <td>GatewaySubnet (10.30.0.0/27)</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>Public IP address</td>
+          <td>Public IP address</td>
+          <td>Create new</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Public IP address name</td>
+          <td>ManufacturingVnetGateway-ip</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Public IP address SKU</td>
+          <td>Basic</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Enable active-active mode</td>
+          <td>Disabled</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>Configure BGP</td>
+          <td>Disabled</td>
+        </tr>
+        <tr>
+          <td>Review + create</td>
+          <td>&nbsp;</td>
+          <td>Review your settings and select <strong>Create</strong>.</td>
+          <td>&nbsp;</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p>[!NOTE]</p>
+
+      <p>It can take up to 45 minutes to create a virtual network gateway.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="task-8-connect-coreservicesvnet-to-manufacturingvnet">Task 8: Connect CoreServicesVnet to ManufacturingVnet</h2>
+
+<ol>
+  <li>
+    <p>In <strong>Search resources, services, and docs (G+/)</strong>, enter <strong>Virtual network gateway</strong>, and then select <strong>Virtual network gateways</strong> from the results.</p>
+  </li>
+  <li>
+    <p>In Virtual network gateways, select <strong>CoreServicesVnetGateway</strong>.</p>
+  </li>
+  <li>
+    <p>In CoreServicesGateway, select <strong>Connections</strong>, and then select <strong>+ Add</strong>.</p>
+
+    <blockquote>
+      <p>[!NOTE]</p>
+
+      <p>You will not be able to complete this configuration until the virtual network gateways are fully deployed.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Use the information in the following table to create the connection:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Option</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td>CoreServicesGW-to-ManufacturingGW</td>
+        </tr>
+        <tr>
+          <td>Connection type</td>
+          <td>VNet-to-VNet</td>
+        </tr>
+        <tr>
+          <td>First virtual network gateway</td>
+          <td>CoreServicesVnetGateway</td>
+        </tr>
+        <tr>
+          <td>Second virtual network gateway</td>
+          <td>ManufacturingVnetGateway</td>
+        </tr>
+        <tr>
+          <td>Shared key (PSK)</td>
+          <td>abc123</td>
+        </tr>
+        <tr>
+          <td>Use Azure Private IP Address</td>
+          <td>Not selected</td>
+        </tr>
+        <tr>
+          <td>Enable BGP</td>
+          <td>Not selected</td>
+        </tr>
+        <tr>
+          <td>IKE Protocol</td>
+          <td>IKEv2</td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>No changes required</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>No changes required</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>East US</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>To create the connection, select <strong>OK</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-9-connect-manufacturingvnet-to-coreservicesvnet">Task 9: Connect ManufacturingVnet to CoreServicesVnet</h2>
+
+<ol>
+  <li>
+    <p>In <strong>Search resources, services, and docs (G+/)</strong>, enter <strong>Virtual network gateway</strong>, and then select <strong>Virtual network gateways</strong> from the results.</p>
+  </li>
+  <li>
+    <p>In Virtual network gateways, select <strong>ManufacturingVnetGateway</strong>.</p>
+  </li>
+  <li>
+    <p>In CoreServicesGateway, select <strong>Connections</strong>, and then select <strong>+ Add</strong>.</p>
+  </li>
+  <li>
+    <p>Use the information in the following table to create the connection:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th><strong>Option</strong></th>
+          <th><strong>Value</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td>ManufacturingGW-to-CoreServicesGW</td>
+        </tr>
+        <tr>
+          <td>Connection type</td>
+          <td>VNet-to-VNet</td>
+        </tr>
+        <tr>
+          <td>First virtual network gateway</td>
+          <td>ManufacturingVnetGateway</td>
+        </tr>
+        <tr>
+          <td>Second virtual network gateway</td>
+          <td>CoreServicesVnetGateway</td>
+        </tr>
+        <tr>
+          <td>Shared key (PSK)</td>
+          <td>abc123</td>
+        </tr>
+        <tr>
+          <td>Use Azure Private IP Address</td>
+          <td>Not selected</td>
+        </tr>
+        <tr>
+          <td>Enable BGP</td>
+          <td>Not selected</td>
+        </tr>
+        <tr>
+          <td>IKE Protocol</td>
+          <td>IKEv2</td>
+        </tr>
+        <tr>
+          <td>Subscription</td>
+          <td>No changes required</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>No changes required</td>
+        </tr>
+        <tr>
+          <td>Location</td>
+          <td>West Europe</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>To create the connection, select <strong>OK</strong>.</p>
+  </li>
+</ol>
+
+<h2 id="task-10-verify-that-the-connections-connect">Task 10: Verify that the connections connect</h2>
+
+<ol>
+  <li>
+    <p>In <strong>Search resources, services, and docs (G+/)</strong>, enter <strong>connections</strong>, and then select <strong>connections</strong> from the results.</p>
+  </li>
+  <li>
+    <p>Wait until the status of both connections is <strong>Connected</strong>. You may need to refresh your screen.</p>
+
+    <p><a href="../media/connections-status-connected.png" target="_blank"><img src="../media/connections-status-connected.png" alt="VPN Gateway connections successfully created."></a></p>
+  </li>
+</ol>
+
+<h2 id="task-11-test-the-connection-between-the-vms">Task 11: Test the connection between the VMs</h2>
+
+<ol>
+  <li>
+    <p>On the <strong>ManufacturingTestVM</strong>, open PowerShell.</p>
+  </li>
+  <li>
+    <p>Use the following command to verify that there is now a connection to CoreServicesTestVM on CoreServicesVnet. Be sure to use the IPv4 address for CoreServicesTestVM.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-Powershell">Test-NetConnection 10.20.20.4 -port 3389
+</code></pre>
+  </li>
+  <li>
+    <p>The test connection should succeed, and you will see a result similar to the following:</p>
+
+    <p><a href="../media/test-connection-succeeded.png" target="_blank"><img src="../media/test-connection-succeeded.png" alt="Test-NetConnection suceeded."></a></p>
+  </li>
+</ol>
+
+<p>Congratulations! You have configured a VNet-to-VNet connection by using a virtual network gateway.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-700-Designing-and-Implementing-Microsoft-Azure-Networking-Solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D7e040d6fba448f60ca3262126db60cad96222bbc.js"></script>
+
+
+
+</body></html>

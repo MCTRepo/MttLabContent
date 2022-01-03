@@ -1,0 +1,1033 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="检测分析和识别人脸">检测、分析和识别人脸</h1>
+
+<p>检测、分析和识别人脸的能力是一项核心 AI 功能。在此练习中，你将探索两个可用于处理图像中的人脸的 Azure 认知服务： <strong>计算机视觉</strong>服务和<strong>人脸</strong>服务。</p>
+
+<h2 id="克隆本课程的存储库">克隆本课程的存储库</h2>
+
+<p>如果尚未克隆用于本课程的存储库，请克隆它：</p>
+
+<ol>
+  <li>启动 Visual Studio Code。</li>
+  <li>打开面板 (SHIFT+CTRL+P) 并运行 <strong>Git:Clone</strong> 命令，将 <code>https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution</code> 存储库克隆到本地文件夹（具体克隆到哪个文件夹无关紧要）。</li>
+  <li>克隆存储库后，在 Visual Studio Code 中打开文件夹。</li>
+  <li>
+    <p>等待其他文件安装完毕，以支持存储库中的 C# 代码项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>： 如果系统提示你添加生成和调试所需的资产，请选择 <strong>“以后再说”</strong>。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="预配认知服务资源">预配认知服务资源</h2>
+
+<p>如果你的订阅中还没有<strong>认知服务</strong>资源，需要预配一个。</p>
+
+<ol>
+  <li>打开 Azure 门户 <code>https://portal.azure.com</code>，使用与你的 Azure 订阅关联的 Microsoft 帐户登录。</li>
+  <li>选择 <strong>“＋创建资源”</strong> 按钮，搜索 <em>“认知服务”</em>，并使用以下设置创建一个<strong>认知服务</strong>资源：
+    <ul>
+      <li><strong>订阅</strong>： <em>你的 Azure 订阅</em></li>
+      <li><strong>资源组</strong>： <em>选择或创建一个资源组（如果你使用的是受限订阅，则可能无权创建新资源组，在此情况下，可使用一个已提供的资源组）</em></li>
+      <li><strong>区域</strong>： <em>选择任何可用区域</em></li>
+      <li><strong>名称</strong>： <em>输入唯一名称</em></li>
+      <li><strong>定价层</strong>： 标准 S0</li>
+    </ul>
+  </li>
+  <li>选中所需复选框并创建资源。</li>
+  <li>等待部署完成，然后查看部署详细信息。</li>
+  <li>部署资源后，转到该资源并查看其 <strong>“密钥和终结点”</strong> 页面。你将在下一个过程中用到此页面中的终结点和其中一个密钥。</li>
+</ol>
+
+<h2 id="准备使用计算机视觉-sdk">准备使用计算机视觉 SDK</h2>
+
+<p>在此练习中，你将完成一个已部分实现的客户端应用程序，该应用程序使用计算机视觉 SDK 来分析图像中的人脸。</p>
+
+<blockquote>
+  <p><strong>备注</strong>： 可选择将该 SDK 用于 <strong>C#</strong> 或 <strong>Python</strong>。在下面的步骤中，请执行适用于你的语言首选项的操作。</p>
+</blockquote>
+
+<ol>
+  <li>在 Visual Studio Code 的 <strong>“资源管理器”</strong> 窗格中，浏览到 <strong>19-face</strong> 文件夹，并根据你的语言首选项展开 <strong>C-Sharp</strong> 文件夹或 <strong>Python</strong> 文件夹。</li>
+  <li>
+    <p>右键单击 <strong>computer-vision</strong> 文件夹，并打开集成终端。然后通过运行适用于你的语言首选项的命令，安装计算机视觉 SDK 包：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.ComputerVision</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 6<span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-computervision==<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">7</span></span>.<span class="hljs-number"><span class="hljs-number">0</span></span>
+</code></pre>
+  </li>
+  <li>查看 <strong>computer-vision</strong> 文件夹的内容，并注意其中包含一个配置设置文件：
+    <ul>
+      <li><strong>C#</strong>： appsettings.json</li>
+      <li><strong>Python</strong>： .env</li>
+    </ul>
+  </li>
+  <li>
+    <p>打开配置文件，然后更新其中包含的配置值，以反映认知服务资源的终<strong>结点</strong>和身份验证<strong>密钥</strong>。保存更改。</p>
+  </li>
+  <li>
+    <p>请注意，<strong>computer-vision</strong> 文件夹中包含客户端应用程序的代码文件：</p>
+
+    <ul>
+      <li><strong>C#</strong>： Program.cs</li>
+      <li><strong>Python</strong>： detect-faces.py</li>
+    </ul>
+  </li>
+  <li>
+    <p>打开代码文件，并在顶部的现有命名空间引用下找到注释 <strong>“导入命名空间”</strong>。然后在此注释下添加以下特定于语言的代码，以导入使用计算机视觉 SDK 所需的命名空间：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// 导入命名空间</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># 导入命名空间</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.computervision <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> ComputerVisionClient
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.computervision.models <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> VisualFeatureTypes
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> msrest.authentication <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> CognitiveServicesCredentials
+</code></pre>
+  </li>
+</ol>
+
+<h2 id="查看要分析的图像">查看要分析的图像</h2>
+
+<p>在此练习中，你将使用计算机视觉服务来分析人群图像。</p>
+
+<ol>
+  <li>在 Visual Studio Code 中，展开 <strong>computer-vision</strong> 文件夹以及其中包含的 <strong>images</strong> 文件夹。</li>
+  <li>选择并查看 <strong>people.jpg</strong> 图像。</li>
+</ol>
+
+<h2 id="检测图像中的人脸">检测图像中的人脸</h2>
+
+<p>现在，你可使用 SDK 来调用计算机视觉服务并检测图像中的人脸。</p>
+
+<ol>
+  <li>
+    <p>在客户端应用程序的代码文件（<strong>Program.cs</strong> 或 <strong>detect-faces.py</strong>）中，可在 <strong>Main</strong> 函数中看到已提供用于加载配置设置的代码。然后查找注释 <strong>“对计算机视觉对象客户端进行身份验证”</strong>。然后在此注释下添加以下特定于语言的代码，以创建计算机视觉对象客户端对象并对其进行身份验证：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// 对计算机视觉对象客户端进行身份验证</span></span>
+ ApiKeyServiceClientCredentials credentials = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ApiKeyServiceClientCredentials(cogSvcKey);
+ cvClient = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ComputerVisionClient(credentials)
+ {
+     Endpoint = cogSvcEndpoint
+ };
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># 对计算机视觉对象客户端进行身份验证</span></span>
+ credential = CognitiveServicesCredentials(cog_key) 
+ cv_client = ComputerVisionClient(cog_endpoint, credential)
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>Main</strong> 函数中，可在你刚刚添加的代码下看到，代码指定了图像文件的路径，然后将图像路径传递给名为 <strong>AnalyzeFaces</strong> 的函数。此函数尚未完全实现。</p>
+  </li>
+  <li>
+    <p>在 <strong>AnalyzeFaces</strong> 函数的注释 <strong>“指定要检索的特征（人脸）”</strong> 下，添加以下代码：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// 指定要检索的特征（人脸）</span></span>
+ List&lt;VisualFeatureTypes?&gt; features = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;VisualFeatureTypes?&gt;()
+ {
+     VisualFeatureTypes.Faces
+ };
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># 指定要检索的特征（人脸）</span></span>
+ features = [VisualFeatureTypes.faces]
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>AnalyzeFaces</strong> 函数的注释 <strong>“获取图像分析”</strong> 下，添加以下代码：</p>
+  </li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// 获取图像分析</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{    
+    var analysis = await cvClient.AnalyzeImageInStreamAsync(imageData, features);
+
+    <span class="hljs-comment"><span class="hljs-comment">// 获取人脸</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (analysis.Faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"{analysis.Faces.Count} faces detected."</span></span>);
+
+        <span class="hljs-comment"><span class="hljs-comment">// 准备要绘制的图像</span></span>
+        Image image = Image.FromFile(imageFile);
+        Graphics graphics = Graphics.FromImage(image);
+        Pen pen = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        Font font = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Font(<span class="hljs-string"><span class="hljs-string">"Arial"</span></span>, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        SolidBrush brush = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SolidBrush(Color.LightGreen);
+
+        <span class="hljs-comment"><span class="hljs-comment">// 绘制每张人脸并为其添加批注</span></span>
+        foreach (var face in analysis.Faces)
+        {
+            var r = face.FaceRectangle;
+            Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r.Left, r.Top, r.Width, r.Height);
+            graphics.DrawRectangle(pen, rect);
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> annotation = $<span class="hljs-string"><span class="hljs-string">"Person aged approximately {face.Age}"</span></span>;
+            graphics.DrawString(annotation,font,brush,r.Left, r.Top);
+        }
+
+        <span class="hljs-comment"><span class="hljs-comment">// 保存已批注的图像</span></span>
+        String output_file = <span class="hljs-string"><span class="hljs-string">"detected_faces.jpg"</span></span>;
+        image.Save(output_file);
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">" Results saved in "</span></span> + output_file);   
+    }
+}        
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># 获取图像分析</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    analysis = cv_client.analyze_image_in_stream(image_data , features)
+
+    <span class="hljs-comment"><span class="hljs-comment"># 获取人脸</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> analysis.faces:
+        print(len(analysis.faces), <span class="hljs-string"><span class="hljs-string">'faces detected.'</span></span>)
+
+        <span class="hljs-comment"><span class="hljs-comment"># 准备要绘制的图像</span></span>
+        fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+        plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+        image = Image.open(image_file)
+        draw = ImageDraw.Draw(image)
+        color = <span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>
+
+        <span class="hljs-comment"><span class="hljs-comment"># 绘制每张人脸并为其添加批注</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> analysis.faces:
+            r = face.face_rectangle
+            bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+            draw = ImageDraw.Draw(image)
+            draw.rectangle(bounding_box, outline=color, width=<span class="hljs-number"><span class="hljs-number">5</span></span>)
+            annotation = <span class="hljs-string"><span class="hljs-string">'Person aged approximately {}'</span></span>.format(face.age)
+            plt.annotate(annotation,(r.left, r.top), backgroundcolor=color)
+
+        <span class="hljs-comment"><span class="hljs-comment"># 保存已批注的图像</span></span>
+        plt.imshow(image)
+        outputfile = <span class="hljs-string"><span class="hljs-string">'detected_faces.jpg'</span></span>
+        fig.savefig(outputfile)
+
+        print(<span class="hljs-string"><span class="hljs-string">'Results saved in'</span></span>, outputfile)
+</code></pre>
+
+<ol>
+  <li>
+    <p>保存你的更改并返回到 <strong>computer-vision</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">detect-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>查看输出，它应该会指出检测到的人脸数。</li>
+  <li>查看在代码文件所在的同一文件夹中生成的 <strong>detected_faces.jpg</strong> 文件，以查看带有批注的人脸。本例的代码使用人脸特征来估计图像中每个人的年龄，并使用边界框坐标来绘制框住每张人脸的矩形。</li>
+</ol>
+
+<h2 id="准备使用人脸-sdk">准备使用人脸 SDK</h2>
+
+<p>虽然<strong>计算机视觉</strong>服务提供了基本的人脸检测功能（以及许多其他图像分析功能），但<strong>人脸</strong>服务提供更全面的面部分析和识别功能。</p>
+
+<ol>
+  <li>在 Visual Studio Code 的 <strong>“资源管理器”</strong> 窗格中，浏览到 <strong>19-face</strong> 文件夹，并根据你的语言首选项展开 <strong>C-Sharp</strong> 文件夹或 <strong>Python</strong> 文件夹。</li>
+  <li>
+    <p>右键单击 <strong>face-api</strong> 文件夹，并打开集成终端。然后通过运行适用于你的语言首选项的命令，安装人脸 SDK 包：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">dotnet</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">add</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">package</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">Microsoft</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Azure</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.CognitiveServices</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Vision</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.Face</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">--version</span></span> 2<span class="hljs-selector-class"><span class="hljs-selector-class">.6</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.0-preview</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.1</span></span>
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">pip</span></span> install azure-cognitiveservices-vision-face==<span class="hljs-number"><span class="hljs-number">0</span></span>.<span class="hljs-number"><span class="hljs-number">4</span></span>.<span class="hljs-number"><span class="hljs-number">1</span></span>
+</code></pre>
+  </li>
+  <li>查看 <strong>face-api</strong> 文件夹的内容，并注意其中包含一个配置设置文件：
+    <ul>
+      <li><strong>C#</strong>： appsettings.json</li>
+      <li><strong>Python</strong>： .env</li>
+    </ul>
+  </li>
+  <li>
+    <p>打开配置文件，然后更新其中包含的配置值，以反映认知服务资源的终<strong>结点</strong>和身份验证<strong>密钥</strong>。保存更改。</p>
+  </li>
+  <li>
+    <p>请注意，<strong>face-api</strong> 文件夹中包含客户端应用程序的代码文件：</p>
+
+    <ul>
+      <li><strong>C#</strong>： Program.cs</li>
+      <li><strong>Python</strong>： analyze-faces.py</li>
+    </ul>
+  </li>
+  <li>
+    <p>打开代码文件，并在顶部的现有命名空间引用下找到注释 <strong>“导入命名空间”</strong>。然后在此注释下添加以下特定于语言的代码，以导入使用计算机视觉 SDK 所需的命名空间：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// 导入命名空间</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.Face;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.CognitiveServices.Vision.Face.Models;
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># 导入命名空间</span></span>
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.face <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> FaceClient
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> azure.cognitiveservices.vision.face.models <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> FaceAttributeType
+ <span class="hljs-keyword"><span class="hljs-keyword">from</span></span> msrest.authentication <span class="hljs-keyword"><span class="hljs-keyword">import</span></span> CognitiveServicesCredentials
+</code></pre>
+  </li>
+  <li>
+    <p>请注意，<strong>Main</strong> 函数中已提供用于加载配置设置的代码。然后查找注释 <strong>“对人脸客户端进行身份验证”</strong>。然后在此注释下添加以下特定于语言的代码，以创建 <strong>FaceClient</strong> 对象并对其进行身份验证：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// 对人脸客户端进行身份验证</span></span>
+ ApiKeyServiceClientCredentials credentials = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ApiKeyServiceClientCredentials(cogSvcKey);
+ faceClient = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> FaceClient(credentials)
+ {
+     Endpoint = cogSvcEndpoint
+ };
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># 对人脸客户端进行身份验证</span></span>
+ credentials = CognitiveServicesCredentials(cog_key)
+ face_client = FaceClient(cog_endpoint, credentials)
+</code></pre>
+  </li>
+  <li>在 <strong>Main</strong> 函数中，可在你刚刚添加的代码下看到，代码显示了一个菜单，可通过该菜单调用代码中的函数以探索人脸服务的功能。你将在此练习的剩余部分中实现这些函数。</li>
+</ol>
+
+<h2 id="检测和分析人脸">检测和分析人脸</h2>
+
+<p>人脸服务最基本的功能之一是检测图像中的人脸并确定其特征（例如年龄、情绪表达、头发颜色以及是否佩戴眼镜等等）。</p>
+
+<ol>
+  <li>在应用程序的代码文件中，在 <strong>Main</strong> 函数中检查用户选择菜单选项 <strong>1</strong> 时运行的代码。此代码会调用 <strong>DetectFaces</strong> 函数并传递图像文件的路径。</li>
+  <li>
+    <p>在代码文件中查找 <strong>DetectFaces</strong> 函数，并在注释 <strong>“指定要检索的面部特征”</strong> 下添加以下代码：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-C# hljs"> <span class="hljs-comment"><span class="hljs-comment">// 指定要检索的面部特征</span></span>
+ List&lt;FaceAttributeType?&gt; features = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> List&lt;FaceAttributeType?&gt;
+ {
+     FaceAttributeType.Age,
+     FaceAttributeType.Emotion,
+     FaceAttributeType.Glasses
+ };
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-Python hljs"> <span class="hljs-comment"><span class="hljs-comment"># 指定要检索的面部特征</span></span>
+ features = [FaceAttributeType.age,
+             FaceAttributeType.emotion,
+             FaceAttributeType.glasses]
+</code></pre>
+  </li>
+  <li>在 <strong>DetectFaces</strong> 函数中刚刚添加的代码下，查找注释 <strong>“获取人脸”</strong> 并添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// 获取人脸</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{    
+    var detected_faces = await faceClient.Face.DetectWithStreamAsync(imageData, returnFaceAttributes: features);
+
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (detected_faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+    {
+        Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"{detected_faces.Count} faces detected."</span></span>);
+
+        <span class="hljs-comment"><span class="hljs-comment">// 准备要绘制的图像</span></span>
+        Image image = Image.FromFile(imageFile);
+        Graphics graphics = Graphics.FromImage(image);
+        Pen pen = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        Font font = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Font(<span class="hljs-string"><span class="hljs-string">"Arial"</span></span>, <span class="hljs-number"><span class="hljs-number">4</span></span>);
+        SolidBrush brush = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SolidBrush(Color.Black);
+
+        <span class="hljs-comment"><span class="hljs-comment">// 绘制每张人脸并为其添加批注</span></span>
+        foreach (var face in detected_faces)
+        {
+            <span class="hljs-comment"><span class="hljs-comment">// 获取人脸特征</span></span>
+            Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"\nFace ID: {face.FaceId}"</span></span>);
+            Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" - Age: {face.FaceAttributes.Age}"</span></span>);
+            Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" - Emotions:"</span></span>);
+            foreach (var emotion in face.FaceAttributes.Emotion.ToRankedList())
+            {
+                Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"   - {emotion}"</span></span>);
+            }
+
+            Console.WriteLine($<span class="hljs-string"><span class="hljs-string">" - Glasses: {face.FaceAttributes.Glasses}"</span></span>);
+
+            <span class="hljs-comment"><span class="hljs-comment">// 绘制人脸并为其添加批注</span></span>
+            var r = face.FaceRectangle;
+            Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r.Left, r.Top, r.Width, r.Height);
+            graphics.DrawRectangle(pen, rect);
+            <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> annotation = $<span class="hljs-string"><span class="hljs-string">"Face ID: {face.FaceId}"</span></span>;
+            graphics.DrawString(annotation,font,brush,r.Left, r.Top);
+        }
+
+        <span class="hljs-comment"><span class="hljs-comment">// 保存已批注的图像</span></span>
+        String output_file = <span class="hljs-string"><span class="hljs-string">"detected_faces.jpg"</span></span>;
+        image.Save(output_file);
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">" Results saved in "</span></span> + output_file);   
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># 获取人脸</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    detected_faces = face_client.face.detect_with_stream(image=image_data,
+                                                            return_face_attributes=features)
+
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(detected_faces) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+        print(len(detected_faces), <span class="hljs-string"><span class="hljs-string">'faces detected.'</span></span>)
+
+        <span class="hljs-comment"><span class="hljs-comment"># 准备要绘制的图像</span></span>
+        fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+        plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+        image = Image.open(image_file)
+        draw = ImageDraw.Draw(image)
+        color = <span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>
+
+        <span class="hljs-comment"><span class="hljs-comment"># 绘制每张人脸并为其添加批注</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_faces:
+
+            <span class="hljs-comment"><span class="hljs-comment"># 获取人脸特征</span></span>
+            print(<span class="hljs-string"><span class="hljs-string">'\nFace ID: {}'</span></span>.format(face.face_id))
+            detected_attributes = face.face_attributes.as_dict()
+            age = <span class="hljs-string"><span class="hljs-string">'age unknown'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> <span class="hljs-string"><span class="hljs-string">'age'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">not</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_attributes.keys() <span class="hljs-keyword"><span class="hljs-keyword">else</span></span> int(detected_attributes[<span class="hljs-string"><span class="hljs-string">'age'</span></span>])
+            print(<span class="hljs-string"><span class="hljs-string">' - Age: {}'</span></span>.format(age))
+
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> <span class="hljs-string"><span class="hljs-string">'emotion'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_attributes:
+                print(<span class="hljs-string"><span class="hljs-string">' - Emotions:'</span></span>)
+                <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> emotion_name <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_attributes[<span class="hljs-string"><span class="hljs-string">'emotion'</span></span>]:
+                    print(<span class="hljs-string"><span class="hljs-string">'   - {}: {}'</span></span>.format(emotion_name, detected_attributes[<span class="hljs-string"><span class="hljs-string">'emotion'</span></span>][emotion_name]))
+            
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> <span class="hljs-string"><span class="hljs-string">'glasses'</span></span> <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_attributes:
+                print(<span class="hljs-string"><span class="hljs-string">' - Glasses:{}'</span></span>.format(detected_attributes[<span class="hljs-string"><span class="hljs-string">'glasses'</span></span>]))
+
+            <span class="hljs-comment"><span class="hljs-comment"># 绘制人脸并为其添加批注</span></span>
+            r = face.face_rectangle
+            bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+            draw = ImageDraw.Draw(image)
+            draw.rectangle(bounding_box, outline=color, width=<span class="hljs-number"><span class="hljs-number">5</span></span>)
+            annotation = <span class="hljs-string"><span class="hljs-string">'Face ID: {}'</span></span>.format(face.face_id)
+            plt.annotate(annotation,(r.left, r.top), backgroundcolor=color)
+
+        <span class="hljs-comment"><span class="hljs-comment"># 保存已批注的图像</span></span>
+        plt.imshow(image)
+        outputfile = <span class="hljs-string"><span class="hljs-string">'detected_faces.jpg'</span></span>
+        fig.savefig(outputfile)
+
+        print(<span class="hljs-string"><span class="hljs-string">'\nResults saved in'</span></span>, outputfile)
+</code></pre>
+
+<ol>
+  <li>检查添加到 <strong>DetectFaces</strong> 函数的代码。该代码分析了图像文件，并检测了其中包含的任何人脸及其特征（年龄、情绪以及是否佩戴眼镜）。该代码还会显示每张人脸的详细信息（包括为每张人脸分配的唯一人脸标识符）；并使用边界框在图像上标出了人脸所在的位置。</li>
+  <li>
+    <p>保存你的更改并返回到 <strong>face-api</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><em>C# 输出可能显示有关异步函数在使用 <strong>await</strong> 运算符的警告。可以忽略该警告。</em></p>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>在出现提示时输入 <strong>1</strong> 并观察输出，输出中应包含检测到的每张人脸的 ID 和特征。</li>
+  <li>查看在代码文件所在的同一文件夹中生成的 <strong>detected_faces.jpg</strong> 文件，以查看带有批注的人脸。</li>
+</ol>
+
+<h2 id="比较人脸">比较人脸</h2>
+
+<p>一个常见的任务是比较人脸，并查找相似的人脸。在此例中，你不需要<em>确定</em>图像中每个人的身份，而只需确定是否有多张图像显示了<em>同一</em>人（或者至少是外表相似的人）。</p>
+
+<ol>
+  <li>在应用程序的代码文件中，在 <strong>Main</strong> 函数中检查用户选择菜单选项 <strong>2</strong> 时运行的代码。此代码会调用 <strong>CompareFaces</strong> 函数并传递两个图像文件（<strong>person1.jpg</strong> 和 <strong>people.jpg</strong>）的路径。</li>
+  <li>在代码文件中查找 <strong>CompareFaces</strong> 函数，并在用于在控制台中显示消息的现有代码下添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// 确定图像 1 中的人脸是否也出现在图像 2 中</span></span>
+DetectedFace image_i_face;
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var image1Data = File.OpenRead(image1))
+{    
+    <span class="hljs-comment"><span class="hljs-comment">// 获取图像 1 中的第一张人脸</span></span>
+    var image1_faces = await faceClient.Face.DetectWithStreamAsync(image1Data);
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (image1_faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+    {
+        image_i_face = image1_faces[<span class="hljs-number"><span class="hljs-number">0</span></span>];
+        Image img1 = Image.FromFile(image1);
+        Graphics graphics = Graphics.FromImage(img1);
+        Pen pen = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        var r = image_i_face.FaceRectangle;
+        Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r.Left, r.Top, r.Width, r.Height);
+        graphics.DrawRectangle(pen, rect);
+        String output_file = <span class="hljs-string"><span class="hljs-string">"face_to_match.jpg"</span></span>;
+        img1.Save(output_file);
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">" Results saved in "</span></span> + output_file); 
+
+        <span class="hljs-comment"><span class="hljs-comment">// 获取图像 2 中的所有人脸</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var image2Data = File.OpenRead(image2))
+        {    
+            var image2Faces = await faceClient.Face.DetectWithStreamAsync(image2Data);
+
+            <span class="hljs-comment"><span class="hljs-comment">// 获取人脸</span></span>
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (image2Faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+            {
+
+                var image2FaceIds = image2Faces.Select(f =&gt; f.FaceId).ToList&lt;Guid?&gt;();
+                var similarFaces = await faceClient.Face.FindSimilarAsync((Guid)image_i_face.FaceId,faceIds:image2FaceIds);
+                var similarFaceIds = similarFaces.Select(f =&gt; f.FaceId).ToList&lt;Guid?&gt;();
+
+                <span class="hljs-comment"><span class="hljs-comment">// 准备要绘制的图像</span></span>
+                Image img2 = Image.FromFile(image2);
+                Graphics graphics2 = Graphics.FromImage(img2);
+                Pen pen2 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+                Font font2 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Font(<span class="hljs-string"><span class="hljs-string">"Arial"</span></span>, <span class="hljs-number"><span class="hljs-number">4</span></span>);
+                SolidBrush brush2 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SolidBrush(Color.Black);
+
+                <span class="hljs-comment"><span class="hljs-comment">// 绘制每张人脸并为其添加批注</span></span>
+                foreach (var face in image2Faces)
+                {
+                    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (similarFaceIds.Contains(face.FaceId))
+                    {
+                        <span class="hljs-comment"><span class="hljs-comment">// 绘制人脸并为其添加批注</span></span>
+                        var r2 = face.FaceRectangle;
+                        Rectangle rect2 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r2.Left, r2.Top, r2.Width, r2.Height);
+                        graphics2.DrawRectangle(pen2, rect2);
+                        <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> annotation = <span class="hljs-string"><span class="hljs-string">"Match!"</span></span>;
+                        graphics2.DrawString(annotation,font2,brush2,r2.Left, r2.Top);
+                    }
+                }
+
+                <span class="hljs-comment"><span class="hljs-comment">// 保存已批注的图像</span></span>
+                String output_file2 = <span class="hljs-string"><span class="hljs-string">"matched_faces.jpg"</span></span>;
+                img2.Save(output_file2);
+                Console.WriteLine(<span class="hljs-string"><span class="hljs-string">" Results saved in "</span></span> + output_file2);   
+            }
+        }
+
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># 确定图像 1 中的人脸是否也出现在图像 2 中</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_1, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    <span class="hljs-comment"><span class="hljs-comment"># 获取图像 1 中的第一张人脸</span></span>
+    image_1_faces = face_client.face.detect_with_stream(image=image_data)
+    image_1_face = image_1_faces[<span class="hljs-number"><span class="hljs-number">0</span></span>]
+
+    <span class="hljs-comment"><span class="hljs-comment"># 突出显示图像中的人脸</span></span>
+    fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+    plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+    image = Image.open(image_1)
+    draw = ImageDraw.Draw(image)
+    color = <span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>
+    r = image_1_face.face_rectangle
+    bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle(bounding_box, outline=color, width=<span class="hljs-number"><span class="hljs-number">5</span></span>)
+    plt.imshow(image)
+    outputfile = <span class="hljs-string"><span class="hljs-string">'face_to_match.jpg'</span></span>
+    fig.savefig(outputfile)
+
+<span class="hljs-comment"><span class="hljs-comment"># 获取图像 2 中的所有人脸</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_2, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+    image_2_faces = face_client.face.detect_with_stream(image=image_data)
+    image_2_face_ids = list(map(<span class="hljs-keyword"><span class="hljs-keyword">lambda</span></span> face: face.face_id, image_2_faces))
+
+    <span class="hljs-comment"><span class="hljs-comment"># 在图像 2 中查找与图像 1 中的人脸相似的人脸</span></span>
+    similar_faces = face_client.face.find_similar(face_id=image_1_face.face_id, face_ids=image_2_face_ids)
+    similar_face_ids = list(map(<span class="hljs-keyword"><span class="hljs-keyword">lambda</span></span> face: face.face_id, similar_faces))
+
+    <span class="hljs-comment"><span class="hljs-comment"># 准备要绘制的图像</span></span>
+    fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+    plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+    image = Image.open(image_2)
+    draw = ImageDraw.Draw(image)
+
+    <span class="hljs-comment"><span class="hljs-comment"># 绘制匹配的人脸并为其添加批注</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> image_2_faces:
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> face.face_id <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> similar_face_ids:
+            r = face.face_rectangle
+            bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+            draw = ImageDraw.Draw(image)
+            draw.rectangle(bounding_box, outline=<span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>, width=<span class="hljs-number"><span class="hljs-number">10</span></span>)
+            plt.annotate(<span class="hljs-string"><span class="hljs-string">'Match!'</span></span>,(r.left, r.top + r.height + <span class="hljs-number"><span class="hljs-number">15</span></span>), backgroundcolor=<span class="hljs-string"><span class="hljs-string">'white'</span></span>)
+
+    <span class="hljs-comment"><span class="hljs-comment"># 保存已批注的图像</span></span>
+    plt.imshow(image)
+    outputfile = <span class="hljs-string"><span class="hljs-string">'matched_faces.jpg'</span></span>
+    fig.savefig(outputfile)
+</code></pre>
+
+<ol>
+  <li>检查添加到 <strong>CompareFaces</strong> 函数的代码。该代码可查找图像 1 中的第一张人脸，并在名为 <strong>face_to_match.jpg</strong> 的新图像文件中对其进行批注。然后该代码会查找图像 2 中的所有人脸，并使用其人脸 ID 查找与图像 1 中相似的人脸。相似的人脸会经过批注，并保存在名为 <strong>matched_faces.jpg</strong> 的新图像中。</li>
+  <li>
+    <p>保存你的更改并返回到 <strong>face-api</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><em>C# 输出可能显示有关异步函数在使用 <strong>await</strong> 运算符的警告。可以忽略该警告。</em></p>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>在出现提示时输入 <strong>2</strong> 并观察输出。然后查看在代码文件所在的同一文件夹中生成的 <strong>face_to_match.jpg</strong> 和 <strong>matched_faces.jpg</strong> 文件，以查看匹配的人脸。</li>
+  <li>编辑 <strong>Main</strong> 函数中菜单选项 <strong>2</strong> 对应的代码，以将 <strong>person2.jpg</strong> 与 <strong>people.jpg</strong> 进行比较，然后重新运行程序并查看结果。</li>
+</ol>
+
+<h2 id="训练面部识别模型">训练面部识别模型</h2>
+
+<p>在某些情况下，你需要维护特定人员的模型，并可通过 AI 应用程序识别这些人员的人脸。例如，帮助使用面部识别技术的生物识别安全系统验证安全建筑中员工的身份。</p>
+
+<ol>
+  <li>在应用程序的代码文件中，在 <strong>Main</strong> 函数中检查用户选择菜单选项 <strong>3</strong> 时运行的代码。此代码会调用 <strong>TrainModel</strong> 函数，并传递将在认知服务资源中注册的新 <strong>PersonGroup</strong> 的名称和 ID，以及员工姓名列表。</li>
+  <li>查看 <strong>face-api/images</strong> 文件夹中是否包含与员工同名的文件夹。每个文件夹中都包含多个指定员工的图像。</li>
+  <li>在代码文件中查找 <strong>TrainModel</strong> 函数，并在用于在控制台中显示消息的现有代码下添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// 删除已存在的组</span></span>
+var groups = await faceClient.PersonGroup.ListAsync();
+foreach(var group in groups)
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (group.PersonGroupId == groupId)
+    {
+        await faceClient.PersonGroup.DeleteAsync(groupId);
+    }
+}
+
+<span class="hljs-comment"><span class="hljs-comment">// 创建组</span></span>
+await faceClient.PersonGroup.CreateAsync(groupId, groupName);
+Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Group created!"</span></span>);
+
+<span class="hljs-comment"><span class="hljs-comment">// 将每个人添加到组中</span></span>
+Console.Write(<span class="hljs-string"><span class="hljs-string">"Adding people to the group..."</span></span>);
+foreach(var personName in imageFolders)
+{
+    <span class="hljs-comment"><span class="hljs-comment">// 添加人员</span></span>
+    var person = await faceClient.PersonGroupPerson.CreateAsync(groupId, personName);
+
+    <span class="hljs-comment"><span class="hljs-comment">// 添加某人的多张照片</span></span>
+    <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>[] images = Directory.GetFiles(<span class="hljs-string"><span class="hljs-string">"images/"</span></span> + personName);
+    foreach(var image in images)
+    {
+        <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(image))
+        { 
+            await faceClient.PersonGroupPerson.AddFaceFromStreamAsync(groupId, person.PersonId, imageData);
+        }
+    }
+
+}
+
+    <span class="hljs-comment"><span class="hljs-comment">// 训练模型</span></span>
+Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Training model..."</span></span>);
+await faceClient.PersonGroup.TrainAsync(groupId);
+
+<span class="hljs-comment"><span class="hljs-comment">// 获取组中的人员列表</span></span>
+Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Facial recognition model trained with the following people:"</span></span>);
+var people = await faceClient.PersonGroupPerson.ListAsync(groupId);
+foreach(var person in people)
+{
+    Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"-{person.Name}"</span></span>);
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># 删除已存在的组</span></span>
+groups = face_client.person_group.list()
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> group <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> groups:
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> group.person_group_id == group_id:
+        face_client.person_group.delete(group_id)
+
+<span class="hljs-comment"><span class="hljs-comment"># 创建组</span></span>
+face_client.person_group.create(group_id, group_name)
+<span class="hljs-keyword"><span class="hljs-keyword">print</span></span> (<span class="hljs-string"><span class="hljs-string">'Group created!'</span></span>)
+
+<span class="hljs-comment"><span class="hljs-comment"># 将每个人添加到组中</span></span>
+print(<span class="hljs-string"><span class="hljs-string">'Adding people to the group...'</span></span>)
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> person_name <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> image_folders:
+    <span class="hljs-comment"><span class="hljs-comment"># 添加人员</span></span>
+    person = face_client.person_group_person.create(group_id, person_name)
+
+    <span class="hljs-comment"><span class="hljs-comment"># 添加某人的多张照片</span></span>
+    folder = os.path.join(<span class="hljs-string"><span class="hljs-string">'images'</span></span>, person_name)
+    person_pics = os.listdir(folder)
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> pic <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> person_pics:
+        img_path = os.path.join(folder, pic)
+        img_stream = open(img_path, <span class="hljs-string"><span class="hljs-string">"rb"</span></span>)
+        face_client.person_group_person.add_face_from_stream(group_id, person.person_id, img_stream)
+
+<span class="hljs-comment"><span class="hljs-comment"># 训练模型</span></span>
+print(<span class="hljs-string"><span class="hljs-string">'Training model...'</span></span>)
+face_client.person_group.train(group_id)
+
+<span class="hljs-comment"><span class="hljs-comment"># 获取组中的人员列表</span></span>
+print(<span class="hljs-string"><span class="hljs-string">'Facial recognition model trained with the following people:'</span></span>)
+people = face_client.person_group_person.list(group_id)
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> person <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> people:
+    print(<span class="hljs-string"><span class="hljs-string">'-'</span></span>, person.name)
+</code></pre>
+
+<ol>
+  <li>检查添加到 <strong>TrainModel</strong> 函数的代码。该代码会执行以下任务：
+    <ul>
+      <li>获取服务中注册的 <strong>PersonGroup</strong> 的列表，并删除指定的组（如果存在）。</li>
+      <li>使用指定的 ID 和姓名创建一个组。</li>
+      <li>针对指定的每个姓名向组中添加一位人员，并添加每个人的多张图像。</li>
+      <li>根据组中的指定人员及其人脸图像训练面部识别模型。</li>
+      <li>在组中检索指定人员列表并显示他们。</li>
+    </ul>
+  </li>
+  <li>
+    <p>保存你的更改并返回到 <strong>face-api</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><em>C# 输出可能显示有关异步函数在使用 <strong>await</strong> 运算符的警告。可以忽略该警告。</em></p>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>在出现提示时输入 <strong>3</strong> 并观察输出，注意到所创建的 <strong>PersonGroup</strong> 中包含两人。</li>
+</ol>
+
+<h2 id="识别人脸">识别人脸</h2>
+
+<p>至此，已定义 <strong>PeopleGroup</strong> 并训练了一个面部识别模型，现在可使用该模型在图像中识别指定人员。</p>
+
+<ol>
+  <li>在应用程序的代码文件中，在 <strong>Main</strong> 函数中检查用户选择菜单选项 <strong>4</strong> 时运行的代码。此代码会调用 <strong>RecognizeFaces</strong> 函数，并传递图像文件 (<strong>people.jpg</strong>) 的路径以及要用于人脸识别的 <strong>PeopleGroup</strong> 的 ID。</li>
+  <li>在代码文件中查找 <strong>RecognizeFaces</strong> 函数，并在用于在控制台中显示消息的现有代码下添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// 检测图像中的人脸</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(imageFile))
+{    
+    var detectedFaces = await faceClient.Face.DetectWithStreamAsync(imageData);
+
+    <span class="hljs-comment"><span class="hljs-comment">// 获取人脸</span></span>
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (detectedFaces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+    {
+        
+        <span class="hljs-comment"><span class="hljs-comment">// 获取人脸 ID 列表</span></span>
+        var faceIds = detectedFaces.Select(f =&gt; f.FaceId).ToList&lt;Guid?&gt;();
+
+        <span class="hljs-comment"><span class="hljs-comment">// 识别人群组中的人脸</span></span>
+        var recognizedFaces = await faceClient.Face.IdentifyAsync(faceIds, groupId);
+
+        <span class="hljs-comment"><span class="hljs-comment">// 获取已识别的人脸对应的姓名</span></span>
+        var faceNames = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Dictionary&lt;Guid?, <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>&gt;();
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (recognizedFaces.Count&gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+        {
+            foreach(var face in recognizedFaces)
+            {
+                var person = await faceClient.PersonGroupPerson.GetAsync(groupId, face.Candidates[<span class="hljs-number"><span class="hljs-number">0</span></span>].PersonId);
+                Console.WriteLine($<span class="hljs-string"><span class="hljs-string">"-{person.Name}"</span></span>);
+                faceNames.Add(face.FaceId, person.Name);
+
+            }
+        }
+
+        
+        <span class="hljs-comment"><span class="hljs-comment">// 在图像中批注人脸</span></span>
+        Image image = Image.FromFile(imageFile);
+        Graphics graphics = Graphics.FromImage(image);
+        Pen penYes = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.LightGreen, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        Pen penNo = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Pen(Color.Magenta, <span class="hljs-number"><span class="hljs-number">3</span></span>);
+        Font font = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Font(<span class="hljs-string"><span class="hljs-string">"Arial"</span></span>, <span class="hljs-number"><span class="hljs-number">4</span></span>);
+        SolidBrush brush = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> SolidBrush(Color.Cyan);
+        foreach (var face in detectedFaces)
+        {
+            var r = face.FaceRectangle;
+            Rectangle rect = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Rectangle(r.Left, r.Top, r.Width, r.Height);
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (faceNames.ContainsKey(face.FaceId))
+            {
+                <span class="hljs-comment"><span class="hljs-comment">// 如果已识别人脸，则为其批注绿色的姓名</span></span>
+                graphics.DrawRectangle(penYes, rect);
+                <span class="hljs-built_in"><span class="hljs-built_in">string</span></span> personName = faceNames[face.FaceId];
+                graphics.DrawString(personName,font,brush,r.Left, r.Top);
+            }
+            <span class="hljs-keyword"><span class="hljs-keyword">else</span></span>
+            {
+                <span class="hljs-comment"><span class="hljs-comment">// 否则，仅使用品红色批注未识别的人脸</span></span>
+                graphics.DrawRectangle(penNo, rect);
+            }
+        }
+
+        <span class="hljs-comment"><span class="hljs-comment">// 保存已批注的图像</span></span>
+        String output_file = <span class="hljs-string"><span class="hljs-string">"recognized_faces.jpg"</span></span>;
+        image.Save(output_file);
+        Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Results saved in "</span></span> + output_file);   
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># 检测图像中的人脸</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(image_file, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+
+    <span class="hljs-comment"><span class="hljs-comment"># 获取人脸</span></span>
+    detected_faces = face_client.face.detect_with_stream(image=image_data)
+
+    <span class="hljs-comment"><span class="hljs-comment"># 获取人脸 ID 列表</span></span>
+    face_ids = list(map(<span class="hljs-keyword"><span class="hljs-keyword">lambda</span></span> face: face.face_id, detected_faces))
+
+    <span class="hljs-comment"><span class="hljs-comment"># 识别人群组中的人脸</span></span>
+    recognized_faces = face_client.face.identify(face_ids, group_id)
+
+    <span class="hljs-comment"><span class="hljs-comment"># 获取已识别的人脸对应的姓名</span></span>
+    face_names = {}
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(recognized_faces) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+        print(len(recognized_faces), <span class="hljs-string"><span class="hljs-string">'faces recognized.'</span></span>)
+        <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> recognized_faces:
+            person_name = face_client.person_group_person.get(group_id, face.candidates[<span class="hljs-number"><span class="hljs-number">0</span></span>].person_id).name
+            print(<span class="hljs-string"><span class="hljs-string">'-'</span></span>, person_name)
+            face_names[face.face_id] = person_name
+
+    <span class="hljs-comment"><span class="hljs-comment"># 在图像中批注人脸</span></span>
+    fig = plt.figure(figsize=(<span class="hljs-number"><span class="hljs-number">8</span></span>, <span class="hljs-number"><span class="hljs-number">6</span></span>))
+    plt.axis(<span class="hljs-string"><span class="hljs-string">'off'</span></span>)
+    image = Image.open(image_file)
+    draw = ImageDraw.Draw(image)
+    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> face <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> detected_faces:
+        r = face.face_rectangle
+        bounding_box = ((r.left, r.top), (r.left + r.width, r.top + r.height))
+        draw = ImageDraw.Draw(image)
+        <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> face.face_id <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> face_names:
+            <span class="hljs-comment"><span class="hljs-comment"># 如果已识别人脸，则为其批注绿色的姓名</span></span>
+            draw.rectangle(bounding_box, outline=<span class="hljs-string"><span class="hljs-string">'lightgreen'</span></span>, width=<span class="hljs-number"><span class="hljs-number">3</span></span>)
+            plt.annotate(face_names[face.face_id],
+                        (r.left, r.top + r.height + <span class="hljs-number"><span class="hljs-number">15</span></span>), backgroundcolor=<span class="hljs-string"><span class="hljs-string">'white'</span></span>)
+        <span class="hljs-keyword"><span class="hljs-keyword">else</span></span>:
+            <span class="hljs-comment"><span class="hljs-comment"># 否则，仅使用品红色批注未识别的人脸</span></span>
+            draw.rectangle(bounding_box, outline=<span class="hljs-string"><span class="hljs-string">'magenta'</span></span>, width=<span class="hljs-number"><span class="hljs-number">3</span></span>)
+
+    <span class="hljs-comment"><span class="hljs-comment"># 保存已批注的图像</span></span>
+    plt.imshow(image)
+    outputfile = <span class="hljs-string"><span class="hljs-string">'recognized_faces.jpg'</span></span>
+    fig.savefig(outputfile)
+
+    print(<span class="hljs-string"><span class="hljs-string">'\nResults saved in'</span></span>, outputfile)
+</code></pre>
+
+<ol>
+  <li>检查添加到 <strong>RecognizeFaces</strong> 函数的代码。该代码会在图像中查找人脸并创建其 ID 列表。然后会使用人群组来尝试识别人脸 ID 列表中各人脸的身份。已识别的人脸会批注有已识别人员的姓名，结果保存在 <strong>recognized_faces.jpg</strong> 中。</li>
+  <li>
+    <p>保存你的更改并返回到 <strong>face-api</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><em>C# 输出可能显示有关异步函数在使用 <strong>await</strong> 运算符的警告。可以忽略该警告。</em></p>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>在出现提示时输入 <strong>4</strong> 并观察输出。然后查看在代码文件所在的同一文件夹中生成的 <strong>recognized_faces.jpg</strong> 文件，以查看已识别的人员。</li>
+  <li>编辑 <strong>Main</strong> 函数中菜单选项 <strong>4</strong> 对应的代码，以识别 <strong>people2.jpg</strong> 中的人脸，然后重新运行程序并查看结果。应该已识别相同的人员</li>
+</ol>
+
+<h2 id="验证人脸">验证人脸</h2>
+
+<p>面部识别经常用于身份验证。使用人脸服务，可通过将图像中的人脸与另一张人脸或者 <strong>PersonGroup</strong> 中注册的人员进行比较来验证该人脸。</p>
+
+<ol>
+  <li>在应用程序的代码文件中，在 <strong>Main</strong> 函数中检查用户选择菜单选项 <strong>5</strong> 时运行的代码。此代码会调用 <strong>VerifyFace</strong> 函数，并传递图像文件 (<strong>person1.jpg</strong>) 的路径、姓名以及要用于人脸连识别的 <strong>PeopleGroup</strong> 的 ID。</li>
+  <li>在代码文件中查找 <strong>VerifyFace</strong>  函数，并在注释 <strong>“获取人员组中的人员的 ID”</strong> （用于显示结果的代码上方）下添加以下代码：</li>
+</ol>
+
+<p><strong>C#</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock36" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock36" class="mt-0"><code class="language-C hljs"><span class="hljs-comment"><span class="hljs-comment">// 获取人员组中的人员的 ID</span></span>
+var people = await faceClient.PersonGroupPerson.ListAsync(groupId);
+foreach(var person in people)
+{
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (person.Name == personName)
+    {
+        Guid personId = person.PersonId;
+
+        <span class="hljs-comment"><span class="hljs-comment">// 获取图像中的第一张人脸</span></span>
+        <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> (var imageData = File.OpenRead(personImage))
+        {    
+            var faces = await faceClient.Face.DetectWithStreamAsync(imageData);
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (faces.Count &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+            {
+                Guid faceId = (Guid)faces[<span class="hljs-number"><span class="hljs-number">0</span></span>].FaceId;
+
+                <span class="hljs-comment"><span class="hljs-comment">// 我们获得了一张人脸和一个 ID。它们是否匹配？</span></span>
+                var verification = await faceClient.Face.VerifyFaceToPersonAsync(faceId, personId, groupId);
+                <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (verification.IsIdentical)
+                {
+                    result = <span class="hljs-string"><span class="hljs-string">"Verified"</span></span>;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+
+<p><strong>Python</strong></p>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock37" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock37" class="mt-0"><code class="language-Python hljs"><span class="hljs-comment"><span class="hljs-comment"># 获取人员组中的人员的 ID</span></span>
+people = face_client.person_group_person.list(group_id)
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> person <span class="hljs-keyword"><span class="hljs-keyword">in</span></span> people:
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> person.name == person_name:
+        person_id = person.person_id
+
+        获取图像中的第一张人脸
+        <span class="hljs-keyword"><span class="hljs-keyword">with</span></span> open(person_image, mode=<span class="hljs-string"><span class="hljs-string">"rb"</span></span>) <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> image_data:
+            faces = face_client.face.detect_with_stream(image=image_data)
+            <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> len(faces) &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>:
+                face_id = faces[<span class="hljs-number"><span class="hljs-number">0</span></span>].face_id
+
+                我们获得了一张人脸和一个 ID。它们是否匹配？
+                verification = face_client.face.verify_face_to_person(face_id, person_id, group_id)
+                <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> verification.is_identical:
+                    result = <span class="hljs-string"><span class="hljs-string">'Verified'</span></span>
+</code></pre>
+
+<ol>
+  <li>检查添加到 <strong>VerifyFace</strong> 函数的代码。它会在组中查找具有指定姓名的人员的 ID。如果该人员存在，则代码会获取图像中第一张人脸的人脸 ID。最后，如果图像中包含人脸，则代码会根据指定人员的 ID 对其进行验证。</li>
+  <li>
+    <p>保存你的更改并返回到 <strong>face-api</strong> 文件夹的集成终端，然后输入以下命令以运行程序：</p>
+
+    <p><strong>C#</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock38" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock38" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">dotnet</span></span> run
+</code></pre>
+
+    <p><strong>Python</strong></p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock39" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock39" class="mt-0"><code class="hljs css"> <span class="hljs-selector-tag"><span class="hljs-selector-tag">python</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">analyze-faces</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.py</span></span>
+</code></pre>
+  </li>
+  <li>在出现提示时输入 <strong>5</strong> 并观察结果。</li>
+  <li>编辑 <strong>Main</strong> 函数中菜单选项 <strong>5</strong> 对应的代码，以尝试各姓名以及图像 <strong>person1.jpg</strong> 和 <strong>person2.jpg</strong> 的不同组合。</li>
+</ol>
+
+<h2 id="更多信息">更多信息</h2>
+
+<p>有关使用<strong>计算机视觉</strong>服务进行面部检测的详细信息，请参阅<a href="https://docs.microsoft.com/azure/cognitive-services/computer-vision/concept-detecting-faces">计算机视觉文档</a>。</p>
+
+<p>要详细了解<strong>人脸</strong>服务，请参阅<a href="https://docs.microsoft.com/azure/cognitive-services/face/">人脸文档</a>。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102ZH-Designing-and-Implementing-a-Microsoft-Azure-AI-Solution
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,805 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-204: Developing solutions for Microsoft Azure
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-204: Developing solutions for Microsoft Azure
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-create-azure-resources">Exercise 1: Create Azure resources</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-create-an-event-grid-subscription">Exercise 2: Create an Event Grid subscription</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-publish-event-grid-events-from-net">Exercise 3: Publish Event Grid events from .NET</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-clean-up-your-subscription">Exercise 4: Clean up your subscription</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-09-publish-and-subscribe-to-event-grid-events">Lab 09: Publish and subscribe to Event Grid events</h1>
+
+<h2 id="microsoft-azure-user-interface">Microsoft Azure user interface</h2>
+
+<p>Given the dynamic nature of Microsoft cloud tools, you might experience Azure UI changes that occur after the development of this training content. As a result, the lab instructions and lab steps might not align correctly.</p>
+
+<p>Microsoft updates this training course when the community alerts us to needed changes. However, cloud updates occur frequently, so you might encounter UI changes before this training content updates. <strong>If this occurs, adapt to the changes, and then work through them in the labs as needed.</strong></p>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-environment">Sign in to the lab environment</h4>
+
+<p>Sign in to your Windows 10 virtual machine (VM) using the following credentials:</p>
+
+<ul>
+  <li>
+    <p>Username: <strong>Admin</strong></p>
+  </li>
+  <li>
+    <p>Password: <strong>Pa55w.rd</strong></p>
+  </li>
+</ul>
+
+<blockquote>
+  <p><strong>Note</strong>: Your instructor will provide instructions for connecting to the virtual lab environment.</p>
+</blockquote>
+
+<h4 id="review-the-installed-applications">Review the installed applications</h4>
+
+<p>Find the taskbar on your Windows 10 desktop. The taskbar contains the icons for the applications that you’ll use in this lab, including:</p>
+
+<ul>
+  <li>
+    <p>Microsoft Edge</p>
+  </li>
+  <li>
+    <p>Microsoft Visual Studio Code</p>
+  </li>
+</ul>
+
+<h2 id="architecture-diagram">Architecture diagram</h2>
+
+<p><a href="media/Lab09-Diagram.png" target="_blank"><img src="media/Lab09-Diagram.png" alt="Architecture diagram depicting a user publishing and subscribing to Event Grid events."></a></p>
+
+<h3 id="exercise-1-create-azure-resources">Exercise 1: Create Azure resources</h3>
+
+<h4 id="task-1-open-the-azure-portal">Task 1: Open the Azure portal</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Microsoft Edge</strong> icon.</p>
+  </li>
+  <li>
+    <p>In the open browser window, browse to the Azure portal (<a href="https://portal.azure.com">https://portal.azure.com</a>), and then sign in with the account you’ll be using for this lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is your first time signing in to the Azure portal, you’ll be offered a tour of the portal. Select <strong>Get Started</strong> to skip the tour and begin using the portal.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-open-azure-cloud-shell">Task 2: Open Azure Cloud Shell</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, select the <strong>Cloud Shell</strong> icon <a href="media/az204_lab_CloudShell.png" target="_blank"><img src="media/az204_lab_CloudShell.png" alt="Cloud Shell icon"></a> to open a new Bash session. If Cloud Shell defaults to a PowerShell session, select <strong>PowerShell</strong> and, in the drop-down menu, select <strong>Bash</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong>, when prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>Bash</strong>. When you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and then select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In Azure portal, at the <strong>Cloud Shell</strong> command prompt, run the following command to get the version of the Azure Command-Line Interface (Azure CLI) tool:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-bash hljs"> az --version
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-3-review-the-microsofteventgrid-provider-registration">Task 3: Review the Microsoft.EventGrid provider registration</h4>
+
+<ol>
+  <li>
+    <p>At the <strong>Cloud Shell</strong> command prompt in the portal, perform the following actions:</p>
+
+    <p>a. Run the following command to get a list of subgroups and commands at the root level of the Azure CLI:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-bash hljs"> az --<span class="hljs-built_in"><span class="hljs-built_in">help</span></span>
+</code></pre>
+
+    <p>b. Run the following command to get a list of the commands that are available for resource providers:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-bash hljs"> az provider --<span class="hljs-built_in"><span class="hljs-built_in">help</span></span>
+</code></pre>
+
+    <p>c. Run the following command to list all currently registered providers:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-bash hljs">az provider list
+</code></pre>
+
+    <p>d. Run the following command to list just the namespaces of the currently registered providers:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-bash hljs">az provider list --query <span class="hljs-string"><span class="hljs-string">"[].namespace"</span></span>
+</code></pre>
+
+    <p>e. Review the list of currently registered providers. Notice that the <strong>Microsoft.EventGrid</strong> provider is currently included in the list of providers.</p>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-create-a-custom-event-grid-topic">Task 4: Create a custom Event Grid topic</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s navigation pane, select <strong>Create a resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a resource</strong> blade, in the <strong>Search services and marketplace</strong> text box, enter <strong>Event Grid Topic</strong>, and then select Enter.</p>
+  </li>
+  <li>
+    <p>On the <strong>Marketplace</strong> search results blade, select the <strong>Event Grid Topic</strong> result, and then select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create Topic</strong> blade, on the <strong>Basics</strong> tab, perform the following actions, and then select the <strong>Advanced</strong> tab:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Subscription</strong> drop-down list</td>
+          <td>Retain the default value.</td>
+        </tr>
+        <tr>
+          <td><strong>Resource group</strong> drop-down list</td>
+          <td>Select <strong>Create new</strong>, enter <strong>PubSubEvents</strong>, and then select <strong>OK</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Name</strong> text box</td>
+          <td>Enter <strong>hrtopic</strong><em>[yourname]</em>.</td>
+        </tr>
+        <tr>
+          <td><strong>Region</strong> drop-down list</td>
+          <td>Select <strong>East US</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings on the <strong>Basics</strong> tab.</p>
+
+    <p><a href="media/l09_create_topic.png" target="_blank"><img src="media/l09_create_topic.png" alt="Screenshot displaying the configured settings on the Create Topic blade"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Advanced</strong> tab, from the <strong>Event Schema</strong> drop-down list, select <strong>Event Grid Schema</strong>, and then select <strong>Review + create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, review the options that you selected during the previous steps.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> to create the event grid topic by using your specified configuration.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for Azure to finish creating the topic before you continue with the lab. You’ll receive a notification when the&nbsp;topic&nbsp;is created.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-5-deploy-the-azure-event-grid-viewer-to-a-web-app">Task 5: Deploy the Azure Event Grid viewer to a web app</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s navigation pane, select <strong>Create a resource</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a resource</strong> blade, in the <strong>Search services and marketplace</strong> text box, enter <strong>Web App</strong>, and then select Enter.</p>
+  </li>
+  <li>
+    <p>On the <strong>Marketplace</strong> search results blade, select the <strong>Web App</strong> result, and then select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create Web App</strong> blade, on the <strong>Basics</strong> tab, perform the following actions, and then select <strong>Next: Docker</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Subscription</strong> drop-down list</td>
+          <td>Retain the default value.</td>
+        </tr>
+        <tr>
+          <td><strong>Resource group</strong> drop-down list</td>
+          <td>Select <strong>PubSubEvents</strong> in the list.</td>
+        </tr>
+        <tr>
+          <td><strong>Name</strong>&nbsp;text box</td>
+          <td>Enter <strong>eventviewer</strong><em>[yourname]</em>.</td>
+        </tr>
+        <tr>
+          <td><strong>Publish</strong> section</td>
+          <td>Select <strong>Docker Container</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Operating System</strong> section</td>
+          <td>select <strong>Linux</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Region</strong> drop-down list</td>
+          <td>Select <strong>East US</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Linux Plan (East US)</strong> section</td>
+          <td>Select <strong>Create new</strong>, in the <strong>Name</strong> text box, enter <strong>EventPlan</strong>, and then select <strong>OK</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>SKU and size</strong> section</td>
+          <td>Retain the default value.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings on the <strong>Create Web App</strong> blade.</p>
+
+    <p><a href="media/l09_create_web_app.png" target="_blank"><img src="media/l09_create_web_app.png" alt="Screenshot displaying the configured settings on the Create Web App blade"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Docker</strong> tab, perform the following actions, and select <strong>Review + create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Options</strong> drop-down list</td>
+          <td>Select <strong>Single Container</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Image Source</strong> drop-down list</td>
+          <td>Select <strong>Docker Hub</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Access Type</strong> drop-down list</td>
+          <td>Select <strong>Public</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Image and tag</strong> text box</td>
+          <td>Enter <strong>microsoftlearning/azure-event-grid-viewer:latest</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings on the <strong>Docker</strong> tab.</p>
+
+    <p><a href="media/l09_create_web_app_docker.png" target="_blank"><img src="media/l09_create_web_app_docker.png" alt="Screenshot displaying the configured settings on the Create Web App - Docker tab"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, review the options that you selected during the previous steps.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> to create the web app using your specified configuration.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for Azure to finish creating the web app before you continue with the lab. You’ll receive a notification when the&nbsp;app&nbsp;is created.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this exercise, you created the Event Grid topic and a web app that you will use throughout the remainder of the lab.</p>
+
+<h3 id="exercise-2-create-an-event-grid-subscription">Exercise 2: Create an Event Grid subscription</h3>
+
+<h4 id="task-1-access-the-event-grid-viewer-web-application">Task 1: Access the Event Grid Viewer web application</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s navigation pane, select <strong>Resource groups</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>PubSubEvents</strong> resource group.</p>
+  </li>
+  <li>
+    <p>On the <strong>PubSubEvents</strong> blade, select the <strong>eventviewer</strong><em>[yourname]</em> web app.</p>
+  </li>
+  <li>
+    <p>On the <strong>App Service</strong> blade, in the <strong>Settings</strong> category, select the <strong>Properties</strong> link.</p>
+  </li>
+  <li>
+    <p>In the <strong>Properties</strong> section, record the value of the <strong>URL</strong> link. You’ll use this value later in the lab.</p>
+  </li>
+  <li>
+    <p>Select <strong>Overview</strong>, and then select <strong>Browse</strong>.</p>
+  </li>
+  <li>
+    <p>Observe the currently running <strong>Azure Event Grid Viewer</strong> web application. Leave this web application running for the remainder of the lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This web application will update in real time as events are sent to its endpoint. You’ll use this application to monitor events throughout the lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Return to your currently open browser window that displays the Azure portal.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-create-a-new-subscription">Task 2: Create a new subscription</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s navigation pane, select <strong>Resource groups</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>PubSubEvents</strong> resource group that you created previously in this lab.</p>
+  </li>
+  <li>
+    <p>On the <strong>PubSubEvents</strong> blade, select the <strong>hrtopic</strong><em>[yourname]</em> Event Grid topic that you created previously in this lab.</p>
+  </li>
+  <li>
+    <p>On the <strong>Event Grid Topic</strong> blade, select <strong>+ Event Subscription</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create Event Subscription</strong> blade, perform the following actions, and then select <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Name</strong>&nbsp;text box</td>
+          <td>Enter <strong>basicsub</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Event Schema</strong> drop-down list</td>
+          <td>Select <strong>Event Grid Schema</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Endpoint Type</strong> drop-down list</td>
+          <td>Select <strong>Web Hook</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Endpoint</strong></td>
+          <td>Select <strong>Select an endpoint</strong>. In the <strong>Subscriber Endpoint</strong> text box, enter the <strong>Web App URL</strong> value that you recorded previously, ensure thatit uses an <strong>https://</strong> prefix, add the suffix <strong>/api/updates</strong>, and then select <strong>Confirm Selection</strong>. For example, if your <strong>Web App URL</strong> value is <code>http://eventviewerstudent.azurewebsites.net/</code>, then your <strong>Subscriber Endpoint</strong> would be <code>https://eventviewerstudent.azurewebsites.net/api/updates</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings on the <strong>Create Event Subscription</strong> blade.</p>
+
+    <p><a href="media/l09_create_event_subscription.png" target="_blank"><img src="media/l09_create_event_subscription.png" alt="Screenshot displaying the configured settings on the Create Event Subscription blade"></a></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for Azure to finish creating the subscription before you continue with the lab. You’ll receive a notification when the&nbsp;subscription&nbsp;is created.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-observe-the-subscription-validation-event">Task 3: Observe the subscription validation event</h4>
+
+<ol>
+  <li>
+    <p>Return to the browser window displaying the <strong>Azure Event Grid Viewer</strong> web application.</p>
+  </li>
+  <li>
+    <p>Review the <strong>Microsoft.EventGrid.SubscriptionValidationEvent</strong> event that was created as part of the subscription creation process.</p>
+  </li>
+  <li>
+    <p>Select the event and review its JSON content.</p>
+  </li>
+  <li>
+    <p>Return to your currently open browser window with the Azure portal.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-record-subscription-credentials">Task 4: Record subscription credentials</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s navigation pane, select <strong>Resource groups</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>PubSubEvents</strong> resource group that you created previously in this lab.</p>
+  </li>
+  <li>
+    <p>On the <strong>PubSubEvents</strong> blade, select the <strong>hrtopic</strong><em>[yourname]</em> Event Grid topic that you created previously in this lab.</p>
+  </li>
+  <li>
+    <p>On the <strong>Event Grid Topic</strong> blade, record the value of the <strong>Topic Endpoint</strong> field. You’ll use this value later in the lab.</p>
+  </li>
+  <li>
+    <p>In the <strong>Settings</strong> category, select the <strong>Access keys</strong> link.</p>
+  </li>
+  <li>
+    <p>In the <strong>Access keys</strong> section, record the value of the <strong>Key 1</strong> text box. You’ll use this value later in the lab.</p>
+  </li>
+</ol>
+
+<h4 id="review-1">Review</h4>
+
+<p>In this exercise, you created a new subscription, validated its registration, and then recorded the credentials required to publish a new event to the topic.</p>
+
+<h3 id="exercise-3-publish-event-grid-events-from-net">Exercise 3: Publish Event Grid events from .NET</h3>
+
+<h4 id="task-1-create-a-net-project">Task 1: Create a .NET project</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>Start</strong> screen, select the <strong>Visual Studio Code</strong> tile.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, select <strong>Open Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>File Explorer</strong> window that opens, browse to <strong>Allfiles (F):\Allfiles\Labs\09\Starter\EventPublisher</strong>, and then select <strong>Select Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu for the <strong>Explorer</strong> pane, and then select <strong>Open in integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>Run the following command to create a new .NET project named <strong>EventPublisher</strong> in the current folder:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell"> dotnet new console --name EventPublisher --output .
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>dotnet new</strong> command will create a new <strong>console</strong> project in a folder with the same name as the project.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following command to import version 4.1.0 of <strong>Azure.Messaging.EventGrid</strong> from NuGet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell"> dotnet add package Azure.Messaging.EventGrid --version 4.1.0
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <strong>dotnet add package</strong> command will add the <strong>Microsoft.Azure.EventGrid</strong> package from NuGet. For more information, go to <a href="https://www.nuget.org/packages/Azure.Messaging.EventGrid/4.1.0">Azure.Messaging.EventGrid</a>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following command to build the .NET web application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell"> dotnet build
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> or the <strong>Recycle Bin</strong> icon to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-modify-the-program-class-to-connect-to-event-grid">Task 2: Modify the Program class to connect to Event Grid</h4>
+
+<ol>
+  <li>
+    <p>On the&nbsp;<strong>Explorer</strong>&nbsp;pane of the <strong>Visual Studio Code</strong> window, open the <strong>Program.cs</strong> file.</p>
+  </li>
+  <li>
+    <p>On the code editor tab for the&nbsp;<strong>Program.cs</strong>&nbsp;file, delete all the code in the existing file.</p>
+  </li>
+  <li>
+    <p>Add the following line of code to import the <strong>Azure</strong>, and <strong>Azure.Messaging.EventGrid</strong> namespaces from the <strong>Azure.Messaging.EventGrid</strong> package imported from NuGet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Messaging.EventGrid;
+</code></pre>
+  </li>
+  <li>
+    <p>Add the following lines of code to add <strong>using</strong> directives for the built-in namespaces that will be used in this file:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following code to create a new <strong>Program</strong> class:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">Program</span></span>
+ {
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following line of code to create a new string constant named <strong>topicEndpoint</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> topicEndpoint = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Update the <strong>topicEndpoint</strong> string constant by setting its value to the&nbsp;<strong>Topic Endpoint</strong> of the Event Grid topic that you recorded previously in this lab.</p>
+  </li>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following line of code to create a new string constant named <strong>topicKey</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> topicKey = <span class="hljs-string"><span class="hljs-string">""</span></span>;
+</code></pre>
+  </li>
+  <li>
+    <p>Update the <strong>topicKey</strong> string constant by setting its value to the&nbsp;<strong>Key</strong> of the Event Grid topic that you recorded previously in this lab.</p>
+  </li>
+  <li>
+    <p>In the <strong>Program</strong> class, enter the following code to create a new asynchronous <strong>Main</strong> method:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+ </span></span>{
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>Program.cs</strong> file, which should now include the following lines of code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Messaging.EventGrid;
+    
+ <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">Program</span></span>
+ {
+     <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> topicEndpoint = <span class="hljs-string"><span class="hljs-string">"&lt;topic-endpoint&gt;"</span></span>;
+     <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> topicKey = <span class="hljs-string"><span class="hljs-string">"&lt;topic-key&gt;"</span></span>;
+        
+     <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+     </span></span>{
+     }
+ }
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-3-publish-new-events">Task 3: Publish new events</h4>
+
+<ol>
+  <li>
+    <p>In the <strong>Main</strong> method, perform the following actions to publish a list of events to your topic endpoint:</p>
+
+    <p>a. Add the following line of code to create a new variable named <strong>endpoint</strong> of type <strong>Uri</strong>, using the <strong>topicEndpoint</strong> string constant as a constructor parameter:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-csharp hljs"> Uri endpoint = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Uri(topicEndpoint); 
+</code></pre>
+
+    <p>b. Add the following line of code to create a new variable named <strong>credential</strong> of type <strong><a href="https://docs.microsoft.com/dotnet/api/azure.azurekeycredential">AzureKeyCredential</a></strong>, using the <strong>topicKey</strong> string constant as a constructor parameter:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-csharp hljs"> AzureKeyCredential credential = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> AzureKeyCredential(topicKey);
+</code></pre>
+
+    <p>c. Add the following line of code to create a new variable named <strong>client</strong> of type <strong><a href="https://docs.microsoft.com/dotnet/api/azure.messaging.eventgrid.eventgridpublisherclient">EventGridPublisherClient</a></strong>, using the <strong>endpoint</strong> and <strong>credential</strong> variables as constructor parameters:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-csharp hljs"> EventGridPublisherClient client = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> EventGridPublisherClient(endpoint, credential);
+</code></pre>
+
+    <p>d. Add the following block of code to create a new variable named <strong>firstEvent</strong> of type <strong><a href="https://docs.microsoft.com/dotnet/api/azure.messaging.eventgrid.eventgridevent">EventGridEvent</a></strong> and populate that variable with sample data:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-csharp hljs"> EventGridEvent firstEvent = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> EventGridEvent(
+     subject: <span class="hljs-string"><span class="hljs-string">$"New Employee: Alba Sutton"</span></span>,
+     eventType: <span class="hljs-string"><span class="hljs-string">"Employees.Registration.New"</span></span>,
+     dataVersion: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>,
+     data: <span class="hljs-keyword"><span class="hljs-keyword">new</span></span>
+     {
+         FullName = <span class="hljs-string"><span class="hljs-string">"Alba Sutton"</span></span>,
+         Address = <span class="hljs-string"><span class="hljs-string">"4567 Pine Avenue, Edison, WA 97202"</span></span>
+      }
+  );
+</code></pre>
+
+    <p>e. Add the following block of code to create a new variable named <strong>secondEvent</strong> of type <strong><a href="https://docs.microsoft.com/dotnet/api/azure.messaging.eventgrid.eventgridevent">EventGridEvent</a></strong> and populate that variable with sample data:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-csharp hljs">     EventGridEvent secondEvent = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> EventGridEvent(
+         subject: <span class="hljs-string"><span class="hljs-string">$"New Employee: Alexandre Doyon"</span></span>,
+         eventType: <span class="hljs-string"><span class="hljs-string">"Employees.Registration.New"</span></span>,
+         dataVersion: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>,
+         data: <span class="hljs-keyword"><span class="hljs-keyword">new</span></span>
+         {
+             FullName = <span class="hljs-string"><span class="hljs-string">"Alexandre Doyon"</span></span>,
+             Address = <span class="hljs-string"><span class="hljs-string">"456 College Street, Bow, WA 98107"</span></span>
+         }
+     );
+</code></pre>
+
+    <p>f. Add the following line of code to asynchronously invoke the <strong><a href="https://docs.microsoft.com/dotnet/api/azure.messaging.eventgrid.eventgridpublisherclient.sendeventasync">EventGridPublisherClient.SendEventAsync</a></strong> method using the <strong>firstEvent</strong> variable as a parameter:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-csharp hljs">  <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.SendEventAsync(firstEvent);
+</code></pre>
+
+    <p>g. Add the following line of code to render the <strong>“First event published”</strong> message to the console:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-csharp hljs">  Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"First event published"</span></span>);
+</code></pre>
+
+    <p>h. Add the following line of code to asynchronously invoke the <strong><a href="https://docs.microsoft.com/dotnet/api/azure.messaging.eventgrid.eventgridpublisherclient.sendeventasync">EventGridPublisherClient.SendEventAsync</a></strong> method using the <strong>secondEvent</strong> variable as a parameter:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-csharp hljs">  <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.SendEventAsync(secondEvent);
+</code></pre>
+
+    <p>i. Add the following line of code to render the <strong>“Second event published”</strong> message to the console:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-csharp hljs">  Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Second event published"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>Review the <strong>Main</strong> method, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Main</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">string</span></span></span></span><span class="hljs-function"><span class="hljs-params">[] args</span></span></span><span class="hljs-function">)
+ </span></span>{
+     Uri endpoint = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Uri(topicEndpoint);
+     AzureKeyCredential credential = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> AzureKeyCredential(topicKey);
+     EventGridPublisherClient client = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> EventGridPublisherClient(endpoint, credential);
+        
+     EventGridEvent firstEvent = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> EventGridEvent(
+         subject: <span class="hljs-string"><span class="hljs-string">$"New Employee: Alba Sutton"</span></span>,
+         eventType: <span class="hljs-string"><span class="hljs-string">"Employees.Registration.New"</span></span>,
+         dataVersion: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>,
+         data: <span class="hljs-keyword"><span class="hljs-keyword">new</span></span>
+         {
+             FullName = <span class="hljs-string"><span class="hljs-string">"Alba Sutton"</span></span>,
+             Address = <span class="hljs-string"><span class="hljs-string">"4567 Pine Avenue, Edison, WA 97202"</span></span>
+         }
+     );
+
+     EventGridEvent secondEvent = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> EventGridEvent(
+         subject: <span class="hljs-string"><span class="hljs-string">$"New Employee: Alexandre Doyon"</span></span>,
+         eventType: <span class="hljs-string"><span class="hljs-string">"Employees.Registration.New"</span></span>,
+         dataVersion: <span class="hljs-string"><span class="hljs-string">"1.0"</span></span>,
+         data: <span class="hljs-keyword"><span class="hljs-keyword">new</span></span>
+         {
+             FullName = <span class="hljs-string"><span class="hljs-string">"Alexandre Doyon"</span></span>,
+             Address = <span class="hljs-string"><span class="hljs-string">"456 College Street, Bow, WA 98107"</span></span>
+         }
+     );
+
+     <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.SendEventAsync(firstEvent);
+     Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"First event published"</span></span>);
+
+     <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> client.SendEventAsync(secondEvent);
+     Console.WriteLine(<span class="hljs-string"><span class="hljs-string">"Second event published"</span></span>);
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>Save the&nbsp;<strong>Program.cs</strong>&nbsp;file.</p>
+  </li>
+  <li>
+    <p>In the <strong>Visual Studio Code</strong> window, activate the shortcut menu for the <strong>Explorer</strong> pane, and then select <strong>Open in Integrated Terminal</strong>.</p>
+  </li>
+  <li>
+    <p>Run the following command to run the .NET web application:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-powershell"> dotnet run
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If there are any build errors, review the <strong>Program.cs</strong> file in the <strong>Allfiles (F):\Allfiles\Labs\09\Solution\EventPublisher</strong> folder.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Observe the success message output from the currently running console application.</p>
+  </li>
+  <li>
+    <p>Select <strong>Kill Terminal</strong> or the <strong>Recycle Bin</strong> icon to close the currently open terminal and any associated processes.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-observe-published-events">Task 4: Observe published events</h4>
+
+<ol>
+  <li>
+    <p>Return to the browser window with the <strong>Azure Event Grid Viewer</strong> web application.</p>
+  </li>
+  <li>
+    <p>Review the <strong>Employees.Registration.New</strong> events that were created by your console application.</p>
+  </li>
+  <li>
+    <p>Select any of the events and review its JSON content.</p>
+  </li>
+  <li>
+    <p>Return to the Azure portal.</p>
+  </li>
+</ol>
+
+<h4 id="review-2">Review</h4>
+
+<p>In this exercise, you published new events to your Event Grid topic by using a .NET console application.</p>
+
+<h3 id="exercise-4-clean-up-your-subscription">Exercise 4: Clean up your subscription</h3>
+
+<h4 id="task-1-open-azure-cloud-shell">Task 1: Open Azure Cloud Shell</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, select the <strong>Cloud Shell</strong> icon <a href="media/az204_lab_CloudShell.png" target="_blank"><img src="media/az204_lab_CloudShell.png" alt="Cloud Shell icon"></a> to open a new Bash session. If Cloud Shell defaults to a PowerShell session, select <strong>PowerShell</strong> and, in the drop-down menu, select <strong>Bash</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong>, when prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>. When you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-delete-a-resource-group">Task 2: Delete a resource group</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>Cloud Shell</strong> pane, run the following command to delete the <strong>PubSubEvents</strong> resource group:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-bash hljs"> az group delete --name PubSubEvents --no-wait --yes
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command runs asynchronously (as determined by the <em>–no-wait</em> parameter), so while you’ll be able to run another Azure CLI command immediately afterwards within the same Bash session, it’ll take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane in the portal.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-close-the-active-applications">Task 3: Close the active applications</h4>
+
+<ol>
+  <li>
+    <p>Close the currently running Microsoft Edge application.</p>
+  </li>
+  <li>
+    <p>Close the currently running Visual Studio Code application.</p>
+  </li>
+</ol>
+
+<h4 id="review-3">Review</h4>
+
+<p>In this exercise, you cleaned up your subscription by removing the resource groups used in this lab.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.js"></script>
+
+
+
+</body></html>

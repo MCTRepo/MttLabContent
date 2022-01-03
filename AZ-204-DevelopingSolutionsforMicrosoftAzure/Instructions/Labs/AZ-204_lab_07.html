@@ -1,0 +1,1382 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-204: Developing solutions for Microsoft Azure
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-204: Developing solutions for Microsoft Azure
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#before-you-start">Before you start</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-create-azure-resources">Exercise 1: Create Azure resources</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-configure-secrets-and-identities">Exercise 2: Configure secrets and identities</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-build-an-azure-functions-app">Exercise 3: Build an Azure Functions app</a></li><li class="nav-item"><a class="nav-link" href="#exercise-4-access-azure-blob-storage-data">Exercise 4: Access Azure Blob Storage data</a></li><li class="nav-item"><a class="nav-link" href="#exercise-5-clean-up-your-subscription">Exercise 5: Clean up your subscription</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-07-access-resource-secrets-more-securely-across-services">Lab 07: Access resource secrets more securely across services</h1>
+
+<h2 id="microsoft-azure-user-interface">Microsoft Azure user interface</h2>
+
+<p>Given the dynamic nature of Microsoft cloud tools, you might experience Azure UI changes that occur after this training content’s development. As a result, the lab instructions and lab steps might not align correctly.</p>
+
+<p>Microsoft updates this training course when the community brings needed changes to our attention. However, because cloud updates occur frequently, you might encounter UI changes before this training content updates. <strong>If this occurs, adapt to the changes, and then work through them in the labs as needed.</strong></p>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="before-you-start">Before you start</h3>
+
+<h4 id="sign-in-to-the-lab-environment">Sign in to the lab environment</h4>
+
+<p>Sign in to your Windows 10 virtual machine (VM) by using the following credentials:</p>
+
+<ul>
+  <li>Username: <strong>Admin</strong></li>
+  <li>Password: <strong>Pa55w.rd</strong></li>
+</ul>
+
+<blockquote>
+  <p><strong>Note</strong>: Your instructor will provide instructions to connect to the virtual lab environment.</p>
+</blockquote>
+
+<h4 id="review-the-installed-applications">Review the installed applications</h4>
+
+<p>Find the taskbar on your Windows 10 desktop. The taskbar contains the icons for the applications that you’ll use in this lab, including:</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+  <li>File Explorer</li>
+  <li>Windows Terminal</li>
+  <li>Visual Studio Code</li>
+</ul>
+
+<h2 id="architecture-diagram">Architecture diagram</h2>
+
+<p><a href="media/Lab07-Diagram.png" target="_blank"><img src="media/Lab07-Diagram.png" alt="Architecture diagram depicting a user accessing resource secrets more securely across services."></a></p>
+
+<h3 id="exercise-1-create-azure-resources">Exercise 1: Create Azure resources</h3>
+
+<h4 id="task-1-open-the-azure-portal">Task 1: Open the Azure portal</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Microsoft Edge</strong> icon.</p>
+  </li>
+  <li>
+    <p>In the open browser window, browse to the Azure portal (<a href="https://portal.azure.com">https://portal.azure.com</a>), and then sign in with the account you’ll be using for this lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is your first time signing in to the Azure portal, you’ll be offered a tour of the portal. Select <strong>Get Started</strong> to skip the tour and begin using the portal.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-create-a-storage-account">Task 2: Create a Storage account</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, use the <strong>Search resources, services, and docs</strong> text box to search for <strong>Storage Accounts</strong>, and then in the list of results, select <strong>Storage accounts</strong>.</p>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Storage accounts</strong>&nbsp;blade, select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a storage account</strong> blade, on the <strong>Basics</strong> tab, perform the following actions, and select <strong>Review + create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Subscription</strong> drop-down list</td>
+          <td>Retain the default value.</td>
+        </tr>
+        <tr>
+          <td><strong>Resource group</strong> section</td>
+          <td>Select <strong>Create new</strong>, enter <strong>ConfidentialStack</strong>, and then select <strong>OK</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Storage account name</strong>&nbsp;text box</td>
+          <td>Enter <strong>securestor</strong><em>[yourname]</em>.</td>
+        </tr>
+        <tr>
+          <td><strong>Region</strong> drop-down list</td>
+          <td>Select <strong>(US) East US</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Performance</strong> section</td>
+          <td>Select the <strong>Standard</strong> option.</td>
+        </tr>
+        <tr>
+          <td><strong>Redundancy</strong> drop-down list</td>
+          <td>select <strong>Locally-redundant storage (LRS)</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings on the <strong>Create a storage account</strong> blade.</p>
+
+    <p><a href="media/l07_create_a_storage_account.png" target="_blank"><img src="media/l07_create_a_storage_account.png" alt="Screenshot displaying the configured settings on the Create a storage account blade"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, review the options that you selected during the previous steps.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> to create the storage account by using your specified configuration.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the creation task to complete before you move forward with this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the Azure portal’s navigation pane, select&nbsp;<strong>All services</strong>.</p>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>All services</strong>&nbsp;blade, select&nbsp;<strong>Storage accounts</strong>.</p>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Storage accounts</strong>&nbsp;blade, select the <strong>securestor</strong><em>[yourname]</em> storage account instance.</p>
+  </li>
+  <li>
+    <p>On the&nbsp;<strong>Storage account</strong>&nbsp;blade, in the&nbsp;<strong>Security + networking</strong>&nbsp;section, select the&nbsp;<strong>Access keys</strong>&nbsp;link.</p>
+  </li>
+  <li>
+    <p>In the&nbsp;<strong>Access keys</strong>&nbsp;section, select <strong>Show keys</strong>.</p>
+  </li>
+  <li>
+    <p>Select any one of the keys and record the value in either of the&nbsp;<strong>Connection string</strong>&nbsp;boxes. You’ll use this value later in this lab.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: It doesn’t matter which connection string you choose. They’re interchangeable.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-create-an-azure-key-vault">Task 3: Create an Azure Key Vault</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, use the <strong>Search resources, services, and docs</strong> text box to search for <strong>Key vaults</strong>, and then in the list of results, select <strong>Key vaults</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Key vaults</strong> blade, select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create key vault</strong> blade, on the <strong>Basics</strong> tab, perform the following actions, and then select <strong>Review + create</strong>:</p>
+  </li>
+</ol>
+
+<table>
+  <thead>
+    <tr>
+      <th>Setting</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Subscription</strong> drop-down list</td>
+      <td>Retain the default value.</td>
+    </tr>
+    <tr>
+      <td><strong>Resource group</strong> drop-down list</td>
+      <td>Select <strong>ConfidentialStack</strong> in the list.</td>
+    </tr>
+    <tr>
+      <td><strong>Key vault name</strong>&nbsp;text box</td>
+      <td>Enter <strong>securevault</strong><em>[yourname]</em>.</td>
+    </tr>
+    <tr>
+      <td><strong>Region</strong> drop-down list</td>
+      <td>Select <strong>East US</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong>Pricing tier</strong> drop-down list</td>
+      <td>select <strong>Standard</strong>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The following screenshot displays the configured settings on the <strong>Create key vault</strong> blade.</p>
+
+<p><a href="media/l07_create_key_vault.png" target="_blank"><img src="media/l07_create_key_vault.png" alt="Screenshot displaying the configured settings on the Create key vault blade"></a></p>
+
+<ol>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, review the options that you selected during the previous steps.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> to create the key vault by using your specified configuration.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the creation task to complete before you move forward with this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-create-a-function-app">Task 4: Create a Function app</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, use the <strong>Search resources, services, and docs</strong> text box to search for <strong>Function App</strong>, and then in the list of results, select <strong>Function App</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Function App</strong> blade, select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create Function App</strong> blade, on the <strong>Basics</strong> tab, perform the following actions, and then select <strong>Next: Hosting</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Subscription</strong> drop-down list</td>
+          <td>Retain the default value.</td>
+        </tr>
+        <tr>
+          <td><strong>Resource group</strong> drop-down list</td>
+          <td>Select <strong>ConfidentialStack</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Function App name</strong>&nbsp;text box</td>
+          <td>Enter <strong>securefunc</strong><em>[yourname]</em>.</td>
+        </tr>
+        <tr>
+          <td><strong>Publish</strong> section</td>
+          <td>Select <strong>Code</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Runtime stack</strong> drop-down list</td>
+          <td>Select <strong>.NET</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Version</strong> drop-down list</td>
+          <td>Select <strong>3.1</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Region</strong> drop-down list</td>
+          <td>Select the <strong>East US</strong> region.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings in the <strong>Create Function App</strong> blade.</p>
+
+    <p><a href="media/l07_create_function_app.png" target="_blank"><img src="media/l07_create_function_app.png" alt="Screenshot displaying the configured settings on the Create Function App blade"></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Hosting</strong> tab, perform the following actions, and then select <strong>Review + create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Storage account</strong> drop-down list</td>
+          <td>Select the <strong>securestor</strong><em>[yourname]</em> storage account.</td>
+        </tr>
+        <tr>
+          <td><strong>Operating System</strong> section</td>
+          <td>Select <strong>Linux</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Plan type</strong> drop-down list</td>
+          <td>Select <strong>Consumption (Serverless)</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings on the <strong>Hosting</strong> tab on the <strong>Create Function App</strong> blade.</p>
+
+    <p><a href="media/l07_create_function_app_hosting_tab.png" target="_blank"><img src="media/l07_create_function_app_hosting_tab.png" alt="Screenshot displaying the configured settings on the Hosting tab on the Create Function App blade "></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab, review the options that you selected during the previous steps.</p>
+  </li>
+  <li>
+    <p>Select <strong>Create</strong> to create the function app by using your specified configuration.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the creation task to complete before you move forward with this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="review">Review</h4>
+
+<p>In this exercise, you created all the resources that you’ll use in this lab.</p>
+
+<h3 id="exercise-2-configure-secrets-and-identities">Exercise 2: Configure secrets and identities</h3>
+
+<h4 id="task-1-configure-a-system-assigned-managed-service-identity">Task 1: Configure a system-assigned managed service identity</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s navigation pane, select the <strong>Resource groups</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>ConfidentialStack</strong> resource group.</p>
+  </li>
+  <li>
+    <p>On the <strong>ConfidentialStack</strong> blade, select the <strong>securefunc</strong><em>[yourname]</em> function app.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: There will be two resources, a function app and application insights resource, with the same name. Make sure you select the function app resource.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Function App</strong> blade, select the <strong>Identity</strong> option from the <strong>Settings</strong> section.</p>
+  </li>
+  <li>
+    <p>On the <strong>Identity</strong> pane, on the <strong>System assigned</strong> tab, set the <strong>Status</strong> to <strong>On</strong>, and then select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Yes</strong> to confirm the setting.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the system-assigned managed identity to be created before you move forward with this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-create-a-key-vault-secret">Task 2: Create a Key Vault secret</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s <strong>navigation</strong> pane, select the <strong>Resource groups</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>ConfidentialStack</strong> resource group.</p>
+  </li>
+  <li>
+    <p>On the <strong>ConfidentialStack</strong> blade, select the <strong>securevault</strong><em>[yourname]</em> key vault.</p>
+  </li>
+  <li>
+    <p>On the <strong>Key Vault</strong> blade, select the <strong>Secrets</strong> link in the <strong>Settings</strong> section.</p>
+  </li>
+  <li>
+    <p>On the <strong>Secrets</strong> pane, select <strong>+ Generate/Import</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a secret</strong> blade, perform the following actions, and then select <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Upload options</strong> drop-down list</td>
+          <td>Select <strong>Manual</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Name</strong> text box</td>
+          <td>Enter <strong>storagecredentials</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Value</strong> text box</td>
+          <td>Enter the storage account connection string that you recorded previously in this lab.</td>
+        </tr>
+        <tr>
+          <td><strong>Content type</strong> text box</td>
+          <td>Leave blank.</td>
+        </tr>
+        <tr>
+          <td><strong>Set activation date</strong> check box</td>
+          <td>Not selected.</td>
+        </tr>
+        <tr>
+          <td><strong>Set expiration date</strong> check box</td>
+          <td>Not selected.</td>
+        </tr>
+        <tr>
+          <td><strong>Enabled</strong> option</td>
+          <td>Select <strong>Yes</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings on the <strong>Create a secret</strong> blade.</p>
+
+    <p><a href="media/l07_create_a_secret.png" target="_blank"><img src="media/l07_create_a_secret.png" alt="Screenshot displaying the configured settings on the Create a secret blade "></a></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the secret to be created before you move forward with this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Return to the <strong>Secrets</strong> pane, and then select the <strong>storagecredentials</strong> item in the list.</p>
+  </li>
+  <li>
+    <p>On the <strong>Versions</strong> pane, select the latest version of the <strong>storagecredentials</strong> secret.</p>
+  </li>
+  <li>
+    <p>On the <strong>Secret Version</strong> pane, perform the following actions:</p>
+
+    <ol>
+      <li>
+        <p>Select <strong>Show secret value</strong> to find the value of the secret.</p>
+      </li>
+      <li>
+        <p>Record the value of the <strong>Secret Identifier</strong> text box because you’ll use this later in the lab.</p>
+      </li>
+    </ol>
+
+    <blockquote>
+      <p><strong>Note</strong>: You’re recording the value of the <strong>Secret Identifier</strong> text box, not the <strong>Secret Value</strong> text box.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-3-configure-a-key-vault-access-policy">Task 3: Configure a Key Vault access policy</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s navigation pane, select the <strong>Resource groups</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>ConfidentialStack</strong> resource group.</p>
+  </li>
+  <li>
+    <p>On the <strong>ConfidentialStack</strong> blade, select the <strong>securevault[yourname]</strong> key vault.</p>
+  </li>
+  <li>
+    <p>On the <strong>Key vault</strong> blade, select the <strong>Access policies</strong> link in the <strong>Settings</strong> section.</p>
+  </li>
+  <li>
+    <p>On the <strong>Access policies</strong> pane, select <strong>Add Access Policy</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Add access policy</strong> blade, perform the following actions, and then select <strong>Add</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Configure from template</strong> drop-down list</td>
+          <td>Leave blank.</td>
+        </tr>
+        <tr>
+          <td><strong>Key permissions</strong> drop-down list</td>
+          <td>0 selected.</td>
+        </tr>
+        <tr>
+          <td><strong>Secret permissions</strong> drop-down list</td>
+          <td>Select the <strong>GET</strong> permission.</td>
+        </tr>
+        <tr>
+          <td><strong>Certificate permissions</strong> drop-down list</td>
+          <td>0 selected.</td>
+        </tr>
+        <tr>
+          <td><strong>Select principal</strong> link</td>
+          <td>Find and then select the service principal named <strong>securefunc</strong><em>[yourname]</em>. The system-assigned managed identity you created previously in this lab will have the same name as the Azure Function resource.</td>
+        </tr>
+        <tr>
+          <td><strong>Authorized application</strong> link</td>
+          <td>None selected.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The following screenshot displays the configured settings in the <strong>Add access policy</strong> blade.</p>
+
+    <p><a href="media/l07_add_access_policy.png" target="_blank"><img src="media/l07_add_access_policy.png" alt="Screenshot depicting the configured settings on the Add access policy blade."></a></p>
+  </li>
+  <li>
+    <p>On the <strong>Access policies</strong> pane, select <strong>Save</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for your changes to the access policies to save before you continue with this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-create-a-key-vault-derived-application-setting">Task 4: Create a Key Vault-derived application setting</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s navigation pane, select the <strong>Resource groups</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>ConfidentialStack</strong> resource group.</p>
+  </li>
+  <li>
+    <p>On the <strong>ConfidentialStack</strong> blade, select the <strong>securefunc[yourname]</strong> function app.</p>
+  </li>
+  <li>
+    <p>On the <strong>Function App</strong> blade, select the <strong>Configuration</strong> option from the <strong>Settings</strong> section.</p>
+  </li>
+  <li>
+    <p>On the <strong>Configuration</strong> pane, on the <strong>Application settings</strong> tab, select <strong>New application setting</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Add/Edit application setting</strong> pop-up window, in the <strong>Name</strong> text box, enter <strong>StorageConnectionString</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Value</strong> text box, construct a value by using the following syntax: <code>@Microsoft.KeyVault(SecretUri=*Secret Identifier*)</code></p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You’ll need to build a reference to your <strong><em>Secret Identifier</em></strong> by using the above syntax. For example, if your secret identifier is <code>https://securevaultstudent.vault.azure.net/secrets/storagecredentials/17b41386df3e4191b92f089f5efb4cbf</code>, your value would be <code>@Microsoft.KeyVault(SecretUri=https://securevaultstudent.vault.azure.net/secrets/storagecredentials/17b41386df3e4191b92f089f5efb4cbf)</code>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Leave the <strong>deployment slot setting</strong> check box set to its default value (not selected), and then select <strong>OK</strong> to close the pop-up window and to return to the <strong>Configuration</strong> section.</p>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong> to save your settings, and then in the <strong>save Changes</strong> confirmation pop-up dialog box, select <strong>Continue</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for your application settings to save before you continue with the lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="review-1">Review</h4>
+
+<p>In this exercise, you created a system-assigned managed service identity for your function app, and then gave that identity the appropriate permissions to get the value of a secret in your key vault. Finally, you created a secret that you referenced within your function app’s configuration settings.</p>
+
+<h3 id="exercise-3-build-an-azure-functions-app">Exercise 3: Build an Azure Functions app</h3>
+
+<h4 id="task-1-initialize-a-function-project">Task 1: Initialize a function project</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Windows Terminal</strong> icon.</p>
+  </li>
+  <li>
+    <p>Run the following command to change the current directory to the <strong>Allfiles (F):\Allfiles\Labs\07\Starter\func</strong> empty directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell"> cd F:\Allfiles\Labs\07\Starter\func
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to use the <strong>Azure Functions Core Tools</strong> to create a new local Functions project in the current directory using the <strong>dotnet</strong> runtime:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell"> func init --worker-runtime dotnet --force
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can review the documentation to [create a new project][azure-functions-core-tools-new-project] using the <strong>Azure Functions Core Tools</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Run the following command to <strong>build</strong> the .NET Core 3.1 project:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell"> dotnet build
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-2-create-an-http-triggered-function">Task 2: Create an HTTP-triggered function</h4>
+
+<ol>
+  <li>
+    <p>Run the following command to use the <strong>Azure Functions Core Tools</strong> to create a new function named <strong>FileParser</strong> using the <strong>HTTP trigger</strong> template:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell"> func new --template "HTTP trigger" --name "FileParser"
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can review the documentation to [create a new function][azure-functions-core-tools-new-function] using the <strong>Azure Functions Core Tools</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the currently running <strong>Windows Terminal</strong> application.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-configure-and-read-an-application-setting">Task 3: Configure and read an application setting</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>Start</strong> screen, select the <strong>Visual Studio Code</strong> tile.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, select <strong>Open Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>File Explorer</strong> window that opens, browse to <strong>Allfiles (F):\Allfiles\Labs\07\Starter\func</strong>, and then select <strong>Select Folder</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Explorer</strong> pane of the <strong>Visual Studio Code</strong> window, open the <strong>local.settings.json</strong> file.</p>
+  </li>
+  <li>
+    <p>Observe the current value of the <strong>Values</strong> object:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-json hljs"> <span class="hljs-string"><span class="hljs-string">"Values"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"AzureWebJobsStorage"</span></span>: <span class="hljs-string"><span class="hljs-string">"UseDevelopmentStorage=true"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"FUNCTIONS_WORKER_RUNTIME"</span></span>: <span class="hljs-string"><span class="hljs-string">"dotnet"</span></span>
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>Update the value of the <strong>Values</strong> object by adding a new setting named <strong>StorageConnectionString</strong>, and then assigning it a string value of <strong>[TEST VALUE]</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-json hljs"> <span class="hljs-string"><span class="hljs-string">"Values"</span></span>: {
+     <span class="hljs-attr"><span class="hljs-attr">"AzureWebJobsStorage"</span></span>: <span class="hljs-string"><span class="hljs-string">"UseDevelopmentStorage=true"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"FUNCTIONS_WORKER_RUNTIME"</span></span>: <span class="hljs-string"><span class="hljs-string">"dotnet"</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"StorageConnectionString"</span></span>: <span class="hljs-string"><span class="hljs-string">"[TEST VALUE]"</span></span>
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>The <strong>local.settings.json</strong> file should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-json hljs"> {
+     <span class="hljs-attr"><span class="hljs-attr">"IsEncrypted"</span></span>: <span class="hljs-literal"><span class="hljs-literal">false</span></span>,
+     <span class="hljs-attr"><span class="hljs-attr">"Values"</span></span>: {
+         <span class="hljs-attr"><span class="hljs-attr">"AzureWebJobsStorage"</span></span>: <span class="hljs-string"><span class="hljs-string">"UseDevelopmentStorage=true"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"FUNCTIONS_WORKER_RUNTIME"</span></span>: <span class="hljs-string"><span class="hljs-string">"dotnet"</span></span>,
+         <span class="hljs-attr"><span class="hljs-attr">"StorageConnectionString"</span></span>: <span class="hljs-string"><span class="hljs-string">"[TEST VALUE]"</span></span>
+     }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong> to save your changes to the <strong>local.settings.json</strong> file.</p>
+  </li>
+  <li>
+    <p>On the <strong>Explorer</strong> pane of the <strong>Visual Studio Code</strong> window, open the <strong>FileParser.cs</strong> file.</p>
+  </li>
+  <li>
+    <p>In the code editor, observe the example implementation:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.IO;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Mvc;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs.Extensions.Http;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Http;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Extensions.Logging;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Newtonsoft.Json;
+
+ <span class="hljs-keyword"><span class="hljs-keyword">namespace</span></span> <span class="hljs-title"><span class="hljs-title">func</span></span>
+ {
+     <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">FileParser</span></span>
+     {
+         [<span class="hljs-meta"><span class="hljs-meta">FunctionName(</span><span class="hljs-meta-string"><span class="hljs-meta"><span class="hljs-meta-string">"FileParser"</span></span></span><span class="hljs-meta">)</span></span>]
+         <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;IActionResult&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">
+             [HttpTrigger(AuthorizationLevel.Function, </span></span><span class="hljs-string"><span class="hljs-function"><span class="hljs-params"><span class="hljs-string">"get"</span></span></span></span><span class="hljs-function"><span class="hljs-params">, </span></span><span class="hljs-string"><span class="hljs-function"><span class="hljs-params"><span class="hljs-string">"post"</span></span></span></span><span class="hljs-function"><span class="hljs-params">, Route = </span></span><span class="hljs-literal"><span class="hljs-function"><span class="hljs-params"><span class="hljs-literal">null</span></span></span></span></span><span class="hljs-function">)] HttpRequest req,
+             ILogger log)
+         </span></span>{
+             log.LogInformation(<span class="hljs-string"><span class="hljs-string">"C# HTTP trigger function processed a request."</span></span>);
+
+             <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> name = req.Query[<span class="hljs-string"><span class="hljs-string">"name"</span></span>];
+
+             <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> requestBody = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> StreamReader(req.Body).ReadToEndAsync();
+             <span class="hljs-keyword"><span class="hljs-keyword">dynamic</span></span> data = JsonConvert.DeserializeObject(requestBody);
+             name = name ?? data?.name;
+
+             <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> responseMessage = <span class="hljs-keyword"><span class="hljs-keyword">string</span></span>.IsNullOrEmpty(name)
+                 ? <span class="hljs-string"><span class="hljs-string">"This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."</span></span>
+                 : <span class="hljs-string"><span class="hljs-string">$"Hello, </span><span class="hljs-subst"><span class="hljs-string"><span class="hljs-subst">{name}</span></span></span><span class="hljs-string">. This HTTP triggered function executed successfully."</span></span>;
+
+             <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> OkObjectResult(responseMessage);
+         }
+     }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>Delete all of the content within the <strong>FileParser.cs</strong> file.</p>
+  </li>
+  <li>
+    <p>Add the following lines of code to add <strong>using directives</strong> for the <strong>Microsoft.AspNetCore.Mvc</strong>, <strong>Microsoft.Azure.WebJobs</strong>, <strong>Microsoft.AspNetCore.Http</strong>, <strong>System</strong>, and <strong>System.Threading.Tasks</strong> namespaces:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Mvc;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Http;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+</code></pre>
+  </li>
+  <li>
+    <p>Create a new <strong>public static</strong> class named <strong>FileParser</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">FileParser</span></span>
+ { }
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>FileParser.cs</strong> file again, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Mvc;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Http;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+
+ <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">FileParser</span></span>
+ { }
+</code></pre>
+  </li>
+  <li>
+    <p>Within the <strong>FileParser</strong> class, add the following code block to create a new <strong>public static</strong> <em>asynchronous</em> method named <strong>Run</strong>. This method returns a variable of type <strong>Task&lt;IActionResult&gt;</strong> and also takes in a variable of type <strong>HttpRequest</strong> named <em>request</em>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;IActionResult&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">
+     HttpRequest request</span></span></span><span class="hljs-function">)
+ </span></span>{ }
+</code></pre>
+  </li>
+  <li>
+    <p>Add the following code to append an attribute to the <strong>Run</strong> method of type <strong>FunctionNameAttribute</strong> that has its <strong>name</strong> parameter set to a value of <strong>FileParser</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="language-csharp hljs"> [<span class="hljs-meta"><span class="hljs-meta">FunctionName(</span><span class="hljs-meta-string"><span class="hljs-meta"><span class="hljs-meta-string">"FileParser"</span></span></span><span class="hljs-meta">)</span></span>]
+ <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;IActionResult&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">
+     HttpRequest request</span></span></span><span class="hljs-function">)
+ </span></span>{ }
+</code></pre>
+  </li>
+  <li>
+    <p>Add the following code to append an attribute to the <strong>request</strong> parameter of type <strong>HttpTriggerAttribute</strong> that has its <strong>methods</strong> parameter array set to a single value of <strong>GET</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="language-csharp hljs"> [<span class="hljs-meta"><span class="hljs-meta">FunctionName(</span><span class="hljs-meta-string"><span class="hljs-meta"><span class="hljs-meta-string">"FileParser"</span></span></span><span class="hljs-meta">)</span></span>]
+ <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;IActionResult&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">
+     [HttpTrigger(</span></span><span class="hljs-string"><span class="hljs-function"><span class="hljs-params"><span class="hljs-string">"GET"</span></span></span></span></span><span class="hljs-function">)] HttpRequest request)
+ </span></span>{ }
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>FileParser.cs</strong> file again, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Mvc;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Http;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+
+ <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">FileParser</span></span>
+ {
+     [<span class="hljs-meta"><span class="hljs-meta">FunctionName(</span><span class="hljs-meta-string"><span class="hljs-meta"><span class="hljs-meta-string">"FileParser"</span></span></span><span class="hljs-meta">)</span></span>]
+     <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;IActionResult&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">
+         [HttpTrigger(</span></span><span class="hljs-string"><span class="hljs-function"><span class="hljs-params"><span class="hljs-string">"GET"</span></span></span></span></span><span class="hljs-function">)] HttpRequest request)
+     </span></span>{ }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Run</strong> method, enter the following line of code to retrieve the value of the <strong>StorageConnectionString</strong> application setting by using the <strong>Environment.GetEnvironmentVariable</strong> method and to store the result in a <strong>string</strong> variable named <strong>connectionString</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> connectionString = Environment.GetEnvironmentVariable(<span class="hljs-string"><span class="hljs-string">"StorageConnectionString"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>Enter the following line of code to return the value of the <strong>connectionString</strong> variable as the HTTP response:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> OkObjectResult(connectionString);
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>FileParser.cs</strong> file again, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Mvc;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Http;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+
+ <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">FileParser</span></span>
+ {
+     [<span class="hljs-meta"><span class="hljs-meta">FunctionName(</span><span class="hljs-meta-string"><span class="hljs-meta"><span class="hljs-meta-string">"FileParser"</span></span></span><span class="hljs-meta">)</span></span>]
+     <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;IActionResult&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">
+         [HttpTrigger(</span></span><span class="hljs-string"><span class="hljs-function"><span class="hljs-params"><span class="hljs-string">"GET"</span></span></span></span></span><span class="hljs-function">)] HttpRequest request)
+     </span></span>{
+         <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> connectionString = Environment.GetEnvironmentVariable(<span class="hljs-string"><span class="hljs-string">"StorageConnectionString"</span></span>);
+         <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> OkObjectResult(connectionString);
+     }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong> to save your changes to the <strong>FileParser.cs</strong> file.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-validate-the-local-function">Task 4: Validate the local function</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Windows Terminal</strong> icon.</p>
+  </li>
+  <li>
+    <p>Run the following command to change the current directory to the <strong>Allfiles (F):\Allfiles\Labs\07\Starter\func</strong> empty directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="language-powershell"> cd F:\Allfiles\Labs\07\Starter\func
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to run the function app project:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="language-powershell"> func start --build
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can review the documentation to [start the function app project locally][azure-functions-core-tools-start-function] using the <strong>Azure Functions Core Tools</strong>.</p>
+    </blockquote>
+  </li>
+  <li>On the taskbar, select the <strong>Windows Terminal</strong> icon again to open a new instance of the <strong>Windows Terminal</strong> application.</li>
+  <li>
+    <p>When you receive the open command prompt, run the following command to start the <strong>httprepl</strong> tool, setting the base Uniform Resource Identifier (URI) to <code>http://localhost:7071</code>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="language-powershell"> httprepl http://localhost:7071
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: An error message is displayed by the <strong>httprepl</strong> tool. This message occurs because the tool is searching for a Swagger definition file to use to traverse the API. Because your function project doesn’t produce a Swagger definition file, you’ll need to traverse the API manually.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>When you receive the tool prompt, run the following command to browse to the relative <strong>api</strong> directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="language-powershell"> cd api
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to browse to the relative <strong>fileparser</strong> directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="language-powershell"> cd fileparser
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to run the <strong>get</strong> command:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="language-powershell"> get
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>[TEST VALUE]</strong> value of the <strong>StorageConnectionString</strong> being returned as the result of the HTTP request:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="language-powershell"> HTTP/1.1 200 OK
+ Content-Type: text/plain; charset=utf-8
+ Date: Tue, 01 Sep 2020 23:35:39 GMT
+ Server: Kestrel
+ Transfer-Encoding: chunked
+
+ [TEST VALUE]
+
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to exit the <strong>httprepl</strong> tool:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="language-powershell"> exit
+</code></pre>
+  </li>
+  <li>Close all currently running instances of the <strong>Windows Terminal</strong> application.</li>
+</ol>
+
+<h4 id="task-5-deploy-the-function-using-the-azure-functions-core-tools">Task 5: Deploy the function using the Azure Functions Core Tools</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Windows Terminal</strong> icon.</p>
+  </li>
+  <li>
+    <p>Run the following command to change the current directory to the <strong>Allfiles (F):\Allfiles\Labs\07\Starter\func</strong> empty directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="language-powershell"> cd F:\Allfiles\Labs\07\Starter\func
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to sign in to the Azure Command-Line Interface (CLI):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="language-powershell"> az login
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Microsoft Edge</strong> browser window, enter the email address and password for your Microsoft account, and then select <strong>Sign in</strong>.</p>
+  </li>
+  <li>
+    <p>Return to the currently open <strong>Windows Terminal</strong> window. Wait for the sign-in process to finish.</p>
+  </li>
+  <li>
+    <p>Run the following command to publish the function app project:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="language-powershell"> func azure functionapp publish &lt;function-app-name&gt;
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: As an example, if your <strong>Function App name</strong> is <strong>securefuncstudent</strong>, your command would be <code>func azure functionapp publish securefuncstudent</code>. You can review the documentation to [publish the local function app project][azure-functions-core-tools-publish-azure] using the <strong>Azure Functions Core Tools</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Wait for the deployment to finalize before you move forward with the lab.</p>
+  </li>
+  <li>
+    <p>Close the currently running <strong>Windows Terminal</strong> application.</p>
+  </li>
+</ol>
+
+<h4 id="task-6-test-the-key-vault-derived-application-setting">Task 6: Test the Key Vault-derived application setting</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Microsoft Edge</strong> icon, and then select the tab that contains the Azure portal (<a href="https://portal.azure.com">https://portal.azure.com</a>).</p>
+  </li>
+  <li>
+    <p>On the Azure portal’s navigation pane, select the <strong>Resource groups</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>ConfidentialStack</strong> resource group.</p>
+  </li>
+  <li>
+    <p>On the <strong>ConfidentialStack</strong> blade, select the <strong>securefunc[yourname]</strong> function app.</p>
+  </li>
+  <li>
+    <p>On the <strong>Function App</strong> blade, select the <strong>Functions</strong> option in the <strong>Functions</strong> section.</p>
+  </li>
+  <li>
+    <p>On the <strong>Functions</strong> pane, select the existing <strong>FileParser</strong> function.</p>
+  </li>
+  <li>
+    <p>On the <strong>Function</strong> blade, select the <strong>Code + Test</strong> option in the <strong>Developer</strong> section.</p>
+  </li>
+  <li>
+    <p>In the function editor, select <strong>Test/Run</strong>.</p>
+  </li>
+  <li>
+    <p>In the pop-up dialog box that displays, in the <strong>HTTP method</strong> list, select <strong>GET</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Run</strong> to test the function.</p>
+  </li>
+  <li>
+    <p>Observe the results of the test run. The result should be your Azure Storage connection string.</p>
+  </li>
+</ol>
+
+<h4 id="review-2">Review</h4>
+
+<p>In this exercise, you used a service identity to read the value of a secret stored in Key Vault and returned that value as the result of a function app.</p>
+
+<h3 id="exercise-4-access-azure-blob-storage-data">Exercise 4: Access Azure Blob Storage data</h3>
+
+<h4 id="task-1-upload-a-sample-storage-blob">Task 1: Upload a sample storage blob</h4>
+
+<ol>
+  <li>
+    <p>On the Azure portal’s navigation pane, select the <strong>Resource groups</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>ConfidentialStack</strong> resource group.</p>
+  </li>
+  <li>
+    <p>On the <strong>ConfidentialStack</strong> blade, select the <strong>securestor</strong><em>[yourname]</em> storage account.</p>
+  </li>
+  <li>
+    <p>On the <strong>Storage account</strong> blade, select the <strong>Containers</strong> link in the <strong>Data storage</strong> section.</p>
+  </li>
+  <li>
+    <p>In the <strong>Containers</strong> section, select <strong>+ Container</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>New container</strong> pop-up window, perform the following actions, and then select <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Name</strong> text box</td>
+          <td>Enter <strong>drop</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Public access level</strong> drop-down list</td>
+          <td>Select <strong>Blob (anonymous read access for blobs only)</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Return to the <strong>Containers</strong> section, and then select the newly created <strong>drop</strong> container.</p>
+  </li>
+  <li>
+    <p>On the <strong>Container</strong> blade, select <strong>Upload</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Upload blob</strong> window, perform the following actions, and then select <strong>Upload</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Files</strong> section</td>
+          <td>Select the <strong>Folder</strong> icon.</td>
+        </tr>
+        <tr>
+          <td><strong>File Explorer</strong> window</td>
+          <td>Browse to <strong>Allfiles (F):\Allfiles\Labs\07\Starter</strong>, select the <strong>records.json</strong> file, and then select <strong>Open</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>Overwrite if files already exist</strong> check box</td>
+          <td>Ensure that this check box is selected.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the blob to upload before you continue with this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Return to the <strong>Container</strong> blade, and then select the <strong>records.json</strong> blob in the list of blobs.</p>
+  </li>
+  <li>
+    <p>On the <strong>Blob</strong> blade, find the blob metadata, and then copy the URL for the blob.</p>
+  </li>
+  <li>
+    <p>On the taskbar, activate the shortcut menu for the <strong>Microsoft Edge</strong> icon, and then select <strong>New window</strong>.</p>
+  </li>
+  <li>
+    <p>In the new browser window, refer to the URL that you copied for the blob.</p>
+  </li>
+  <li>
+    <p>The JavaScript Object Notation (JSON) contents of the blob should now display. Close the browser window with the JSON contents.</p>
+  </li>
+  <li>
+    <p>Return to the browser window with the Azure portal, and then close the <strong>Blob</strong> blade.</p>
+  </li>
+  <li>
+    <p>Return to the <strong>Container</strong> blade, and then select <strong>Change access level</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Change access level</strong> pop-up window, perform the following actions:</p>
+
+    <ol>
+      <li>In the <strong>Public access level</strong> drop-down list, select <strong>Private (no anonymous access)</strong>.</li>
+      <li>Select <strong>OK</strong>.</li>
+    </ol>
+  </li>
+  <li>
+    <p>On the taskbar, activate the shortcut menu for the <strong>Microsoft Edge</strong> icon, and then select <strong>New window</strong>.</p>
+  </li>
+  <li>
+    <p>In the new browser window, refer to the URL that you copied for the blob.</p>
+  </li>
+  <li>
+    <p>An error message indicating that the resource wasn’t found should now display.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If the error message doesn’t display, your browser might have cached the file. Select Ctrl+F5 to refresh the page until the error message displays.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-pull-and-configure-the-azure-sdk-for-net">Task 2: Pull and configure the Azure SDK for .NET</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Windows Terminal</strong> icon.</p>
+  </li>
+  <li>
+    <p>Run the following command to change the current directory to the <strong>Allfiles (F):\Allfiles\Labs\07\Starter\func</strong> empty directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="language-powershell"> cd F:\Allfiles\Labs\07\Starter\func
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to add version <strong>12.6.0</strong> of the <strong>Azure.Storage.Blobs</strong> package from NuGet:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="language-powershell"> dotnet add package Azure.Storage.Blobs --version 12.6.0
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The <a href="https://www.nuget.org/packages/Azure.Storage.Blobs/12.6.0">Azure.Storage.Blobs</a> NuGet package references the subset of the Azure SDK for .NET required to write code for Azure Blob Storage.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the currently running <strong>Windows Terminal</strong> application.</p>
+  </li>
+  <li>
+    <p>On the <strong>Start</strong> screen, select the <strong>Visual Studio Code</strong> tile.</p>
+  </li>
+  <li>
+    <p>On the <strong>File</strong> menu, select <strong>Open Folder</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>File Explorer</strong> window that opens, browse to <strong>Allfiles (F):\Allfiles\Labs\07\Starter\func</strong>, and then select <strong>Select Folder</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Explorer</strong> pane of the <strong>Visual Studio Code</strong> window, open the <strong>FileParser.cs</strong> file.</p>
+  </li>
+  <li>
+    <p>Add a <strong>using directive</strong> for the <strong>Azure.Storage.Blobs</strong> namespace:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Storage.Blobs;
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>FileParser.cs</strong> file, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Storage.Blobs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Mvc;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Http;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+    
+ <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">FileParser</span></span>
+ {
+     [<span class="hljs-meta"><span class="hljs-meta">FunctionName(</span><span class="hljs-meta-string"><span class="hljs-meta"><span class="hljs-meta-string">"FileParser"</span></span></span><span class="hljs-meta">)</span></span>]
+     <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;IActionResult&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">
+         [HttpTrigger(</span></span><span class="hljs-string"><span class="hljs-function"><span class="hljs-params"><span class="hljs-string">"GET"</span></span></span></span></span><span class="hljs-function">)] HttpRequest request)
+     </span></span>{
+         <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> connectionString = Environment.GetEnvironmentVariable(<span class="hljs-string"><span class="hljs-string">"StorageConnectionString"</span></span>);
+         <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> OkObjectResult(connectionString);
+     }
+ }
+</code></pre>
+  </li>
+</ol>
+
+<h4 id="task-3-write-azure-blob-storage-code-using-the-azure-sdk-for-net">Task 3: Write Azure Blob Storage code using the Azure SDK for .NET</h4>
+
+<ol>
+  <li>
+    <p>Within the <strong>Run</strong> method of the <strong>FileParser</strong> class, delete the following line of code:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> OkObjectResult(connectionString);
+</code></pre>
+  </li>
+  <li>
+    <p>Still within the <strong>Run</strong> method, add the following code block to create a new instance of the <strong>BlobClient</strong> class by passing in your <em>connectionString</em> variable, a  <code>"drop"</code> string value, and a <code>"records.json"</code> string value to the constructor:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="language-csharp hljs"> BlobClient blob = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> BlobClient(connectionString, <span class="hljs-string"><span class="hljs-string">"drop"</span></span>, <span class="hljs-string"><span class="hljs-string">"records.json"</span></span>);
+</code></pre>
+  </li>
+  <li>
+    <p>Still within the <strong>Run</strong> method, add the following code block to use the <strong>BlobClient.DownloadAsync</strong> method to download the contents of the referenced blob asynchronously, and then store the result in a variable named <em>response</em>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> response = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> blob.DownloadAsync();
+</code></pre>
+  </li>
+  <li>
+    <p>Still within the <strong>Run</strong> method, add the following code block to return the value of the various content stored in the <em>content</em> variable by using the <strong>FileStreamResult</strong> class constructor:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock36" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock36" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> FileStreamResult(response?.Value?.Content, response?.Value?.ContentType);
+</code></pre>
+  </li>
+  <li>
+    <p>Observe the <strong>FileParser.cs</strong> file again, which should now include:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">c#</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock37" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock37" class="mt-0"><code class="language-csharp hljs"> <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Azure.Storage.Blobs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Mvc;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.Azure.WebJobs;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> Microsoft.AspNetCore.Http;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System;
+ <span class="hljs-keyword"><span class="hljs-keyword">using</span></span> System.Threading.Tasks;
+
+ <span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">FileParser</span></span>
+ {
+     [<span class="hljs-meta"><span class="hljs-meta">FunctionName(</span><span class="hljs-meta-string"><span class="hljs-meta"><span class="hljs-meta-string">"FileParser"</span></span></span><span class="hljs-meta">)</span></span>]
+     <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">async</span></span></span><span class="hljs-function"> Task&lt;IActionResult&gt; </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">Run</span></span></span><span class="hljs-function">(</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">
+         [HttpTrigger(</span></span><span class="hljs-string"><span class="hljs-function"><span class="hljs-params"><span class="hljs-string">"GET"</span></span></span></span></span><span class="hljs-function">)] HttpRequest request)
+     </span></span>{
+         <span class="hljs-keyword"><span class="hljs-keyword">string</span></span> connectionString = Environment.GetEnvironmentVariable(<span class="hljs-string"><span class="hljs-string">"StorageConnectionString"</span></span>);
+         BlobClient blob = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> BlobClient(connectionString, <span class="hljs-string"><span class="hljs-string">"drop"</span></span>, <span class="hljs-string"><span class="hljs-string">"records.json"</span></span>);
+         <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> response = <span class="hljs-keyword"><span class="hljs-keyword">await</span></span> blob.DownloadAsync();
+         <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> FileStreamResult(response?.Value?.Content, response?.Value?.ContentType);
+     }
+ }
+</code></pre>
+  </li>
+  <li>
+    <p>Select <strong>Save</strong> to save your changes to the <strong>FileParser.cs</strong> file.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-deploy-and-validate-the-azure-functions-app">Task 4: Deploy and validate the Azure Functions app</h4>
+
+<ol>
+  <li>
+    <p>On the taskbar, select the <strong>Windows Terminal</strong> icon.</p>
+  </li>
+  <li>
+    <p>Run the following command to change the current directory to the <strong>Allfiles (F):\Allfiles\Labs\07\Starter\func</strong> empty directory:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock38" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock38" class="mt-0"><code class="language-powershell"> cd F:\Allfiles\Labs\07\Starter\func
+</code></pre>
+  </li>
+  <li>
+    <p>Run the following command to sign in to the Azure CLI:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock39" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock39" class="mt-0"><code class="language-powershell"> az login
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Microsoft Edge</strong> browser window, enter the email address and password for your Microsoft account, and then select <strong>Sign in</strong>.</p>
+  </li>
+  <li>
+    <p>Return to the currently open <strong>Windows Terminal</strong> window. Wait for the sign-in process to finish.</p>
+  </li>
+  <li>
+    <p>Run the following command to publish the function app project again:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock40" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock40" class="mt-0"><code class="language-powershell"> func azure functionapp publish &lt;function-app-name&gt;
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: As an example, if your <strong>Function App name</strong> is <strong>securefuncstudent</strong>, your command would be <code>func azure functionapp publish securefuncstudent</code>. You can review the documentation to [publish the local function app project][azure-functions-core-tools-publish-azure] using the <strong>Azure Functions Core Tools</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Wait for the deployment to finalize before you move forward with the lab.</p>
+  </li>
+  <li>
+    <p>Close the currently running <strong>Windows Terminal</strong> application.</p>
+  </li>
+  <li>
+    <p>On the taskbar, select the <strong>Microsoft Edge</strong> icon, and then refer to the Azure portal (<a href="https://portal.azure.com">https://portal.azure.com</a>).</p>
+  </li>
+  <li>
+    <p>On the Azure portal’s navigation pane, select the <strong>Resource groups</strong> link.</p>
+  </li>
+  <li>
+    <p>On the <strong>Resource groups</strong> blade, select the <strong>ConfidentialStack</strong> resource group.</p>
+  </li>
+  <li>
+    <p>On the <strong>ConfidentialStack</strong> blade, select the <strong>securefunc[yourname]</strong> function app.</p>
+  </li>
+  <li>
+    <p>On the <strong>App Service</strong> blade, select the <strong>Functions</strong> option in the <strong>Functions</strong> section.</p>
+  </li>
+  <li>
+    <p>On the <strong>Functions</strong> pane, select the existing <strong>FileParser</strong> function.</p>
+  </li>
+  <li>
+    <p>On the <strong>Function</strong> blade, select the <strong>Code + Test</strong> option in the <strong>Developer</strong> section.</p>
+  </li>
+  <li>
+    <p>In the function editor, select <strong>Test/Run</strong>.</p>
+  </li>
+  <li>
+    <p>In the pop-up dialog box that displays, in the <strong>HTTP method</strong> list, select <strong>GET</strong>.</p>
+  </li>
+  <li>
+    <p>Select <strong>Run</strong> to test the function.</p>
+  </li>
+  <li>
+    <p>Observe the results of the test run. The output will contain the content of the <strong>$/drop/records.json</strong> blob stored in your Azure Storage account.</p>
+  </li>
+</ol>
+
+<h4 id="review-3">Review</h4>
+
+<p>In this exercise, you used C# code to access a storage account, and then downloaded the contents of a blob.</p>
+
+<h3 id="exercise-5-clean-up-your-subscription">Exercise 5: Clean up your subscription</h3>
+
+<h4 id="task-1-open-azure-cloud-shell">Task 1: Open Azure Cloud Shell</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, select the <strong>Cloud Shell</strong> icon <a href="media/az204_lab_CloudShell.png" target="_blank"><img src="media/az204_lab_CloudShell.png" alt="Cloud Shell icon"></a> to open a new Bash session. If Cloud Shell defaults to a PowerShell session, select <strong>PowerShell</strong>, and in the drop-down menu, select <strong>Bash</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you’re starting <strong>Cloud Shell</strong>, when prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>. When you’re presented with the <strong>You have no storage mounted</strong> message, select the subscription you’re using in this lab, and then select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-delete-a-resource-group">Task 2: Delete a resource group</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>Cloud Shell</strong> pane, run the following command to delete the <strong>ConfidentialStack</strong> resource group:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock41" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock41" class="mt-0"><code class="language-bash hljs"> az group delete --name ConfidentialStack --no-wait --yes
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: The command runs asynchronously (as determined by the <em>–no-wait</em> parameter), so while you’ll be able to run another Azure CLI command immediately afterwards within the same Bash session, it’ll take a few minutes before the resource groups are actually removed.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Close the <strong>Cloud Shell</strong> pane in the portal.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-close-the-active-application">Task 3: Close the active application</h4>
+
+<ul>
+  <li>Close the currently running Microsoft Edge application.</li>
+</ul>
+
+<h4 id="review-4">Review</h4>
+
+<p>In this exercise, you cleaned up your subscription by removing the resource groups used in this lab.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-204-DevelopingSolutionsforMicrosoftAzure
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D64f540ac7c8eef33997aaf23b6af9bd5b858530e.js"></script>
+
+
+
+</body></html>

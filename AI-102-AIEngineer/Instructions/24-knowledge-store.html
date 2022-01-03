@@ -1,0 +1,317 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AI-102-AIEngineer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                AI-102-AIEngineer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#prepare-json-for-rest-operations">Prepare JSON for REST operations</a></li><li class="nav-item"><a class="nav-link" href="#submit-rest-requests">Submit REST requests</a></li><li class="nav-item"><a class="nav-link" href="#view-object-projections">View object projections</a></li><li class="nav-item"><a class="nav-link" href="#view-file-projections">View file projections</a></li><li class="nav-item"><a class="nav-link" href="#view-table-projections">View table projections</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="create-a-knowledge-store-with-azure-cognitive-search">Create a Knowledge Store with Azure Cognitive Search</h1>
+
+<p>Azure Cognitive Search uses an enrichment pipeline of cognitive skills to extract AI-generated fields from documents and include them in a search index. While the index might be considered the primary output from an indexing process, the enriched data it contains might also be useful in other ways. For example:</p>
+
+<ul>
+  <li>Since the index is essentially a collection of JSON objects, each representing an indexed record, it might be useful to export the objects as JSON files for integration into a data orchestration process using tools such as Azure Data Factory.</li>
+  <li>You may want to normalize the index records into a relational schema of tables for analysis and reporting with tools such as Microsoft Power BI.</li>
+  <li>Having extracted embedded images from documents during the indexing process, you might want to save those images as files.</li>
+</ul>
+
+<p>In this exercise, you’ll implement a knowledge store for <em>Margie’s Travel</em>, a fictitious travel agency that uses information in brochures and hotel reviews to help customers plan trips.</p>
+
+<h2 id="clone-the-repository-for-this-course">Clone the repository for this course</h2>
+
+<p>If you have already cloned <strong>AI-102-AIEngineer</strong> code repository to the environment where you’re working on this lab, open it in Visual Studio Code; otherwise, follow these steps to clone it now.</p>
+
+<ol>
+  <li>Start Visual Studio Code.</li>
+  <li>Open the palette (SHIFT+CTRL+P) and run a <strong>Git: Clone</strong> command to clone the <code>https://github.com/MicrosoftLearning/AI-102-AIEngineer</code> repository to a local folder (it doesn’t matter which folder).</li>
+  <li>When the repository has been cloned, open the folder in Visual Studio Code.</li>
+  <li>
+    <p>Wait while additional files are installed to support the C# code projects in the repo.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you are prompted to add required assets to build and debug, select <strong>Not Now</strong>.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="create-azure-resources">Create Azure resources</h2>
+
+<blockquote>
+  <p><strong>Note</strong>: If you have previously completed the <strong><a href="22-azure-search.html">Create an Azure Cognitive Search solution</a></strong> exercise, and still have these Azure resources in your subscription, you can skip this section and start at the <strong>Create a search solution</strong> section. Otherwise, follow the steps below to provision the required Azure resources.</p>
+</blockquote>
+
+<ol>
+  <li>In a web browser, open the Azure portal at <code>https://portal.azure.com</code>, and sign in using the Microsoft account associated with your Azure subscription.</li>
+  <li>View the <strong>Resource groups</strong> in your subscription.</li>
+  <li>If you are using a restricted subscription in which a resource group has been provided for you, select the resource group to view its properties. Otherwise, create a new resource group with a name of your choice, and go to it when it has been created.</li>
+  <li>On the <strong>Overview</strong> page for your resource group, note the <strong>Subscription ID</strong> and <strong>Location</strong>. You will need these values, along with the name of the resource group in subsequent steps.</li>
+  <li>In Visual Studio Code, expand the <strong>24-knowledge-store</strong> folder and select <strong>setup.cmd</strong>. You will use this batch script to run the Azure command line interface (CLI) commands required to create the Azure resources you need.</li>
+  <li>Right-click the the <strong>24-knowledge-store</strong> folder and select <strong>Open in Integrated Terminal</strong>.</li>
+  <li>
+    <p>In the terminal pane, enter the following command to establish an authenticated connection to your Azure subscription.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs nginx"> <span class="hljs-attribute"><span class="hljs-attribute">az</span></span> login --output <span class="hljs-literal"><span class="hljs-literal">none</span></span>
+</code></pre>
+  </li>
+  <li>When prompted, sign into your Azure subscription. Then return to Visual Studio Code and wait for the sign-in process to complete.</li>
+  <li>
+    <p>Run the following command to list Azure locations.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs cpp"> az account <span class="hljs-built_in"><span class="hljs-built_in">list</span></span>-locations -o table
+</code></pre>
+  </li>
+  <li>In the output, find the <strong>Name</strong> value that corresponds with the location of your resource group (for example, for <em>East US</em> the corresponding name is <em>eastus</em>).</li>
+  <li>In the <strong>setup.cmd</strong> script, modify the <strong>subscription_id</strong>, <strong>resource_group</strong>, and <strong>location</strong> variable declarations with the appropriate values for your subscription ID, resource group name, and location name. Then save your changes.</li>
+  <li>
+    <p>In the terminal for the <strong>24-knowledge-store</strong> folder, enter the following command to run the script:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs nginx"><span class="hljs-attribute"><span class="hljs-attribute">setup</span></span>
+</code></pre>
+    <blockquote>
+      <p><strong>Note</strong>: The Search CLI module is in preview, and may get stuck in the <em>- Running ..</em> process. If this happens for over 2 minutes, press CTRL+C to cancel the long-running operation, and then select <strong>N</strong> when asked if you want to terminate the script. It should then complete successfully.</p>
+
+      <p>If the script fails, ensure you saved it with the correct variable names and try again.</p>
+    </blockquote>
+  </li>
+  <li>When the script completes, review the output it displays and note the following information about your Azure resources (you will need these values later):
+    <ul>
+      <li>Storage account name</li>
+      <li>Storage connection string</li>
+      <li>Cognitive Services account</li>
+      <li>Cognitive Services key</li>
+      <li>Search service endpoint</li>
+      <li>Search service admin key</li>
+      <li>Search service query key</li>
+    </ul>
+  </li>
+  <li>In the Azure portal, refresh the resource group and verify that it contains the Azure Storage account, Azure Cognitive Services resource, and Azure Cognitive Search resource.</li>
+</ol>
+
+<h2 id="create-a-search-solution">Create a search solution</h2>
+
+<p>Now that you have the necessary Azure resources, you can create a search solution that consists of the following components:</p>
+
+<ul>
+  <li>A <strong>data source</strong> that references the documents in your Azure storage container.</li>
+  <li>A <strong>skillset</strong> that defines an enrichment pipeline of skills to extract AI-generated fields from the documents. The skillset also defines the <em>projections</em> that will be generated in your <em>knowledge store</em>.</li>
+  <li>An <strong>index</strong> that defines a searchable set of document records.</li>
+  <li>An <strong>indexer</strong> that extracts the documents from the data source, applies the skillset, and populates the index. The process of indexing also persists the projections defined in the skillset in the knowledge store.</li>
+</ul>
+
+<p>In this exercise, you’ll use the Azure Cognitive Search REST interface to create these components by submitting JSON requests.</p>
+
+<h3 id="prepare-json-for-rest-operations">Prepare JSON for REST operations</h3>
+
+<p>You’ll use the REST interface to submit JSON definitions for your Azure Cognitive Search components.</p>
+
+<ol>
+  <li>In Visual Studio Code, in the <strong>24-knowledge-store</strong> folder, expand the <strong>create-search</strong> folder and select <strong>data_source.json</strong>. This file contains a JSON definition for a data source named <strong>margies-knowledge-data</strong>.</li>
+  <li>
+    <p>Replace the <strong>YOUR_CONNECTION_STRING</strong> placeholder with the connection string for your Azure storage account, which should resemble the following:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs"> DefaultEndpointsProtocol=https;AccountName=ai102str123;AccountKey=12345abcdefg...==;EndpointSuffix=core.windows.net
+</code></pre>
+
+    <p><em>You can find the connection string on the <strong>Access keys</strong> page for your storage account in the Azure portal.</em></p>
+  </li>
+  <li>Save and close the updated JSON file.</li>
+  <li>In the <strong>create-search</strong> folder, open <strong>skillset.json</strong>. This file contains a JSON definition for a skillset named <strong>margies-knowledge-skillset</strong>.</li>
+  <li>
+    <p>At the top of the skillset definition, in the <strong>cognitiveServices</strong> element, replace the <strong>YOUR_COGNITIVE_SERVICES_KEY</strong> placeholder with either of the keys for your cognitive services resources.</p>
+
+    <p><em>You can find the keys on the <strong>Keys and Endpoint</strong> page for your cognitive services resource in the Azure portal.</em></p>
+  </li>
+  <li>At the end of the collection of skills in your skillset, find the <strong>Microsoft.Skills.Util.ShaperSkill</strong> skill named <strong>define-projection</strong>. This skill defines a JSON structure for the enriched data that will be used for the projections that the pipeline will persist on the knowledge store for each document processed by the indexer.</li>
+  <li>At the bottom of the skillset file, observe that the skillset also includes a <strong>knowledgeStore</strong> definition, which includes a connection string for the Azure Storage account where the knowledge store is to be created, and a collection of <strong>projections</strong>. This skillset includes three <em>projection groups</em>:
+    <ul>
+      <li>A group containing an <em>object</em> projection based on the <strong>knowledge_projection</strong> output of the shaper skill in the skillset.</li>
+      <li>A group containing a <em>file</em> projection based on the <strong>normalized_images</strong> collection of image data extracted from the documents.</li>
+      <li>A group containing the following <em>table</em> projections:
+        <ul>
+          <li><strong>KeyPhrases</strong>: Contains an automatically generated key column and a <strong>keyPhrase</strong> column mapped to the <strong>knowledge_projection/key_phrases/</strong> collection output of the shaper skill.</li>
+          <li><strong>Locations</strong>: Contains an automatically generated key column and a <strong>location</strong> column mapped to the <strong>knowledge_projection/key_phrases/</strong> collection output of the shaper skill.</li>
+          <li><strong>ImageTags</strong>: Contains an automatically generated key column and a <strong>tag</strong> column mapped to the <strong>knowledge_projection/image_tags/</strong> collection output of the shaper skill.</li>
+          <li><strong>Docs</strong>: Contains an automatically generated key column and all of the <strong>knowledge_projection</strong> output values from the shaper skill that are not already assigned to a table.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Replace the <strong>YOUR_CONNECTION_STRING</strong> placeholder for the <strong>storageConnectionString</strong> value with the connection string for your storage account.</li>
+  <li>Save and close the updated JSON file.</li>
+  <li>In the <strong>create-search</strong> folder, open <strong>index.json</strong>. This file contains a JSON definition for an index named <strong>margies-knowledge-index</strong>.</li>
+  <li>Review the JSON for the index, then close the file without making any changes.</li>
+  <li>In the <strong>create-search</strong> folder, open <strong>indexer.json</strong>. This file contains a JSON definition for an indexer named <strong>margies-knowledge-indexer</strong>.</li>
+  <li>Review the JSON for the indexer, then close the file without making any changes.</li>
+</ol>
+
+<h3 id="submit-rest-requests">Submit REST requests</h3>
+
+<p>Now that you’ve prepared the JSON objects that define your search solution components, you can submit the JSON documents to the REST interface to create them.</p>
+
+<ol>
+  <li>In the <strong>create-search</strong> folder, open <strong>create-search.cmd</strong>. This batch script uses the cURL utility to submit the JSON definitions to the REST interface for your Azure Cognitive Search resource.</li>
+  <li>
+    <p>Replace the <strong>YOUR_SEARCH_URL</strong> and <strong>YOUR_ADMIN_KEY</strong> variable placeholders with the <strong>Url</strong> and one of the <strong>admin keys</strong> for your Azure Cognitive Search resource.</p>
+
+    <p><em>You can find these values on the <strong>Overview</strong> and <strong>Keys</strong> pages for your Azure Cognitive Search resource in the Azure portal.</em></p>
+  </li>
+  <li>Save the updated batch file.</li>
+  <li>Right-click the the <strong>create-search</strong> folder and select <strong>Open in Integrated Terminal</strong>.</li>
+  <li>
+    <p>In the terminal pane for the <strong>create-search</strong> folder, enter the following command run the batch script.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs sql"> <span class="hljs-keyword"><span class="hljs-keyword">create</span></span>-<span class="hljs-keyword"><span class="hljs-keyword">search</span></span>
+</code></pre>
+  </li>
+  <li>
+    <p>When the script completes, in the Azure portal, on the page for your Azure Cognitive Search resource, select the <strong>Indexers</strong> page and wait for the indexing process to complete.</p>
+
+    <p><em>You can select <strong>Refresh</strong> to track the progress of the indexing operation. It may take a minute or so to complete.</em></p>
+
+    <blockquote>
+      <p><strong>Tip</strong>: If the script fails, check the placeholders you added in the <strong>data_source.json</strong> and <strong>skillset.json</strong> files as well as the <strong>create-search.cmd</strong> file. After correcting any mistakes, you may need to use the Azure portal user interface to delete any components that were created in your search resource before re-running the script.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="view-the-knowledge-store">View the knowledge store</h2>
+
+<p>After you have run an indexer that uses a skillset to create a knowledge store, the enriched data extracted by the indexing process is persisted in the knowledge store projections.</p>
+
+<h3 id="view-object-projections">View object projections</h3>
+
+<p>The <em>object</em> projections defined in the Margie’s Travel skillset consist of a JSON file for each indexed document. These files are stored in a blob container in the Azure Storage account specified in the skillset definition.</p>
+
+<ol>
+  <li>In the Azure portal, view the Azure Storage account you created previously.</li>
+  <li>Select the <strong>Storage explorer</strong> tab (in the pane on the left) to view the storage account in the storage explorer interface in the Azure portal.</li>
+  <li>Expand <strong>BLOB CONTAINERS</strong> to view the containers in the storage account. In addition to the <strong>margies</strong> container where the source data is stored, there should be two new containers: <strong>margies-images</strong> and <strong>margies-knowledge</strong>. These were created by the indexing process.</li>
+  <li>Select the <strong>margies-knowledge</strong> container. It should contain a folder for each indexed document.</li>
+  <li>Open any of the folders, and then download and open the <strong>knowledge-projection.json</strong> file it contains. Each JSON file contains a representation of an indexed document, including the enriched data extracted by the skillset as shown here.</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs json">{
+    <span class="hljs-attr"><span class="hljs-attr">"file_id"</span></span>:<span class="hljs-string"><span class="hljs-string">"abcd1234...."</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"file_name"</span></span>:<span class="hljs-string"><span class="hljs-string">"Margies Travel Company Info.pdf"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"url"</span></span>:<span class="hljs-string"><span class="hljs-string">"https://store....blob.core.windows.net/margies/...pdf"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"language"</span></span>:<span class="hljs-string"><span class="hljs-string">"en"</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"sentiment"</span></span>:<span class="hljs-number"><span class="hljs-number">0.83164644241333008</span></span>,
+    <span class="hljs-attr"><span class="hljs-attr">"key_phrases"</span></span>:[
+        <span class="hljs-string"><span class="hljs-string">"Margie’s Travel"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"Margie's Travel"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"best travel experts"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"world-leading travel agency"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"international reach"</span></span>
+        ],
+    <span class="hljs-attr"><span class="hljs-attr">"locations"</span></span>:[
+        <span class="hljs-string"><span class="hljs-string">"Dubai"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"Las Vegas"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"London"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"New York"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"San Francisco"</span></span>
+        ],
+    <span class="hljs-attr"><span class="hljs-attr">"image_tags"</span></span>:[
+        <span class="hljs-string"><span class="hljs-string">"outdoor"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"tree"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"plant"</span></span>,
+        <span class="hljs-string"><span class="hljs-string">"palm"</span></span>
+        ]
+}
+</code></pre>
+
+<p>The ability to create <em>object</em> projections like this enables you to generate enriched data objects that can be incorporated into an enterprise data analysis solution - for example by ingesting the JSON files into an Azure Data Factory pipeline for further processing or loading into a data warehouse.</p>
+
+<h3 id="view-file-projections">View file projections</h3>
+
+<p>The <em>file</em> projections defined in the skillset create JPEG files for each image that was extracted from the documents during the indexing process.</p>
+
+<ol>
+  <li>In the storage explorer interface in the Azure portal, select the <strong>margies-images</strong> blob container. This container contains a folder for each document that contained images.</li>
+  <li>Open any of the folders and view its contents - each folder contains at least one *.jpg file.</li>
+  <li>Open any of the image files to verify that they contain images extracted from the documents.</li>
+</ol>
+
+<p>The ability to generate <em>file</em> projections like this makes indexing an efficient way to extract embedded images from a large volume of documents.</p>
+
+<h3 id="view-table-projections">View table projections</h3>
+
+<p>The <em>table</em> projections defined in the skillset form a relational schema of enriched data.</p>
+
+<ol>
+  <li>In the storage explorer interface in the Azure portal, expand <strong>TABLES</strong>.</li>
+  <li>Select the <strong>Docs</strong> table to view its columns. The columns include some standard Azure Storage table columns - to hide these, modify the <strong>Column Options</strong> to select only the following columns:
+    <ul>
+      <li><strong>document_id</strong> (the key column automatically generated by the indexing process)</li>
+      <li><strong>file_id</strong> (the encoded file URL)</li>
+      <li><strong>file_name</strong> (the file name extracted from the document metadata)</li>
+      <li><strong>language</strong> (the language in which the document is written)</li>
+      <li><strong>sentiment</strong> the sentiment score calculated for the document.</li>
+      <li><strong>url</strong> the URL for the document blob in Azure storage.</li>
+    </ul>
+  </li>
+  <li>View the other tables that were created by the indexing process:
+    <ul>
+      <li><strong>ImageTags</strong> (contains a row for each individual image tag with the <strong>document_id</strong> for the document in which the tag appears).</li>
+      <li><strong>KeyPhrases</strong> (contains a row for each individual key phrase with the <strong>document_id</strong> for the document in which the phrase appears).</li>
+      <li><strong>Locations</strong> (contains a row for each individual location with the <strong>document_id</strong> for the document in which the location appears).</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The ability to create <em>table</em> projections enables you to build analytical and reporting solutions that query the relational schema; for example, using Microsoft Power BI. The automatically generated key columns can be used to join the tables in queries - for example to return all of the locations mentioned in a specific document.</p>
+
+<h2 id="more-information">More information</h2>
+
+<p>To learn more about creating knowledge stores with Azure Cognitive Search, see the <a href="https://docs.microsoft.com/azure/search/knowledge-store-concept-intro">Azure Cognitive Search documentation</a>.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AI-102-AIEngineer" target="_blank" class="ml-2">
+                    MicrosoftLearning/AI-102-AIEngineer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

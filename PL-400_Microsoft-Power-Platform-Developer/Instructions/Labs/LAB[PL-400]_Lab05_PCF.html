@@ -1,0 +1,1539 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            PL-400_Microsoft-Power-Platform-Developer
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                PL-400_Microsoft-Power-Platform-Developer
+            </a>
+            <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <blockquote>
+  <p>[!NOTE]
+Effective November 2020:</p>
+  <ul>
+    <li>Common Data Service has been renamed to Microsoft Dataverse. <a href="https://aka.ms/PAuAppBlog">Learn more</a></li>
+    <li>Some terminology in Microsoft Dataverse has been updated. For example, <em>entity</em> is now <em>table</em> and <em>field</em> is now <em>column</em>. <a href="https://go.microsoft.com/fwlink/?linkid=2147247">Learn more</a></li>
+  </ul>
+
+  <p>This content will be updated soon to reflect the latest terminology.</p>
+</blockquote>
+
+<h2 id="lab-05--power-apps-component-framework">Lab 05 – Power Apps Component Framework</h2>
+
+<h1 id="scenario">Scenario</h1>
+
+<p>A regional building department issues and tracks permits for new buildings and updates for remodeling of existing buildings. Throughout this course you will build applications and automation to enable the regional building department to manage the permitting process. This will be an end-to-end solution which will help you understand the overall process flow.</p>
+
+<p>In this lab you will develop a custom component control using the Power Apps Component Framework (PCF). This component will be used to visualize the permit inspection history timeline. As you build the component, you will see how to use prescriptive interfaces of the framework to interact with the hosting form data. To speed things up we will use a community timeline library to render the visualization. When you build such controls, you can either follow the same procedure or use popular frameworks like React or Vue to completely control the visualization that the component will render.</p>
+
+<h1 id="high-level-lab-steps">High-level lab steps</h1>
+
+<p>As part of building this component, you will complete the following steps:</p>
+
+<ul>
+  <li>
+    <p>Use the Power Apps CLI to initialize the new component</p>
+  </li>
+  <li>
+    <p>Build the component logic using Typescript</p>
+  </li>
+  <li>
+    <p>Publish the component for use on forms</p>
+  </li>
+  <li>
+    <p>Configure the permit form to use the component</p>
+  </li>
+</ul>
+
+<p>The is what the component will look like when it is completed.</p>
+
+<p><a href="../L05/Static/mod-02-pcf-1-01.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-01.png" alt="Completed component - screenshot"></a></p>
+
+<h2 id="things-to-consider-before-you-begin">Things to consider before you begin</h2>
+
+<ul>
+  <li>
+    <p>What are the advantages of using a Power Apps Component Framework component over an embedded Power Apps canvas app?</p>
+  </li>
+  <li>
+    <p>Remember to continue working in your DEVELOPMENT environment. We’ll move everything to production soon.</p>
+  </li>
+</ul>
+
+<p>‎</p>
+
+<h1 id="exercise-1-create-the-pcf-control">Exercise #1: Create the PCF Control</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will create a Power Apps Components Framework control using the Power Apps CLI</p>
+
+<h2 id="task-1-install-microsoft-power-apps-cli-and-prerequisites">Task #1: Install Microsoft Power Apps CLI and Prerequisites</h2>
+
+<ol>
+  <li>
+    <p>Install Node.js</p>
+
+    <ul>
+      <li>
+        <p>Navigate to <a href="https://nodejs.org/en/">Node JS</a></p>
+      </li>
+      <li>
+        <p>Select the latest <strong>LTS</strong> version.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-02.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-02.png" alt="latest LTS - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Open file</strong>.</p>
+      </li>
+      <li>
+        <p>Follow the steps in setup wizard to complete installing <strong>Node.js</strong></p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Install .NET Framework 4.6.2 Developer Pack</p>
+
+    <ul>
+      <li>
+        <p>Navigate to <a href="https://dotnet.microsoft.com/download/dotnet-framework/net462">Download .NET Framework 4.6.2</a></p>
+      </li>
+      <li>
+        <p>Select the <strong>Developer Pack</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-03.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-03.png" alt="Developer pack - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Open file</strong>.</li>
+    </ul>
+  </li>
+</ol>
+
+<p>Follow the steps in setup wizard to complete installing the <strong>Developer Pack.</strong></p>
+
+<h2 id="task-2-setup-components-project">Task #2: Setup Components Project</h2>
+
+<ol>
+  <li>
+    <p>Start the developer command prompt tool</p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Start</strong> and search for <strong>developer</strong>.</p>
+      </li>
+      <li>
+        <p>Click to start the <strong>developer command prompt</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-04.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-04.png" alt="Developer command prompt - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Create a new folder in your Documents folder and work in that directory</p>
+
+    <ul>
+      <li>
+        <p>Run the command mentioned below to change directory. Replace <strong>[Computer User Name]</strong> with your OS user name.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="hljs bash">  <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> C:\Users\[Computer User Name]\Documents
+</code></pre>
+      </li>
+      <li>
+        <p>Run the command mentioned below to create a new folder with name <strong>pcfTimelineControl</strong>.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="hljs nginx">  <span class="hljs-attribute"><span class="hljs-attribute">mkdir</span></span> pcfTimelineControl
+</code></pre>
+      </li>
+      <li>
+        <p>Run the command mentioned below to switch to the <strong>pcfTimelineControl</strong> folder.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="hljs bash">  <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> pcfTimelineControl
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-05.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-05.png" alt="Change directory - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Create a new folder in the <strong>pcfTimelineControl</strong> folder, name it <strong>src</strong>, and work in that directory</p>
+
+    <ul>
+      <li>
+        <p>Create a new folder with the name <strong>src</strong>, by running the command below.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="hljs nginx">  <span class="hljs-attribute"><span class="hljs-attribute">mkdir</span></span> src
+</code></pre>
+      </li>
+      <li>
+        <p>Run the command below to switch to the <strong>src</strong> folder you just created.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs bash">  <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> src
+</code></pre>
+      </li>
+      <li>
+        <p>Clear the screen by running the command below.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="hljs nginx">  <span class="hljs-attribute"><span class="hljs-attribute">cls</span></span>
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Install the latest Power Apps CLI, create a solution project with the <strong>name timelinecontrol</strong>, <strong>namespace</strong> <strong>contoso</strong>, and <strong>template</strong> <strong>dataset</strong>.</p>
+
+    <ul>
+      <li>
+        <p>Install latest <strong>Power Apps CLI</strong> version. Use: <a href="https://aka.ms/PowerAppsCLI">https://aka.ms/PowerAppsCLI</a> <br>
+‎Note: if you just installed the tools, you already have the latest, however, you can run this command anytime to ensure you are always up to date.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs nginx">  <span class="hljs-attribute"><span class="hljs-attribute">pac</span></span> install latest
+</code></pre>
+      </li>
+      <li>
+        <p>Initialize the component. This command will create a set of files that will implement a dataset component. You will customize these files as per your specific component as we continue.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs cpp">  pac pcf init --name timelinecontrol --<span class="hljs-keyword"><span class="hljs-keyword">namespace</span></span> contoso --<span class="hljs-keyword"><span class="hljs-keyword">template</span></span> dataset
+</code></pre>
+      </li>
+      <li>
+        <p>Install dependencies by running <strong>npm install</strong> command in the Terminal</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-built_in"><span class="hljs-built_in">npm</span></span> install
+</code></pre>
+      </li>
+      <li>
+        <p>Wait for the dependency installation to complete.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Open the <strong>src</strong> folder in Visual Studio Code and review the generated resources.</p>
+
+    <ul>
+      <li>
+        <p>Open the <strong>src</strong> folder in <strong>Visual Studio Code</strong>. For this to work, make sure that the Visual Studio Code is added to Path in Environment Variables.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="hljs nginx">  <span class="hljs-attribute"><span class="hljs-attribute">code</span></span> .
+</code></pre>
+      </li>
+      <li>
+        <p><strong>Visual Studio Code</strong> should start, and it should open the <strong>src</strong> folder.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-06.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-06.png" alt="Visual Studio Code - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Expand the <strong>timelinecontrol</strong> folder.</p>
+      </li>
+      <li>
+        <p>Open the <strong>ControlManifest.Input</strong> xml file and examine it.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-07.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-07.png" alt="Manifest file - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Open the <strong>Index.ts</strong> file and examine it.</p>
+      </li>
+      <li>
+        <p>Expand the <strong>generated</strong> folder.</p>
+      </li>
+      <li>
+        <p>Open the <strong>ManifestTypes</strong> file and examine it.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Open CLI in visual studio code.</p>
+
+    <ul>
+      <li>Click <strong>Terminal</strong> and select <strong>New Terminal</strong>. If Terminal is not visible in the Top menu, you can open it by selecting View -&gt; Integrated Terminal.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-08.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-08.png" alt="New terminal - screenshot"></a></p>
+
+    <ul>
+      <li>If <strong>cmd</strong> isn’t your <strong>Default Shell</strong> open, click on the arrow and click <strong>Select Default Shell</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-09.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-09.png" alt="Select default shell"></a></p>
+
+    <ul>
+      <li>Select <strong>Command Prompt</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-10.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-10.png" alt="Command prompt - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>New Terminal</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-11.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-11.png" alt="New terminal - screenshot"></a></p>
+
+    <ul>
+      <li>The <strong>cmd</strong> terminal should now open.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-12.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-12.png" alt="cmd terminal - screenshot ="></a></p>
+  </li>
+  <li>
+    <p>Run the Build command and review the out folder.</p>
+
+    <ul>
+      <li>
+        <p>Run <strong>npm</strong> <strong>build</strong> in the terminal</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock10" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock10" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-built_in"><span class="hljs-built_in">npm</span></span> run build
+</code></pre>
+      </li>
+      <li>
+        <p>You should now be able to see the out folder. Expand the out folder and review its content.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-13.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-13.png" alt="Out folder - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Run the Start command to start the test harness.</p>
+
+    <ul>
+      <li>
+        <p>Run <strong>npm</strong> <strong>start</strong> in the terminal</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock11" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock11" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-built_in"><span class="hljs-built_in">npm</span></span> start
+</code></pre>
+      </li>
+      <li>
+        <p>This should open the Test Environment in a browser window.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-14.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-14.png" alt="Test environment - screenshot"></a></p>
+
+    <ul>
+      <li>The <strong>Component</strong> container size should change, if you provide <strong>Width</strong> and <strong>Height</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-15.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-15.png" alt="Change component size - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Stop the test harness</p>
+
+    <ul>
+      <li>
+        <p>Close the <strong>Test Environment</strong> browser window or tab.</p>
+      </li>
+      <li>
+        <p>Go back to <strong>Visual Studio Code</strong>.</p>
+      </li>
+      <li>
+        <p>Click on the <strong>Terminal</strong> and press the <strong>[CONTROL]</strong> key and <strong>c</strong>.</p>
+      </li>
+      <li>
+        <p>Type <strong>y</strong> and <strong>[ENTER].</strong></p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-16.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-16.png" alt="stop test harness - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Create a new solution folder in the parent of the <strong>src</strong> folder <strong>pcfTimelineControl</strong> and switch to it.</p>
+
+    <ul>
+      <li>
+        <p>Change directory to the <strong>pcfTimelineControl</strong> folder.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock12" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock12" class="mt-0"><code class="hljs bash">  <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> ..
+</code></pre>
+      </li>
+      <li>
+        <p>You should now be in the <strong>pcfTimelineControl</strong> directory.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-17.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-17.png" alt="parent folder - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Create a new folder with the name <strong>solution</strong>.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock13" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock13" class="mt-0"><code class="hljs nginx">  <span class="hljs-attribute"><span class="hljs-attribute">mkdir</span></span> solution
+</code></pre>
+      </li>
+      <li>
+        <p>Switch to the solution directory.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock14" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock14" class="mt-0"><code class="hljs bash">  <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> solution
+</code></pre>
+      </li>
+      <li>
+        <p>You should now be in the solution directory.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-18.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-18.png" alt="change directory - screenshot "></a></p>
+  </li>
+  <li>
+    <p>Create solution project and add reference of the <strong>src</strong> folder where the component is located to the solution. This configuration will be used when you are done with your development and ready to publish your component for others to use.</p>
+
+    <ul>
+      <li>
+        <p>Create solution project with name and prefix contoso.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock15" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock15" class="mt-0"><code class="hljs nginx">  <span class="hljs-attribute"><span class="hljs-attribute">pac</span></span> solution init --publisher-name contoso --publisher-prefix contoso
+</code></pre>
+      </li>
+      <li>
+        <p>Add component location to the solution. This creates a reference to include your component when the solution build command is run.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock16" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock16" class="mt-0"><code class="hljs cs">  pac solution <span class="hljs-keyword"><span class="hljs-keyword">add</span></span>-reference --path ..\src
+</code></pre>
+      </li>
+      <li>
+        <p>The project reference should be added successfully.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-19.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-19.png" alt="Add project reference - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Build the solution</p>
+
+    <ul>
+      <li>
+        <p>Make sure you are still in the solution folder.</p>
+      </li>
+      <li>
+        <p>Build the project by running the command below.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock17" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock17" class="mt-0"><code class="hljs nginx">  <span class="hljs-attribute"><span class="hljs-attribute">msbuild</span></span> /t:restore
+</code></pre>
+      </li>
+      <li>
+        <p>The build should succeed.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-20.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-20.png" alt="Build result - screenshot"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-3-build-the-basic-timeline">Task #3: Build the Basic Timeline</h2>
+
+<ol>
+  <li>
+    <p>Change directory to the <strong>src</strong> folder</p>
+
+    <ul>
+      <li>
+        <p>Change directory to the <strong>src</strong> folder.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock18" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock18" class="mt-0"><code class="hljs bash">  <span class="hljs-built_in"><span class="hljs-built_in">cd</span></span> ..\src
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Create <strong>css</strong> folder in the <strong>timelinecontrol</strong> folder and create <strong>timelinecontrol.</strong><strong>css</strong> file in the <strong>css</strong> folder</p>
+
+    <ul>
+      <li>Select the <strong>timelinecoltrol</strong> folder and click <strong>New Folder</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-21.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-21.png" alt="New css folder - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Name the folder <strong>css</strong>.</p>
+      </li>
+      <li>
+        <p>Select the <strong>css</strong> folder you created and click <strong>New File</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-22.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-22.png" alt="New css file - screenshot"></a></p>
+
+    <ul>
+      <li>Name the new file <strong>timelinecontrol.css</strong>.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Add the <strong>css</strong> as resource</p>
+
+    <ul>
+      <li>
+        <p>Open the <strong>ControlManifest.Input.xml</strong> file.</p>
+      </li>
+      <li>
+        <p>Locate the <strong>resources</strong> sub element and uncomment the <strong>css</strong> tag, change the <strong>Order</strong> to <strong>2</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-23.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-23.png" alt="Uncomment css - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Change the data-set name to <strong>timelineDataSet</strong>.</p>
+
+    <ul>
+      <li>Locate <strong>data-set</strong> tag and change the name property to <strong>timelineDataSet</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-24.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-24.png" alt="Change dataset name - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Install vis-timeline css npm package</p>
+
+    <ul>
+      <li>
+        <p>Go to the <strong>Terminal</strong> and make sure you are in the <strong>src</strong> directory.</p>
+      </li>
+      <li>
+        <p>Run the command mentioned below and wait for the packages to be added.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock19" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock19" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-built_in"><span class="hljs-built_in">npm</span></span> install vis-timeline
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-25.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-25.png" alt="Install vis-timeline npm - screenshot "></a></p>
+
+    <ul>
+      <li>
+        <p>Run the command mentioned below and wait for the packages to be added.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock20" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock20" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-built_in"><span class="hljs-built_in">npm</span></span> install moment
+</code></pre>
+      </li>
+      <li>
+        <p>Run the command mentioned below and wait for the packages to be added.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock21" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock21" class="mt-0"><code class="hljs sql">  npm <span class="hljs-keyword"><span class="hljs-keyword">install</span></span> vis-<span class="hljs-keyword"><span class="hljs-keyword">data</span></span>
+</code></pre>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Add the vis-timeline css as a resource</p>
+
+    <ul>
+      <li>
+        <p>Go back to the <strong>ControlManifest.Input.xml</strong> file.</p>
+      </li>
+      <li>
+        <p>Add the vis-timeline css inside the resources tag.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock22" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock22" class="mt-0"><code class="hljs xml">  <span class="hljs-tag"><span class="hljs-tag">&lt;</span><span class="hljs-name"><span class="hljs-tag"><span class="hljs-name">css</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">path</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"..\node_modules\vis-timeline\dist\vis-timeline-graph2d.min.css"</span></span></span><span class="hljs-tag"> </span><span class="hljs-attr"><span class="hljs-tag"><span class="hljs-attr">order</span></span></span><span class="hljs-tag">=</span><span class="hljs-string"><span class="hljs-tag"><span class="hljs-string">"1"</span></span></span><span class="hljs-tag"> /&gt;</span></span>
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-26.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-26.png" alt="Add resource - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add timeline element and visual properties to the Index file</p>
+
+    <ul>
+      <li>
+        <p>Open the <strong>Index.ts</strong> file.</p>
+      </li>
+      <li>
+        <p>Add the properties below, inside the <strong>export</strong> class timelinecontrol function.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock23" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock23" class="mt-0"><code class="hljs cpp">   <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> _timelineElm: HTMLDivElement;
+   <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> _timelineVis : any;
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-27.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-27.png" alt="Add properties - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Add the below constant after the import lines on the top.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock24" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock24" class="mt-0"><code class="hljs javascript">  <span class="hljs-keyword"><span class="hljs-keyword">const</span></span> vis = <span class="hljs-built_in"><span class="hljs-built_in">require</span></span>(<span class="hljs-string"><span class="hljs-string">'vis-timeline'</span></span>);
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-28.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-28.png" alt="Add constant - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Build the timeline element as div and add it to container element as a child.</p>
+
+    <ul>
+      <li>
+        <p>Locate the <strong>init</strong> method.</p>
+      </li>
+      <li>
+        <p>Add the script mentioned below to the <strong>init</strong> function.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock25" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock25" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>._timelineElm = <span class="hljs-built_in"><span class="hljs-built_in">document</span></span>.createElement(<span class="hljs-string"><span class="hljs-string">"div"</span></span>);
+
+  container.appendChild(<span class="hljs-keyword"><span class="hljs-keyword">this</span></span>._timelineElm);
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-29.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-29.png" alt="Init function - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Create a function that will render the timeline</p>
+
+    <ul>
+      <li>
+        <p>Add the function below.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock26" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock26" class="mt-0"><code class="hljs cs">  <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">renderTimeline</span></span></span><span class="hljs-function">(</span><span class="hljs-params"></span><span class="hljs-function"><span class="hljs-params"></span>): </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span></span>{
+      <span class="hljs-comment"><span class="hljs-comment">// Create a DataSet (allows two way data-binding)</span></span>
+      <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> items = [
+          { id: <span class="hljs-number"><span class="hljs-number">1</span></span>, content: <span class="hljs-string"><span class="hljs-string">'item 1'</span></span>, start: <span class="hljs-string"><span class="hljs-string">'2020-08-20'</span></span> },
+          { id: <span class="hljs-number"><span class="hljs-number">2</span></span>, content: <span class="hljs-string"><span class="hljs-string">'item 2'</span></span>, start: <span class="hljs-string"><span class="hljs-string">'2020-08-14'</span></span> },
+          { id: <span class="hljs-number"><span class="hljs-number">3</span></span>, content: <span class="hljs-string"><span class="hljs-string">'item 3'</span></span>, start: <span class="hljs-string"><span class="hljs-string">'2020-08-18'</span></span> },
+          { id: <span class="hljs-number"><span class="hljs-number">4</span></span>, content: <span class="hljs-string"><span class="hljs-string">'item 4'</span></span>, start: <span class="hljs-string"><span class="hljs-string">'2020-08-16'</span></span>, end: <span class="hljs-string"><span class="hljs-string">'2020-08-19'</span></span> },
+          { id: <span class="hljs-number"><span class="hljs-number">5</span></span>, content: <span class="hljs-string"><span class="hljs-string">'item 5'</span></span>, start: <span class="hljs-string"><span class="hljs-string">'2020-08-25'</span></span> },
+          { id: <span class="hljs-number"><span class="hljs-number">6</span></span>, content: <span class="hljs-string"><span class="hljs-string">'item 6'</span></span>, start: <span class="hljs-string"><span class="hljs-string">'2020-08-27'</span></span>, type: <span class="hljs-string"><span class="hljs-string">'point'</span></span> }
+      ];
+      <span class="hljs-comment"><span class="hljs-comment">// Configuration for the Timeline</span></span>
+      <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> options = {};
+      <span class="hljs-comment"><span class="hljs-comment">// Create a Timeline</span></span>
+      <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> timeline = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> vis.Timeline(<span class="hljs-keyword"><span class="hljs-keyword">this</span></span>._timelineElm, items, options);
+  }
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-30.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-30.png" alt="Render timeline function - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Call the <strong>renderTimeline</strong> function from the <strong>updateView</strong> function.</p>
+
+    <ul>
+      <li>
+        <p>Locate the <strong>updateView</strong> function.</p>
+      </li>
+      <li>
+        <p>Add the script mentioned below inside the <strong>updateView</strong> function.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock27" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock27" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>.renderTimeline();
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-31.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-31.png" alt="Update view function - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>File</strong> and <strong>Save All</strong>.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Build and start</p>
+
+    <ul>
+      <li>
+        <p>Go to the <strong>Terminal</strong> and make sure you are still in the <strong>src</strong> directory.</p>
+      </li>
+      <li>
+        <p>Run the build command.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock28" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock28" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-built_in"><span class="hljs-built_in">npm</span></span> run build
+</code></pre>
+      </li>
+      <li>
+        <p>The build should succeed.</p>
+      </li>
+      <li>
+        <p>Run the start watch command. This command will keep the test environment running and auto update when you change the component.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock29" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock29" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-built_in"><span class="hljs-built_in">npm</span></span> start watch
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-32.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-32.png" alt="Timeline control - screenshot"></a></p>
+  </li>
+</ol>
+
+<p><strong>Do not</strong> close the test environment.</p>
+
+<h2 id="task-4-tailor-for-inspection-data">Task #4: Tailor for Inspection Data</h2>
+
+<p>In this task, you will switch from using the hard-coded array of data to using a file loaded into the test harness.</p>
+
+<ol>
+  <li>
+    <p>Create test data csv file</p>
+
+    <ul>
+      <li>Select the <strong>src</strong> folder. And click <strong>New File</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-33.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-33.png" alt="New file - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Name the new file <strong>testdata.csv</strong></p>
+      </li>
+      <li>
+        <p>Add the below mentioned data inside the <strong>testdata.csv</strong> file and Save it.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock30" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock30" class="mt-0"><code class="hljs">  contoso_permitid,contoso_name,contoso_scheduleddate,statuscode
+  123,Electrical:Rough Inspection:Passed,8/1/2020,Passed
+  124,Electrical:Rough Inspection:Passed,8/5/2020,Passed
+  125,Plumbing:Rough Inspection:Failed,8/8/2020,Failed
+  126,Plumbing:Rough Inspection:Passed,8/10/2020,Passed
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-34.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-34.png" alt="Test data - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Create Timeline Data class</p>
+
+    <ul>
+      <li>
+        <p>Open the <strong>index.ts</strong> file.</p>
+      </li>
+      <li>
+        <p>Paste the code below after the <strong>type</strong> <strong>DataSet</strong> line.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock31" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock31" class="mt-0"><code class="hljs cpp">  <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">TimelineData</span></span></span><span class="hljs-class"> {</span></span>
+      id: <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>;
+      content: <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>;
+      start: <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>;
+      className: <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>;
+      
+      constructor(id: <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>, content: <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>, start: <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>, className: <span class="hljs-built_in"><span class="hljs-built_in">string</span></span>) {
+      <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>.id = id;
+      <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>.content = content;
+      <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>.start = start;
+      <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>.className = className;
+      }
+  }
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-35.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-35.png" alt="Timeline data class - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Add the timeline data array property inside the <strong>export</strong> class timelinecontrol function and below the <strong>_timelineElm</strong> definition.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock32" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock32" class="mt-0"><code class="hljs cpp">  <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> _timelineData : TimelineData[] = [];
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-36.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-36.png" alt="timeline data array - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add a method that will create the timeline data.</p>
+
+    <ul>
+      <li>
+        <p>Add the method mentioned below after the <strong>render</strong> method.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock33" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock33" class="mt-0"><code class="hljs javascript">  private createTimelineData(gridParam: DataSet) {
+      <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>._timelineData = [];
+      <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (gridParam.sortedRecordIds.length &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>) {
+          <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">let</span></span> currentRecordId <span class="hljs-keyword"><span class="hljs-keyword">of</span></span> gridParam.sortedRecordIds) {
+        
+              <span class="hljs-built_in"><span class="hljs-built_in">console</span></span>.log(<span class="hljs-string"><span class="hljs-string">'record: '</span></span> + gridParam.records[currentRecordId].getRecordId());
+
+              <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> permitName = gridParam.records[currentRecordId].getFormattedValue(<span class="hljs-string"><span class="hljs-string">'contoso_name'</span></span>)
+              <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> permitDate = gridParam.records[currentRecordId].getFormattedValue(<span class="hljs-string"><span class="hljs-string">'contoso_scheduleddate'</span></span>)
+              <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> permitStatus = gridParam.records[currentRecordId].getFormattedValue(<span class="hljs-string"><span class="hljs-string">'statuscode'</span></span>)
+              <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> permitColor = <span class="hljs-string"><span class="hljs-string">"green"</span></span>;
+              <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (permitStatus == <span class="hljs-string"><span class="hljs-string">"Failed"</span></span>)
+                  permitColor = <span class="hljs-string"><span class="hljs-string">"red"</span></span>;
+              <span class="hljs-keyword"><span class="hljs-keyword">else</span></span> <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (permitStatus == <span class="hljs-string"><span class="hljs-string">"Canceled"</span></span>)
+                  permitColor = <span class="hljs-string"><span class="hljs-string">"yellow"</span></span>;
+        
+
+              <span class="hljs-built_in"><span class="hljs-built_in">console</span></span>.log(<span class="hljs-string"><span class="hljs-string">'name:'</span></span> + permitName + <span class="hljs-string"><span class="hljs-string">' date:'</span></span> + permitDate);
+
+        
+              <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (permitName != <span class="hljs-literal"><span class="hljs-literal">null</span></span>)
+                  <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>._timelineData.push(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> TimelineData(currentRecordId, permitName, permitDate, permitColor));
+          }
+      }
+      <span class="hljs-keyword"><span class="hljs-keyword">else</span></span> {
+          <span class="hljs-comment"><span class="hljs-comment">//handle no data</span></span>
+      }
+  }
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-37.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-37.png" alt="Create timeline data method - screenshot "></a></p>
+  </li>
+  <li>
+    <p>Call the createTimelineData method from the updateView method.</p>
+
+    <ul>
+      <li>
+        <p>Go to the <strong>updateView</strong> method.</p>
+      </li>
+      <li>
+        <p>Replace the code inside the <strong>updateView</strong> method with the code below.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock34" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock34" class="mt-0"><code class="hljs coffeescript">  <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (!context.parameters.timelineDataSet.loading) {
+      <span class="hljs-regexp"><span class="hljs-regexp">//</span></span> Get sorted columns <span class="hljs-literal"><span class="hljs-literal">on</span></span> View
+      <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>.createTimelineData(context.parameters.timelineDataSet);
+      <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>.renderTimeline();
+  }
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-38.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-38.png" alt="Update vie method - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Replace the hardcoded items with the csv data.</p>
+
+    <ul>
+      <li>
+        <p>Locate the <strong>renderTimeline</strong> method.</p>
+      </li>
+      <li>
+        <p>Replace the hardcoded <strong>items</strong> with code below.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock35" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock35" class="mt-0"><code class="hljs cs">  <span class="hljs-keyword"><span class="hljs-keyword">var</span></span> items = <span class="hljs-keyword"><span class="hljs-keyword">this</span></span>._timelineData;
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-39.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-39.png" alt="render timeline function - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Make sure the test environment shows your changes and test the timeline control with the test data.</p>
+
+    <ul>
+      <li>
+        <p>Click <strong>File</strong> and then <strong>Save All</strong>.</p>
+      </li>
+      <li>
+        <p>The test harness should still be running. If it is not running run <strong>npm start watch</strong> command.</p>
+      </li>
+      <li>
+        <p>Go to the test environment and make sure it looks like the image below.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-40.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-40.png" alt="Timeline control - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Select a File</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-41.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-41.png" alt="Select file - screenshot"></a></p>
+
+    <ul>
+      <li>Select the <strong>testdata.csv</strong> and click <strong>Open</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-42.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-42.png" alt="Select CSV file - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Apply</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-43.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-43.png" alt="Apply changes - screenshot"></a></p>
+
+    <ul>
+      <li>The timeline control should now show the test data.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-44.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-44.png" alt="Timeline control with data - screenshot"></a></p>
+  </li>
+</ol>
+
+<p>Do not close the test environment.</p>
+
+<h2 id="task-5-change-color-for-items">Task #5: Change Color for Items</h2>
+
+<p>In this task, you will use the <strong>css</strong> resource you configured to change the color of the items on the timeline.</p>
+
+<ol>
+  <li>
+    <p>Add red and green styles to the timelinecontrol.css file</p>
+
+    <ul>
+      <li>
+        <p>Go back to <strong>Visual Studio Code</strong>.</p>
+      </li>
+      <li>
+        <p>Expand the <strong>css</strong> folder and open the <strong>timelinecontrol.css</strong></p>
+      </li>
+      <li>
+        <p>Add the style below to the <strong>timelinecontrol.css</strong> file and save your changes.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock36" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock36" class="mt-0"><code class="hljs css">  <span class="hljs-selector-class"><span class="hljs-selector-class">.red</span></span>{
+      <span class="hljs-attribute"><span class="hljs-attribute">background</span></span>:red;
+      <span class="hljs-attribute"><span class="hljs-attribute">color</span></span>:white;
+      }
+  <span class="hljs-selector-class"><span class="hljs-selector-class">.green</span></span>{
+      <span class="hljs-attribute"><span class="hljs-attribute">background</span></span>:green;
+      <span class="hljs-attribute"><span class="hljs-attribute">color</span></span>:white;
+      }
+  <span class="hljs-selector-class"><span class="hljs-selector-class">.yellow</span></span>{
+      <span class="hljs-attribute"><span class="hljs-attribute">background</span></span>:yellow;
+      <span class="hljs-attribute"><span class="hljs-attribute">color</span></span>:black;
+      }
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-45.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-45.png" alt="CSS file - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Check the test environment, load the test data and make sure it shows your changes</p>
+
+    <ul>
+      <li>
+        <p>Go to the <strong>Test Environment</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Select a File</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-46.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-46.png" alt="Select file - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>testdata.csv</strong> and click <strong>Open</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Apply</strong>.</p>
+      </li>
+      <li>
+        <p>The timeline control should now show the test data.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-47.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-47.png" alt="Timeline control with style - screenshot"></a></p>
+
+    <ul>
+      <li>Close the test environment browser window or tab.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Stop the test</p>
+
+    <ul>
+      <li>
+        <p>Go back to <strong>Visual Studio Code</strong>.</p>
+      </li>
+      <li>
+        <p>Click on the <strong>Terminal</strong> and press the <strong>[CONTROL]</strong> key and <strong>c</strong>.</p>
+      </li>
+      <li>
+        <p>Type <strong>y</strong> and <strong>[ENTER].</strong></p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<p>‎</p>
+
+<h1 id="exercise-2-publish-to-microsoft-dataverse">Exercise #2: Publish to Microsoft Dataverse</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will publish the timeline control to your Microsoft Dataverse and add it to the Permit main form.</p>
+
+<h2 id="task-1-setup-and-publish">Task #1: Setup and Publish</h2>
+
+<ol>
+  <li>
+    <p>Get your Microsoft Dataverse org URL</p>
+
+    <ul>
+      <li>
+        <p>Navigate to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you have the <strong>Dev</strong> environment selected.</p>
+      </li>
+      <li>
+        <p>Select <strong>Apps</strong> and open the Permit Management application.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-48.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-48.png" alt="Start application - screenshot"></a></p>
+
+    <ul>
+      <li>Click Settings and select Advanced Settings.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-49.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-49.png" alt="Advanced settings - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <table>
+          <tbody>
+            <tr>
+              <td>Navigate to **Settings</td>
+              <td>Customizations**.</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-50.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-50.png" alt="Customizations - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Developer Resources</strong>.</p>
+      </li>
+      <li>
+        <p>Copy your organization <strong>URL</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-51.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-51.png" alt="Endpoint address - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Authenticate</p>
+
+    <ul>
+      <li>
+        <p>Go back to <strong>Visual Studio Code</strong>.</p>
+      </li>
+      <li>
+        <p>Make sure you are still in the <strong>src</strong> directory.</p>
+      </li>
+      <li>
+        <p>Run the command below. Replace <strong>&lt;orgurl&gt;</strong> with <strong>URL</strong> you copied.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock37" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock37" class="mt-0"><code class="hljs sql">  pac auth <span class="hljs-keyword"><span class="hljs-keyword">create</span></span> <span class="hljs-comment"><span class="hljs-comment">--url &lt;orgurl&gt;</span></span>
+</code></pre>
+      </li>
+      <li>
+        <p>Sign in with your <strong>admin</strong> username.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Import the solution into your org and publish</p>
+
+    <ul>
+      <li>
+        <p>Run the command below and wait for the publishing to complete. The push command uploads your component to the configured environment. This can be used over and over during development to quickly see your component in the live form.</p>
+
+        <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock38" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock38" class="mt-0"><code class="hljs nginx">  <span class="hljs-attribute"><span class="hljs-attribute">pac</span></span> pcf push --publisher-prefix contoso
+</code></pre>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-52.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-52.png" alt="import solution - screenshot"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-2-add-timeline-control-to-the-permit-form">Task #2: Add Timeline Control to the Permit Form</h2>
+
+<ol>
+  <li>
+    <p>Open the Permit Management solution.</p>
+
+    <ul>
+      <li>
+        <p>Navigate to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you have the <strong>Dev</strong> environment selected.</p>
+      </li>
+      <li>
+        <p>Select <strong>Solutions</strong>.</p>
+      </li>
+      <li>
+        <p>Click to open the <strong>Permit Management</strong> solution.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-53.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-53.png" alt="Open solution - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Open the Permit Main form and switch to classic</p>
+
+    <ul>
+      <li>Locate and click to open the <strong>Permit</strong> Table.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-54.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-54.png" alt="Open Table - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>Forms</strong> tab.</p>
+      </li>
+      <li>
+        <p>Click to open the <strong>Main</strong> form.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-55.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-55.png" alt="Open form - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Switch to Classic</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-56.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-56.png" alt="Switch to classic - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Add Timeline control to the form</p>
+
+    <ul>
+      <li>
+        <p>Locate the <strong>Inspections</strong> tab.</p>
+      </li>
+      <li>
+        <p>Double click on the <strong>Inspections</strong> sub-grid.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-57.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-57.png" alt="Open sub-grid properties - screenshot"></a></p>
+
+    <ul>
+      <li>Select the <strong>Controls</strong> tab and click <strong>Add Control</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-58.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-58.png" alt="Add control - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>timelinecontrol</strong> and click Add.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-59.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-59.png" alt="Add timeline control - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Web</strong> and click <strong>OK</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-60.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-60.png" alt="Select web - screenshot"></a></p>
+  </li>
+  <li>
+    <p>Save and publish</p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Save</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Publish</strong> and wait for the publishing to complete.</p>
+      </li>
+      <li>
+        <p><strong>DO NOT</strong> close the form editor.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Create test data</p>
+
+    <ul>
+      <li>
+        <p>Go back to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you have the <strong>Dev</strong> environment selected.</p>
+      </li>
+      <li>
+        <p>Select <strong>Apps</strong> and click to start the <strong>Permit Management</strong> application</p>
+      </li>
+      <li>
+        <p>Click <strong>Advanced Find</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-61.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-61.png" alt="Advanced find - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Inspections</strong> and click <strong>Results</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-62.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-62.png" alt="Inspections results - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click to open the <strong>Framing Inspection</strong>.</p>
+      </li>
+      <li>
+        <p>Change the <strong>Status Reason</strong> to <strong>Passed</strong> and click <strong>New</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-63.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-63.png" alt="Create new inspection - screenshot"></a></p>
+
+    <ul>
+      <li>Provide a Name, select Inspection Type, select the Test Permit, select Scheduled Date, select Failed for Status Reason, and click <strong>Save and Close</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-64.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-64.png" alt="Save and close record - screenshot"></a></p>
+
+    <ul>
+      <li>Close <strong>Advanced Find</strong>.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Test the control</p>
+
+    <ul>
+      <li>Click to open a <strong>Permit</strong> record.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-65.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-65.png" alt="Open permit record - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>Inspections</strong> tab.</p>
+      </li>
+      <li>
+        <p>The control should show the two inspections, but the color will not match the status reason values.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-66.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-66.png" alt="Timeline control - screenshot"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-3-debug">Task #3: Debug</h2>
+
+<ol>
+  <li>
+    <p>Start Edge DevTools and add breakpoint.</p>
+
+    <ul>
+      <li>
+        <p>Press <strong>F12</strong>.</p>
+      </li>
+      <li>
+        <p>Search for <strong>createTimelineData = function</strong></p>
+      </li>
+      <li>
+        <p>Locate the <strong>createTimelineData</strong> function and add breakpoint on the <strong>permitColor =”green”</strong> line.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-67.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-67.png" alt="Add breakpoint - screenshot"></a></p>
+
+    <ul>
+      <li>Go back to the Permit Management application and click Refresh.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-68.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-68.png" alt="Refresh record - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Select the <strong>Inspections</strong> tab again.</p>
+      </li>
+      <li>
+        <p>Execution should break.</p>
+      </li>
+      <li>
+        <p>Hover over the <strong>permitStatus</strong>, the <strong>permitStatus</strong> is null because <strong>Status Reason</strong> is not included in the <strong>View</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-69.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-69.png" alt="Null permit status - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Press <strong>F5</strong> to continue.</p>
+      </li>
+      <li>
+        <p>Close the <strong>DevTools</strong>.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Add Status Reason to the view.</p>
+
+    <ul>
+      <li>
+        <p>Go back to the form editor.</p>
+      </li>
+      <li>
+        <p>Double click on the Inspections timeline control.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-70.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-70.png" alt="open inspection timeline properties - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Edit</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-71.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-71.png" alt="Edit view - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Add Column</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-72.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-72.png" alt="Add column - screenshot"></a></p>
+
+    <ul>
+      <li>Select <strong>Status Reason</strong> and click <strong>OK</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-73.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-73.png" alt="Select column - screenshot"></a></p>
+
+    <ul>
+      <li>Move the <strong>Status Reason</strong> Column after the <strong>Name</strong> Column.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-74.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-74.png" alt="Move column - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Save and Close</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>OK</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-75.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-75.png" alt="Close properties - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Save</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Publish</strong> and wait for the publishing to complete.</p>
+      </li>
+      <li>
+        <p>Close the form editor.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Test your changes</p>
+
+    <ul>
+      <li>Go back to the <strong>Permit Management</strong> application and refresh the browser.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-76.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-76.png" alt="Refresh browser - screenshot "></a></p>
+
+    <ul>
+      <li>Select the <strong>Inspections</strong> tab. The timeline control should now show the correct colors.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-77.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-77.png" alt="Timeline control with stye - screenshot"></a></p>
+  </li>
+</ol>
+
+<h2 id="task-4-add-the-timeline-control-to-permit-management-solution">Task #4: Add the Timeline Control to Permit Management Solution</h2>
+
+<ol>
+  <li>
+    <p>Add Custom Control to solution</p>
+
+    <ul>
+      <li>
+        <p>Navigate to <a href="https://make.powerapps.com/">Power Apps maker portal - screenshot</a> and make sure you are in the <strong>Dev</strong> environment.</p>
+      </li>
+      <li>
+        <p>Select <strong>Solutions</strong> and click to open the <strong>Permit Management</strong> solution.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-78.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-78.png" alt="Open solution - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <table>
+          <tbody>
+            <tr>
+              <td>Click **Add Existing</td>
+              <td>Other</td>
+              <td>Custom Control**.</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-79.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-79.png" alt="Add existing custom control - screenshot"></a></p>
+
+    <ul>
+      <li>Search for Timeline, select <strong>contoso_contoso.timelinecontrol</strong> and click <strong>Add</strong>.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-80.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-80.png" alt="Select control - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Publish All Customizations</strong> and wait for the publishing to complete.</li>
+    </ul>
+  </li>
+</ol>
+
+<h1 id="exercise-3-promote-to-production">Exercise #3: Promote to production</h1>
+
+<p><strong>Objective:</strong> In this exercise, you will export the Permit Management solution form your Dev environment and import it into your Production environment.</p>
+
+<h2 id="task-1-export-solution">Task #1: Export Solution</h2>
+
+<ol>
+  <li>
+    <p>Export Permit Management managed solution</p>
+
+    <ul>
+      <li>
+        <p>Log on to <a href="https://make.powerapps.com/">Power Apps maker portal</a> and make sure you are in the <strong>Dev</strong> environment.</p>
+      </li>
+      <li>
+        <p>Select <strong>Solution</strong>.</p>
+      </li>
+      <li>
+        <p>Select the <strong>Permit Management</strong> solution and click <strong>Export</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-81.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-81.png" alt="Export solution - screenshot"></a></p>
+
+    <ul>
+      <li>Click <strong>Publish</strong> and wait for the publishing to complete.</li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-82.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-82.png" alt="Publish customizations - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Next</strong>.</p>
+      </li>
+      <li>
+        <p>Select <strong>Managed</strong> and click <strong>Export</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-83.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-83.png" alt="Export manage solution - screenshot"></a></p>
+
+    <ul>
+      <li>Save the <strong>Exported</strong> solution on your machine.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Export Permit Management unmanaged solution</p>
+
+    <ul>
+      <li>
+        <p>Select <strong>Solution</strong> again.</p>
+      </li>
+      <li>
+        <p>Select the <strong>Permit Management</strong> solution and click <strong>Export</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Next</strong>.</p>
+      </li>
+      <li>
+        <p>Select <strong>Unmanaged, edit the version number</strong> to match the Managed Solution you just exported and click <strong>Export</strong>.</p>
+      </li>
+      <li>
+        <p>Save the <strong>Exported</strong> solution on your machine.</p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="task-2-import-solution">Task #2: Import Solution</h2>
+
+<ol>
+  <li>
+    <p>Import Permit Management managed solution</p>
+
+    <ul>
+      <li>
+        <p>Log on to <a href="https://make.powerapps.com/">Powe Apps maker portal</a> and make sure you are in the <strong>Prod</strong> environment.</p>
+      </li>
+      <li>
+        <p>Select <strong>Solution</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Import</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-84.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-84.png" alt="Import solution - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Choose File</strong>.</p>
+      </li>
+      <li>
+        <p>Select the <strong>Managed</strong> solution you exported and click <strong>Open</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-85.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-85.png" alt="Select manage solution file - screenshot"></a></p>
+
+    <ul>
+      <li>
+        <p>Click <strong>Next</strong>.</p>
+      </li>
+      <li>
+        <p>Click <strong>Next</strong> again.</p>
+      </li>
+      <li>
+        <p>Select the <strong>Upgrade</strong> option if you already have another version of the same solution.</p>
+      </li>
+      <li>
+        <p>Click <strong>Import</strong>.</p>
+      </li>
+    </ul>
+
+    <p><a href="../L05/Static/mod-02-pcf-1-86.png" target="_blank"><img src="../L05/Static/mod-02-pcf-1-86.png" alt="Import solution - screenshot"></a></p>
+  </li>
+</ol>
+
+<p>Wait for the import to complete and click <strong>Close</strong></p>
+
+<p>Review the production application by adding a few records and testing your progress.</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer" target="_blank" class="ml-2">
+                    MicrosoftLearning/PL-400_Microsoft-Power-Platform-Developer
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D964044cdd8d04bfc4633129f4b07c6ada955ec8f.js"></script>
+
+
+
+</body></html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#准备工作">准备工作</a></li><li class="nav-item"><a class="nav-link" href="#练习-0配置实验室先决条件">练习 0：配置实验室先决条件</a></li><li class="nav-item"><a class="nav-link" href="#练习-1克隆现有存储库">练习 1：克隆现有存储库</a></li><li class="nav-item"><a class="nav-link" href="#练习-2从-azure-devops-管理分支">练习 2：从 Azure DevOps 管理分支</a></li><li class="nav-item"><a class="nav-link" href="#练习-3管理存储库">练习 3：管理存储库</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="实验室-04-在-azure-repos-中使用-git-进行版本控制">实验室 04： 在 Azure Repos 中使用 Git 进行版本控制</h1>
+<h1 id="学生实验室手册">学生实验室手册</h1>
+
+<h2 id="实验室概述">实验室概述</h2>
+
+<p>Azure DevOps 支持两种类型的版本控制：Git 和 Team Foundation 版本控制 (TFVC)。下面简要概述了两种版本控制系统：</p>
+
+<ul>
+  <li>
+    <p><strong>Team Foundation 版本控制 (TFVC)</strong>：TFVC 是一个集中式版本控制系统。通常，团队成员的开发计算机上只有每个文件的一个版本。历史数据仅在服务器上进行维护。分支基于路径，并在服务器上创建。</p>
+  </li>
+  <li>
+    <p><strong>Git</strong>：Git 是一种分布式版本控制系统。Git 存储库可存在于本地（例如开发人员的计算机上）。每个开发人员在其开发计算机上拥有源存储库的副本。开发人员可以在其开发计算机上提交每组更改，并执行如历史记录和比较等版本控制操作，而无需网络连接。</p>
+  </li>
+</ul>
+
+<p>Git 是新项目的默认版本控制提供程序。除非明确需要 TFVC 中的集中式版本控制功能，否则应在项目中使用 Git 进行版本控制。</p>
+
+<p>在本实验室中，你将了解如何在 Azure DevOps 中使用分支和存储库。</p>
+
+<h2 id="目标">目标</h2>
+
+<p>完成本实验室后，你将能够：</p>
+
+<ul>
+  <li>在 Azure Repos 中使用分支</li>
+  <li>在 Azure Repos 中使用存储库</li>
+</ul>
+
+<h2 id="实验室持续时间">实验室持续时间</h2>
+
+<ul>
+  <li>预计用时： <strong>30 分钟</strong></li>
+</ul>
+
+<h2 id="说明">说明</h2>
+
+<h3 id="准备工作">准备工作</h3>
+
+<h4 id="登录到实验室虚拟机">登录到实验室虚拟机</h4>
+
+<p>请确保已使用以下凭据登录到 Windows 10 虚拟机：</p>
+
+<ul>
+  <li>用户名： <strong>Student</strong></li>
+  <li>密码： <strong>Pa55w.rd</strong></li>
+</ul>
+
+<h4 id="查看本实验室所需的应用程序">查看本实验室所需的应用程序</h4>
+
+<p>确定你将在本实验室中使用的应用程序：</p>
+
+<ul>
+  <li>Microsoft Edge</li>
+  <li><a href="https://gitforwindows.org/">Windows 下载页面的 Git</a> 2.29.2 或更高版本。此应用程序将作为本实验室先决条件安装。</li>
+  <li>带 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp">C#</a> 扩展的 <a href="https://code.visualstudio.com/">Visual Studio Code</a>。将安装这些内容，作为本实验室先决条件之一。</li>
+</ul>
+
+<h4 id="设置-azure-devops-组织">设置 Azure DevOps 组织</h4>
+
+<p>如果还没有可用于本实验室的 Azure DevOps 组织，请按照<a href="https://docs.microsoft.com/zh-cn/azure/devops/organizations/accounts/create-organization?view=azure-devops">创建组织或项目集合</a>中的说明创建一个。</p>
+
+<h4 id="备注">备注</h4>
+
+<p>如果你已完成“<strong>实验室 02：在 Azure Repos 中使用 Git 进行版本控制</strong>”，并且已经完成了“<strong>练习 0：配置实验室先决条件</strong>”和“<strong>练习 1：克隆现有的存储库</strong>”中的步骤，可以跳到“<strong>练习 2：从 Azure DevOps 管理分支</strong>”。</p>
+
+<h3 id="练习-0配置实验室先决条件">练习 0：配置实验室先决条件</h3>
+
+<p>在本练习中，你将设置实验室先决条件，其中包括基于 Azure DevOps 演示生成器模板和 Visual Studio Code 配置预配置的 Parts Unlimited 团队项目。</p>
+
+<h4 id="任务-1配置团队项目">任务 1：配置团队项目</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 演示生成器，基于 <strong>Parts Unlimited</strong> 模板生成一个新项目。</p>
+
+<ol>
+  <li>
+    <p>在实验室计算机上，启动 Web 浏览器并导航到 <a href="https://azuredevopsdemogenerator.azurewebsites.net">Azure DevOps 演示生成器</a>。此实用工具将对以下过程进行自动化：在你的帐户中创建预填充了实验室所需内容（工作项、存储库等）的 Azure DevOps 项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：有关该站点的详细信息，请参阅 https://docs.microsoft.com/zh-cn/azure/devops/demo-gen。</p>
+    </blockquote>
+  </li>
+  <li>单击 <strong>“登录”</strong>，并使用与你的 Azure DevOps 订阅相关联的 Microsoft 帐户登录。</li>
+  <li>如果需要，在 <strong>“Azure DevOps 演示生成器”</strong> 页面上，单击 <strong>“接受”</strong> 以接受访问 Azure DevOps 订阅的权限请求。</li>
+  <li>在 <strong>“新建项目”</strong> 页面上的 <strong>“新建项目名称”</strong> 文本框中，键入 <strong>“在 Azure Repos 中使用 Git 进行版本控制”</strong>，在 <strong>“选择组织”</strong> 下拉列表中选择你的 Azure DevOps 组织，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>在模板列表中，找到 <strong>“PartsUnlimited”</strong> 模板，然后单击 <strong>“选择模板”</strong>。</li>
+  <li>
+    <p>返回 <strong>“新建项目”</strong> 页面，单击 <strong>“创建项目”</strong></p>
+
+    <blockquote>
+      <p><strong>备注</strong>：等待此过程完成。该过程大约需要 2 分钟。如果该过程失败，请导航到你的 DevOps 组织，删除项目并重试。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“新建项目”</strong> 页面上，单击 <strong>“导航到项目”</strong>。</li>
+</ol>
+
+<h4 id="任务-2安装并配置-git-和-visual-studio-code">任务 2：安装并配置 Git 和 Visual Studio Code</h4>
+
+<p>在此任务中，你将安装并配置 Git 和 Visual Studio Code，包括配置 Git 凭据帮助器，以安全地存储用于与 Azure DevOps 进行通信的 Git 凭据。如果你已实现这些先决条件，则可直接继续执行下一个任务。</p>
+
+<ol>
+  <li>如果尚未安装 Git 2.29.2 或更高版本，请启动 Web 浏览器，导航到<a href="https://gitforwindows.org/">适用于 Windows 的 Git 下载页面</a>以进行下载和安装。</li>
+  <li>如果尚未安装 Visual Studio Code，请从 Web 浏览器窗口导航到 <a href="https://code.visualstudio.com/">Visual Studio Code 下载页面</a>以进行下载和安装。</li>
+  <li>如果尚未安装 Visual Studio C# 扩展，请从 Web 浏览器窗口导航到 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp">C# 扩展安装页面</a>并安装该扩展。</li>
+  <li>在实验室计算机上，打开 <strong>“Visual Studio Code”</strong>。</li>
+  <li>在 Visual Studio Code 界面中，从主菜单中选择 <strong>“Terminal | 新建终端”</strong> 以打开 <strong>“终端”</strong> 窗格。</li>
+  <li>
+    <p>通过检查 <strong>“终端”</strong> 窗格右上角的下拉列表是否显示 <strong>“1: powershell”</strong>，确保当前终端正在运行 <strong>PowerShell</strong></p>
+
+    <blockquote>
+      <p><strong>备注</strong>：若要将当前终端 shell 更改为 <strong>PowerShell</strong>，请单击 <strong>“终端”</strong> 窗格右上角的下拉列表，然后单击 <strong>“选择默认 Shell”</strong>。在“Visual Studio Code”窗口的顶部，选择首选终端 shell <strong>“Windows PowerShell”</strong>，然后单击下拉列表右侧的加号，以使用所选的默认 shell 打开新的终端。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“终端”</strong> 窗格中，运行以下命令来配置凭据帮助器。</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-git">git config --global credential.helper wincred
+</code></pre>
+  </li>
+  <li>
+    <p>在 <strong>“终端”</strong> 窗格中运行以下命令，为 Git 提交配置用户名和电子邮件（将括号中的占位符替换为首选用户名和电子邮件）：</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-git">git config --global user.name "&lt;John Doe&gt;"
+git config --global user.email &lt;johndoe@example.com&gt;
+</code></pre>
+  </li>
+</ol>
+
+<h3 id="练习-1克隆现有存储库">练习 1：克隆现有存储库</h3>
+
+<p>在本练习中，你将使用 Visual Studio Code 来克隆在上一练习中预配的 Git 存储库。</p>
+
+<h4 id="任务-1克隆现有存储库">任务 1：克隆现有存储库</h4>
+
+<p>在此任务中，你将逐步完成使用 Visual Studio Code 克隆 Git 存储库的过程。</p>
+
+<ol>
+  <li>
+    <p>如有需要，启动 Web 浏览器，导航到 Azure DevOps 组织，然后打开上一练习中生成的 <strong>“在 Azure Repos 中使用 Git 进行版本控制”</strong> 项目。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：或者，你可以通过导航到 <a href="https://dev.azure.com/&#x60;&lt;your-Azure-DevOps-account-name&gt;&#x60;/Version%20Controlling%20with%20Git%20in%20Azure%20Repos">https://dev.azure.com/<code>&lt;your-Azure-DevOps-account-name&gt;</code>/Version%20Controlling%20with%20Git%20in%20Azure%20Repos</a> URL 直接访问项目页面，其中 <code>&lt;your-Azure-DevOps-account-name&gt;</code> 占位符代表你的帐户名称。</p>
+    </blockquote>
+  </li>
+  <li>在 DevOps 界面的垂直导航窗格中，选择 <strong>“存储库”</strong> 图标。</li>
+  <li>
+    <p>在 <strong>“PartsUnlimited”</strong> 窗格的右上角，单击 <strong>“克隆”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：获取 Git 存储库的本地副本的过程称为 <em>“克隆”</em>。每个主流开发工具都支持此功能，并且将能够连接到 Azure Repos 来获取可使用的最新资源。导航到 <strong>“Repos”</strong> 中心。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在 <strong>“克隆存储库”</strong> 面板上，在已选择 <strong>HTTPS</strong> 命令行选项的情况下，单击存储库克隆 URL 旁边的 <strong>“复制到剪贴板”</strong> 按钮。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：可以将此 URL 与任何与 Git 兼容的工具一起使用，以获取代码库的副本。</p>
+    </blockquote>
+  </li>
+  <li>关闭 <strong>“克隆存储库”</strong> 面板。</li>
+  <li>切换到在实验室计算机上运行的 <strong>Visual Studio Code</strong>。</li>
+  <li>
+    <p>单击 <strong>“查看”</strong> 菜单标题，然后在下拉菜单中单击 <strong>“命令面板”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：命令面板提供了一种轻松便捷的方式来访问各种任务，包括作为第三方扩展实现的任务。可使用键盘快捷方式 <strong>Ctrl+Shift+P</strong> 来打开它。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>在命令面板提示符下，运行 <strong>“Git: Clone”</strong> 命令。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：要查看所有相关命令，可以从键入 <strong>Git</strong> 开始。</p>
+    </blockquote>
+  </li>
+  <li>在 <strong>“提供存储库 URL 或选择存储库源”</strong> 文本框中，粘贴之前在此任务中复制的存储库克隆 URL，并按 <strong>Enter</strong> 键。</li>
+  <li>在 <strong>“选择文件夹”</strong> 对话框中，导航到 C: 驱动器，创建名为 <strong>Git</strong> 的新文件夹并选择它，然后单击 <strong>“选择存储库位置”</strong>。</li>
+  <li>根据提示登录到 Azure DevOps 帐户。</li>
+  <li>
+    <p>克隆进程完成后，如果出现提示，在 Visual Studio Code 中单击 <strong>“打开”</strong>，以打开克隆的存储库。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：你可能会收到的有关项目加载问题的警告，可以忽略它们。解决方案可能不适合生成，但我们将专注于使用 Git，因此不需要生成项目。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-2从-azure-devops-管理分支">练习 2：从 Azure DevOps 管理分支</h3>
+
+<p>在本练习中，你将借助 Azure DevOps 使用分支。除了 Visual Studio Code 中提供的功能外，还可直接从 Azure DevOps 门户管理存储库分支。</p>
+
+<h4 id="任务-1创建新分支">任务 1：创建新分支</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 创建分支，并使用 Visual Studio Code 提取它。</p>
+
+<ol>
+  <li>
+    <p>切换到显示 Azure DevOps 组织以及在上一个练习中生成的 <strong>“在 Azure Repos 中使用 Git 进行版本控制”</strong> 项目的 Web 浏览器。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：或者，你可以通过导航到 [https://dev.azure.com/<code>&lt;your-Azure-DevOps-account-name&gt;</code>/Version%20Controlling%20with%20Git%20in%20Azure%20Repos) URL 直接访问项目页面，其中 <code>&lt;your-Azure-DevOps-account-name&gt;</code> 占位符代表你的帐户名称。</p>
+    </blockquote>
+  </li>
+  <li>在 Web 浏览器窗口中，导航到项目的“<strong>存储库</strong>”窗格并选择“<strong>分支</strong>”。</li>
+  <li>在 <strong>“分支”</strong> 窗格上，单击 <strong>“新建分支”</strong>。</li>
+  <li>在 <strong>“创建分支”</strong> 面板的 <strong>“名称”</strong> 文本框中，键入 <strong>“版本”</strong>，确保 <strong>“主分支”</strong> 显示在 <strong>“基于”</strong> 下拉列表中，在 <strong>“要链接的工作项”</strong> 下拉列表中，选择一个或多个可用的工作项，然后单击 <strong>“创建”</strong>。</li>
+  <li>切换到 <strong>“Visual Studio Code”</strong> 窗口。</li>
+  <li>按 <strong>Ctrl+Shift+P</strong> 打开<strong>命令面板</strong>。</li>
+  <li>在<strong>命令面板</strong>提示符下，开始键入 <strong>“Git: Fetch”</strong>，并选择出现的 <strong>“Git: 选择它”</strong>。此命令将更新本地快照中的原始分支。</li>
+  <li>在 Visual Studio Code 窗口的左下角，再次单击 <strong>“master”</strong> 条目。</li>
+  <li>在分支列表中选择 <strong>“原始/版本”</strong>。这会创建一个名为 <strong>“版本”</strong> 的新本地分支，并将其签出。</li>
+</ol>
+
+<h4 id="任务-2删除和还原分支">任务 2：删除和还原分支</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 门户删除和还原在上一个任务中创建的分支。</p>
+
+<ol>
+  <li>切换到在 Azure DevOps 门户中显示 <strong>“分支”</strong> 窗格的 <strong>“我的”</strong> 选项卡的 Web 浏览器。</li>
+  <li>在 <strong>“分支”</strong> 窗格的 <strong>“我的”</strong> 选项卡上，将鼠标指针悬停在 <strong>“版本”</strong> 分支条目上方，以显示右侧的省略号。</li>
+  <li>单击省略号，在弹出菜单中选择 <strong>“删除分支”</strong>，并在出现确认提示时单击 <strong>“删除”</strong>。</li>
+  <li>在 <strong>“分支”</strong> 窗格的 <strong>“我的”</strong> 选项卡上，选择 <strong>“全部”</strong> 选项卡。</li>
+  <li>在 <strong>“分支”</strong> 窗格的 <strong>“全部”</strong> 选项卡上，在 <strong>“搜索分支名称”</strong> 文本框中，键入 <strong>“版本”</strong>。</li>
+  <li>查看 <strong>“已删除的分支”</strong> 部分，此部分包含表示新创建的分支的条目。</li>
+  <li>在 <strong>“已删除的分支”</strong> 部分，将鼠标指针悬停在 <strong>“版本”</strong> 分支条目上方，以显示右侧的省略号。</li>
+  <li>
+    <p>单击省略号，在弹出菜单中选择“<strong>还原分支</strong>”。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：只要你知道某个已删除分支的确切名称，就可以使用此功能还原该分支。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-3锁定和解锁分支">任务 3：锁定和解锁分支</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 门户锁定和解锁主分支。</p>
+
+<p>锁定是防止出现可能与重要合并相冲突的新更改或防止使分支处于只读状态的理想方法。或者，如果你只想确保分支中的更改在合并之前经过了检查，可以使用分支策略并拉取请求，而不是锁定。</p>
+
+<p>锁定不会阻止克隆存储库或将在分支中进行的更新提取到你的本地存储库。如果锁定分支，请与团队分享锁定原因，并确保他们知道解锁分支后应使用分支执行什么操作。</p>
+
+<ol>
+  <li>切换到在 Azure DevOps 门户中显示 <strong>“分支”</strong> 窗格的 <strong>“我的”</strong> 选项卡的 Web 浏览器。</li>
+  <li>在 <strong>“分支”</strong> 窗格的 <strong>“我的”</strong> 选项卡上，将鼠标指针悬停在主分支条目上方，以显示右侧的省略号。</li>
+  <li>单击弹出菜单中的省略号，选择 <strong>“锁定”</strong>。</li>
+  <li>在 <strong>“分支”</strong> 窗格的 <strong>“我的”</strong> 选项卡上，将鼠标指针悬停在主分支条目上方，以显示右侧的省略号。</li>
+  <li>单击弹出菜单中的省略号，选择 <strong>“解锁”</strong>。</li>
+</ol>
+
+<h4 id="任务-4标记版本">任务 4：标记版本</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 门户在 Azure DevOps Repos 中标记版本。</p>
+
+<p>产品团队已决定，当前版本的网站应发布为 v1.1.0-beta。</p>
+
+<ol>
+  <li>在 Azure DevOps 门户的垂直导航窗格中，在 <strong>“Repos”</strong> 部分中，选择 <strong>“标记”</strong>。</li>
+  <li>在 <strong>“标记”</strong> 窗格中，单击 <strong>“新建标记”</strong>。</li>
+  <li>
+    <p>在 <strong>“创建标记”</strong> 面板中，在 <strong>“名称”</strong> 文本框中键入 <strong>“v1.1.0-beta”</strong>，在 <strong>“基于”</strong> 下拉列表中，保留 <strong>“主分支”</strong> 条目处于选中状态，在 <strong>“说明”</strong> 文本框中，键入 <strong>“Beta 版本 v1.1.0”</strong>，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：你现在已标记此版本中的项目。你可以基于各种理由对提交进行标记，并且通过 Azure DevOps，可灵活地编辑和删除它们以及管理其权限。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="练习-3管理存储库">练习 3：管理存储库</h3>
+
+<p>在本练习中，你将使用 Azure DevOps 门户在 Azure DevOps Repos 中创建和删除 Git 存储库。</p>
+
+<p>可在团队项目中创建 Git 存储库，以管理项目的源代码。每个 Git 存储库都有其自己的一组权限和分支，以使它自身与项目中的其他工作隔离。</p>
+
+<h4 id="任务-1从-azure-devops-创建新存储库">任务 1：从 Azure DevOps 创建新存储库</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 门户在 Azure DevOps Repos 中创建 Git 存储库。</p>
+
+<ol>
+  <li>在显示 Azure DevOps 门户的 Web 浏览器中，在垂直导航窗格中，单击左上角的加号（位于项目名称右侧），然后在级联菜单中单击 <strong>“新建存储库”</strong>。</li>
+  <li>
+    <p>在 <strong>“创建存储库”</strong> 窗格的 <strong>“存储库类型”</strong> 中，保留默认的 <strong>Git</strong> 条目，在 <strong>“存储库名称”</strong> 文本框中，键入 <strong>“新建存储库”</strong>，将其他设置保留为默认值，然后单击 <strong>“创建”</strong>。</p>
+
+    <blockquote>
+      <p><strong>备注</strong>：可选择创建名为 <strong>“README.md”</strong> 的文件。这将是默认的 markdown 文件，当有人使用 Web 浏览器导航到存储库根目录时，会显示此文件。此外，可以使用 <strong>.gitignore</strong> 文件预配置存储库。此文件根据命名模式和/或路径指定要在源代码管理中忽略的文件。有许多可用模板，其中包括根据要创建的项目类型而忽略的常见模式和路径。</p>
+    </blockquote>
+
+    <blockquote>
+      <p><strong>备注</strong>：现在，存储库可供使用。现在可使用 Visual Studio Code 或任何其他与 git 兼容的工具来克隆它。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="任务-2删除和重命名-git-存储库">任务 2：删除和重命名 Git 存储库</h4>
+
+<p>在此任务中，你将使用 Azure DevOps 门户在 Azure DevOps Repos 中删除 Git 存储库。</p>
+
+<p>有时，你需要重命名或删除存储库，这非常简单。</p>
+
+<ol>
+  <li>在显示 Azure DevOps 门户的 Web 浏览器中，在垂直导航窗格底部，单击 <strong>“项目设置”</strong>。</li>
+  <li>在 <strong>“项目设置”</strong> 垂直导航窗格中，向下滚动到 <strong>“Repos”</strong> 部分，并单击 <strong>“存储库”</strong>。</li>
+  <li>在 <strong>“所有存储库”</strong> 窗格的 <strong>“存储库”</strong> 选项卡上，将鼠标指针悬停在 <strong>“新建存储库”</strong> 分支条目上方，以显示右侧的省略号。</li>
+  <li>单击省略号，在弹出菜单中选择 <strong>“删除分支”</strong>，并在出现确认提示时单击 <strong>“删除”</strong>。</li>
+</ol>
+
+<h4 id="回顾">回顾</h4>
+
+<p>在本实验室中，你使用了 Azure DevOps 门户来管理分支和存储库。</p>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-400ZH-Designing-and-Implementing-Microsoft-DevOps-solutions
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

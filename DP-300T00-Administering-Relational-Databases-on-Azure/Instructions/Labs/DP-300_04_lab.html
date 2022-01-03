@@ -1,0 +1,528 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            DP-300T00-Administering-Relational-Databases-on-Azure
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D525e69932921e8ce30e81ee0f98ad4a87cda64ea.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                DP-300T00-Administering-Relational-Databases-on-Azure
+            </a>
+            <a href="https://github.com/MicrosoftLearning/DP-300T00-Administering-Relational-Databases-on-Azure" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-4--monitor-and-optimize-resources">Lab 4 – Monitor and Optimize Resources</h1>
+
+<p><strong>Estimated Time</strong>: 60 minutes</p>
+
+<p><strong>Pre-requisites</strong>: Lab VM, and Azure SQL Database created in Labs 2 and 3</p>
+
+<h1 id="lab-overview">Lab overview</h1>
+
+<p>The students will take the information gained in the lessons to scope out the deliverables for a digital transformation project within AdventureWorks. Examining the Azure portal as well as other tools, students will determine how to utilize native tools to identify and resolve performance related issues. Finally, students will be able to identify fragmentation within the database as well as learn steps to resolve the issue appropriately.</p>
+
+<h1 id="lab-objectives">Lab objectives</h1>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ol>
+  <li>
+    <p>Isolate performance problems through monitoring.</p>
+  </li>
+  <li>
+    <p>Utilize query store to locate &amp; resolve blocking issues by creating a new index</p>
+  </li>
+  <li>
+    <p>Detect and correct fragmentation issues.</p>
+  </li>
+</ol>
+
+<h1 id="scenario">Scenario</h1>
+
+<p>You have been hired as a database administrator to identify performance related issues and provide viable solutions to resolve any issues found. AdventureWorks has been selling bicycles and bicycle parts directly to consumers and distributors for over a decade. The company utilizes a mixture of both Azure SQL Databases as well as a SQL Server in an Azure Virtual Machine. Recently the company has noticed performance degradation within both products that are used to service customer requests. You need to use the Azure portal as well as on-premises tools to identify the performance issues and suggest methods to resolve them.</p>
+
+<p><strong>Note:</strong> The exercises ask you to copy and paste T-SQL code. Please verify that the code has been copied correctly, with the proper line breaks, before executing the code.</p>
+
+<h1 id="exercise-1-isolate-problems-by-monitoring">Exercise 1: Isolate problems by monitoring</h1>
+
+<p>Estimated Time: 30 minutes</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Review monitoring solutions to identify performance related issues for Azure SQL Database</p>
+  </li>
+  <li>
+    <p>Use Query Store to identify any ongoing blocking issues as well identify appropriate indexes to implement to resolve the blocking.</p>
+  </li>
+  <li>
+    <p>Use querying tools to identify index fragmentation as well as provide a method to resolve the fragmentation.</p>
+  </li>
+</ol>
+
+<h2 id="task-1-review-cpu-utilization-in-azure-portal">Task 1: Review CPU Utilization in Azure Portal</h2>
+
+<ol>
+  <li>
+    <p>If you’re not already in the Azure portal, navigate back to portal.azure.com. You may need to login again. In the search bar at the top of the Azure Portal, type SQL, and click on SQL databases. This task will use the AdventureWorks database you created in Lab 3. Click on the database name.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-01.png" target="_blank"><img src="../images/dp-3300-module-44-lab-01.png" alt="A screenshot of a social media post Description automatically generated"></a></p>
+  </li>
+  <li>
+    <p>Locate and select  Metrics on the Monitoring section of the blade for the AdventureWorks database.</p>
+  </li>
+  <li>
+    <p>Change the Metric menu option to reflect CPU percentage</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-03.png" target="_blank"><img src="../images/dp-3300-module-44-lab-03.png" alt="Picture 6"></a></p>
+  </li>
+  <li>
+    <p>Select an Aggregation of “Avg”. This will display the average CPU Percentage for the given time frame.</p>
+  </li>
+  <li>
+    <p>Now adjust the aggregation to Max to identify the maximum CPU Percentage used for the give time frame. How is it different from the average?</p>
+  </li>
+</ol>
+
+<h2 id="task-2-identify-high-cpu-consuming-queries">Task 2: Identify High CPU Consuming Queries</h2>
+
+<ol>
+  <li>
+    <p>In the same view as shown in first task, select Query Performance Insight in the same menu under Intelligent Performance.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-04.png" target="_blank"><img src="../images/dp-3300-module-44-lab-04.png" alt="Picture 12"></a></p>
+  </li>
+  <li>
+    <p>Click on the first query in the grid below the graph.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-06.png" target="_blank"><img src="../images/dp-3300-module-44-lab-06.png" alt="Picture 10"></a></p>
+  </li>
+  <li>
+    <p>Make note of the query, and its resource usage as shown in the following image. Azure tracks CPU, Data IO, and Log IO for each query.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-07.png" target="_blank"><img src="../images/dp-3300-module-44-lab-07.png" alt="A screenshot of a cell phone Description automatically generated"></a></p>
+  </li>
+</ol>
+
+<h1 id="exercise-2-identify-and-resolve-blocking-issues">Exercise 2: Identify and Resolve Blocking Issues</h1>
+
+<p>Estimated Time: 15 minutes</p>
+
+<p>Individual exercise</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Determine which query is causing blocking by utilizing the blocking report with extended events</p>
+  </li>
+  <li>
+    <p>Identify indexes that could be implemented to resolve the blocking</p>
+  </li>
+</ol>
+
+<h2 id="task-1-run-blocked-queries-report">Task 1: Run blocked queries report</h2>
+
+<p>For this exercise, you will be using SQL Server Management Studio from the lab VM and connecting to an on-premises SQL Server.</p>
+
+<ol>
+  <li>
+    <p>From the lab VM, open SQL Server Management Studio, by opening the start menu and navigating to <br>
+Microsoft SQL Server Tools 18&gt; Microsoft SQL Server Management Studio. Alternatively, you can select the icon for the Management Studio in your task bar.</p>
+  </li>
+  <li>
+    <p>Start a new query by clicking the New Query button in Management Studio.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-08.png" target="_blank"><img src="../images/dp-3300-module-44-lab-08.png" alt="A screenshot of a cell phone Description automatically generated"></a></p>
+
+    <p>You will be prompted to connect to your SQL Server.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-09.png" target="_blank"><img src="../images/dp-3300-module-44-lab-09.png" alt="Picture 1589580796"></a></p>
+
+    <p>Enter LON-SQL1 for the local server name, and ensure that Windows Authentication is selected, and click connect.</p>
+  </li>
+  <li>
+    <p>Copy and paste the code below into your query window.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">USE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">MASTER</span></span>
+
+ <span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+ <span class="hljs-keyword"><span class="hljs-keyword">CREATE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">EVENT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">SESSION</span></span> [Blocking] <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> <span class="hljs-keyword"><span class="hljs-keyword">SERVER</span></span> 
+
+ <span class="hljs-keyword"><span class="hljs-keyword">ADD</span></span> <span class="hljs-keyword"><span class="hljs-keyword">EVENT</span></span> sqlserver.blocked_process_report(
+
+ <span class="hljs-keyword"><span class="hljs-keyword">ACTION</span></span>(sqlserver.client_app_name,sqlserver.client_hostname,sqlserver.database_id,sqlserver.database_name,sqlserver.nt_username,sqlserver.session_id,sqlserver.sql_text,sqlserver.username))
+
+ <span class="hljs-keyword"><span class="hljs-keyword">ADD</span></span> TARGET package0.ring_buffer
+
+ <span class="hljs-keyword"><span class="hljs-keyword">WITH</span></span> (MAX_MEMORY=<span class="hljs-number"><span class="hljs-number">4096</span></span> KB, EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS, MAX_DISPATCH_LATENCY=<span class="hljs-number"><span class="hljs-number">30</span></span> SECONDS, MAX_EVENT_SIZE=<span class="hljs-number"><span class="hljs-number">0</span></span> KB,MEMORY_PARTITION_MODE=<span class="hljs-keyword"><span class="hljs-keyword">NONE</span></span>, TRACK_CAUSALITY=<span class="hljs-keyword"><span class="hljs-keyword">OFF</span></span>,STARTUP_STATE=<span class="hljs-keyword"><span class="hljs-keyword">ON</span></span>)
+
+ <span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+ <span class="hljs-comment"><span class="hljs-comment">-- Start the event session </span></span>
+
+ <span class="hljs-keyword"><span class="hljs-keyword">ALTER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">EVENT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">SESSION</span></span> [Blocking] <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> <span class="hljs-keyword"><span class="hljs-keyword">SERVER</span></span> 
+
+ STATE = <span class="hljs-keyword"><span class="hljs-keyword">start</span></span>; 
+
+ GO
+</code></pre>
+
+    <p>Click the execute button to execute this query.</p>
+
+    <p>The above T-SQL code will create an Extended Event session that will capture blocking events. The data will contain the following elements:</p>
+
+    <ul>
+      <li>
+        <p>Client application name</p>
+      </li>
+      <li>
+        <p>Client host name</p>
+      </li>
+      <li>
+        <p>Database ID</p>
+      </li>
+      <li>
+        <p>Database name</p>
+      </li>
+      <li>
+        <p>NT Username</p>
+      </li>
+      <li>
+        <p>Session ID</p>
+      </li>
+      <li>
+        <p>T-SQL Text</p>
+      </li>
+      <li>
+        <p>Username</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Click New Query from SQL Server Management Studio. Copy and paste the following T-SQL code into the query window. Click the execute button to execute this query.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">USE</span></span> AdventureWorks2017
+
+ <span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+ <span class="hljs-keyword"><span class="hljs-keyword">BEGIN</span></span> <span class="hljs-keyword"><span class="hljs-keyword">TRANSACTION</span></span>
+
+ <span class="hljs-keyword"><span class="hljs-keyword">UPDATE</span></span> Person.Person <span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> LastName = LastName;
+
+ GO
+</code></pre>
+  </li>
+  <li>
+    <p>Open another query window by clicking the New Query button. Copy and paste the following T-SQL code into the query window. Click the execute button to execute this query.</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-sql hljs"> <span class="hljs-keyword"><span class="hljs-keyword">USE</span></span> AdventureWorks2017
+
+ <span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+ <span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> TOP (<span class="hljs-number"><span class="hljs-number">1000</span></span>) [LastName]
+
+ ,[FirstName]
+
+ ,[Title]
+
+ <span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> Person.Person
+
+ <span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> FirstName = <span class="hljs-string"><span class="hljs-string">'David'</span></span>
+</code></pre>
+
+    <p>You should notice that this query does not return results immediately and appears to be still running.</p>
+  </li>
+  <li>
+    <p>In Object Explorer, navigate to <strong>Management</strong>, and expand the hive by clicking the plus sign. Expand <strong>Extended Events</strong> and then expand <strong>Sessions</strong>. Expand <strong>Blocking</strong>, which contains the session created in step 3. Right click on <strong>package0.ring_buffer</strong> and select <strong>View Target Data</strong>.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-10.png" target="_blank"><img src="../images/dp-3300-module-44-lab-10.png" alt="Picture 16"></a></p>
+  </li>
+  <li>
+    <p>Click on the hyperlink.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-11.png" target="_blank"><img src="../images/dp-3300-module-44-lab-11.png" alt="Picture 17"></a></p>
+  </li>
+  <li>
+    <p>The XML will show you which processes are being blocked and which process is causing the blocking.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-12.png" target="_blank"><img src="../images/dp-3300-module-44-lab-12.png" alt="Picture 18"></a></p>
+  </li>
+  <li>
+    <p>Right click the Extended Events session called <strong>Blocking</strong> and select <strong>Stop Session</strong>.</p>
+
+    <p><a href="../images/dp-3300-module-44-lab-12-5.png" target="_blank"><img src="../images/dp-3300-module-44-lab-12-5.png" alt="Picture 18.5"></a></p>
+  </li>
+  <li>
+    <p>Navigate back to the query tab you opened in step 4, and type ROLLBACK TRANSACTION on the line below the query. Highlight ROLLBACK TRANSACTION and execute the command.</p>
+  </li>
+</ol>
+
+<p><a href="../images/dp-3300-module-44-lab-13.png" target="_blank"><img src="../images/dp-3300-module-44-lab-13.png" alt="Picture 19"></a></p>
+
+<ol>
+  <li>
+    <p>Navigate back to the query tab you opened in Step 5. You will notice that the query has now completed.</p>
+  </li>
+  <li>
+    <p>Close all your query windows.</p>
+  </li>
+</ol>
+
+<h2 id="task-2-enabling-read-committed-snapshot-isolation">Task 2: Enabling Read Committed Snapshot Isolation</h2>
+
+<ol>
+  <li>Open a new query window. Copy and paste the following T-SQL code into the query window. Click the execute button to execute this query.</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-sql hljs"><span class="hljs-keyword"><span class="hljs-keyword">USE</span></span> <span class="hljs-keyword"><span class="hljs-keyword">master</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">ALTER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">DATABASE</span></span> AdventureWorks2017 <span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> READ_COMMITTED_SNAPSHOT <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> <span class="hljs-keyword"><span class="hljs-keyword">WITH</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ROLLBACK</span></span> <span class="hljs-keyword"><span class="hljs-keyword">IMMEDIATE</span></span>;
+
+GO
+</code></pre>
+<ol>
+  <li>Copy and paste the following T-SQL code into a new query window. Click the execute button to execute this query.
+```sql
+USE AdventureWorks2017</li>
+</ol>
+
+<p>GO</p>
+
+<p>BEGIN TRANSACTION</p>
+
+<p>UPDATE Person.Person SET LastName = LastName;</p>
+
+<p>GO</p>
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="hljs http"> 
+
+<span class="coffeescript"><span class="hljs-number"><span class="coffeescript"><span class="hljs-number">3.</span></span></span><span class="coffeescript"> Copy </span><span class="hljs-keyword"><span class="coffeescript"><span class="hljs-keyword">and</span></span></span><span class="coffeescript"> paste the following T-SQL code into a </span><span class="hljs-keyword"><span class="coffeescript"><span class="hljs-keyword">new</span></span></span><span class="coffeescript"> query </span><span class="hljs-built_in"><span class="coffeescript"><span class="hljs-built_in">window</span></span></span><span class="coffeescript">. Click the execute button to execute </span><span class="hljs-keyword"><span class="coffeescript"><span class="hljs-keyword">this</span></span></span><span class="coffeescript"> query. 
+
+```</span><span class="javascript"><span class="coffeescript"><span class="javascript">sql
+USE AdventureWorks2017
+
+GO
+
+SELECT TOP (</span></span><span class="hljs-number"><span class="coffeescript"><span class="javascript"><span class="hljs-number">1000</span></span></span></span><span class="coffeescript"><span class="javascript">) [LastName]
+
+ ,[FirstName]
+
+ ,[Title]
+
+ FROM Person.Person
+
+ WHERE firstname = </span></span><span class="hljs-string"><span class="coffeescript"><span class="javascript"><span class="hljs-string">'David'</span></span></span></span><span class="coffeescript"><span class="javascript">;
+ 
+ GO
+</span></span></span></span></code></pre>
+
+<ol>
+  <li>Discuss with the instructor why the query in step 3 now completes whereas in the previous exercise it was blocked by the UPDATE. Keep SQL Server Management Studio open as you will need it in the next exercise, but close all your query windows.</li>
+</ol>
+
+<h1 id="exercise-3-detectcorrect-fragmentation-issues">Exercise 3: Detect/Correct Fragmentation Issues</h1>
+
+<p>Estimated Time: 15 minutes</p>
+
+<p>Individual exercise</p>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Identify fragmentation</p>
+  </li>
+  <li>
+    <p>Remove fragmentation</p>
+  </li>
+  <li>
+    <p>The instructor will discuss the findings with the group.</p>
+  </li>
+</ol>
+
+<h2 id="task-1-identify-fragmentation">Task 1: Identify fragmentation</h2>
+
+<ol>
+  <li>In SQL Server Management Studio, click the New Query button. Copy and paste the following T-SQL code into the query window. Click the execute button to execute this query.</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-sql hljs"><span class="hljs-keyword"><span class="hljs-keyword">USE</span></span> AdventureWorks2017
+<span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">INSERT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INTO</span></span> [Person].[Address]
+
+ ([AddressLine1]
+
+ ,[AddressLine2]
+
+ ,[City]
+
+ ,[StateProvinceID]
+
+ ,[PostalCode]
+
+ ,[SpatialLocation]
+
+ ,[rowguid]
+
+ ,[ModifiedDate])
+
+<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> AddressLine1,
+
+ AddressLine2, 
+
+ <span class="hljs-string"><span class="hljs-string">'Amsterdam'</span></span>,
+
+ StateProvinceID, 
+
+ PostalCode, 
+
+ SpatialLocation, 
+
+ newid(), 
+
+ <span class="hljs-keyword"><span class="hljs-keyword">getdate</span></span>()
+
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> Person.Address;
+
+
+GO
+</code></pre>
+<p>This query will increase the fragmentation level of the Person.Address table and its indexes.</p>
+
+<ol>
+  <li>Copy and paste the following T-SQL code into a new query window. Click the execute button to execute this query.</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-sql hljs"><span class="hljs-keyword"><span class="hljs-keyword">USE</span></span> AdventureWorks2017
+
+<span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> i.name Index_Name
+
+ , avg_fragmentation_in_percent
+
+ , db_name(database_id)
+
+ , i.object_id
+
+ , i.index_id
+
+ , index_type_desc
+
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> sys.dm_db_index_physical_stats(db_id(<span class="hljs-string"><span class="hljs-string">'AdventureWorks2017'</span></span>),object_id(<span class="hljs-string"><span class="hljs-string">'person.address'</span></span>),<span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,<span class="hljs-literal"><span class="hljs-literal">NULL</span></span>,<span class="hljs-string"><span class="hljs-string">'DETAILED'</span></span>) ps
+
+ <span class="hljs-keyword"><span class="hljs-keyword">INNER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">JOIN</span></span> sys.indexes i <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> ps.object_id = i.object_id 
+
+ <span class="hljs-keyword"><span class="hljs-keyword">AND</span></span> ps.index_id = i.index_id
+
+<span class="hljs-keyword"><span class="hljs-keyword">WHERE</span></span> avg_fragmentation_in_percent &gt; <span class="hljs-number"><span class="hljs-number">50</span></span> <span class="hljs-comment"><span class="hljs-comment">-- find indexes where fragmentation is greater than 50%</span></span>
+</code></pre>
+
+<p>This query will report any indexes that have a fragmentation over 50%. You should see four indexes with fragmentation.</p>
+
+<ol>
+  <li>Copy and paste the following T-SQL code into a new query window. Click the execute button to to execute this query.</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-sql hljs"><span class="hljs-keyword"><span class="hljs-keyword">SET</span></span> <span class="hljs-keyword"><span class="hljs-keyword">STATISTICS</span></span> IO,<span class="hljs-keyword"><span class="hljs-keyword">TIME</span></span> <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">USE</span></span> AdventureWorks2017
+
+<span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">SELECT</span></span> <span class="hljs-keyword"><span class="hljs-keyword">DISTINCT</span></span> (StateProvinceID)
+
+ ,<span class="hljs-keyword"><span class="hljs-keyword">count</span></span>(StateProvinceID) <span class="hljs-keyword"><span class="hljs-keyword">AS</span></span> CustomerCount
+
+<span class="hljs-keyword"><span class="hljs-keyword">FROM</span></span> person.Address
+
+<span class="hljs-keyword"><span class="hljs-keyword">GROUP</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> StateProvinceID
+
+<span class="hljs-keyword"><span class="hljs-keyword">ORDER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">BY</span></span> <span class="hljs-keyword"><span class="hljs-keyword">count</span></span>(StateProvinceID) <span class="hljs-keyword"><span class="hljs-keyword">DESC</span></span>;
+
+GO
+</code></pre>
+
+<p>Click on the Messages tab in the result pane of SQL Server Management Studio. Make note of the count of logical reads performed by the query.</p>
+
+<p><a href="../images/dp-3300-module-44-lab-14.png" target="_blank"><img src="../images/dp-3300-module-44-lab-14.png" alt="A screenshot of a cell phone Description automatically generated"></a></p>
+
+<h2 id="task-2-rebuild-indexes">Task 2: Rebuild indexes</h2>
+
+<ol>
+  <li>
+    <p>Click the new query button.</p>
+  </li>
+  <li>
+    <p>Copy and paste the following T-SQL code into the query window. Click the execute button to execute this query.</p>
+  </li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">sql</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-sql hljs"><span class="hljs-keyword"><span class="hljs-keyword">USE</span></span> AdventureWorks2017
+
+<span class="hljs-keyword"><span class="hljs-keyword">GO</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">ALTER</span></span> <span class="hljs-keyword"><span class="hljs-keyword">INDEX</span></span> [IX_Address_StateProvinceID] <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span> [Person].[Address] <span class="hljs-keyword"><span class="hljs-keyword">REBUILD</span></span> <span class="hljs-keyword"><span class="hljs-keyword">PARTITION</span></span> = ALL <span class="hljs-keyword"><span class="hljs-keyword">WITH</span></span> (PAD_INDEX = <span class="hljs-keyword"><span class="hljs-keyword">OFF</span></span>, STATISTICS_NORECOMPUTE = <span class="hljs-keyword"><span class="hljs-keyword">OFF</span></span>, SORT_IN_TEMPDB = <span class="hljs-keyword"><span class="hljs-keyword">OFF</span></span>, IGNORE_DUP_KEY = <span class="hljs-keyword"><span class="hljs-keyword">OFF</span></span>, <span class="hljs-keyword"><span class="hljs-keyword">ONLINE</span></span> = <span class="hljs-keyword"><span class="hljs-keyword">OFF</span></span>, ALLOW_ROW_LOCKS = <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span>, ALLOW_PAGE_LOCKS = <span class="hljs-keyword"><span class="hljs-keyword">ON</span></span>)
+</code></pre>
+
+<ol>
+  <li>
+    <p>Re-execute the query from step 2 in Task 1. Confirm that the AK_Address_StateProvinceID index no longer has fragmentation greater than 50%.</p>
+  </li>
+  <li>
+    <p>Re-execute the query from step 3 in Task 1. Make note of the logical reads in the Messages tab of the Results pane in Management Studio. Was there a change from the number of logical reads encountered before you rebuilt the index?</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/DP-300T00-Administering-Relational-Databases-on-Azure" target="_blank" class="ml-2">
+                    MicrosoftLearning/DP-300T00-Administering-Relational-Databases-on-Azure
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D525e69932921e8ce30e81ee0f98ad4a87cda64ea.js"></script>
+
+
+
+</body></html>

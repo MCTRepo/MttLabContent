@@ -1,0 +1,681 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-304-Microsoft-Azure-Architect-Design
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-304-Microsoft-Azure-Architect-Design
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-304-Microsoft-Azure-Architect-Design" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-0-prepare-the-lab-environment">Exercise 0: Prepare the lab environment</a></li><li class="nav-item"><a class="nav-link" href="#exercise-1-configure-authentication-and-authorization-for-an-azure-logic-app">Exercise 1: Configure authentication and authorization for an Azure logic app</a></li><li class="nav-item"><a class="nav-link active" href="#exercise-2-implement-an-azure-logic-app">Exercise 2: Implement an Azure logic app</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-implement-an-event-subscription">Exercise 3: Implement an event subscription</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-implement-azure-logic-apps-integration-with-azure-event-grid">Lab: Implement Azure Logic Apps integration with Azure Event Grid</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+<p>Adatum Corporation has an extensive set of on-premises network monitoring framework that rely on the combination of agent-based and agentless solutions to provide visibility into any changes to its environment. The agentless solutions tend to be relatively inefficient since they rely on polling to determine state changes.</p>
+
+<p>As Adatum is preparing to migrate some of its workloads to Azure, its Enterprise Architecture team wants to address these inefficiencies and evaluate the use of event driven architecture available in the cloud. The notion of using events in a solution or application is not new to the team. In fact, they have been promoting the idea of event-driven programming among its developers. One of the core tenets of an event-driven architecture is to reverse the dependencies that existing services may have with each other. Azure provides this functionality by relying on Event Grid, which is a fully managed service that supports the routing of events by utilizing a publisher-subscriber model. At its core, Event Grid is an event routing service that manages the routing and delivery of events from numerous sources and subscribers.</p>
+
+<p>An event is created by a publisher such as a Blob Storage account, an Azure resource group, or even an Azure subscription. As events occur, they are published to an endpoint called a topic that the Event Grid service manages to digest all incoming messages. Event publishers are not limited to services on Azure. It is possible to use events that originate from custom applications or systems that can run from anywhere. This includes applications that are hosted on-premises, in a datacenter, or even on other clouds, if they can post an HTTP request to the Event Grid service.</p>
+
+<p>Event handlers include several Azure services, including serverless technologies such as Functions, Logic Apps, or Azure Automation. Handlers are registered with Event Grid by creating an event subscription. If the event handler endpoint is publicly accessible and encrypted by Transport Layer Security, then messages can be pushed to it from Event Grid.</p>
+
+<p>Unlike many other Azure services, there is no Event Grid namespace that needs to be provisioned or managed. Topics for native Azure resources are built in and completely transparent to users while custom topics are provisioned ad hoc and exist in a resource group. Event subscriptions are simply associated with a topic. This model simplifies management of topics as subscriptions and makes Event Grid highly multi-tenant, allowing for massive scale out.</p>
+
+<p>Azure Event Grid is agnostic to any language or platform. While it integrates natively with Azure services, it can just as easily be leveraged by anything that supports the HTTP protocol, which makes it a very clever and innovative service.</p>
+
+<p>To explore this functionality, the Adatum Architecture team wants to test integration of Azure Logic Apps with Event Grid to:</p>
+
+<ul>
+  <li>
+    <p>detect when the state of a designated Azure VM is changed</p>
+  </li>
+  <li>
+    <p>automatically generate an email notification in response to the event</p>
+  </li>
+</ul>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ul>
+  <li>
+    <p>Integrate Azure Logic Apps with Event Grid</p>
+  </li>
+  <li>
+    <p>Trigger execution of Logic Apps in response to an event representing a change to a resource within a resource group</p>
+  </li>
+</ul>
+
+<h2 id="lab-environment">Lab Environment</h2>
+
+<p>Windows Server admin credentials</p>
+
+<ul>
+  <li>
+    <p>User Name: <strong>Student</strong></p>
+  </li>
+  <li>
+    <p>Password: <strong>Pa55w.rd1234</strong></p>
+  </li>
+</ul>
+
+<p>Estimated Time: 60 minutes</p>
+
+<h2 id="lab-files">Lab Files</h2>
+
+<ul>
+  <li>
+    <p>\\AZ304\AllFiles\Labs\04\azuredeploy30304suba.json</p>
+  </li>
+  <li>
+    <p>\\AZ304\AllFiles\Labs\04\azuredeploy30304rga.json</p>
+  </li>
+  <li>
+    <p>\\AZ304\AllFiles\Labs\04\azuredeploy30304rga.parameters.json</p>
+  </li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="exercise-0-prepare-the-lab-environment">Exercise 0: Prepare the lab environment</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>Deploy an Azure VM by using an Azure Resource Manager template</li>
+</ol>
+
+<h4 id="task-1-deploy-an-azure-vm-by-using-an-azure-resource-manager-template">Task 1: Deploy an Azure VM by using an Azure Resource Manager template</h4>
+
+<ol>
+  <li>
+    <p>From your lab computer, start a web browser, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in by providing credentials of a user account with the Owner role in the subscription you will be using in this lab.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to register the <strong>Microsoft.EventGrid</strong> provider in your subscription:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">Register-AzResourceProvider -ProviderNamespace 'Microsoft.EventGrid'
+</code></pre>
+  </li>
+  <li>
+    <p>In the toolbar of the Cloud Shell pane, select the <strong>Upload/Download files</strong> icon, in the drop-down menu select <strong>Upload</strong>, and upload the file <strong>\\AZ304\AllFiles\Labs\04\azuredeploy30304suba.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a resource groups (replace the <code>&lt;Azure region&gt;</code> placeholder with the name of the Azure region that is available for deployment of Azure VMs in your subscription and which is closest to the location of your lab computer):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">$location = '&lt;Azure region&gt;'
+New-AzSubscriptionDeployment `
+  -Location $location `
+  -Name az30304subaDeployment `
+  -TemplateFile $HOME/azuredeploy30304suba.json `
+  -rgLocation $location `
+  -rgName 'az30304a-labRG'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: To identify Azure regions where you can provision Azure VMs, refer to <a href="https://azure.microsoft.com/en-us/regions/offers/"><strong>https://azure.microsoft.com/en-us/regions/offers/</strong></a></p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager template <strong>\\AZ304\AllFiles\Labs\04\azuredeploy30304rga.json</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, upload the Azure Resource Manager parameter file <strong>\\AZ304\AllFilesLabs\04\azuredeploy30304rga.parameters.json</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to deploy a Azure VM running Windows Server 2019 that you will be using in this lab:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">New-AzResourceGroupDeployment `
+  -Name az30304rgaDeployment `
+  -ResourceGroupName 'az30304a-labRG' `
+  -TemplateFile $HOME/azuredeploy30304rga.json `
+  -TemplateParameterFile $HOME/azuredeploy30304rga.parameters.json `
+  -AsJob
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Do not wait for the deployment to complete but instead proceed to the next exercise. The deployment should take less than 5 minutes.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-1-configure-authentication-and-authorization-for-an-azure-logic-app">Exercise 1: Configure authentication and authorization for an Azure logic app</h3>
+
+<ol>
+  <li>
+    <p>Create an Azure Active Directory service principal</p>
+  </li>
+  <li>
+    <p>Assign the Reader role to the Azure AD service principal</p>
+  </li>
+</ol>
+
+<h4 id="task-1-create-an-azure-active-directory-service-principal">Task 1: Create an Azure Active Directory service principal</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, start a <strong>PowerShell</strong> session within the <strong>Cloud Shell</strong>.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a new Azure AD application that you will associate with the service principal you create in the subsequent steps of this task:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">$password = 'Pa55w.rd1234.@z304'
+$securePassword = ConvertTo-SecureString -Force -AsPlainText -String $password
+$az30304aadapp = New-AzADApplication -DisplayName 'az30304aadsp' -HomePage 'http://az30304aadsp' -IdentifierUris 'http://az30304aadsp' -Password $securePassword
+</code></pre>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a new Azure AD service principal associated with the application you created in the previous step:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">New-AzADServicePrincipal -ApplicationId $az30304aadapp.ApplicationId.Guid -SkipAssignment
+</code></pre>
+  </li>
+  <li>
+    <p>In the output of the <strong>New-AzADServicePrincipal</strong> command, note the value of the <strong>ApplicationId</strong> property. You will need it later in this exercise.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to identify the value of the <strong>Id</strong> property of the current Azure subscription and the value of the <strong>TenantId</strong> property of the Azure AD tenant associated with that subscription (you will also need them later in this exercise):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Get-AzSubscription
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-authorizing-access-to-the-azure-ad-service-principal">Task 2: Authorizing access to the Azure AD service principal</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Resource groups</strong> and, on the <strong>Resource groups</strong> blade, select <strong>az30304a-labRG</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30304a-labRG</strong> blade, select <strong>Access control (IAM)</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **az30304a-labRG</td>
+          <td>Access control (IAM)** blade, select <strong>+ Add</strong>, and select <strong>Add role assignment</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Add role assignment</strong> blade, specify the following settings and select <strong>Save</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Role</td>
+          <td><strong>Reader</strong></td>
+        </tr>
+        <tr>
+          <td>Assign access to</td>
+          <td><strong>User, group, or service principal</strong></td>
+        </tr>
+        <tr>
+          <td>Select</td>
+          <td><strong>az30304aadsp</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h3 id="exercise-2-implement-an-azure-logic-app">Exercise 2: Implement an Azure logic app</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Create an Azure logic app</p>
+  </li>
+  <li>
+    <p>Add a trigger to the Azure logic app</p>
+  </li>
+  <li>
+    <p>Add a condition to the Azure logic app</p>
+  </li>
+  <li>
+    <p>Add an action to the Azure logic app</p>
+  </li>
+</ol>
+
+<h4 id="task-1-create-an-azure-logic-app">Task 1: Create an Azure logic app</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Logic App</strong> and, on the <strong>Logic Apps</strong> blade, select <strong>+ Add</strong> the select <strong>Consumption</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Logic App</strong> blade, specify the following settings (leave others with their default values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td>the name of a new resource group <strong>az30304b-labRG</strong>
+</td>
+        </tr>
+        <tr>
+          <td>Logic App name</td>
+          <td><strong>az30304b-logicapp1</strong></td>
+        </tr>
+        <tr>
+          <td>Select the location</td>
+          <td>the name of an Azure region that you chose in the previous exercise</td>
+        </tr>
+        <tr>
+          <td>Log Analytics</td>
+          <td><strong>Off</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Select <strong>Review + create</strong> and then select <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the logic app to be created. Provisioning should take about 2 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-add-a-trigger-to-the-azure-logic-app">Task 2: Add a trigger to the Azure logic app</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Logic App</strong> and, on the <strong>Logic Apps</strong> blade, select <strong>az30304b-logicapp1</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Logic App Designer</strong> blade, select <strong>Blank Logic App</strong>. This will display a blank designer workspace.</p>
+  </li>
+  <li>
+    <p>Use the <strong>Search connectors and triggers</strong> text box, to search for <strong>Event Grid</strong>, in the list of results, in the <strong>Triggers</strong> column, select <strong>When a resource event occurs</strong> Azure Event Grid trigger to add it to the designer workspace.</p>
+  </li>
+  <li>
+    <p>In the <strong>Azure Event Grid</strong> tile, select the <strong>Connect with Service Principal</strong> link, specify the following settings, and select <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Connection Name</td>
+          <td><strong>az30304egconnection</strong></td>
+        </tr>
+        <tr>
+          <td>Client ID</td>
+          <td>the value of the <strong>ApplicationId</strong> property you identified earlier in this exercise</td>
+        </tr>
+        <tr>
+          <td>Client Secret</td>
+          <td><strong>Pa55w.rd1234.<a href="https://github.com/z304" class="user-mention">@z304</a></strong></td>
+        </tr>
+        <tr>
+          <td>Tenant</td>
+          <td>the value of the <strong>TenantId</strong> property you identified earlier in this exercise</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>In the <strong>When a resource event occurs</strong> tile, specify the following settings:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>Choose your subscription from the drop-down list</td>
+        </tr>
+        <tr>
+          <td>Resource Type</td>
+          <td><strong>Microsoft.Resources.resourceGroups</strong></td>
+        </tr>
+        <tr>
+          <td>Resource Name</td>
+          <td><strong>az30304a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Event Type Item - 1</td>
+          <td><strong>Microsoft.Resources.ResourceWriteSuccess</strong></td>
+        </tr>
+        <tr>
+          <td>Event Type Item - 2</td>
+          <td><strong>Microsoft.Resources.ResourceDeleteSuccess</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>n the <strong>When a resource event occurs</strong> tile, select <strong>Add new parameter</strong> and select <strong>Subscription Name</strong></p>
+  </li>
+  <li>
+    <p>In the <strong>Subscription Name</strong> text box, type <strong>event-subscription-az30304b</strong> and select <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-add-a-condition-to-the-azure-logic-app">Task 3: Add a condition to the Azure logic app</h4>
+
+<ol>
+  <li>
+    <p>In the the Azure portal, on the Logic App Designer blade of the newly provisioned Azure logic app, select <strong>+ New step</strong>.</p>
+  </li>
+  <li>
+    <p>In the choose an operation tile, use the <strong>Search connectors and actions</strong> text box, to search for <strong>Condition</strong>, in the list of results, in the <strong>Actions</strong> column, select <strong>Condition</strong> to add it to the designer workspace.</p>
+  </li>
+  <li>
+    <p>Select the ellipsis symbol in the upper right corner of the <strong>Condition</strong> tile, in the pop-up menu, select <strong>Rename</strong>, and replace <strong>Condition</strong> with the text <strong>If a virtual machine in the resource group has changed</strong>.</p>
+  </li>
+  <li>
+    <p>Select the <strong>Choose a value</strong> text box on the left hand side of the condition, in the pop up window, in the <strong>Expression</strong> tab, enter this expression and select <strong>OK</strong>:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="hljs markdown">triggerBody()?[<span class="hljs-string">'data'</span>][<span class="hljs-symbol">'operationName'</span>]
+</code></pre>
+  </li>
+  <li>
+    <p>Ensure that <strong>is equal to</strong> appears in the middle element of the condition and, in the <strong>Choose a value</strong> text box on the right hand side, type the value representing the opearation you intend to monitor:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="hljs perl">Microsoft.Compute/virtualMachines/<span class="hljs-keyword">write</span>
+</code></pre>
+  </li>
+  <li>
+    <p>On the <strong>Logic Apps Designer</strong> blade, select <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-4-add-an-action-to-the-azure-logic-app">Task 4: Add an action to the Azure logic app</h4>
+
+<ol>
+  <li>
+    <p>In the the Azure portal, on the Logic App Designer blade of the newly provisioned Azure logic app, in the <strong>True</strong> tile, select <strong>Add an action</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Choose an action</strong> pane, in the <strong>Search connectors and actions</strong> text box, type <strong>Outlook</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of results, select <strong>Outlook.com</strong>.</p>
+  </li>
+  <li>
+    <p>In the list of actions for <strong>Outlook.com</strong>, select <strong>Send an email (V2)</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Outlook.com</strong> pane, select <strong>Sign in</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted, authenticate by using the Microsoft Account you are using in this lab.</p>
+  </li>
+  <li>
+    <p>When prompted for the consent to grant Azure Logic App permissions to access Outlook resources, select <strong>Yes</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Outlook.com</strong> pane, select the ellipsis symbol in the upper right corner of the <strong>Send an email (V2)</strong> tile, in the pop-up menu, select <strong>Rename</strong>, and replace <strong>Send an email (v2)</strong> with the text <strong>Send an email</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Send an email</strong> pane, specify the following settings and select <strong>Save</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>To</td>
+          <td>the primary e-mail address of your Microsoft Account</td>
+        </tr>
+        <tr>
+          <td>Subject</td>
+          <td>type <strong>Resource updated:</strong> and, in the <strong>Dynamic Content</strong> column to the right of the <strong>Send an email</strong> pane, select <strong>Subject</strong>
+</td>
+        </tr>
+        <tr>
+          <td>Body</td>
+          <td>type <strong>Resource group:</strong>, in the search text box under the <strong>Dynamic Content</strong> column to the right of the <strong>Send an email</strong> pane, type and select <strong>Topic</strong>, back in the <strong>Body</strong> text box, on a new line, type <strong>Event type:</strong>, in the search text box under the <strong>Dynamic Content</strong> column to the right of the <strong>Send an email</strong> pane, type and select <strong>Event Type</strong>, back in the <strong>Body</strong> text box, on a new line type <strong>Event ID:</strong>, in the search text box under the <strong>Dynamic Content</strong> column to the right of the <strong>Send an email</strong> pane, type and select <strong>ID</strong>, back in the <strong>Body</strong> text box, on a new line, type <strong>Event Time:</strong>, and in the search text box under the <strong>Dynamic Content</strong> column to the right of the <strong>Send an email</strong> pane, type and select <strong>Event Time</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>You may need to confirm the account by going into the mailbox and entering your phone number.</strong></p>
+  </li>
+  <li>
+    <p>On the <strong>Logic Apps Designer</strong> blade, select <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-3-implement-an-event-subscription">Exercise 3: Implement an event subscription</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Configure event subscription</p>
+  </li>
+  <li>
+    <p>Review the functionality of the Azure logic app</p>
+  </li>
+  <li>
+    <p>Remove Azure resources deployed in the lab</p>
+  </li>
+</ol>
+
+<h4 id="task-1-configure-event-subscription">Task 1: Configure event subscription</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30304b-logicapp1</strong> blade, select <strong>Trigger history</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>When_a_resource_event_occurs</strong> blade, copy the value of the <strong>Callback url [POST]</strong> text box.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30304a-LabRG</strong> resource group and, in the vertical menu, select <strong>Events</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **az30304a-LabRG</td>
+          <td>Events** blade, select <strong>+ Event subscription</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Create Event Subscription</strong> blade, specify the following settings and select <strong>Create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td><strong>event-subscription-az30304a-LabRG</strong></td>
+        </tr>
+        <tr>
+          <td>Event Schema</td>
+          <td><strong>Event Grid Schema</strong></td>
+        </tr>
+        <tr>
+          <td>System Topic name</td>
+          <td><strong>az30304b-eventgridtopic</strong></td>
+        </tr>
+        <tr>
+          <td>Filter to Event Types</td>
+          <td>
+<strong>Resource Write Success</strong>, <strong>Resource Delete Success</strong>, <strong>Resource Action Success</strong>
+</td>
+        </tr>
+        <tr>
+          <td>Endpoint Type</td>
+          <td><strong>Web Hook</strong></td>
+        </tr>
+        <tr>
+          <td>Endpoint</td>
+          <td>the URL string you copied at the beginning of this task</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Select <strong>Create</strong>.</li>
+</ol>
+
+<h4 id="task-2-review-the-functionality-of-the-azure-logic-app">Task 2: Review the functionality of the Azure logic app</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>az30304a-labRG</strong> resource group and, in the list of resources, select the entry representing the <strong>az30304a-vm0</strong> Azure VM.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30304a-vm0</strong> blade, in the <strong>Settings</strong> section, select <strong>Size</strong>.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **az30304a-vm0</td>
+          <td>Size** blade, select a size different from the one currently set and select <strong>Resize</strong> and verify that the resize operation completed successfully.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>az30304b-logicapp1</strong> blade, select <strong>Refresh</strong>, and note that the <strong>Runs history</strong> includes entries corresponding to changes of the state of the Azure VM.</p>
+  </li>
+  <li>
+    <p>In the <strong>Runs history</strong> listing, select an entry with the longest duration, representing the successful resizing on the Azure VM.</p>
+  </li>
+  <li>
+    <p>On the <strong>Logic app run</strong> blade, review the diagram representing the workflow of the logic app run.</p>
+  </li>
+  <li>
+    <p>On the <strong>Logic app run</strong> blade, select the <strong>When a resource event occurs</strong> rectangle to expand it and, in the <strong>OUTPUTS</strong> section, select <strong>Show raw outputs</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Outputs</strong> blade, review the details of the event and note that includes such details as the identity of your user account and the IP address from which the request to resize the Azure VM originated.</p>
+  </li>
+  <li>Navigate to the inbox of the email account you specified in the previous exercise and verify that includes an email generated by the logic app.</li>
+</ol>
+
+<h4 id="task-3-remove-azure-resources-deployed-in-the-lab">Task 3: Remove Azure resources deployed in the lab</h4>
+
+<ol>
+  <li>
+    <p>From the Cloud Shell pane, run the following to list the resource group you created in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock8" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock8" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30304*'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the output contains only the resource group you created in this lab. This group will be deleted in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to delete the resource group you created in this lab</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock9" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock9" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30304*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-304-Microsoft-Azure-Architect-Design" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-304-Microsoft-Azure-Architect-Design
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>

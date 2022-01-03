@@ -1,0 +1,991 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            AZ-304-Microsoft-Azure-Architect-Design
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../../assets/css/style_v%3D.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../../">
+                AZ-304-Microsoft-Azure-Architect-Design
+            </a>
+            <a href="https://github.com/MicrosoftLearning/AZ-304-Microsoft-Azure-Architect-Design" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#exercise-0-prepare-the-lab-environment">Exercise 0: Prepare the lab environment</a></li><li class="nav-item"><a class="nav-link active" href="#exercise-1-create-and-configure-an-azure-ad-tenant">Exercise 1: Create and configure an Azure AD tenant</a></li><li class="nav-item"><a class="nav-link" href="#exercise-2-integrate-an-ad-ds-forest-with-an-azure-ad-tenant">Exercise 2: Integrate an AD DS forest with an Azure AD tenant</a></li><li class="nav-item"><a class="nav-link" href="#exercise-3-implement-azure-ad-conditional-access">Exercise 3: Implement Azure AD conditional access</a></li></ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="lab-managing-azure-ad-authentication-and-authorization">Lab: Managing Azure AD Authentication and Authorization</h1>
+<h1 id="student-lab-manual">Student lab manual</h1>
+
+<h2 id="lab-scenario">Lab scenario</h2>
+
+<p>As part of its migration to Azure, Adatum Corporation needs to define its identity strategy. Adatum has a single domain Active Directory forest named adatum.com and owns the corresponding, publicly registered DNS domain. As the Adatum Enterprise Architecture team is exploring the option of transitioning some of the on-premises workloads to Azure, it intends to evaluate integration between its Active Directory Domain Services (AD DS) environment and the Azure Active Directory (Azure AD) tenant associated with the target Azure subscription as the core component of its longer-term authentication and authorization model.</p>
+
+<p>The new model should facilitate single sign-on, along with per-application step-up authentication that leverages multi-factor authentication capabilities of Azure AD. To implement single sign-on, the Architecture team plans to deploy Azure AD Connect and configure it for password hash synchronization, resulting in matching user objects in both identity stores. Choosing the optimal authentication method is the first concern for organizations wanting to move to the cloud. Azure AD password hash synchronization is the simplest way to implement single sign-on authentication for on-premises users when accessing Azure AD-integrated resources. This method is also required by some premium Azure AD features, such as Identity Protection.</p>
+
+<p>To implement step-up authentication, the Adatum Enterprise Architecture team intends to take advantage of Azure AD Conditional Access policies. Conditional Access policies support enforcement of multi-factor authentication depending on the type of application or resource being accessed. Conditional Access policies are enforced after the first-factor authentication has been completed. Conditional Access can be based on a wide range of factors, including:</p>
+
+<ul>
+  <li>User or group membership. Policies can be targeted to specific users and groups giving administrators fine-grained control over access.</li>
+  <li>IP Location information. Organizations can create trusted IP address ranges that can be used when making policy decisions. Administrators can specify entire countries/regions IP ranges to block or allow traffic from.</li>
+  <li>Device. Users with devices of specific platforms or marked with a specific state can be used when enforcing Conditional Access policies.</li>
+  <li>Application. Users attempting to access specific applications can trigger different Conditional Access policies.</li>
+  <li>Real-time and calculated risk detection. Signals integration with Azure AD Identity Protection allows Conditional Access policies to identify risky sign-in behavior. Policies can then force users to perform password changes or multi-factor authentication to reduce their risk level or be blocked from access until an administrator takes manual action.</li>
+  <li>Microsoft Cloud App Security (MCAS). Enables user application access and sessions to be monitored and controlled in real time, increasing visibility and control over access to and activities performed within your cloud environment.</li>
+</ul>
+
+<p>To accomplish these objectives the Adatum Enterprise Architecture team intends to test integration of its Active Directory Domain Services (AD DS) forest with its Azure Active Directory (Azure AD) tenant and evaluate the conditional access functionality for its pilot users.</p>
+
+<h2 id="objectives">Objectives</h2>
+
+<p>After completing this lab, you will be able to:</p>
+
+<ul>
+  <li>
+    <p>Deploy an Azure VM hosting an AD DS domain controller</p>
+  </li>
+  <li>
+    <p>Create and configure an Azure AD tenant</p>
+  </li>
+  <li>
+    <p>Integrate an AD DS forest with an Azure AD tenant</p>
+  </li>
+</ul>
+
+<h2 id="lab-environment">Lab Environment</h2>
+
+<p>Windows Server admin credentials</p>
+
+<ul>
+  <li>
+    <p>User Name: <strong>Student</strong></p>
+  </li>
+  <li>
+    <p>Password: <strong>Pa55w.rd1234</strong></p>
+  </li>
+</ul>
+
+<p>Estimated Time: 120 minutes</p>
+
+<h2 id="lab-files">Lab Files</h2>
+
+<ul>
+  <li>\\AZ304\AllFiles\Labs\10\azuredeploy30410suba.json</li>
+</ul>
+
+<h2 id="instructions">Instructions</h2>
+
+<h3 id="exercise-0-prepare-the-lab-environment">Exercise 0: Prepare the lab environment</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Deploy an Azure VM running an AD DS domain controller by using an Azure Resource Manager QuickStart template</p>
+  </li>
+  <li>
+    <p>Deploy Azure Bastion</p>
+  </li>
+</ol>
+
+<h4 id="task-1-deploy-an-azure-vm-running-an-ad-ds-domain-controller-by-using-an-azure-resource-manager-quickstart-template">Task 1: Deploy an Azure VM running an AD DS domain controller by using an Azure Resource Manager QuickStart template</h4>
+
+<ol>
+  <li>
+    <p>From your lab computer, start a web browser, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in by providing credentials of a user account with the Owner role in the subscription you will be using in this lab.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</p>
+  </li>
+  <li>
+    <p>If prompted to select either <strong>Bash</strong> or <strong>PowerShell</strong>, select <strong>PowerShell</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: If this is the first time you are starting <strong>Cloud Shell</strong> and you are presented with the <strong>You have no storage mounted</strong> message, select the subscription you are using in this lab, and select <strong>Create storage</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>In the Azure portal, in the toolbar of the Cloud Shell pane, select the <strong>Upload/Download files</strong> icon, in the drop-down menu select <strong>Upload</strong>, and upload the file <strong>\\AZ304\AllFiles\Labs\10\azuredeploy30410suba.json</strong> into the Cloud Shell home directory.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to create a resource groups (replace the <code>&lt;Azure region&gt;</code> placeholder with the name of the Azure region that you specified in the previous task):</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-powershell">$location = '&lt;Azure region&gt;'
+
+New-AzSubscriptionDeployment `
+  -Location $location `
+  -Name az30410subaDeployment `
+  -TemplateFile $HOME/azuredeploy30410suba.json `
+  -rgLocation $location `
+  -rgName 'az30410a-labRG'
+</code></pre>
+  </li>
+  <li>
+    <p>In the Azure portal, close the <strong>Cloud Shell</strong> pane.</p>
+  </li>
+  <li>
+    <p>From your lab computer, in the same web browser window, open another web browser tab and navigate a customized version of QuickStart template named <a href="https://github.com/az140mp/azure-quickstart-templates/tree/master/application-workloads/active-directory/active-directory-new-domain">Create a new Windows VM and create a new AD Forest, Domain and DC</a>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create a new Windows VM and create a new AD Forest, Domain and DC</strong> page, select <strong>Deploy to Azure</strong>. This will automatically redirect the browser to the <strong>Create an Azure VM with a new AD Forest</strong> blade in the Azure portal.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create an Azure VM with a new AD Forest</strong> blade, select <strong>Edit parameters</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Edit parameters</strong> blade, select <strong>Load file</strong>, in the <strong>Open</strong> dialog box, select <strong>\\AZ304\AllFiles\Labs\10\azuredeploy30410rga.parameters.json</strong>, select <strong>Open</strong>, and then select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Create an Azure VM with a new AD Forest</strong> blade, specify the following settings (leave others with their existing values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30410a-labRG</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Create an Azure VM with a new AD Forest</strong> blade, select <strong>Review + create</strong> and then select <strong>Create</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before you proceed to the next task of this exercise. The deployment might take about 15 minutes. You will use the virtual machine deployed in this task in the third exercise of this lab.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-deploy-azure-bastion">Task 2: Deploy Azure Bastion</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Azure Bastion allows for connection to the Azure VMs without public endpoints which you deployed in the previous task of this exercise, while providing protection against brute force exploits that target operating system level credentials.</p>
+</blockquote>
+
+<ol>
+  <li>In the browser window displaying the Azure portal, open another tab and, in the browser tab, navigate to the Azure portal.</li>
+  <li>In the Azure portal, open <strong>Cloud Shell</strong> pane by selecting on the toolbar icon directly to the right of the search textbox.</li>
+  <li>
+    <p>From the PowerShell session in the Cloud Shell pane, run the following to add a subnet named <strong>AzureBastionSubnet</strong> to the virtual network named <strong>az140-adds-vnet11</strong> you created earlier in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-powershell">$resourceGroupName = 'az30410a-labRG'
+$vnet = Get-AzVirtualNetwork -ResourceGroupName $resourceGroupName -Name 'az30410a-vnet'
+$subnetConfig = Add-AzVirtualNetworkSubnetConfig `
+  -Name 'AzureBastionSubnet' `
+  -AddressPrefix 10.10.254.0/24 `
+  -VirtualNetwork $vnet
+$vnet | Set-AzVirtualNetwork
+</code></pre>
+  </li>
+  <li>Close the Cloud Shell pane.</li>
+  <li>In the Azure portal, search for and select <strong>Bastions</strong> and, from the <strong>Bastions</strong> blade, select <strong>+ Create</strong>.</li>
+  <li>
+    <p>On the <strong>Basic</strong> tab of the <strong>Create a Bastion</strong> blade, specify the following settings and select <strong>Review + create</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription</td>
+          <td>the name of the Azure subscription you are using in this lab</td>
+        </tr>
+        <tr>
+          <td>Resource group</td>
+          <td><strong>az30410a-labRG</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>az30410a-bastion</strong></td>
+        </tr>
+        <tr>
+          <td>Region</td>
+          <td>the same Azure region to which you deployed the resources in the previous tasks of this exercise</td>
+        </tr>
+        <tr>
+          <td>Tier</td>
+          <td><strong>Basic</strong></td>
+        </tr>
+        <tr>
+          <td>Virtual network</td>
+          <td><strong>az30410a-vnet</strong></td>
+        </tr>
+        <tr>
+          <td>Subnet</td>
+          <td><strong>AzureBastionSubnet (10.10.254.0/24)</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP address</td>
+          <td><strong>Create new</strong></td>
+        </tr>
+        <tr>
+          <td>Public IP name</td>
+          <td><strong>az30410a-vnet-ip</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Review + create</strong> tab of the <strong>Create a Bastion</strong> blade, select <strong>Create</strong>:</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Wait for the deployment to complete before you proceed to the next exercise. The deployment might take about 5 minutes.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h3 id="exercise-1-create-and-configure-an-azure-ad-tenant">Exercise 1: Create and configure an Azure AD tenant</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Create an Azure AD tenant</p>
+  </li>
+  <li>
+    <p>Create and configure Azure AD users</p>
+  </li>
+  <li>
+    <p>Activate and assign Azure AD Premium P2 licensing</p>
+  </li>
+</ol>
+
+<h4 id="task-1-create-an-azure-ad-tenant">Task 1: Create an Azure AD tenant</h4>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Azure Active Directory</strong> and, on the Azure Active Directory blade, select <strong>Manage Tenants</strong> and then select <strong>+ Create</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Basics</strong> tab of the <strong>Create a tenant</strong> blade, select the <strong>Azure Active Directory</strong> option and select <strong>Next: Configuration &gt;</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Configuration</strong> tab of the <strong>Create a tenant</strong> blade, specify the following settings (leave others with their existing values):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Organization name</td>
+          <td><strong>Adatum Lab</strong></td>
+        </tr>
+        <tr>
+          <td>Initial domain name</td>
+          <td>any valid DNS name consisting of lower case letters and digits and starting with a letter</td>
+        </tr>
+        <tr>
+          <td>Country/Region</td>
+          <td><strong>United States</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: The green check mark in the <strong>Initial domain name</strong> text box will indicate that the domain name you typed in is valid and unique.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Select <strong>Next: Review + create</strong> and then select <strong>Create</strong>.</p>
+  </li>
+  <li>
+    <p>Refresh the browser page displaying the Azure portal, search for and select <strong>Azure Active Directory</strong> and, on the Azure Active Directory blade, select <strong>Switch tenant</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Directory + subscription</strong> blade, on the <strong>Adatum Lab</strong> card, click <strong>Switch</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-2-create-and-configure-azure-ad-users">Task 2: Create and configure Azure AD users</h4>
+
+<ol>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the <strong>Adatum Lab | Overview</strong> Azure Active Directory blade, in the <strong>Manage</strong> section, select <strong>Users</strong>, on the **Users</td>
+          <td>All users** blade, select your user account to display its <strong>Profile</strong> settings.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the profile blade of your user account, select <strong>Edit</strong>, in the <strong>Settings</strong> section, set <strong>Usage location</strong> to <strong>United States</strong> and select <strong>Save</strong> to save the change.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: This is necessary in order to assign an Azure AD Premium P2 license to your user account later in this lab.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Users - All users</strong> blade, and then select <strong>+ New user</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>New user</strong> blade, specify the following settings (leave others with their defaults):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>User name</td>
+          <td><strong>az30410-aaduser1</strong></td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td><strong>az30410-aaduser1</strong></td>
+        </tr>
+        <tr>
+          <td>Auto-generate password</td>
+          <td>enabled</td>
+        </tr>
+        <tr>
+          <td>Show password</td>
+          <td>enabled</td>
+        </tr>
+        <tr>
+          <td>Roles</td>
+          <td><strong>Global administrator</strong></td>
+        </tr>
+        <tr>
+          <td>Usage location</td>
+          <td><strong>United States</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the full user name (including the domain name) and the auto-generated password. You will need it later in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>New user</strong> blade, select <strong>Create</strong></p>
+  </li>
+  <li>
+    <p>On the lab computer, open an <strong>InPrivate</strong> browser window and sign in to the <a href="https://portal.azure.com">Azure portal</a> using the newly created <strong>az30410-aaduser1</strong> user account. When prompted to update the password, change the password to <strong>Pa55w.rd1234</strong>.</p>
+  </li>
+  <li>Sign out as the <strong>az30410-aaduser1</strong> user from the Azure portal and close the InPrivate browser window.</li>
+</ol>
+
+<h4 id="task-3-activate-and-assign-azure-ad-premium-p2-licensing">Task 3: Activate and assign Azure AD Premium P2 licensing</h4>
+
+<ol>
+  <li>
+    <p>Back in the browser window displaying the Azure portal, navigate to the <strong>Overview</strong> blade of the <strong>Adatum Lab</strong> Azure AD tenant and, in the <strong>Manage</strong> section, select <strong>Licenses</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Licenses | Overview</strong> blade, select <strong>All products</strong>, select <strong>+ Try/Buy</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Activate</strong> blade, in the <strong>Azure AD Premium P2</strong> section, select <strong>Free trial</strong> and then select <strong>Activate</strong>.</p>
+  </li>
+  <li>
+    <p>Refresh the browser window showing the <strong>Licenses | All products</strong> blade to verify that the activation was successful.</p>
+  </li>
+  <li>
+    <p>On the <strong>Licenses - All products</strong> blade, select the <strong>Azure Active Directory Premium P2</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>Azure Active Directory Premium P2 | Licensed users</strong> blade, select <strong>+ Assign</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Assign license</strong> blade, select <strong>Add users and groups</strong>, and on the <strong>Add users and groups</strong> blade, select both your account and the <strong>az30410-aaduser1</strong> user account and click <strong>Select</strong> for each.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>Assign license</strong> blade, select <strong>Assignment options</strong>, review the options listed on the <strong>License options</strong> blade, and select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Assign license</strong> blade, select <strong>Review and Assign</strong> the on the <strong>Assign</strong> page, select <strong>Assign</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-2-integrate-an-ad-ds-forest-with-an-azure-ad-tenant">Exercise 2: Integrate an AD DS forest with an Azure AD tenant</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Assign a custom domain name to the Azure AD tenant</p>
+  </li>
+  <li>
+    <p>Configure AD DS in the Azure VM</p>
+  </li>
+  <li>
+    <p>Install Azure AD Connect</p>
+  </li>
+  <li>
+    <p>Configure properties of synchronized user accounts</p>
+  </li>
+</ol>
+
+<h4 id="task-1-assign-a-custom-domain-name-to-the-azure-ad-tenant">Task 1: Assign a custom domain name to the Azure AD tenant</h4>
+
+<ol>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>In the Azure portal, navigate to the **Azure Active Directory Adatum Lab</td>
+          <td>Overview** blade.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Adatum Lab | Overview</strong> blade, select <strong>Custom domain names</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Adatum Lab | Custom domain names</strong> blade, identify the primary, default DNS domain name associated with the Azure AD tenant.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the value of the primary DNS name of the Azure AD tenant. You will need it in the next task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Adatum Lab | Custom domain names</strong> blade, select <strong>+ Add custom domain</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Custom domain name</strong> blade, in the <strong>Custom domain name</strong> text box, type <strong>adatum.com</strong>, and select <strong>Add domain</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>adatum.com</strong> blade, review the information necessary to perform verification of the Azure AD domain name and close the blade.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You will not be able to complete the validation process because you do not own the <strong>adatum.com</strong> DNS domain name. This will <em>not</em> prevent you from synchronizing the <strong>adatum.com</strong> Active Directory domain with the Azure AD tenant. You will use for this purpose the default primary DNS name of the Azure AD tenant (the name ending with the <strong>onmicrosoft.com</strong> suffix), which you identified earlier in this task. However, keep in mind that, as a result, the DNS domain name of the Active Directory domain and the DNS name of the Azure AD tenant will differ. This means that Adatum users will need to use different names when signing in to the Active Directory domain and when signing in to Azure AD tenant.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-2-configure-ad-ds-in-the-azure-vm">Task 2: Configure AD DS in the Azure VM</h4>
+
+<blockquote>
+  <p><strong>Note</strong>: Make sure that the deployment of the Azure VM you initiated at the beginning of the lab has completed before you start this exercise.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Azure Active Directory</strong> and, on the Azure Active Directory blade, select <strong>Switch tenant</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Switch tenant</strong> blade, click the <strong>Switch</strong> button in the tile representing the Azure AD tenant associated with the Azure subscription into which you deployed the <strong>az30410a-vm1</strong> Azure VM in the previous exercise of this lab.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, search for and select <strong>Virtual machines</strong> and, on the <strong>Virtual machines</strong> blade, select <strong>az30410a-vm1</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>az30410a-vm1</strong> blade, select <strong>Connect</strong>, in the drop-down menu, select <strong>Bastion</strong>, on the <strong>Bastion</strong> tab of the <strong>az30410a-vm1 | Connect</strong> blade, select <strong>Use Bastion</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted, provde the following credentials and select <strong>Connect</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>User Name</td>
+          <td><strong>Student</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, in the Server Manager window, select <strong>Local Server</strong>, select the <strong>On</strong> link next to the <strong>IE Enhanced Security Configuration</strong> label, and, in the <strong>IE Enhanced Security Configuration</strong> dialog box, select both <strong>Off</strong> options.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, in the Server Manager window, select <strong>Tools</strong> and, in the drop-down menu, select <strong>Active Directory Administrative Center</strong></p>
+  </li>
+  <li>
+    <p>In <strong>Active Directory Administrative Center</strong>, select <strong>adatum (local)</strong>, in the <strong>Tasks</strong> pane, select <strong>New</strong>, and, in the cascading menu, select <strong>Organizational Unit</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Create Organizational Unit</strong> window, in the <strong>Name</strong> text box, type <strong>ToSync</strong> and select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Double-click the newly crated <strong>ToSync</strong> organizational unit such that it its content appears in the details pane of the Active Directory Administrative Center console.</p>
+  </li>
+  <li>
+    <p>In the <strong>Tasks</strong> pane, within the <strong>ToSync</strong> section, select <strong>New</strong>, and, in the cascading menu, select <strong>User</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>Create User</strong> window, create a new user account with the following settings (leave others with their existing values) and select <strong>OK</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Full Name</td>
+          <td><strong>aduser1</strong></td>
+        </tr>
+        <tr>
+          <td>User UPN logon</td>
+          <td><strong>aduser1</strong></td>
+        </tr>
+        <tr>
+          <td>User SamAccountName logon</td>
+          <td><strong>aduser1</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+        <tr>
+          <td>Other password options</td>
+          <td><strong>Password never expires</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="task-3-install-azure-ad-connect">Task 3: Install Azure AD Connect</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, start Internet Explorer, navigate to the download page of <a href="https://www.microsoft.com/en-us/edge/business/download">Microsoft Edge</a>, then scroll down until you see the Channel, Build, and Platform options.</p>
+  </li>
+  <li>
+    <p>In Select channel/version dropdown select the version indicating Stable ## (Current and supported).</p>
+  </li>
+  <li>
+    <p>In Select build dropdown select the newest build.</p>
+  </li>
+  <li>
+    <p>In Select platform dropdown select Windows 64-bit. Then click Download.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, in Microsoft Edge, navigate to the <a href="https://portal.azure.com">Azure portal</a>, and sign in by using the <strong>az30410-aaduser1</strong> user account you created the previous exercise. When prompted, specify the full user name you recorded and the <strong>Pa55w.rd1234</strong> password.</p>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>In the Azure portal, search for and select <strong>Azure Active Directory</strong> and, on the **Adatum Lab</td>
+          <td>Overview** blade, select <strong>Azure AD Connect</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **Adatum Lab</td>
+          <td>Azure AD Connect** blade, select the <strong>Download Azure AD Connect</strong> link. You will be redirected to the <strong>Microsoft Azure Active Directory Connect</strong> download page.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>On the <strong>Microsoft Azure Active Directory Connect</strong> download page, select <strong>Download</strong>.</p>
+  </li>
+  <li>
+    <p>When prompted, select <strong>Run</strong> to start the <strong>Microsoft Azure Active Directory Connect</strong> wizard.</p>
+  </li>
+  <li>
+    <p>On the <strong>Welcome to Azure AD Connect</strong> page of the <strong>Microsoft Azure Active Directory Connect</strong> wizard, select the checkbox <strong>I agree to the license terms and privacy notice</strong> and select <strong>Continue</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Express Settings</strong> page of the <strong>Microsoft Azure Active Directory Connect</strong> wizard, select the <strong>Customize</strong> option.</p>
+  </li>
+  <li>
+    <p>On the <strong>Install required components</strong> page, leave all optional configuration options deselected and select <strong>Install</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>User sign-in</strong> page, ensure that only the <strong>Password Hash Synchronization</strong> is enabled and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Connect to Azure AD</strong> page, authenticate by using the credentials of the <strong>az30410-aaduser1</strong> user account you created in the previous exercise and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Connect your directories</strong> page, select the <strong>Add Directory</strong> button to the right of the <strong>adatum.com</strong> forest entry.</p>
+  </li>
+  <li>
+    <p>In the <strong>AD forest account</strong> window, ensure that the option to <strong>Create new AD account</strong> is selected, specify the following credentials, and select <strong>OK</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>User Name</td>
+          <td><strong>ADATUM\Student</strong></td>
+        </tr>
+        <tr>
+          <td>Password</td>
+          <td><strong>Pa55w.rd1234</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <p>Back on the <strong>Connect your directories</strong> page, ensure that the <strong>adatum.com</strong> entry appears as a configured directory and select <strong>Next</strong></p>
+  </li>
+  <li>
+    <p>On the <strong>Azure AD sign-in configuration</strong> page, note the warning stating <strong>Users will not be able to sign-in to Azure AD with on-premises credentials if the UPN suffix does not match a verified domain name</strong>, enable the checkbox <strong>Continue without matching all UPN suffixes to verified domain</strong>, and select <strong>Next</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: As explained earlier, this is expected, since you could not verify the custom Azure AD DNS domain <strong>adatum.com</strong>.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Domain and OU filtering</strong> page, select the option <strong>Sync selected domains and OUs</strong>, clear all checkboxes, select only the checkbox next to the <strong>ToSync</strong> OU, and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Uniquely identifying your users</strong> page, accept the default settings, and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Filter users and devices</strong> page, accept the default settings, and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Optional features</strong> page, accept the default settings, and select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Ready to configure</strong> page, ensure that the <strong>Start the synchronization process when configuration completes</strong> checkbox is selected and select <strong>Install</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Installation should take about 2 minutes.</p>
+    </blockquote>
+  </li>
+  <li>Review the information on the <strong>Configuration complete</strong> page and select <strong>Exit</strong> to close the <strong>Microsoft Azure Active Directory Connect</strong> window.</li>
+</ol>
+
+<h4 id="task-4-configure-properties-of-synchronized-user-accounts">Task 4: Configure properties of synchronized user accounts</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, in the Microsoft Edge window displaying the Azure portal, navigate to the <strong>Users - All users</strong> blade of the Adatum Lab Azure AD tenant.</p>
+  </li>
+  <li>
+    <p>On the <strong>Users | All users</strong> blade, note that the list of user objects includes the <strong>aduser1</strong> account, with the <strong>Yes</strong> entry appearing in the <strong>Directory synced</strong> column.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might have to wait a few minutes and select <strong>Refresh</strong> for the <strong>aduser1</strong> user account to appear.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>Users | All users</strong> blade, select the <strong>aduser1</strong> entry.</p>
+  </li>
+  <li>
+    <p>On the <strong>aduser1 | Profile</strong> blade, note the full name of the user account.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Record the full user name. You will need it in the next exercise.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>aduser1 | Profile</strong> blade, in the <strong>Job info</strong> section, note that the <strong>Department</strong> attribute is not set.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, switch to <strong>Active Directory Administrative Center</strong>, select the <strong>aduser1</strong> entry in the list of objects in the <strong>ToSync</strong> OU, and, in the <strong>Tasks</strong> pane, in the <strong>ToSync</strong> section, select <strong>Properties</strong>.</p>
+  </li>
+  <li>
+    <p>In the <strong>aduser1</strong> window, in the <strong>Organization</strong> section, in the <strong>Department</strong> text box, type <strong>Sales</strong>, and select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, start <strong>Windows PowerShell</strong>.</p>
+  </li>
+  <li>
+    <p>From the <strong>Administrator: Windows PowerShell</strong> console, run the following to start Azure AD Connect delta synchronization:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock2" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock2" class="mt-0"><code class="language-powershell">Import-Module -Name 'C:\Program Files\Microsoft Azure AD Sync\Bin\ADSync\ADSync.psd1'
+
+Start-ADSyncSyncCycle -PolicyType Delta
+</code></pre>
+  </li>
+  <li>
+    <p>Switch to the Microsoft Edge window displaying the <strong>aduser1 | Profile</strong> blade, refresh the page and note that the <strong>Department</strong> property is set to <strong>Sales</strong>.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You might need to wait for another minute and refresh the page again if the <strong>Department</strong> attribute remains not set.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>On the <strong>aduser1 | Profile</strong> blade, select <strong>Edit</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>aduser1 | Profile</strong> blade, in the <strong>Settings</strong> section, in the <strong>Usage location</strong> drop-down list, select <strong>United States</strong> and then select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>aduser1 | Profile</strong> blade, select <strong>Licenses</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>aduser1 | Licenses</strong> blade, select <strong>+ Assignments</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Update license assignments</strong> blade, select the <strong>Azure Active Directory Premium P2</strong> checkbox and select <strong>Save</strong>.</p>
+  </li>
+</ol>
+
+<h3 id="exercise-3-implement-azure-ad-conditional-access">Exercise 3: Implement Azure AD conditional access</h3>
+
+<p>The main tasks for this exercise are as follows:</p>
+
+<ol>
+  <li>
+    <p>Disable Azure AD security defaults.</p>
+  </li>
+  <li>
+    <p>Create an Azure AD conditional access policy</p>
+  </li>
+  <li>
+    <p>Verify Azure AD conditional access</p>
+  </li>
+  <li>
+    <p>Remove Azure resources deployed in the lab</p>
+  </li>
+</ol>
+
+<h4 id="task-1-disable-azure-ad-security-defaults">Task 1: Disable Azure AD security defaults.</h4>
+
+<ol>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, in the Microsoft Edge window displaying the Azure portal, navigate to the **Adatum Lab</td>
+          <td>Overview** blade of the Adatum Lab Azure AD tenant.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **Adatum Lab</td>
+          <td>Overview** blade, in the <strong>Manage</strong> section, select <strong>Properties</strong>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>On the **Adatum Lab</td>
+          <td>Properties** blade, select the <strong>Manage Security defaults</strong> link at the bottom of the page.</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>On the <strong>Enable Security defaults</strong> blade, set <strong>Enable Security defaults</strong> switch to <strong>No</strong>, select the checkbox <strong>My organization is using Conditional Access</strong>, and select <strong>Save</strong>.</li>
+</ol>
+
+<h4 id="task-2-create-an-azure-ad-conditional-access-policy">Task 2: Create an Azure AD conditional access policy</h4>
+
+<ol>
+  <li>
+    <p>On the <strong>Adatum Lab | Properties</strong> blade, in the <strong>Manage</strong> section, select the <strong>Security</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Security | Getting started</strong> blade, select <strong>Conditional Access</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Conditional Access | Policies</strong> blade, select <strong>+ New policy</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>New</strong> blade, in the <strong>Name</strong> text box, type <strong>Azure portal MFA enforcement</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>New</strong> blade, in the <strong>Assignments</strong> section, select <strong>Users and groups</strong>, on the <strong>Include</strong> tab, select <strong>Select users and groups</strong>, select the <strong>Users and groups</strong> checkbox, on the <strong>Select</strong> blade, select <strong>aduser1</strong>, and confirm your choice by clicking <strong>Select</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>New</strong> blade, in the <strong>Assignments</strong> section, select <strong>Cloud apps or actions</strong>, on the <strong>Include</strong> tab, select <strong>Select apps</strong>, click <strong>Select</strong>, on the <strong>Select</strong> blade, select <strong>Microsoft Azure Management</strong> checkbox, and confirm your choice by clicking <strong>Select</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>New</strong> blade, in the <strong>Access controls</strong> section, select <strong>Grant</strong>, on the <strong>Grant</strong> blade, ensure that the <strong>Grant</strong> option is selected, select <strong>Require multi-factor authentication</strong>, and confirm your choice by clicking <strong>Select</strong>.</p>
+  </li>
+  <li>
+    <p>Back on the <strong>New</strong> blade, set the <strong>Enable policy</strong> switch to <strong>On</strong> and select <strong>Create</strong>.</p>
+  </li>
+</ol>
+
+<h4 id="task-3-verify-azure-ad-conditional-access">Task 3: Verify Azure AD conditional access</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, in the <strong>Microsoft Edge</strong> window, select <strong>Settings</strong> menu header, in the <strong>Settings</strong> menu, select <strong>Safety</strong>, in the cascading menu, select <strong>InPrivate Browsing</strong>, and, in the InPrivate Microsoft Edge window, navigate to the Access Panel Applications portal <a href="https://myapplications.microsoft.com">https://myapplications.microsoft.com</a>.</p>
+  </li>
+  <li>
+    <p>When prompted, sign in by using the synchronized Azure AD account of the <strong>aduser1</strong>, using the full user name you recorded in the previous exercise and the <strong>Pa55w.rd1234</strong> password.</p>
+  </li>
+  <li>
+    <p>Verify that you can successfully sign in to the Access Panel Applications portal.</p>
+  </li>
+  <li>
+    <p>In the same browser window, navigate to the <a href="https://portal.azure.com">Azure portal</a>.</p>
+  </li>
+  <li>
+    <p>Note that, this time, you are presented with the message <strong>More information required</strong>. Within the page displaying the message, select <strong>Next</strong>.</p>
+  </li>
+  <li>
+    <p>At that point, you will be redirected to the <strong>Additional security verification</strong> page, which will step you through configuring multi-factor authentication.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: Completing the multi-factor authentication configuration is optional. If you proceed, you will need to designate your mobile device as an authentication phone or to use it to run a mobile app.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h4 id="task-4-remove-azure-resources-deployed-in-the-lab">Task 4: Remove Azure resources deployed in the lab</h4>
+
+<ol>
+  <li>
+    <p>Within the Remote Desktop session to <strong>az30410a-vm1</strong>, download the installation package of Microsoft Online Services Sign-In Assistant for IT Professionals RTW at <a href="__https_/download.microsoft.com/download/7/1/E/71EF1D05-A42C-4A1F-8162-96494B5E615C/msoidcli_64bit.msi__/">https://download.microsoft.com/download/7/1/E/71EF1D05-A42C-4A1F-8162-96494B5E615C/msoidcli_64bit.msi</a>.</p>
+  </li>
+  <li>
+    <p>Once you download <code>msi</code> package, run it with the default options.</p>
+  </li>
+  <li>
+    <p>Once the setup completes, within the Remote Desktop session to <strong>az30410a-vm1</strong>, start <strong>Windows PowerShell</strong> console.</p>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell</strong> window, run the following to install the required PowerShell module:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock3" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock3" class="mt-0"><code class="language-powershell">[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+Install-Module MSOnline -Force
+</code></pre>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell</strong> window, run the following to authenticate to the <strong>Adatum Lab</strong> Azure AD tenant:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock4" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock4" class="mt-0"><code class="language-powershell">Connect-MsolService
+</code></pre>
+  </li>
+  <li>
+    <p>When prompted to authenticate, provide the credentials of the <strong>az30410-aaduser1</strong> user account.</p>
+  </li>
+  <li>
+    <p>In the <strong>Administrator: Windows PowerShell</strong> window, run the following to disable Azure AD Connect synchronization:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock5" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock5" class="mt-0"><code class="language-powershell">Set-MsolDirSyncEnabled -EnableDirSync $false -Force
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: If you receive an error message at this point, you might have to wait for up to 12 hours and try again.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the lab computer, in the browser window displaying the Azure portal, switch to the <strong>Adatum Lab</strong> tenant, navigate to the <strong>Azure Active Directory Premium P2 - Licensed users</strong> blade, select the user accounts to which you assigned licenses in this lab, select <strong>Remove license</strong>, and, when prompted to confirm, select <strong>OK</strong>.</p>
+  </li>
+  <li>
+    <p>In the Azure portal, navigate to the <strong>Users - All users</strong> blade and ensure that all user accounts you created in this lab are no longer listed as <strong>Directory synced</strong>.</p>
+  </li>
+  <li>
+    <p>On the <strong>Users - All users</strong> blade, select each user accounts you created in this lab and select <strong>Delete</strong> in the toolbar.</p>
+  </li>
+  <li>
+    <p>Navigate to the <strong>Adatum Lab - Overview</strong> blade of the Adatum Lab Azure AD tenant, select <strong>Delete tenant</strong>, on the <strong>Delete directory ‘Adatum Lab’</strong> blade, select the <strong>Get permission to delete Azure resources</strong> link, on the <strong>Properties</strong> blade of Azure Active Directory, set <strong>Access management for Azure resources</strong> to <strong>Yes</strong> and select <strong>Save</strong>.</p>
+  </li>
+  <li>
+    <p>Sign out from the Azure portal and sign in back.</p>
+  </li>
+  <li>
+    <p>Navigate back to the <strong>Delete directory ‘Adatum Lab’</strong> blade and select <strong>Delete</strong>.</p>
+  </li>
+  <li>
+    <p>On the lab computer, in the browser window displaying the Azure portal, make sure you are connected to the original Azure Active Directory tenant, and start a PowerShell session within the Cloud Shell pane.</p>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to list the resource group you created in this exercise:</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock6" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock6" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30410*'
+</code></pre>
+
+    <blockquote>
+      <p><strong>Note</strong>: Verify that the output contains only the resource group you created in this lab. This group will be deleted in this task.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>From the Cloud Shell pane, run the following to delete the resource group you created in this lab</p>
+
+    <div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock7" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock7" class="mt-0"><code class="language-powershell">Get-AzResourceGroup -Name 'az30410*' | Remove-AzResourceGroup -Force -AsJob
+</code></pre>
+  </li>
+  <li>
+    <p>Close the Cloud Shell pane.</p>
+  </li>
+</ol>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/AZ-304-Microsoft-Azure-Architect-Design" target="_blank" class="ml-2">
+                    MicrosoftLearning/AZ-304-Microsoft-Azure-Architect-Design
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../../assets/js/script_v%3D.js"></script>
+
+
+
+</body></html>
