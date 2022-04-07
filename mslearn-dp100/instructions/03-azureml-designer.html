@@ -1,0 +1,306 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            mslearn-dp100
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3De7ce96022ed322a9747ca6ec3caf882aab262f3c.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                mslearn-dp100
+            </a>
+            <a href="https://github.com/MicrosoftLearning/mslearn-dp100" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="use-azure-machine-learning-designer">Use Azure Machine Learning Designer</h1>
+
+<p>Azure Machine Learning <em>designer</em> provides a drag &amp; drop environment in which you can define a workflow, or <em>pipeline</em> of data ingestion, transformation, and model training modules to create a machine learning model. You can then publish this pipeline as a web service that client applications can use for <em>inferencing</em> (generating predictions from new data).</p>
+
+<h2 id="before-you-start">Before You Start</h2>
+
+<p>If you have not already done so, complete the <em><a href="01-create-a-workspace.html">Create an Azure Machine Learning Workspace</a></em> exercise to create an Azure Machine Learning workspace and compute instance, and clone the notebooks required for this exercise.</p>
+
+<h2 id="configure-compute-resources">Configure compute resources</h2>
+
+<p>To use Azure Machine Learning designer, you require compute on which to run the model training experiment.</p>
+
+<ol>
+  <li>Sign into <a href="https://ml.azure.com?azure-portal=true">Azure Machine Learning studio</a> with the Microsoft credentials associated with your Azure subscription, and select your Azure Machine Learning workspace.</li>
+  <li>In Azure Machine Learning studio, view the <strong>Compute</strong> page; and on the <strong>Compute instances</strong> tab, start your compute instance if it is not already running. You will use this compute instance to test your trained model.</li>
+  <li>While the compute instance is starting, switch to the <strong>Compute clusters</strong> tab. If you don’t already have an existing compute cluster, add a new compute cluster with the following settings. You will use this cluster to run the training pipeline.
+    <ul>
+      <li><strong>Region</strong>: <em>The same region as your workspace</em></li>
+      <li><strong>Virtual Machine priority</strong>: Dedicated</li>
+      <li><strong>Virtual Machine type</strong>: CPU</li>
+      <li><strong>Virtual Machine size</strong>: Standard_DS11_v2</li>
+      <li><strong>Compute name</strong>: <em>enter a unique name</em></li>
+      <li><strong>Minimum number of nodes</strong>: 0</li>
+      <li><strong>Maximum number of nodes</strong>: 2</li>
+      <li><strong>Idle seconds before scale down</strong>: 120</li>
+      <li><strong>Enable SSH access</strong>: Unselected</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="review-the-training-dataset">Review the training dataset</h2>
+
+<p>Now that you have some compute resources that you can use to run a training pipeline, you’ll need some data to train the model.</p>
+
+<ol>
+  <li>In Azure Machine Learning studio, view the <strong>Datasets</strong> page. Datasets represent specific data files or tables that you plan to work with in Azure ML.</li>
+  <li>If you have previously created the <strong>diabetes dataset</strong> dataset, open it. Otherwise, create a new dataset from web files, using the following settings, and then open it:
+    <ul>
+      <li><strong>Basic Info</strong>:
+        <ul>
+          <li><strong>Web URL</strong>: https://aka.ms/diabetes-data</li>
+          <li><strong>Name</strong>: diabetes dataset</li>
+          <li><strong>Dataset type</strong>: Tabular</li>
+          <li><strong>Description</strong>: Diabetes data</li>
+        </ul>
+      </li>
+      <li><strong>Settings and preview</strong>:
+        <ul>
+          <li><strong>File format</strong>: Delimited</li>
+          <li><strong>Delimiter</strong>: Comma</li>
+          <li><strong>Encoding</strong>: UTF-8</li>
+          <li><strong>Column headers</strong>: Use headers from first file</li>
+          <li><strong>Skip rows</strong>: None</li>
+        </ul>
+      </li>
+      <li><strong>Schema</strong>:
+        <ul>
+          <li>Include all columns other than <strong>Path</strong></li>
+          <li>Review the automatically detected types</li>
+        </ul>
+      </li>
+      <li><strong>Confirm details</strong>:
+        <ul>
+          <li>Do not profile the dataset after creation</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>View the <strong>Explore</strong> page to see a sample of the data. This data represents details from patients who have been tested for diabetes, and you will use it to train a model that predicts the likelihood of a patient testing positive for diabetes based on clinical measurements.</li>
+</ol>
+
+<h2 id="create-a-designer-pipeline">Create a designer pipeline</h2>
+
+<p>To get started with designer, first you must create a pipeline and add the dataset you want to work with.</p>
+
+<ol>
+  <li>In Azure Machine Learning studio, view the <strong>Designer</strong> page and create a new pipeline.</li>
+  <li>Change the default pipeline name (<strong>Pipeline-Created-on-<em>date</em></strong>) to <strong>Visual Diabetes Training</strong> By clicking on the default name (or click the <strong>⚙</strong> icon next to the pipeline name and change from there)</li>
+  <li>Note that you need to specify a compute target on which to run the pipeline. In the <strong>Settings</strong> pane, click <strong>Select compute target</strong> and select your compute cluster.</li>
+  <li>On the left side of the designer, expand the <strong>Datasets</strong> section, and drag the <strong>diabetes dataset</strong> dataset onto the canvas.</li>
+  <li>Select the <strong>diabetes dataset</strong> module on the canvas. Then right-click it, and select <strong>Preview data</strong>.</li>
+  <li>In the DatasetOutput pane, select the <strong>Profile</strong> tab.</li>
+  <li>Review the schema of the data, noting that you can see the distributions of the various columns as histograms. Then close the visualization.</li>
+</ol>
+
+<h2 id="add-transformations">Add transformations</h2>
+
+<p>Before you can train a model, you typically need to apply some preprocessing transformations to the data.</p>
+
+<ol>
+  <li>In the pane on the left, expand the <strong>Data Transformation</strong> section, which contains a wide range of modules you can use to transform data before model training.</li>
+  <li>Drag a <strong>Normalize Data</strong> module to the canvas, below the <strong>diabetes dataset</strong> module. Then connect the output from the <strong>diabetes dataset</strong> module to the input of the <strong>Normalize Data</strong> module.</li>
+  <li>Select the <strong>Normalize Data</strong> module and view its settings, noting that it requires you to specify the transformation method and the columns to be transformed. Then, leaving the transformation as <strong>ZScore</strong>, edit the columns to includes the following column names:
+    <ul>
+      <li>PlasmaGlucose</li>
+      <li>DiastolicBloodPressure</li>
+      <li>TricepsThickness</li>
+      <li>SerumInsulin</li>
+      <li>BMI</li>
+      <li>DiabetesPedigree</li>
+    </ul>
+
+    <p><strong>Note</strong>: We’re normalizing the numeric columns put them on the same scale, and avoid columns with large values dominating model training. You’d normally apply a whole bunch of pre-processing transformations like this to prepare your data for training, but we’ll keep things simple in this exercise.</p>
+  </li>
+  <li>Now we’re ready to split the data into separate datasets for training and validation. In the pane on the left, in the <strong>Data Transformations</strong> section, drag a <strong>Split Data</strong> module onto the canvas under the <strong>Normalize Data</strong> module. Then connect the <em>Transformed Dataset</em> (left) output of the <strong>Normalize Data</strong> module to the input of the <strong>Split Data</strong> module.</li>
+  <li>Select the <strong>Split Data</strong> module, and configure its settings as follows:
+    <ul>
+      <li><strong>Splitting mode</strong> Split Rows</li>
+      <li><strong>Fraction of rows in the first output dataset</strong>: 0.7</li>
+      <li><strong>Random seed</strong>: 123</li>
+      <li><strong>Stratified split</strong>: False</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="add-model-training-modules">Add model training modules</h2>
+
+<p>With the data prepared and split into training and validation datasets, you’re ready to configure the pipeline to train and evaluate a model.</p>
+
+<ol>
+  <li>Expand the <strong>Model Training</strong> section in the pane on the left, and drag a <strong>Train Model</strong> module to the canvas, under the <strong>Split Data</strong> module. Then connect the <em>Result dataset1</em> (left) output of the <strong>Split Data</strong> module to the <em>Dataset</em> (right) input of the <strong>Train Model</strong> module.</li>
+  <li>The model we’re training will predict the <strong>Diabetic</strong> value, so select the <strong>Train Model</strong> module and modify its settings to set the <strong>Label column</strong> to  <strong>Diabetic</strong> (matching the case and spelling exactly!)</li>
+  <li>The <strong>Diabetic</strong> label the model will predict is a binary column (1 for patients who have diabetes, 0 for patients who don’t), so we need to train the model using a <em>classification</em> algorithm. Expand the <strong>Machine Learning Algorithms</strong> section, and under <strong>Classification</strong>, drag a <strong>Two-Class Logistic Regression</strong> module to the canvas, to the left of the <strong>Split Data</strong> module and above the <strong>Train Model</strong> module. Then connect its output to the <strong>Untrained model</strong> (left) input of the <strong>Train Model</strong> module.</li>
+  <li>To test the trained model, we need to use it to score the validation dataset we held back when we split the original data. Expand the <strong>Model Scoring &amp; Evaluation</strong> section and drag a <strong>Score Model</strong> module to the canvas, below the <strong>Train Model</strong> module. Then connect the output of the <strong>Train Model</strong> module to the <strong>Trained model</strong> (left) input of the <strong>Score Model</strong> module; and drag the <strong>Results dataset2</strong> (right) output of the <strong>Split Data</strong> module to the <strong>Dataset</strong> (right) input of the <strong>Score Model</strong> module.</li>
+  <li>To evaluate how well the model performs, we need to look at some metrics generated by scoring the validation dataset. From the <strong>Model Scoring &amp; Evaluation</strong> section, drag an <strong>Evaluate Model</strong> module to the canvas, under the <strong>Score Model</strong> module, and connect the output of the <strong>Score Model</strong> module to the <strong>Score dataset</strong> (left) input of the <strong>Evaluate Model</strong> module.</li>
+</ol>
+
+<h2 id="run-the-training-pipeline">Run the training pipeline</h2>
+
+<p>With the data flow steps defined, you’re now ready to run the training pipeline and train the model.</p>
+
+<ol>
+  <li>
+    <p>Verify that your pipeline looks similar to the following:</p>
+
+    <p><a href="images/visual-training.jpg" target="_blank"><img src="images/visual-training.jpg" alt="Visual Training Pipeline"></a></p>
+  </li>
+  <li>
+    <p>At the top right, click <strong>Submit</strong>. Then when prompted, create a new experiment named <strong>mslearn-designer-train-diabetes</strong>, and run it.  This will initialize the compute cluster and then run the pipeline, which may take 10 minutes or longer. You  can see the status of the pipeline run above the top right of the design canvas.</p>
+
+    <blockquote>
+      <p><strong>Tip</strong>: If a <strong>GraphDatasetNotFound</strong> error occurs, select the dataset and in its Properties pane, change the <strong>Version</strong> (you can switch between “Always use the latest” and “1”) - then re-run the pipeline.</p>
+
+      <p>While it’s running, you can view the pipeline and experiment that have been created in the <strong>Pipelines</strong> and <strong>Experiments</strong> pages. Switch back to the <strong>Visual Diabetes Training</strong> pipeline on the <strong>Designer</strong> page when you’re done.</p>
+    </blockquote>
+  </li>
+  <li>After the <strong>Normalize Data</strong> module has completed, select it, and in the <strong>Settings</strong> pane, on the <strong>Outputs + logs</strong> tab, under <strong>Data outputs</strong> in the <strong>Transformed dataset</strong> section, click the <strong>Preview data</strong> icon, and note that you can view statistics and distribution visualizations for the transformed columns.</li>
+  <li>
+    <p>Close the <strong>Normalize Data</strong> visualizations and wait for the rest of the modules to complete. Then visualize the output of the <strong>Evaluate Model</strong> module to see the performance metrics for the model.</p>
+
+    <p><strong>Note</strong>: The performance of this model isn’t all that great, partly because we performed only minimal feature engineering and pre-processing. You could try some different classification algorithms and compare the results (you can connect the outputs of the <strong>Split Data</strong> module to multiple <strong>Train Model</strong> and <strong>Score Model</strong> modules, and you can connect a second scored model to the <strong>Evaluate Model</strong> module to see a side-by-side comparison). The point of the exercise is simply to introduce you to the designer interface, not to train a perfect model!</p>
+  </li>
+</ol>
+
+<h2 id="create-an-inference-pipeline">Create an inference pipeline</h2>
+
+<p>Now that you have used a <em>training pipeline</em> to train a model, you can create an <em>inference pipeline</em> that uses the trained model to predict labels for new data.</p>
+
+<ol>
+  <li>In the <strong>Create inference pipeline</strong> drop-down list, click <strong>Real-time inference pipeline</strong>. After a few seconds, a new version of your pipeline named <strong>Visual Diabetes Training-real time inference</strong> will be opened.</li>
+  <li>Rename the new pipeline to <strong>Predict Diabetes</strong>, and then review the new pipeline. Note that the normalization transformation and the trained model have been encapsulated in this pipeline so that the statistics from your training data will be used to normalize any new data values, and the trained model will be used to score the new data.</li>
+  <li>Note that the inference pipeline assumes that new data will match the schema of the original training data, so the <strong>diabetes dataset</strong> dataset from the training pipeline is included. However, this input data includes the <strong>Diabetic</strong> label that the model predicts, which is unintuitive to include in new patient data for which a diabetes prediction has not yet been made.</li>
+  <li>Delete the <strong>diabetes dataset</strong> dataset from the inference pipeline and replace it with an <strong>Enter Data Manually</strong> module from the <strong>Data Input and Output</strong> section; connecting it to the same <strong>dataset</strong> input of the <strong>Apply Transformation</strong> module as the <strong>Web Service Input</strong>. Then modify the settings of the <strong>Enter Data Manually</strong> module to use the following CSV input, which includes feature values without labels for three new patient observations:</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock0" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock0" class="mt-0"><code class="language-CSV">PatientID,Pregnancies,PlasmaGlucose,DiastolicBloodPressure,TricepsThickness,SerumInsulin,BMI,DiabetesPedigree,Age
+1882185,9,104,51,7,24,27.36983156,1.350472047,43
+1662484,6,73,61,35,24,18.74367404,1.074147566,75
+1228510,4,115,50,29,243,34.69215364,0.741159926,59
+</code></pre>
+
+<ol>
+  <li>The inference pipeline includes the <strong>Evaluate Model</strong> module, which is not useful when predicting from new data, so delete this module.</li>
+  <li>The output from the <strong>Score Model</strong> module includes all of the input features as well as the predicted label and probability score. To limit the output to only the prediction and probability, delete the connection between the <strong>Score Model</strong> module and the <strong>Web Service Output</strong>, add an <strong>Execute Python Script</strong> module from the <strong>Python Language</strong> section, connect the output from the <strong>Score Model</strong> module to the <strong>Dataset1</strong> (left-most) input of the <strong>Execute Python Script</strong>, and connect the output of the <strong>Execute Python Script</strong> module to the <strong>Web Service Output</strong>. Then modify the settings of the <strong>Execute Python Script</strong> module to use the following code (replacing all existing code):</li>
+</ol>
+
+<div class="code-header mt-3 mb-0 bg-light d-flex justify-content-between border"><span class="mx-2 text-muted text-capitalize font-weight-light">code</span><button class="m-0 btn btn-code btn-sm btn-light codeBtn rounded-0 border-left text-muted font-weight-light" data-clipboard-target="#codeBlock1" type="button"><i class="fa fa-files-o mr-2" aria-hidden="true"></i>Copy</button></div><pre id="codeBlock1" class="mt-0"><code class="language-Python hljs"><span class="hljs-keyword"><span class="hljs-keyword">import</span></span> pandas <span class="hljs-keyword"><span class="hljs-keyword">as</span></span> pd
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">def</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">azureml_main</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(dataframe1 = None, dataframe2 = None)</span></span></span><span class="hljs-function">:</span></span>
+
+    scored_results = dataframe1[[<span class="hljs-string"><span class="hljs-string">'PatientID'</span></span>, <span class="hljs-string"><span class="hljs-string">'Scored Labels'</span></span>, <span class="hljs-string"><span class="hljs-string">'Scored Probabilities'</span></span>]]
+    scored_results.rename(columns={<span class="hljs-string"><span class="hljs-string">'Scored Labels'</span></span>:<span class="hljs-string"><span class="hljs-string">'DiabetesPrediction'</span></span>,
+                                    <span class="hljs-string"><span class="hljs-string">'Scored Probabilities'</span></span>:<span class="hljs-string"><span class="hljs-string">'Probability'</span></span>},
+                            inplace=<span class="hljs-keyword"><span class="hljs-keyword">True</span></span>)
+    <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> scored_results
+</code></pre>
+<blockquote>
+  <p><strong>Note</strong>: After pasting the code in the <strong>Execute Python Script</strong> module, verify that the code looks similar to the code above. Indentations are important in Python and the module will fail if the indentations are not copied correctly.</p>
+</blockquote>
+
+<ol>
+  <li>
+    <p>Verify that your pipeline looks similar to the following:</p>
+
+    <p><a href="images/visual-inference.jpg" target="_blank"><img src="images/visual-inference.jpg" alt="Visual Inference Pipeline"></a></p>
+  </li>
+  <li>
+    <p>Submit the pipeline as a new experiment named <strong>mslearn-designer-predict-diabetes</strong> on the compute cluster you used for training. This may take a while!</p>
+  </li>
+</ol>
+
+<h2 id="deploy-the-inference-pipeline-as-a-web-service">Deploy the inference pipeline as a web service</h2>
+
+<p>Now you have an inference pipeline for real-time inferencing, which you can deploy as a web service for client applications to use.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: In this exercise, you’ll deploy the web service to to an Azure Container Instance (ACI). This type of compute is created dynamically, and is useful for development and testing. For production, you should create an <em>inference cluster</em>, which provide an Azure Kubernetes Service (AKS) cluster that provides better scalability and security.</p>
+</blockquote>
+
+<ol>
+  <li>If the <strong>Predict Diabetes</strong> inference pipeline has not yet finished running, await it’s completion. Then visualize the <strong>Result dataset</strong> output of the <strong>Execute Python Script</strong> module to see the predicted labels and probabilities for the three patient observations in the input data.</li>
+  <li>At the top right, click <strong>Deploy</strong>, and deploy a new real-time endpoint, using the following settings:
+    <ul>
+      <li><strong>Name</strong>: designer-predict-diabetes</li>
+      <li><strong>Description</strong>: Predict diabetes.</li>
+      <li><strong>Compute type</strong>: Azure Container Instance</li>
+    </ul>
+  </li>
+  <li>Wait for the web service to be deployed - this can take several minutes. The deployment status is shown at the top left of the designer interface.</li>
+</ol>
+
+<h2 id="test-the-web-service">Test the web service</h2>
+
+<p>Now you can test your deployed service from a client application - in this case, you’ll use a notebook.</p>
+
+<ol>
+  <li>On the <strong>Endpoints</strong> page, open the <strong>designer-predict-diabetes</strong> real-time endpoint.</li>
+  <li>When the <strong>designer-predict-diabetes</strong> endpoint opens, on the <strong>Consume</strong> tab, note the <strong>REST endpoint</strong> and <strong>Primary key</strong> values.</li>
+  <li>With the <strong>Consume</strong> page for the <strong>designer-predict-diabetes</strong> service page open in your browser, open a new browser tab and open a second instance of Azure Machine Learning studio. Then in the new tab, view the <strong>Notebooks</strong> page.</li>
+  <li>In the <strong>Notebooks</strong> page, under <strong>My files</strong>, browse to the <strong>/users/<em>your-user-name</em>/mslearn-dp100</strong> folder where you cloned the notebook repository, and open the <strong>Get Designer Prediction</strong> notebook.</li>
+  <li>When the notebook has opened, ensure that the compute instance you created previously is selected in the <strong>Compute</strong> box, and that it has a status of <strong>Running</strong>.</li>
+  <li>In the notebook, replace the <strong>ENDPOINT</strong> and <strong>PRIMARY_KEY</strong> placeholders with the values for your service, which you can copy from the <strong>Consume</strong> tab on the page for your endpoint.</li>
+  <li>Run the code cell and view the output returned by your web service.</li>
+</ol>
+
+<h2 id="clean-up">Clean-up</h2>
+
+<p>The web service you created is hosted in an <em>Azure Container Instance</em>. If you don’t intend to experiment with it further, you should delete the endpoint to avoid accruing unnecessary Azure usage. You should also stop the compute instance until you need it again.</p>
+
+<ol>
+  <li>In Azure Machine Learning studio, on the <strong>Endpoints</strong> tab, select the <strong>designer-predict-diabetes</strong> endpoint. Then click the <strong>Delete</strong> (🗑) button and confirm that you want to delete the endpoint.</li>
+  <li>If you’re finished working with Azure Machine Learning for now, on the <strong>Compute instances</strong> tab, select your compute instance and click <strong>Stop</strong> to shut it down.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: Stopping your compute ensures your subscription won’t be charged for compute resources. You will however be charged a small amount for data storage as long as the Azure Machine Learning workspace exists in your subscription. If you have finished exploring Azure Machine Learning, you can delete the Azure Machine Learning workspace and associated resources. However, if you plan to complete any other labs in this series, you will need to repeat the <em><a href="01-create-a-workspace.html">Create an Azure Machine Learning Workspace</a></em> exercise to create the workspace and prepare the environment first.</p>
+</blockquote>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/mslearn-dp100" target="_blank" class="ml-2">
+                    MicrosoftLearning/mslearn-dp100
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3De7ce96022ed322a9747ca6ec3caf882aab262f3c.js"></script>
+
+
+
+</body></html>

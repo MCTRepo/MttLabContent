@@ -1,0 +1,278 @@
+<!DOCTYPE html><html lang="en"><head>
+        <title>
+            mslearn-dp100
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <link rel="stylesheet" href="../assets/css/style_v%3De7ce96022ed322a9747ca6ec3caf882aab262f3c.css">
+    </head>
+    <body data-spy="scroll" data-target="#linksMenu">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container d-flex justify-content-between">
+            <a class="my-1 title text-azure text-uppercase" href="../">
+                mslearn-dp100
+            </a>
+            <a href="https://github.com/MicrosoftLearning/mslearn-dp100" target="_blank" class="btn btn-sm btn-outline-secondary text-light">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <span class="ml-2">GitHub</span>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+        <main class="row extra-padding">
+            <aside class="col-sm-2">       
+                <nav id="linksMenu" class="toc sticky-top">
+                    <ul class="nav navbar-nav flex-column">
+                    </ul>
+                </nav>         
+            </aside>
+            <hr class>
+            <article class="col-sm-10 mb-5">
+                <h1 id="use-automated-machine-learning">Use Automated Machine Learning</h1>
+
+<p>Azure Machine Learning includes an <em>automated machine learning</em> capability that leverages the scalability of cloud compute to automatically try multiple pre-processing techniques and model-training algorithms in parallel to find the best performing supervised machine learning model for your data.</p>
+
+<p>In this exercise, you’ll use the visual interface for automated machine learning in Azure Machine Learning studio</p>
+
+<blockquote>
+  <p><strong>Note</strong>: You can also use automated machine learning through the Azure Machine Learning SDK.</p>
+</blockquote>
+
+<h2 id="before-you-start">Before you start</h2>
+
+<p>If you have not already done so, complete the <em><a href="01-create-a-workspace.html">Create an Azure Machine Learning Workspace</a></em> exercise to create an Azure Machine Learning workspace and compute instance, and clone the notebooks required for this exercise.</p>
+
+<h2 id="configure-compute-resources">Configure compute resources</h2>
+
+<p>To use automated machine learning, you require compute on which to run the model training experiment.</p>
+
+<ol>
+  <li>Sign into <a href="https://ml.azure.com?azure-portal=true">Azure Machine Learning studio</a> with the Microsoft credentials associated with your Azure subscription, and select your Azure Machine Learning workspace.</li>
+  <li>In Azure Machine Learning studio, view the <strong>Compute</strong> page; and on the <strong>Compute instances</strong> tab, start your compute instance if it is not already running. You will use this compute instance to test your trained model.</li>
+  <li>While the compute instance is starting, switch to the <strong>Compute clusters</strong> tab, and add a new compute cluster with the following settings. You’ll run the automated machine learning experiment on this cluster to take advantage of the ability to distribute the training runs across multiple compute nodes:
+    <ul>
+      <li><strong>Location</strong>: <em>The same location as your workspace</em></li>
+      <li><strong>Virtual Machine tier</strong>: Dedicated</li>
+      <li><strong>Virtual Machine type</strong>: CPU</li>
+      <li><strong>Virtual Machine size</strong>: Standard_DS11_v2</li>
+      <li><strong>Compute name</strong>: <em>enter a unique name</em></li>
+      <li><strong>Minimum number of nodes</strong>: 0</li>
+      <li><strong>Maximum number of nodes</strong>: 2</li>
+      <li><strong>Idle seconds before scale down</strong>: 120</li>
+      <li><strong>Enable SSH access</strong>: Unselected</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="create-a-dataset">Create a dataset</h2>
+
+<p>Now that you have some compute resources that you can use to process data, you’ll need a way to store and ingest the data to be processed.</p>
+
+<ol>
+  <li>View the comma-separated data at https://aka.ms/diabetes-data in your web browser. Then save this as a local file named <strong>diabetes.csv</strong> (it doesn’t matter where you save it).</li>
+  <li>In Azure Machine Learning studio, view the <strong>Datasets</strong> page. Datasets represent specific data files or tables that you plan to work with in Azure ML.</li>
+  <li>Create a new dataset from local files, using the following settings:
+    <ul>
+      <li><strong>Basic Info</strong>:
+        <ul>
+          <li><strong>Name</strong>: diabetes dataset</li>
+          <li><strong>Dataset type</strong>: Tabular</li>
+          <li><strong>Description</strong>: Diabetes data</li>
+        </ul>
+      </li>
+      <li><strong>Datastore and file selection</strong>:
+        <ul>
+          <li><strong>Select or create a datastore</strong>: Currently selected datastore</li>
+          <li><strong>Select files for your dataset</strong>: Browse to the <strong>diabetes.csv</strong> file you downloaded.</li>
+          <li><strong>Upload path</strong>: <em>Leave the default selection</em></li>
+          <li><strong>Skip data validation</strong>: Not selected</li>
+        </ul>
+      </li>
+      <li><strong>Settings and preview</strong>:
+        <ul>
+          <li><strong>File format</strong>: Delimited</li>
+          <li><strong>Delimiter</strong>: Comma</li>
+          <li><strong>Encoding</strong>: UTF-8</li>
+          <li><strong>Column headers</strong>: Only first file has headers</li>
+          <li><strong>Skip rows</strong>: None</li>
+        </ul>
+      </li>
+      <li><strong>Schema</strong>:
+        <ul>
+          <li>Include all columns other than <strong>Path</strong></li>
+          <li>Review the automatically detected types</li>
+        </ul>
+      </li>
+      <li><strong>Confirm details</strong>:
+        <ul>
+          <li>Do not profile the dataset after creation</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>After the dataset has been created, open it and view the <strong>Explore</strong> page to see a sample of the data. This data represents details from patients who have been tested for diabetes, and you will use it to train a model that predicts the likelihood of a patient testing positive for diabetes based on clinical measurements.</p>
+
+    <blockquote>
+      <p><strong>Note</strong>: You can optionally generate a <em>profile</em> of the dataset to see more statistical details.</p>
+    </blockquote>
+  </li>
+</ol>
+
+<h2 id="run-an-automated-machine-learning-experiment">Run an automated machine learning experiment</h2>
+
+<p>In Azure Machine Learning, operations that you run are called <em>experiments</em>. Follow the steps below to run an experiment that uses automated machine learning to train a classification model that predicts diabetes diagnoses.</p>
+
+<ol>
+  <li>In Azure Machine Learning studio, view the <strong>Automated ML</strong> page (under <strong>Author</strong>).</li>
+  <li>Create a new Automated ML run with the following settings:
+    <ul>
+      <li><strong>Select dataset</strong>:
+        <ul>
+          <li><strong>Dataset</strong>: diabetes dataset</li>
+        </ul>
+      </li>
+      <li><strong>Configure run</strong>:
+        <ul>
+          <li><strong>New experiment name</strong>: mslearn-automl-diabetes</li>
+          <li><strong>Target column</strong>: Diabetic (<em>this is the label the model will be trained to predict)</em></li>
+          <li><strong>Select compute type</strong>: Compute cluster</li>
+          <li><strong>Select Azure ML compute cluster</strong>: <em>the compute cluster you created previously</em></li>
+        </ul>
+      </li>
+      <li><strong>Task type and settings</strong>:
+        <ul>
+          <li><strong>Task type</strong>: Classification</li>
+          <li>Select <strong>View additional configuration settings</strong> to open <strong>Additional configurations</strong>:
+            <ul>
+              <li><strong>Primary metric</strong>: Select <strong>AUC_Weighted</strong> <em>(more about this metric later!)</em></li>
+              <li><strong>Explain best model</strong>: Selected - <em>this option causes automated machine learning to calculate feature importance for the best model; making it possible to determine the influence of each feature on the predicted label.</em></li>
+              <li><strong>Use all supported models</strong>: <u>Un</u>selected - we’ll restrict the experiment to try a few specific algorithms.</li>
+              <li><strong>Allowed models</strong>: Select only <strong>LogisticRegression</strong> and <strong>RandomForest</strong>. These will be the only algorithms tried in the experiment.</li>
+              <li><strong>Exit criterion</strong>:
+                <ul>
+                  <li><strong>Training job time (hours)</strong>: 0.5 - <em>this causes the experiment to end after a maximum of 30 minutes.</em></li>
+                  <li><strong>Metric score threshold</strong>: 0.90 - <em>this causes the experiment to end if a model achieves a weighted AUC metric of 90% or higher.</em></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>Select <strong>View featurization settings</strong> to open <strong>Featurization</strong>:
+            <ul>
+              <li><strong>Enable featurization</strong>: Selected - <em>this causes Azure Machine Learning to automatically preprocess the features before training.</em></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><strong>Select the validation and test type</strong>:
+        <ul>
+          <li><strong>Validation type</strong>: Train-validation split</li>
+          <li><strong>Percentage validation of data</strong>: 30</li>
+          <li><strong>Test dataset</strong>: No test dataset required</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>When you finish submitting the automated ML run details, it will start automatically. You can observe the status of the run in the <strong>Properties</strong> pane.</li>
+  <li>When the run status changes to <em>Running</em>, view the <strong>Models</strong> tab and observe as each possible combination of training algorithm and pre-processing steps is tried and the performance of the resulting model is evaluated. The page will automatically refresh periodically, but you can also select <strong>↻ Refresh</strong>. It may take ten minutes or so before models start to appear, as the cluster nodes need to be initialized and the data featurization process completed before training can begin. Now might be a good time for a coffee break!</li>
+  <li>Wait for the experiment to finish.</li>
+</ol>
+
+<h2 id="review-the-best-model">Review the best model</h2>
+
+<p>After the experiment has finished; you can review the best performing model that was generated (note that in this case, we used exit criteria to stop the experiment - so the “best” model found by the experiment may not be the best possible model, just the best one found within the time and metric constraints allowed for this exercise!).</p>
+
+<ol>
+  <li>On the <strong>Details</strong> tab of the automated machine learning run, note the best model summary.</li>
+  <li>
+    <p>Select the <strong>Algorithm name</strong> for the best model to view the child-run that produced it.</p>
+
+    <p>The best model is identified based on the evaluation metric you specified (<em>AUC_Weighted</em>). To calculate this metric, the training process used some of the data to train the model, and applied a technique called <em>cross-validation</em> to iteratively test the trained model with data it wasn’t trained with and compare the predicted value with the actual known value. From these comparisons, a <em>confusion matrix</em> of true-positives, false-positives,true-negatives, and false-negatives is tabulated and additional classification metrics calculated - including a Receiving Operator Curve (ROC) chart that compares the True-Positive rate and False-Positive rate. The area under this curve (AUC) us a common metric used to evaluate classification performance.</p>
+  </li>
+  <li>Next to the <em>AUC_Weighted</em> value, select <strong>View all other metrics</strong> to see values of other possible evaluation metrics for a classification model.</li>
+  <li>Select the <strong>Metrics</strong> tab and review the performance metrics you can view for the model. These include a <strong>confusion_matrix</strong> visualization showing the confusion matrix for the validated model, and an <strong>accuracy_table</strong> visualization that includes the ROC chart.</li>
+  <li>Select the <strong>Explanations</strong> tab, select an <strong>Explanation ID</strong>, and then view the <strong>Aggregate Importance</strong> page. This shows the extent to which each feature in the dataset influences the label prediction.</li>
+</ol>
+
+<h2 id="deploy-a-predictive-service">Deploy a predictive service</h2>
+
+<p>After you’ve used automated machine learning to train some models, you can deploy the best performing model as a service for client applications to use.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: In Azure Machine Learning, you can deploy a service as an Azure Container Instances (ACI) or to an Azure Kubernetes Service (AKS) cluster. For production scenarios, an AKS deployment is recommended, for which you must create an <em>inference cluster</em> compute target. In this exercise, you’ll use an ACI service, which is a suitable deployment target for testing, and does not require you to create an inference cluster.</p>
+</blockquote>
+
+<ol>
+  <li>Select the <strong>Details</strong> tab for the run that produced the best model.</li>
+  <li>From the <strong>Deploy</strong> option, use the <strong>Deploy to web service</strong> button to deploy the model with the following settings:
+    <ul>
+      <li><strong>Name</strong>: auto-predict-diabetes</li>
+      <li><strong>Description</strong>: Predict diabetes</li>
+      <li><strong>Compute type</strong>: Azure Container Instance</li>
+      <li><strong>Enable authentication</strong>: Selected</li>
+      <li><strong>Use custom deployment assets</strong>: Unselected</li>
+    </ul>
+  </li>
+  <li>Wait for the deployment to start - this may take a few seconds. Then, on the <strong>Model</strong> tab, in the <strong>Model summary</strong> section, observe the <strong>Deploy status</strong> for the <strong>auto-predict-diabetes</strong> service, which should be <strong>Running</strong>. Wait for this status to change to <strong>Successful</strong>. You may need to select <strong>↻ Refresh</strong> periodically.  <strong>NOTE</strong> This can take a while - be patient!</li>
+  <li>In Azure Machine Learning studio, view the <strong>Endpoints</strong> page and select the <strong>auto-predict-diabetes</strong> real-time endpoint. Then select the <strong>Consume</strong> tab and note the following information there. You need this information to connect to your deployed service from a client application.
+    <ul>
+      <li>The REST endpoint for your service</li>
+      <li>the Primary Key for your service</li>
+    </ul>
+  </li>
+  <li>Note that you can use the ⧉ link next to these values to copy them to the clipboard.</li>
+</ol>
+
+<h2 id="test-the-deployed-service">Test the deployed service</h2>
+
+<p>Now that you’ve deployed a service, you can test it using some simple code.</p>
+
+<ol>
+  <li>With the <strong>Consume</strong> page for the <strong>auto-predict-diabetes</strong> service page open in your browser, open a new browser tab and open a second instance of Azure Machine Learning studio. Then in the new tab, view the <strong>Notebooks</strong> page.</li>
+  <li>In the <strong>Notebooks</strong> page, under <strong>My files</strong>, browse to the <strong>/users/<em>your-user-name</em>/mslearn-dp100</strong> folder where you cloned the notebook repository, and open the <strong>Get AutoML Prediction</strong> notebook.</li>
+  <li>When the notebook has opened, ensure that the compute instance you created previously is selected in the <strong>Compute</strong> box, and that it has a status of <strong>Running</strong>.</li>
+  <li>In the notebook, replace the <strong>ENDPOINT</strong> and <strong>PRIMARY_KEY</strong> placeholders with the values for your service, which you can copy from the <strong>Consume</strong> tab on the page for your endpoint.</li>
+  <li>Run the code cell and view the output returned by your web service.</li>
+</ol>
+
+<h2 id="clean-up">Clean-up</h2>
+
+<p>The web service you created is hosted in an <em>Azure Container Instance</em>. If you don’t intend to experiment with it further, you should delete the endpoint to avoid accruing unnecessary Azure usage. You should also stop the compute instance until you need it again.</p>
+
+<ol>
+  <li>In Azure Machine Learning studio, on the <strong>Endpoints</strong> tab, select the <strong>auto-predict-diabetes</strong> endpoint. Then select <strong>Delete</strong> (🗑) and confirm that you want to delete the endpoint.</li>
+  <li>On the <strong>Compute</strong> page, on the <strong>Compute Instances</strong> tab, select your compute instance and then select <strong>Stop</strong>.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Note</strong>: Stopping your compute ensures your subscription won’t be charged for compute resources. You will however be charged a small amount for data storage as long as the Azure Machine Learning workspace exists in your subscription. If you have finished exploring Azure Machine Learning, you can delete the Azure Machine Learning workspace and associated resources. However, if you plan to complete any other labs in this series, you will need to repeat the <em><a href="01-create-a-workspace.html">Create an Azure Machine Learning Workspace</a></em> exercise to create the workspace and prepare the environment first.</p>
+</blockquote>
+
+            </article>
+        </main>
+    </div>
+    <footer class="fixed-bottom d-print-none">
+        <nav class="navbar navbar-light bg-light d-flex justify-content-around">
+            <span class="navbar-text">
+                <i class="fa fa-github" aria-hidden="true"></i>
+                <a href="https://github.com/MicrosoftLearning/mslearn-dp100" target="_blank" class="ml-2">
+                    MicrosoftLearning/mslearn-dp100
+                </a>
+            </span>
+        </nav>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="../assets/js/script_v%3De7ce96022ed322a9747ca6ec3caf882aab262f3c.js"></script>
+
+
+
+</body></html>
